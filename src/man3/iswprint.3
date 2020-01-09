@@ -1,0 +1,66 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single Unix specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ISWPRINT 3 "25 juillet 1999" GNU "Manuel du programmeur Linux"
+.SH NOM
+iswprint \- Vérifier si un caractère large est imprimable.
+.SH SYNOPSIS
+.nf
+\fB#include <wctype.h>\fP
+.sp
+\fBint iswprint(wint_t \fP\fIwc\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBiswprint\fP() est l'équivalent pour les caractères larges de la
+fonction \fBisprint\fP(3). Elle teste si le caractère large \fIwc\fP appartient à
+la classe de caractères «\ print\ ».
+.PP
+La classe de caractères «\ print\ » est disjointe de la classe «\ cntrl\ ».
+.PP
+La classe «\ print\ » contient la classe «\ graph\ ».
+.SH "VALEUR RENVOYÉE"
+La fonction \fBiswprint\fP() renvoie une valeur non nulle si le caractère large
+\fIwc\fP appartient à la classe «\ print\ ». Sinon, 0 est renvoyé.
+.SH CONFORMITÉ
+C99.
+.SH NOTES
+Le comportement de la fonction \fBiswprint\fP() dépend de la catégorie
+\fBLC_CTYPE\fP de la localisation en cours.
+.SH "VOIR AUSSI"
+\fBisprint\fP(3), \fBiswctype\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

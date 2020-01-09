@@ -1,0 +1,99 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 2006, 2008, Michael Kerrisk
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FUTIMES 3 "7 avril 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+futimes, lutimes \- Modifier les horodatages d'un fichier
+.SH SYNOPSIS
+.nf
+\fB#include <sys/time.h>\fP
+
+\fBint futimes(int \fP\fIfd\fP\fB, const struct timeval \fP\fItv\fP\fB[2]);\fP
+
+\fBint lutimes(const char *\fP\fIfilename\fP\fB, const struct timeval \fP\fItv\fP\fB[2]);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBfutimes\fP(), \fBlutimes\fP()\ : _BSD_SOURCE
+.SH DESCRIPTION
+La fonction \fBfutimes\fP() change les temps d'accès et de modification d'un
+fichier de la même façon que \fButimes\fP(2), excepté que le fichier dont les
+données temporelles doivent être modifiées, est spécifié via un descripteur
+de fichier, \fIfd\fP au lieu d'un chemin.
+
+La fonction \fBlutimes\fP() change les temps d'accès et de modification d'un
+fichier de la même façon que \fButimes\fP(2), excepté que si \fIfilename\fP fait
+référence à un lien symbolique, le lien n'est pas déréférencé\ : à la place,
+les horodatages du lien symbolique sont modifiés.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+Les erreurs sont les mêmes que pour \fButimes\fP(2), avec en plus pour
+\fBfutimes\fP()\ :
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBENOSYS\fP
+Impossible d'accéder au système de fichiers \fI/proc\fP.
+.SH VERSIONS
+\fBfutimes\fP() est disponible depuis la glibc\ 2.3. \fBlutimes\fP() est disponible
+depuis la glibc\ 2.6 et est implémentée en utilisant l'appel système
+\fButimensat\fP(2) qui est pris en charge depuis le noyau\ 2.6.22.
+.SH CONFORMITÉ
+Ces fonctions ne sont spécifiées par aucune norme. En dehors Linux, elles ne
+sont disponibles que sous les BSD.
+.SH "VOIR AUSSI"
+\fButimensat\fP(2), \fButime\fP(2), \fBsymlink\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

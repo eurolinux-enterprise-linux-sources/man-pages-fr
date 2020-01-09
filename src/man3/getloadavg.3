@@ -1,0 +1,89 @@
+.\" Copyright (c) 1989, 1991, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)getloadavg.3	8.1 (Berkeley) 6/4/93
+.\"
+.\" 2007-12-08, mtk, Converted from mdoc to man macros
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETLOADAVG 3 "8 décembre 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+getloadavg \- Renvoie les moyennes de la charge du système
+.SH SYNOPSIS
+.nf
+\fB#define _BSD_SOURCE\fP
+\fB#include <stdlib.h>\fP
+.sp
+\fBint getloadavg(double \fP\fIloadavg[]\fP\fB, int \fP\fInelem\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBgetloadavg\fP() renvoie le nombre de processus présents dans la
+file des processus prêts du système. Ce nombre est une moyenne réalisée sur
+diverses périodes. Jusqu'à \fInelem\fP acquisitions sont réalisées et affectées
+aux éléments successifs de \fIloadavg\fP[]. Le système impose un maximum de 3
+échantillonnages, représentant des moyennes sur respectivement la dernière
+minute, les 5 dernières minutes et les 15 dernières minutes.
+.SH "VALEUR RENVOYÉE"
+.\" .SH HISTORY
+.\" The
+.\" BR getloadavg ()
+.\" function appeared in
+.\" 4.3BSD Reno .
+Si la charge moyenne n'a pas pu être obtenue, \-1 est renvoyé\ ; sinon, le
+nombre d'acquisitions effectivement réalisées est renvoyé.
+.SH VERSIONS
+Cette fonction est disponible dans la glibc depuis la version\ 2.2.
+.SH CONFORMITÉ
+.\" mdoc seems to have a bug - there must be no newline here
+Absent de POSIX.1\-2001. Présent sur les systèmes BSD et Solaris.
+.SH "VOIR AUSSI"
+\fBuptime\fP(1), \fBproc\fP(5), \fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

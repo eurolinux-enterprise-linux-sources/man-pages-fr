@@ -1,0 +1,124 @@
+.\" Copyright 2001 Andries Brouwer <aeb@cwi.nl>.
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RINT 3 "5 août 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+nearbyint, nearbyintf, nearbyintl, rint, rintf, rintl \- Arrondir à l'entier
+le plus proche
+.SH SYNOPSIS
+.nf
+\fB#include <math.h>\fP
+.sp
+\fBdouble nearbyint(double \fP\fIx\fP\fB);\fP
+.br
+\fBfloat nearbyintf(float \fP\fIx\fP\fB);\fP
+.br
+\fBlong double nearbyintl(long double \fP\fIx\fP\fB);\fP
+.sp
+\fBdouble rint(double \fP\fIx\fP\fB);\fP
+.br
+\fBfloat rintf(float \fP\fIx\fP\fB);\fP
+.br
+\fBlong double rintl(long double \fP\fIx\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBnearbyint\fP(), \fBnearbyintf\fP(), \fBnearbyintl\fP()\ : _XOPEN_SOURCE\ >=\
+600 || _ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.br
+\fBrint\fP()\ : _BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.br
+\fBrintf\fP(), \fBrintl\fP()\ : _BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\
+>=\ 600 || _ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.ad b
+.SH DESCRIPTION
+Les fonctions \fBnearbyint\fP() arrondissent leur paramètre à l'entier le plus
+proche, dans un format en virgule flottante, en utilisant la direction
+d'approximation courante (voir \fBfesetround\fP(3)), et sans déclencher
+l'exception \fIinexact\fP.
+.LP
+La fonction \fBrint\fP() fait la même chose, mais peut déclencher l'exception
+\fIinexact\fP (\fBFE_INEXACT\fP, vérifiable par \fBfetestexcept\fP(3)) lorsque le
+résultat diffère du paramètre.
+.SH "VALEUR RENVOYÉE"
+Ces fonctions renvoient la valeur entière arrondie.
+
+Si \fIx\fP est un nombre entier, +0, \-0, NaN ou une valeur infinie, la valeur
+\fIx\fP elle même est renvoyée.
+.SH ERREURS
+Aucune erreur ne se produit. POSIX.1\-2001 documente une série d'erreurs pour
+les dépassement, mais consultez la section NOTES.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001.
+.SH NOTES
+Les spécifications SUSv2 et POSIX.1\-2001 contiennent un passage sur les
+débordements (qui peuvent remplir \fIerrno\fP avec \fBERANGE\fP ou déclencher une
+exception \fBFE_OVERFLOW\fP). En pratique, aucun débordement ne peut se
+produire sur les machines actuelles, ce qui rend inutile cette gestion
+d'erreur. Plus précisément, le débordement ne peut se produire que si la
+valeur maximale de l'exposant est plus petite que le nombre de bits de la
+mantisse. Pour les nombres en virgule flottante 32\ bits et 64\ bits
+obéissant à la norme IEEE\-754, la valeur maximale de l'exposant est 128
+(respectivement, 1024) et le nombre de bits de la mantisse est 24
+(respectivement, 53).
+
+Si vous voulez stocker la valeur arrondie dans un type entier, vous devriez
+probablement utiliser une des fonctions décrites dans \fBlrint\fP(3) à la
+place.
+.SH "VOIR AUSSI"
+\fBceil\fP(3), \fBfloor\fP(3), \fBlrint\fP(3), \fBround\fP(3), \fBtrunc\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

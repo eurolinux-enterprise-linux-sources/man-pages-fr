@@ -1,0 +1,126 @@
+.\"
+.\" Extended attributes system calls manual pages
+.\"
+.\" Copyright (C) Andreas Gruenbacher, February 2001
+.\" Copyright (C) Silicon Graphics Inc, September 2001
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SETXATTR 2 "31 décembre 2001" Linux "Manuel du programmeur Linux"
+.SH NOM
+setxattr, lsetxattr, fsetxattr \- Fixer les attributs étendus
+.SH SYNOPSIS
+.fam C
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <attr/xattr.h>\fP
+.sp
+\fBint setxattr (const char\ *\fP\fIchemin\fP\fB, const char\ *\fP\fInom\fP\fB,\fP
+\fB              const void\ *\fP\fIvaleur\fP\fB, size_t \fP\fItaille\fP\fB, int \fP\fIoptions\fP\fB);\fP
+\fBint lsetxattr (const char\ *\fP\fIchemin\fP\fB, const char\ *\fP\fInom\fP\fB,\fP
+\fB               const void\ *\fP\fIvaleur\fP\fB, size_t \fP\fItaille\fP\fB, int \fP\fIoptions\fP\fB);\fP
+\fBint fsetxattr (int \fP\fIdescripteur\fP\fB, const char\ *\fP\fInom\fP\fB,\fP
+\fB               const void\ *\fP\fIvaleur\fP\fB, size_t \fP\fItaille\fP\fB, int \fP\fIoptions\fP\fB);\fP
+.fi
+.fam T
+.SH DESCRIPTION
+Les attributs étendus sont des paires \fInom\fP:\fIvaleur\fP associées aux inœuds
+(fichiers, répertoires, liens symboliques, etc.). Ce sont des extensions des
+attributs normaux qui sont associés avec tous les inœuds du système (les
+informations renvoyées par \fBstat\fP(2). Une description complète des concepts
+d'attributs étendus est disponible dans \fBattr\fP(5).
+.PP
+\fBsetxattr\fP()  écrit la \fIvaleur\fP dans l'attribut étendu identifié par le
+\fInom\fP et associé avec le \fIchemin\fP dans le système de fichiers La \fItaille\fP
+de la \fIvaleur\fP doit être spécifiée
+.PP
+\fBlsetxattr\fP()  est identique à \fBsetxattr\fP(), sauf dans le cas d'un lien
+symbolique, où il traite le lien lui\-même et non le fichier qu'il vise.
+.PP
+\fBfsetxattr\fP()  est identique à \fBsetxattr\fP(), seulement on écrit l'attribut
+du fichier ouvert indiqué par le \fIdescripteur\fP (renvoyé par \fBopen\fP(2))
+plutôt que par un \fIchemin\fP.
+.PP
+Le \fInom\fP d'un attribut étendu est une simple chaîne terminée par un octet
+nul. Le nom inclut un préfixe d'espace de noms \- il peut y avoir plusieurs
+espaces de noms disjoints associés avec un inœud donné. La valeur d'un
+attribut étendu est un bloc de données littérales ou binaires d'une longueur
+donnée.
+.PP
+Le paramètre \fIoption\fP permet d'affiner la sémantique de
+l'opétation. \fBXATTR_CREATE\fP indique une création pure, avec un échec si
+l'attribut existe déjà. \fBXATTR_REPLACE\fP indique un remplacement, échouant
+si l'attribut n'existe pas. Par défaut (pas d'option), l'attribut sera créé
+s'il le faut, ou remplacé s'il existe déjà.
+.SH "VALEUR RENVOYÉE"
+S'ils réussissent, ces appels renvoient zéro. En cas d'échec, ils renvoient
+\-1 et \fIerrno\fP contient le code d'erreur.
+.PP
+Si \fBXATTR_CREATE\fP est indiqué et que l'attribut existe, \fIerrno\fP contiendra
+\fBEEXIST\fP. Si \fBXATTR_REPLACE\fP est demandé et si l'attribut n'existe pas
+\fIerrno\fP sera remplie avec \fBENOATTR\fP.
+.PP
+S'il n'y a pas assez d'espace pour stocker l'attribut étendu, \fIerrno\fP
+vaudra \fBENOSPC\fP, ou \fBEDQUOT\fP si le problème vient du système de quotas.
+.PP
+Si les attributs étendus ne sont pas supportés par le système de fichiers ou
+le noyau, \fIerrno\fP contient \fBENOTSUP\fP.
+.PP
+Les erreurs documentées pour l'appel système \fBstat\fP(2)  sont également
+applicables ici.
+.SH VERSIONS
+Ces appels système sont disponibles sous Linux depuis le noyau\ 2.4\ ; la
+glibc les prend en charge depuis la version\ 2.3.
+.SH CONFORMITÉ
+.\" .SH AUTHORS
+.\" Andreas Gruenbacher,
+.\" .RI < a.gruenbacher@computer.org >
+.\" and the SGI XFS development team,
+.\" .RI < linux-xfs@oss.sgi.com >.
+.\" Please send any bug reports or comments to these addresses.
+Ces appels système sont spécifiques à Linux.
+.SH "VOIR AUSSI"
+\fBgetfattr\fP(1), \fBsetfattr\fP(1), \fBgetxattr\fP(2), \fBlistxattr\fP(2), \fBopen\fP(2),
+\fBremovexattr\fP(2), \fBstat\fP(2), \fBattr\fP(5), \fBsymlink\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (2003-2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,140 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) Tom Bjorkholm & Markus Kuhn, 1996
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" 1996-04-01 Tom Bjorkholm <tomb@mydata.se>
+.\"            First version written
+.\" 1996-04-10 Markus Kuhn <mskuhn@cip.informatik.uni-erlangen.de>
+.\"            revision
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SCHED_RR_GET_INTERVAL 2 "6 mars 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+sched_rr_get_interval \- Obtenir l'intervalle SCHED_RR pour le processus
+indiqué
+.SH SYNOPSIS
+\fB#include <sched.h>\fP
+.sp
+\fBint sched_rr_get_interval(pid_t \fP\fIpid\fP\fB, struct timespec * \fP\fItp\fP\fB);\fP
+.SH DESCRIPTION
+\fBsched_rr_get_interval\fP() remplit la structure \fItimespec\fP pointée par
+\fItp\fP avec le «\ round robin time quantum\ » du processus identifié par
+\fIpid\fP.
+
+La structure \fItimespec\fP est déclarée comme suit\ :
+
+.in +4n
+.nf
+struct timespec {
+    time_t tv_sec;    /* secondes     */
+    long   tv_nsec;   /* nanosecondes */
+};
+.fi
+.in
+
+.\" FIXME . On Linux, sched_rr_get_interval()
+.\" returns the timeslice for SCHED_OTHER processes -- this timeslice
+.\" is influenced by the nice value.
+.\" For SCHED_FIFO processes, this always returns 0.
+.\"
+.\" The round-robin time quantum value is not alterable under Linux
+.\" 1.3.81.
+.\"
+Si \fIpid\fP vaut zéro, le time quantum du processus en cours est écrit dans
+\fI*tp\fP. Le processus identifié doit être ordonnancé avec la politique
+\fBSCHED_RR\fP. Les systèmes POSIX sur lesquels \fBsched_rr_get_interval\fP() est
+disponible définissent \fB_POSIX_PRIORITY_SCHEDULING\fP dans
+\fI<unistd.h>\fP.
+.SH "VALEUR RENVOYÉE"
+\fBsched_rr_get_interval\fP() renvoie 0 s'il réussit. En cas d'échec, \-1 est
+renvoyé, et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+Problème lors de la copie d'information vers l'espace utilisateur.
+.TP 
+\fBEINVAL\fP
+PID invalide.
+.TP 
+\fBENOSYS\fP
+L'appel système n'a pas encore été implémenté (seulement pour les noyaux
+relativement anciens).
+.TP 
+\fBESRCH\fP
+Le processus numéro \fIpid\fP n'existe pas.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+.SS "Notes sur Linux"
+.\" FIXME
+.\" From at least Linux 2.6.9, the following is no longer true
+.\" for SCHED_RR processes.  For RR processes the timeslice is always
+.\" DEF_TIMESLICE, or 0.1 secs.
+.\" Was the following really true for older kernels?
+.\" Must build a 2.6.8 kernel and retest, and rewrite the following text
+.\" appropriately.
+.\" .SH BUGS
+.\" As of Linux 1.3.81
+.\" .BR sched_rr_get_interval ()
+.\" returns with error
+.\" ENOSYS, because SCHED_RR has not yet been fully implemented and tested
+.\" properly.
+POSIX ne spécifie aucun mécanisme pour contrôler la taille du «\ round robin
+time quantum\ ». Cependant, Linux fournit une méthode (non portable) pour
+cela. Le quantum peut être contrôlé en ajustant la valeur de «\ politesse\ »
+du processus (voir \fBsetpriority\fP(2)). Assigner une valeur de politesse
+négative (c'est\-à\-dire haute) résulte en un quantum de temps plus long\ ;
+assigner une valeur de politesse positive (c'est\-à\-dire basse) résulte en un
+quantum de temps plus court. Le quantum de temps par défaut est de 0.1
+secondes\ ; l'influence du changement de valeur de politesse sur le quantum a
+varié suivant les versions du noyau.
+.SH "VOIR AUSSI"
+\fBsched_setscheduler\fP(2) décrit les politiques d'ordonnancement sous Linux.
+.PP
+\fIProgramming for the real world \- POSIX.4\fP de Bill O. Gallmeister, O'Reilly
+& Associates, Inc., ISBN 1\-56592\-074\-0
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

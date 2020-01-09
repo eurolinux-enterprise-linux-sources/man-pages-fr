@@ -1,0 +1,77 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 1995 Michael Chastain (mec@shell.portal.com), 15 April 1995.
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified Tue Oct 22 22:11:53 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SOCKETCALL 2 "28 juin 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+socketcall \- Appels système sur les sockets
+.SH SYNOPSIS
+\fBint socketcall(int \fP\fIcall\fP\fB, unsigned long *\fP\fIargs\fP\fB);\fP
+.SH DESCRIPTION
+\fBsocketcall\fP() est un point d'entrée commun du noyau pour les appels
+système concernant les sockets. \fIcall\fP détermine quelle fonction appliquer
+aux sockets. \fIargs\fP pointe sur un bloc contenant les véritables arguments
+qui sont transmis à l'appel système approprié.
+.PP
+Les programmes utilisateurs doivent appeler les fonctions appropriées par
+leurs noms habituels. Seul les implémenteurs de bibliothèques standards et
+les hackers Linux ont besoin d'utiliser \fBsocketcall\fP().
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux et ne devrait pas être employé dans
+des programmes destinés à être portables.
+.SH NOTES
+Sur certaines architectures, comme ia64, il n'y a pas d'appel système
+\fBsocketcall\fP()\ ; les fonctions \fBsocket\fP(2), \fBaccept\fP(2), \fBbind\fP(2) et
+autres y sont donc vraiment implémentées comme des appels système distincts.
+.SH "VOIR AUSSI"
+\fBaccept\fP(2), \fBbind\fP(2), \fBconnect\fP(2), \fBgetpeername\fP(2),
+\fBgetsockname\fP(2), \fBgetsockopt\fP(2), \fBlisten\fP(2), \fBrecv\fP(2),
+\fBrecvfrom\fP(2), \fBrecvmsg\fP(2), \fBsend\fP(2), \fBsendmsg\fP(2), \fBsendto\fP(2),
+\fBsetsockopt\fP(2), \fBshutdown\fP(2), \fBsocket\fP(2), \fBsocketpair\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

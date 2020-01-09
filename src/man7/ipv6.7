@@ -1,0 +1,255 @@
+.\" This man page is Copyright (C) 2000 Andi Kleen <ak@muc.de>.
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" $Id: ipv6.7,v 1.3 2000/12/20 18:10:31 ak Exp $
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH IPV6 7 "28 février 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+ipv6, AF_INET6 \- Implémentation Linux du protocole IPv6
+.SH SYNOPSIS
+\fB#include <sys/socket.h>\fP
+.br
+\fB#include <netinet/in.h>\fP
+.sp
+\fItcp6_socket\fP\fB = socket(AF_INET6, SOCK_STREAM, 0);\fP
+.br
+\fIraw6_socket\fP\fB = socket(AF_INET6, SOCK_RAW, \fP\fIprotocol\fP\fB);\fP
+.br
+\fIudp6_socket\fP\fB = socket(AF_INET6, SOCK_DGRAM, \fP\fIprotocol\fP\fB);\fP
+.SH DESCRIPTION
+Linux 2.2 implémente en option le protocole internet version 6 (IPv6). Cette
+page de manuel contient la description de l'API IPv6 de base, telle
+qu'implémentée dans le noyau Linux et la GlibC 2.1 L'interface est basée sur
+l'interface des sockets BSD. Voir \fBsocket\fP(7).
+.PP
+L'API IPv6 est conçue pour être essentiellement compatible avec l'API IPv4
+(voir \fBip\fP(7)). Seules les différences sont décrites dans cette page de
+manuel.
+.PP
+Pour attacher une socket \fBAF_INET6\fP, l'adresse locale doit être copiée dans
+une variable \fIin6addr_any\fP qui a le type \fIin6_addr\fP. Dans les
+initialisations statiques, \fBIN6ADDR_ANY_INIT\fP peut servir aussi et se
+développe en une expression constante. Toutes les valeurs sont dans l'ordre
+des octets du réseau.
+.PP
+L'adresse de boucle IPv6 (::1) est disponible dans la variable globale
+\fIin6addr_loopback\fP. Pour les initialisations, on doit utiliser
+\fBIN6ADDR_LOOPBACK_INIT\fP.
+.PP
+Les connexions IPv4 peuvent être traitées avec l'API v6 en utilisant le type
+d'adresse v4\-projeté\-dans\-v6. Ainsi un programme n'a qu'un seul type d'API à
+utiliser pour supporter les deux protocoles. Ceci est géré de manière
+transparente par les fonctions d'adressage de la bibliothèque C.
+.PP
+IPv4 et IPv6 partagent l'espace des ports locaux. Lorsqu'une connexion ou un
+paquet IPv4 est obtenu sur une socket IPv6, son adresse source sera projetée
+en v6.
+.SS "Format d'adresse"
+.in +4n
+.nf
+struct sockaddr_in6 {
+    sa_family_t     sin6_family;   /* AF_INET6 */
+    in_port_t       sin6_port;     /* numéro de port */
+    uint32_t        sin6_flowinfo; /* information de flux IPv6 */
+    struct in6_addr sin6_addr;     /* adresse IPv6 */
+    uint32_t        sin6_scope_id; /* Scope ID (nouveauté 2.4) */
+};
+
+struct in6_addr {
+    unsigned char   s6_addr[16];   /* adresse IPv6 */
+};
+.fi
+.in
+.sp
+\fIsin6_family\fP est toujours rempli avec \fBAF_INET6\fP\ ; \fIsin6_port\fP est le
+port du protocole (voir \fIsin_port\fP dans \fBip\fP(7))\ ; \fIsin6_flowinfo\fP est
+l'identificateur de flux IPv6, \fIsin6_addr\fP est l'adresse IPv6 sur 128
+bits. \fIsin6_scope_id\fP est un identificateur qui dépend de la portée de
+l'adresse. C'est une nouveauté Linux 2.4. Linux ne le supporte que pour les
+adresses ayant une portée liaison, dans ce cas \fIsin6_scope_id\fP contient le
+numéro d'interface (voir \fBnetdevice\fP(7)).
+.PP
+IPv6 supporte plusieurs types d'adresses\ : unicast pour représenter un hôte
+unique, multicast pour un groupe d'hôtes, anycast pour indiquer le membre le
+plus proche d'un groupe d'hôtes (non implémenté sous Linux), IPv4\-on\-IPv6
+pour un hôte IPv4, et d'autres types d'adresse réservés.
+.PP
+La notation d'adresse pour l'IPv6 est un groupe de 16 nombres hexadécimaux
+sur 2 chiffres, séparés par un deux\-points «\ :\ ». Un «\ ::\ » représente
+une chaîne de zéros. Les adresses spéciales sont\ ::1 pour le bouclage
+loopback et\ ::FFFF:<adresse IPv4> pour les projections d'adresses
+IPv4 sur l'IPv6.
+.PP
+L'espace des ports de l'IPv6 est partagé avec l'IPv4.
+.SS "Options de sockets"
+IPv6 supporte quelques options des sockets spécifiques du protocole, qui
+peuvent être fixées avec \fBsetsockopt\fP(2) et consultées avec
+\fBgetsockopt\fP(2). Le niveau d'option de socket pour l'IPv6 est
+\fBIPPROTO_IPV6\fP. Un entier booléen est faux quand il est nul et vrai sinon.
+.TP 
+\fBIPV6_ADDRFORM\fP
+Transformer une socket \fBAF_INET6\fP en une socket d'une famille d'adresse
+différente. Seul \fBAF_INET\fP est actuellement supporté pour cela. Cela n'est
+autorisé que pour les sockets IPv6 connectées et attachées à une adresse
+v4\-sur\-v6. L'argument est un pointeur sur un entier contenant
+\fBAF_INET\fP. Cela est utile pour passer des sockets projetées en v4 comme
+descripteurs à des programmes ne sachant pas manipuler l'API IPv6.
+.TP 
+\fBIPV6_ADD_MEMBERSHIP, IPV6_DROP_MEMBERSHIP\fP
+.\" FIXME IPV6_CHECKSUM is not documented, and probably should be
+.\" FIXME IPV6_JOIN_ANYCAST is not documented, and probably should be
+.\" FIXME IPV6_LEAVE_ANYCAST is not documented, and probably should be
+.\" FIXME IPV6_RECVPKTINFO is not documented, and probably should be
+.\" FIXME IPV6_2292PKTINFO is not documented, and probably should be
+.\" FIXME there are probably many other IPV6_* socket options that
+.\" should be documented
+Détermine l'appartenance aux groupes multicast. L'argument est un pointeur
+sur une structure \fIstruct ipv6_mreq\fP
+.TP 
+\fBIPV6_MTU\fP
+Fixe le MTU à utiliser pour la socket. Le MTU est limité par celui du
+périphérique ou celui du chemin lorsque la recherche du MTU par chemin est
+activée. L'argument est un pointeur sur un entier.
+.TP 
+\fBIPV6_MTU_DISCOVER\fP
+Commander la recherche du MTU par chemin sur la socket. Voir l'option
+\fBIP_MTU_DISCOVER\fP dans \fBip\fP(7) pour plus de précisions.
+.TP 
+\fBIPV6_MULTICAST_HOPS\fP
+Fixe la limite du nombre de sauts (hops) multicast. L'argument est un
+pointeur sur un entier. La valeur \-1 correspond à la valeur par défaut de
+routage, sinon il doit s'agir d'un entier entre 0 et 255.
+.TP 
+\fBIPV6_MULTICAST_IF\fP
+Fixe le périphérique pour les paquets multicasts sortants de la socket. Ceci
+n'est permis que pour les sockets \fBSOCK_DGRAM\fP et \fBSOCK_RAW\fP. L'argument
+est un pointeur sur un numéro d'interface (voir \fBnetdevice\fP(7)) dans un
+entier.
+.TP 
+\fBIPV6_MULTICAST_LOOP\fP
+Détermine si la socket voit les paquets multicast qu'elle a elle\-même
+émis. L'argument est un pointeur sur une valeur booléenne.
+.TP 
+\fBIPV6_PKTINFO\fP
+Fixe la distribution des messages de contrôle \fBIPV6_PKTINFO\fP des
+datagrammes entrants. Uniquement autorisé pour les sockets \fBSOCK_DGRAM\fP ou
+\fBSOCK_RAW\fP. L'argument est un pointeur sur une valeur booléenne dans un
+entier.
+.TP 
+.nh
+\fBIPV6_RTHDR, IPV6_AUTHHDR, IPV6_DSTOPS, IPV6_HOPOPTS, IPV6_FLOWINFO,
+IPV6_HOPLIMIT\fP
+.hy
+Fixe la distribution des messages de contrôle des datagrammes entrants
+contenant les en\-têtes d'extensions du paquet reçu. \fBIPV6_RTHDR\fP délivre
+l'en\-tête de routage, \fBIPV6_AUTHHDR\fP délivre l'en\-tête d'authentification,
+\fBIPV6_DSTOPTS\fP délivre les options de destination, \fBIPV6_HOPOPTS\fP délivre
+les options de saut, \fBIPV6_FLOWINFO\fP délivre un entier contenant
+l'identificateur de flux, \fBIPV6_HOPLIMIT\fP délivre un entier contenant le
+nombre de sauts du paquet. Les messages de contrôle ont le même type que
+l'option de socket. Toutes ces options d'en\-tête peuvent aussi être fixées
+pour les paquets sortants en mettant le message de contrôle approprié dans
+le tampon de \fBsendmsg\fP(2). Uniquement autorisé pour les sockets
+\fBSOCK_DGRAM\fP ou \fBSOCK_RAW\fP. L'argument est un pointeur sur une valeur
+booléenne.
+.TP 
+\fBIPV6_RECVERR\fP
+Commande la réception des erreurs asynchrones. Voir \fBIP_RECVERR\fP dans
+\fBip\fP(7) pour plus de précisions. L'argument est un pointeur sur un booléen.
+.TP 
+\fBIPV6_ROUTER_ALERT\fP
+Passer sur cette socket tous les paquets redirigés (forwarded) contenant une
+option «\ hop\-by\-hop\ » d'alerte du routeur. Uniquement autorisé pour les
+sockets SOCK_RAW. Les paquets exploités ne sont pas redirigés par le noyau,
+il est de la responsabilité de l'utilisateur de les renvoyer. L'argument est
+un pointeur vers un entier. Un entier positif indique une valeur option
+d'alerte du routeur à intercepter. Les paquets portant une option d'alerte
+du routeur avec un champ de valeur contenant cet entier sera délivré à la
+socket. Un entier négatif désactive la délivrance de packets avec des
+options d'alerte du routeur à cette socket.
+.TP 
+\fBIPV6_UNICAST_HOPS\fP
+Fixe la limite du nombre de sauts (hops) unicast. L'argument est un pointeur
+sur un entier. La valeur \-1 correspond à la valeur par défaut de routage,
+sinon il doit s'agir d'un entier entre 0 et 255.
+.TP 
+\fBIPV6_V6ONLY\fP (depuis Linux\ 2.4.21 et 2.6)
+.\" See RFC 3493
+Quand cet attribut est positionné (différent de zéro), alors la socket est
+limitée à l'émission et la réception de paquets IPv6. Dans ce cas, une
+application IPv4 et IPv6 peuvent s'associer à un même port en même temps.
+
+Si cet attribut n'est pas positionné (zéro), alors la socket peut être
+utilisé pour émettre ou recevoir des paquets depuis et vers une adresse IPv6
+ou une projections d'adresse IPv4 sur IPv6.
+
+Le paramètre est un pointeur vers un booléen dans un entier.
+
+.\" FLOWLABEL_MGR, FLOWINFO_SEND
+La valeur par défaut de cet attribut est défini par le contenu du fichier
+\fI/proc/sys/net/ipv6/bindv6only\fP. La valeur par défaut de ce fichier est 0
+(désactivé).
+.SH VERSIONS
+L'ancienne implémentation IPv6 pour Linux basée sur \fIlibinet6\fP de la LibC5
+n'est pas décrite ici, et peut être légèrement différente.
+.PP
+Linux 2.4 rompt la compatibilité binaire pour la structure \fIsockaddr_in6\fP
+des hôtes sur 64 bits, en modifiant l'alignement de \fIin6_addr\fP et en
+ajoutant un champ \fIsin6_scope_id\fP supplémentaire. Les interfaces du noyau
+restent compatible, mais un programme contenant des \fIsockaddr_in6\fP ou des
+\fIin6_addr\fP dans d'autres structures ne l'est peut être pas. Ce n'est pas un
+problème pour les hôtes sur 32 bits comme les i386.
+.PP
+Le champ \fIsin6_flowinfo\fP est une nouveauté Linux 2.4. Il est écrit/lu de
+manière transparente par le noyau quand la longueur de l'adresse passée le
+contient. Certains programmes qui passent un tampon d'adresse plus long et
+vérifient ensuite la longueur de l'adresse renvoyée peuvent échouer.
+.SH NOTES
+La structure \fIsockaddr_in6\fP est plus grande que la structure \fIsockaddr\fP
+générique. Les programmes qui supposent que tous les types d'adresses
+peuvent être stockés dans une \fIstruct sockaddr\fP doivent être modifiés pour
+utiliser \fIstruct sockaddr_storage\fP à la place.
+.SH BOGUES
+L'API IPv6 étendue, telle que dans la RFC\ 2292, n'est encore que
+partiellement implémentée. Bien que les noyaux 2.2 ont un support
+pratiquement complet pour les options de réception, les macros déclarant les
+options IPv6 manquent dans la GlibC 2.1.
+.PP
+Le support IPSec pour les en\-têtes EH et AH est manquant.
+.PP
+La gestion des étiquettes de flux n'est pas complète, ni documentée ici.
+.PP
+Cette page de manuel n'est pas complète.
+.SH "VOIR AUSSI"
+\fBcmsg\fP(3), \fBip\fP(7)
+.PP
+RFC\ 2553: API IPv6 de base, avec laquelle Linux essaye d'être compatible.
+.PP
+RFC\ 2460: Spécifications IPv6.
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

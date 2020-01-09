@@ -1,0 +1,106 @@
+.\" man2/inotify_init.2 - inotify_init man page
+.\"
+.\" Copyright (C) 2005 Robert Love
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" 2005-07-19 Robert Love <rlove@rlove.org> - initial version
+.\" 2006-02-07 mtk, minor changes
+.\" 2008-10-10 mtk: add description of inotify_init1()
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH INOTIFY_INIT 2 "10 octobre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+inotify_init, inotify_init1 \- Initialiser une instance inotify
+.SH SYNOPSIS
+.nf
+\fB#include <sys/inotify.h>\fP
+.sp
+\fBint inotify_init(void);\fP
+\fBint inotify_init1(int \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBinotify_init\fP() initialise une nouvelle instance inotify et renvoie un
+descripteur de fichier associé à une nouvelle file d'événements inotify.
+
+Si \fIflags\fP vaut 0, alors \fBinotify_init1\fP() est identique à
+\fBinotify_init\fP(). Les valeurs suivantes peuvent être combinées avec un OU
+binaire dans le paramètre \fIflags\fP pour obtenir différents comportements\ :
+.TP  12
+\fBIN_NONBLOCK\fP
+Définir l'attribut d'état de fichier \fBO_NONBLOCK\fP sur le nouveau
+descripteur de fichier ouvert. Utiliser cet attribut économise des appels à
+\fBfcntl\fP(2) qui permettrait d'obtenir le même résultat.
+.TP 
+\fBIN_CLOEXEC\fP
+Définir l'attribut «\ close\-on\-exec\ » (\fBFD_CLOEXEC\fP) sur le nouveau
+descripteur de fichier. Consultez la description de l'attribut \fBO_CLOEXEC\fP
+dans \fBopen\fP(2) pour savoir quand ça peut être utile.
+.SH "VALEUR RENVOYÉE"
+S'ils réussissent, ces appels système renvoient un nouveau descripteur de
+fichier. En cas d'erreur, ils renvoient \-1 et remplissent \fIerrno\fP avec la
+valeur d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+(\fBinotify_init1\fP()) Une valeur incorrecte a été spécifiée dans \fIflags\fP.
+.TP 
+\fBEMFILE\fP
+La limite du nombre total d'instances inotify par utilisateur a été
+atteinte.
+.TP 
+\fBENFILE\fP
+La limite du nombre total de fichiers ouverts sur le système a été atteinte.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.SH VERSIONS
+\fBinotify_init\fP() est apparu dans Linux 2.6.13. \fBinotify_init1\fP() a été
+ajouté dans Linux 2.6.27.
+.SH CONFORMITÉ
+Ces appels système sont spécifiques à Linux.
+.SH "VOIR AUSSI"
+\fBinotify_add_watch\fP(2), \fBinotify_rm_watch\fP(2), \fBinotify\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,387 @@
+.\" Copyright (c) 2009 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TIMER_CREATE 2 "20 février 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+timer_create \- Créer une minuterie POSIX pour un processus
+.SH SYNOPSIS
+.nf
+\fB#include <signal.h>\fP
+\fB#include <time.h>\fP
+
+\fBint timer_create(clockid_t \fP\fIclockid\fP\fB, struct sigevent *\fP\fIevp\fP\fB,\fP
+\fB                 timer_t *\fP\fItimerid\fP\fB);\fP
+.fi
+
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBtimer_create\fP()\ : _POSIX_C_SOURCE >= 199309
+.SH DESCRIPTION
+\fBtimer_create\fP() crée une nouvelle minuterie pour une
+processus. L'identifiant de cette nouvelle minuterie est renvoyé dans le
+tampon pointé par \fItimerid\fP, qui doit être un pointeur différent de
+NULL. L'identifiant est unique pour le processus, jusqu'à ce que la
+minuterie soit détruite. La nouvelle minuterie est initialement désarmée.
+
+Le paramètre \fIclockid\fP indique l'horloge que la nouvelle minuterie utilise
+pour mesurer le temps. Il peut prendre une des valeurs suivantes\ :
+.TP 
+\fBCLOCK_REALTIME\fP
+Une horloge système temps réel configurable.
+.TP 
+\fBCLOCK_MONOTONIC\fP
+.\" Note: the CLOCK_MONOTONIC_RAW clock added for clock_gettime()
+.\" in 2.6.28 is not supported for POSIX timers -- mtk, Feb 2009
+Une horloge non configurable, toujours croissante qui mesure le temps depuis
+un instant non spécifié dans le passé et qui ne change pas après le
+démarrage du système.
+.TP 
+\fBCLOCK_PROCESS_CPUTIME_ID\fP (depuis Linux 2.6.12)
+Une horloge qui mesure le temps CPU (utilisateur et système) consommé par le
+processus appelant (et tous ses threads).
+.TP 
+\fBCLOCK_THREAD_CPUTIME_ID\fP (depuis Linux 2.6.12)
+.\" The CLOCK_MONOTONIC_RAW that was added in 2.6.28 can't be used
+.\" to create a timer -- mtk, Feb 2009
+Une horloge qui mesure le temps CPU (utilisateur et système) consommé par le
+processus appelant.
+.PP
+Comme pour les valeurs ci\-dessus, \fIclockid\fP peut être l'identifiant
+\fIclockid\fP renvoyé par un appel à \fBclock_getcpuclockid\fP(3) ou
+\fBpthread_getcpuclockid\fP(3).
+
+Le paramètre \fIevp\fP pointe vers une structure \fIsigevent\fP qui indique
+comment l'appelant devrait être notifié quand la minuterie expire. Cette
+structure est environ définie comme ceci\ :
+
+.in +4n
+.nf
+union sigval {
+    int   sival_int;
+    void *sival_ptr;
+};
+
+struct sigevent {
+    int          sigev_notify;    /* Méthode de notification */
+    int          sigev_signo;     /* Signal d'expiration de
+                                     la minuterie */
+    union sigval sigev_value;     /* Valeur accompagnant le signal
+                                     ou étant fournie à la fonction
+                                     du thread */
+    void       (*sigev_notify_function) (union sigval);
+                   /* Fonction utilisée pour la notification
+                      d'un thread (SIGEV_THREAD) */
+    void        *sigev_notify_attributes;
+                   /* Paramètres pour la notification d'un thread
+                      (SIGEV_THREAD) */
+    pid_t        sigev_notify_thread_id;
+                   /* Identifiant du thread auquel est envoyé
+                      un signal (SIGEV_THREAD_ID) */
+};
+.fi
+.in
+
+Certains de ces champs font partie d'une union\ : un programme ne devrait
+utiliser que les champs appropriés pour la valeur indiquée dans
+\fIsigev_notify\fP. Ce champ peut avoir les valeurs suivantes\ :
+.TP 
+\fBSIGEV_NONE\fP
+Ne pas notifier de façon asynchrone quand la minuterie expire. La
+progression de la minuterie peut être observée en utilisant
+\fBtimer_gettime\fP(2).
+.TP 
+\fBSIGEV_SIGNAL\fP
+Lors de l'expiration de la minuterie, produire le signal \fIsigev_signo\fP pour
+le processus. Si \fIsigev_signo\fP est un signal temps réel, alors il sera
+accompagné par les données indiquées dans \fIsigev_value\fP (en tant que
+données accompagnant le signal pour \fBsigqueue\fP(2)). À tout moment, au plus
+un signal est mis en attente pour le processus pour une horloge donnée\ ;
+consultez \fBtimer_getoverrun\fP(2) pour plus de détails.
+.TP 
+\fBSIGEV_THREAD\fP
+Après expiration de la minuterie, appeler \fIsigev_notify_function\fP comme
+s'il s'agissait de la fonction de démarrage d'un nouveau thread (il y a
+plusieurs possibilités d'implémentation, dont la création d'un nouveau
+thread pour chaque notification de minuterie, ou la création d'un unique
+thread pour la réception de toutes les notifications). La fonction est
+appelée avec \fIsigev_value\fP comme unique paramètre. Si
+\fIsigev_notify_attributes\fP n'est pas NULL, il doit pointer vers une
+structure \fIpthread_attr_t\fP qui définie les paramètres pour le nouveau
+thread (voir \fBpthread_attr_init\fP(3)).
+.TP 
+\fBSIGEV_THREAD_ID\fP (spécifique à Linux)
+Comme \fBSIGEV_SIGNAL\fP, mais le signal est envoyé au thread dont
+l'identifiant est fourni dans \fIsigev_notify_thread_id\fP, qui doit être un
+thread du même processus que le thread appelant. Le champ
+\fIsigev_notify_thread_id\fP indique un identifiant de thread noyau,
+c'est\-à\-dire la valeur renvoyée par \fBclone\fP(2) ou \fBgettid\fP(2). Ce drapeau
+n'est destiné à être utilisé que par la bibliothèque des threads.
+.PP
+Une valeur NULL pour \fIevp\fP équivaut à indiquer un pointeur vers une
+structure \fIsigevent\fP dans laquelle \fIsigev_notify\fP vaut \fBSIGEV_SIGNAL\fP,
+\fIsigev_signo\fP vaut \fBSIGALRM\fP et \fIsigev_value.sival_int\fP vaut
+l'identifiant de l'horloge.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBtimer_create\fP() renvoie zéro et l'identifiant de la nouvelle
+minuterie est placé dans \fI*timerid\fP. En cas d'erreur, il renvoie \-1 et
+\fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+Erreur temporaire lors de l'allocation de la structure de la minuterie par
+le noyau.
+.TP 
+\fBEINVAL\fP
+L'identifiant d'horloge, \fIsigev_notify\fP, \fIsigev_signo\fP ou
+\fIsigev_notify_thread_id\fP n'est pas valable.
+.TP 
+\fBENOMEM\fP
+.\" glibc layer: malloc()
+Impossible d'allouer de la mémoire.
+.SH VERSIONS
+Cet appel système est disponible depuis Linux 2.6.
+.SH CONFORMITÉ
+POSIX.1\-2001
+.SH NOTES
+Un programme peut créer plusieurs minuterie en utilisant \fBtimer_create\fP().
+
+Les minuteries ne sont pas héritées par ses enfants lors d'un \fBfork\fP(2) et
+sont désarmées et détruites lors d'un appel système \fBexecve\fP(2).
+
+Le noyau alloue par avance un «\ signal temps réel en attente\ » pour chaque
+minuterie créée par \fBtimer_create\fP(). De ce fait, le nombre de minuteries
+est limité par la limite de ressources \fBRLIMIT_SIGPENDING\fP (voir
+\fBsetrlimit\fP(2)).
+
+Les minuteries créée par \fBtimer_create\fP() sont communément appelées
+«\ horloges (d'intervalle) POSIX\ ». L'API des minuteries POSIX est constituée
+des interfaces suivantes\ :
+.IP * 3
+\fBtimer_create\fP()\ : Créer une minuterie.
+.IP *
+\fBtimer_settime\fP(2)\ : Armer (démarrer) ou désarmer (stopper) une minuterie.
+.IP *
+\fBtimer_gettime\fP(2)\ : Récupérer le temps restant jusqu'à l'expiration
+suivante d'une minuterie, en plus de l'intervalle de la minuterie.
+.IP *
+\fBtimer_getoverrun\fP(2)\ : Renvoyer le décompte de dépassements pour la
+dernière expiration de la minuterie.
+.IP *
+\fBtimer_delete\fP(2)\ : Désarmer et détruire une minuterie.
+.PP
+Une partie de l'implémentation des minuteries POSIX est fournie par la
+glibc. En particulier\ :
+.IP * 3
+La fonctionnalité de \fBSIGEV_THREAD\fP est implémentée dans la glibc, plutôt
+que par le noyau.
+.IP *
+.\" See the glibc source file kernel-posix-timers.h for the structure
+.\" that glibc uses to map userspace timer IDs to kernel timer IDs
+.\" The kernel-level timer ID is exposed via siginfo.si_tid.
+Les identifiants de minuteries fournis au niveau utilisateur sont maintenus
+par la glibc, qui fait la correspondance avec les identifiants utilisés par
+le noyau.
+.PP
+Les appels système pour les minuteries POSIX sont apparus dans le noyaux
+Linux\ 2.6. Auparavant, la glibc fournissait une implémentation incomplète en
+espace utilisateur (les minuteries \fBCLOCK_REALTIME\fP uniquement) en
+utilisant les threads POSIX, et la glibc actuelle utilise toujours cette
+implémentation sur les systèmes ayant un noyau antérieur au noyau Linux\ 2.6.
+.SH EXEMPLE
+Le programme ci\-dessous reçoit deux paramètres\ : une durée de sommeil, en
+seconde, et une fréquence de minuterie en nanosecondes. Le programme établit
+un gestionnaire pour le signal qu'il utilise avec la minuterie, puis il
+bloque le signal, crée et arme une minuterie qui expire à la fréquence
+donnée, s'endort pendant la durée indiquée et enfin débloque le signal de la
+minuterie. En supposant que la minuterie ait expiré au moins une fois
+pendant le sommeil du programme, le gestionnaire de signal sera appelé et le
+gestionnaire de signal affiche des information concernant la notification de
+la minuterie. Le programme se termine après un appel au gestionnaire de
+signal.
+
+Dans l'exemple d'exécution qui suit, le programme s'endort pour une seconde
+après avoir créé une minuterie de d'une fréquence de 100 nanosecondes. Le
+temps que le signal soit débloqué et fournit, il y a eu environ dix millions
+de dépassements.
+.in +4n
+.nf
+
+$ \fB./a.out 1 10\fP
+Establishing handler for signal 34
+Blocking signal 34
+timer ID is 0x804c008
+Sleeping for 1 seconds
+Unblocking signal 34
+Caught signal 34
+    sival_ptr = 0xbfb174f4;     *sival_ptr = 0x804c008
+    overrun count = 10004886
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <signal.h>
+#include <time.h>
+
+#define CLOCKID CLOCK_REALTIME
+#define SIG SIGRTMIN
+
+#define errExit(msg)    do { perror(msg); exit(EXIT_FAILURE); \e
+                        } while (0)
+
+static void
+print_siginfo(siginfo_t *si)
+{
+    timer_t *tidp;
+    int or;
+
+    tidp = si\->si_value.sival_ptr;
+
+    printf("    sival_ptr = %p; ", si\->si_value.sival_ptr);
+    printf("    *sival_ptr = 0x%lx\en", (long) *tidp);
+
+    or = timer_getoverrun(*tidp);
+    if (or == \-1)
+        errExit("timer_getoverrun");
+    else
+        printf("    overrun count = %d\en", or);
+}
+
+static void
+handler(int sig, siginfo_t *si, void *uc)
+{
+    /* Note: calling printf() from a signal handler is not
+       strictly correct, since printf() is not async\-signal\-safe;
+       see signal(7) */
+
+    printf("Caught signal %d\en", sig);
+    print_siginfo(si);
+    signal(sig, SIG_IGN);
+}
+
+int
+main(int argc, char *argv[])
+{
+    timer_t timerid;
+    struct sigevent sev;
+    struct itimerspec its;
+    long long freq_nanosecs;
+    sigset_t mask;
+    struct sigaction sa;
+
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <sleep\-secs> <freq\-nanosecs>\en",
+                argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    /* Establish handler for timer signal */
+
+    printf("Establishing handler for signal %d\en", SIG);
+    sa.sa_flags = SA_SIGINFO;
+    sa.sa_sigaction = handler;
+    sigemptyset(&sa.sa_mask);
+    if (sigaction(SIG, &sa, NULL) == \-1)
+        errExit("sigaction");
+
+    /* Block timer signal temporarily */
+
+    printf("Blocking signal %d\en", SIG);
+    sigemptyset(&mask);
+    sigaddset(&mask, SIG);
+    if (sigprocmask(SIG_SETMASK, &mask, NULL) == \-1)
+        errExit("sigprocmask");
+
+    /* Create the timer */
+
+    sev.sigev_notify = SIGEV_SIGNAL;
+    sev.sigev_signo = SIG;
+    sev.sigev_value.sival_ptr = &timerid;
+    if (timer_create(CLOCKID, &sev, &timerid) == \-1)
+        errExit("timer_create");
+
+    printf("timer ID is 0x%lx\en", (long) timerid);
+
+    /* Start the timer */
+
+    freq_nanosecs = atoll(argv[2]);
+    its.it_value.tv_sec = freq_nanosecs / 1000000000;
+    its.it_value.tv_nsec = freq_nanosecs % 1000000000;
+    its.it_interval.tv_sec = its.it_value.tv_sec;
+    its.it_interval.tv_nsec = its.it_value.tv_nsec;
+
+    if (timer_settime(timerid, 0, &its, NULL) == \-1)
+         errExit("timer_settime");
+
+    /* Sleep for a while; meanwhile, the timer may expire
+       multiple times */
+
+    printf("Sleeping for %d seconds\en", atoi(argv[1]));
+    sleep(atoi(argv[1]));
+
+    /* Unlock the timer signal, so that timer notification
+       can be delivered */
+
+    printf("Unblocking signal %d\en", SIG);
+    if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == \-1)
+        errExit("sigprocmask");
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBclock_gettime\fP(2), \fBsetitimer\fP(2), \fBtimer_delete\fP(2),
+\fBtimer_settime\fP(2), \fBtimer_getoverrun\fP(2), \fBtimerfd_create\fP(2),
+\fBclock_getcpuclockid\fP(3), \fBpthread_getcpuclockid\fP(3), \fBpthreads\fP(7),
+\fBsignal\fP(7), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

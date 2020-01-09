@@ -1,0 +1,704 @@
+.\" This manpage is copyright (C) 2001 Paul Sheer.
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" very minor changes, aeb
+.\"
+.\" Modified 5 June 2002, Michael Kerrisk <mtk.manpages@gmail.com>
+.\" 2006-05-13, mtk, removed much material that is redundant with select.2
+.\"             various other changes
+.\" 2008-01-26, mtk, substantial changes and rewrites
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SELECT_TUT 2 "26 janvier 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+select, pselect, FD_CLR, FD_ISSET, FD_SET, FD_ZERO \- Multiplexage
+d'entrées\-sorties synchrones.
+.SH SYNOPSIS
+.nf
+/* D'après POSIX.1\-2001 */
+.br
+\fB#include <sys/select.h>\fP
+.sp
+/* D'après les standards précédents */
+.br
+\fB#include <sys/time.h>\fP
+.br
+\fB#include <sys/types.h>\fP
+.br
+\fB#include <unistd.h>\fP
+.sp
+\fBint select(int \fP\fInfds\fP\fB, fd_set *\fP\fIreadfds\fP\fB, fd_set *\fP\fIwritefds\fP\fB,\fP
+\fB           fd_set *\fP\fIexceptfds\fP\fB, struct timeval *\fP\fIutimeout\fP\fB);\fP
+.sp
+\fBvoid FD_CLR(int \fP\fIfd\fP\fB, fd_set *\fP\fIset\fP\fB);\fP
+.br
+\fBint  FD_ISSET(int \fP\fIfd\fP\fB, fd_set *\fP\fIset\fP\fB);\fP
+.br
+\fBvoid FD_SET(int \fP\fIfd\fP\fB, fd_set *\fP\fIset\fP\fB);\fP
+.br
+\fBvoid FD_ZERO(fd_set *\fP\fIset\fP\fB);\fP
+.sp
+\fB#include <sys/select.h>\fP
+.sp
+\fBint pselect(int \fP\fInfds\fP\fB, fd_set *\fP\fIreadfds\fP\fB, fd_set *\fP\fIwritefds\fP\fB,\fP
+\fB            fd_set *\fP\fIexceptfds\fP\fB, const struct timespec *\fP\fIntimeout\fP\fB,\fP
+\fB            const sigset_t *\fP\fIsigmask\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBpselect\fP()\ : _POSIX_C_SOURCE\ >=\ 200112L || _XOPEN_SOURCE\ >=\
+600
+.SH DESCRIPTION
+\fBselect\fP() (ou \fBpselect\fP()) est utilisé pour superviser efficacement
+plusieurs descripteurs de fichiers pour vérifier si l'un d'entre eux est ou
+devient «\ prêt\ »\ ; c'est\-à\-dire savoir si des entrées\-sorties deviennent
+possibles ou si une « condition exceptionnelle\ » est survenue sur l'un des
+descripteurs.
+
+Ses paramètres principaux sont trois «\ ensembles\ » de descripteurs de
+fichiers\ : \fIreadfds\fP, \fIwritefds\fP et \fIexceptfds\fP. Chaque ensemble est de
+type \fIfd_set\fP, et son contenu peut être manipulé avec les macros
+\fBFD_CLR\fP(), \fBFD_ISSET\fP(), \fBFD_SET\fP(), et \fBFD_ZERO\fP(). Un ensemble
+nouvellement déclaré doit d'abord être effacé en utilisant
+\fBFD_ZERO\fP(). \fBselect\fP() modifie le contenu de ces ensembles selon les
+règles ci\-dessous. Après un appel à \fBselect\fP(), vous pouvez vérifier si un
+descripteur de fichier est toujours présent dans l'ensemble à l'aide de la
+macro \fBFD_ISSET\fP(). \fBFD_ISSET\fP() renvoie une valeur non nulle si un
+descripteur de fichier indiqué est présent dans un ensemble et zéro s'il ne
+l'est pas. \fBFD_CLR\fP() retire un descripteur de fichier d'un ensemble.
+.SS Arguments
+.TP 
+\fIreadfds\fP
+Cet ensemble est examiné afin de déterminer si des données sont disponibles
+en lecture à partir d'un de ses descripteurs de fichier. Suite à un appel à
+\fBselect\fP(), \fIreadfds\fP ne contient plus aucun de ses descripteurs de
+fichiers à l'exception de ceux qui sont immédiatement disponibles pour une
+lecture.
+.TP 
+\fIwritefds\fP
+Cet ensemble est examiné afin de déterminer s'il y a de l'espace afin
+d'écrire des données dans un de ses descripteurs de fichier. Suite à un
+appel à \fBselect\fP(), \fIwritefds\fP ne contient plus aucun de ses descripteurs
+de fichiers à l'exception de ceux qui sont immédiatement disponibles pour
+une écriture.
+.TP 
+\fIexceptfds\fP
+Cet ensemble est examiné pour des «\ conditions exceptionnelles\ ». En
+pratique, seule une condition exceptionnelle est courante\ : la disponibilité
+de données \fIhors\-bande\fP (OOB\ : Out Of Band) en lecture sur une socket
+TCP. Consultez \fBrecv\fP(2), \fBsend\fP(2) et \fBtcp\fP(7) pour plus de détails sur
+les données hors bande. Un autre cas moins courant dans lequel \fBselect\fP(2)
+indique une condition exceptionnelle survient avec des pseudo terminaux en
+mode paquet\ ; consultez \fBtty_ioctl\fP(4).) Suite à un appel à \fBselect\fP(),
+\fIexceptfds\fP ne contient plus aucun de ses descripteurs de fichier à
+l'exception de ceux pour lesquels une condition exceptionnelle est survenue.
+.TP 
+\fInfds\fP
+Il s'agit d'un entier valant un de plus que n'importe lequel des
+descripteurs de fichier de tous les ensembles. En d'autres termes, lorsque
+vous ajoutez des descripteurs de fichier à chacun des ensembles, vous devez
+déterminer la valeur entière maximale de tous ces derniers, puis ajouter un
+à cette valeur, et la passer comme paramètre \fInfds\fP.
+.TP 
+\fIutimeout\fP
+Il s'agit du temps le plus long que \fBselect\fP() pourrait attendre avant de
+rendre la main, même si rien d'intéressant n'est arrivé. Si cette valeur est
+positionnée à NULL, alors, \fBselect\fP() bloque indéfiniment dans l'attente
+qu'un descripteur de fichier devienne prêt. \fIutimeout\fP peut être positionné
+à zéro seconde, ce qui provoque le retour immédiat de \fBselect\fP(), en
+indiquant quels descripteurs de fichiers étaient prêts au moment de
+l'appel. La structure \fIstruct timeval\fP est définie comme\ :
+.IP
+.in +4n
+.nf
+struct timeval {
+    time_t tv_sec;    /* secondes */
+    long tv_usec;     /* microsecondes */
+};
+.fi
+.in
+.TP 
+\fIntimeout\fP
+Ce paramètre de \fBpselect\fP() a la même signification que \fIutimeout\fP, mais
+\fIstruct timespec\fP a une précision à la nanoseconde comme explicité
+ci\-dessous\ :
+.IP
+.in +4n
+.nf
+struct timespec {
+    long tv_sec;    /* secondes */
+    long tv_nsec;   /* nanosecondes */
+};
+.fi
+.in
+.TP 
+\fIsigmask\fP
+Cet argument renferme un ensemble de signaux que le noyau doit débloquer
+(c'est\-à\-dire supprimer du masque de signaux du thread appelant) pendant que
+l'appelant est bloqué par \fBpselect\fP() (voir \fBsigaddset\fP(3) et
+\fBsigprocmask\fP(2)). Il peut valoir NULL et, dans ce cas, il ne modifie pas
+l'ensemble des signaux non bloqués à l'entrée et la sortie de la
+fonction. Dans ce cas, \fBpselect\fP() se comporte alors de façon identique à
+\fBselect\fP().
+.SS "Combinaison d'événements de signaux et de données"
+\fBpselect\fP() est utile si vous attendez un signal ou qu'un descripteur de
+fichier deviennent prêt pour des entrées\-sorties. Les programmes qui
+reçoivent des signaux utilisent généralement le gestionnaire de signal
+uniquement pour lever un drapeau global. Le drapeau global indique que
+l'événement doit être traité dans la boucle principale du programme. Un
+signal provoque l'arrêt de l'appel \fBselect\fP() (ou \fBpselect\fP()) avec
+\fIerrno\fP positionnée à \fBEINTR\fP. Ce comportement est essentiel afin que les
+signaux puissent être traités dans la boucle principale du programme, sinon
+\fBselect\fP() bloquerait indéfiniment. Ceci étant, la boucle principale
+implante quelque part une condition vérifiant le drapeau global, et l'on
+doit donc se demander\ : que se passe\-t\-il si un signal est levé après la
+condition mais avant l'appel à \fBselect\fP()\ ? La réponse est que \fBselect\fP()
+bloquerait indéfiniment, même si un signal est en fait en attente. Cette
+"race condition" est résolue par l'appel \fBpselect\fP(). Cet appel peut être
+utilisé afin de définir le masque des signaux qui sont censés être reçus que
+durant l'appel à \fBpselect\fP(). Par exemple, disons que l'événement en
+question est la fin d'un processus fils. Avant le démarrage de la boucle
+principale, nous bloquerions \fBSIGCHLD\fP en utilisant
+\fBsigprocmask\fP(2). Notre appel \fBpselect\fP() débloquerait \fBSIGCHLD\fP en
+utilisant le masque de signaux vide. Le programme ressemblerait à ceci\ :
+.PP
+.nf
+static volatile sig_atomic_t got_SIGCHLD = 0;
+
+static void
+child_sig_handler(int sig)
+{
+    got_SIGCHLD = 1;
+}
+
+int
+main(int argc, char *argv[])
+{
+    sigset_t sigmask, empty_mask;
+    struct sigaction sa;
+    fd_set readfds, writefds, exceptfds;
+    int r;
+
+    sigemptyset(&sigmask);
+    sigaddset(&sigmask, SIGCHLD);
+    if (sigprocmask(SIG_BLOCK, &sigmask, NULL) == \-1) {
+        perror("sigprocmask");
+        exit(EXIT_FAILURE);
+    }
+
+    sa.sa_flags = 0;
+    sa.sa_handler = child_sig_handler;
+    sigemptyset(&sa.sa_mask);
+    if (sigaction(SIGCHLD, &sa, NULL) == \-1) {
+        perror("sigaction");
+        exit(EXIT_FAILURE);
+    }
+
+    sigemptyset(&empty_mask);
+
+    for (;;) {          /* main loop */
+        /* Initialiser readfds, writefds et exceptfds
+           avant l'appel à pselect(). (Code omis.) */
+
+        r = pselect(nfds, &readfds, &writefds, &exceptfds,
+                    NULL, &empty_mask);
+        if (r == \-1 && errno != EINTR) {
+            /* Gérer les erreurs */
+        }
+
+        if (got_SIGCHLD) {
+            got_SIGCHLD = 0;
+
+            /* Gérer les événements signalés ici; e.g., wait() pour
+               que tous les fils se terminent. (Code omis.) */
+        }
+
+        /* corps principal du programme */
+    }
+}
+.fi
+.SS Pratique
+Quelle est donc la finalité de \fBselect\fP()\ ? Ne peut on pas simplement lire
+et écrire dans les descripteurs chaque fois qu'on le souhaite\ ? L'objet de
+\fBselect\fP() est de surveiller de multiples descripteurs simultanément et
+d'endormir proprement le processus s'il n'y a pas d'activité. Les
+programmeurs UNIX se retrouvent souvent dans une situation dans laquelle ils
+doivent gérer des entrées\-sorties provenant de plus d'un descripteur de
+fichier et dans laquelle le flux de données est intermittent. Si vous deviez
+créer une séquence d'appels \fBread\fP(2) et \fBwrite\fP(2), vous vous
+retrouveriez potentiellement bloqué sur un de vos appels attendant pour lire
+ou écrire des données à partir/vers un descripteur de fichier, alors qu'un
+autre descripteur de fichier est inutilisé bien qu'il soit prêt pour des
+entrées\-sorties. \fBselect\fP() gère efficacement cette situation.
+.SS "Règles de select"
+De nombreuses personnes qui essaient d'utiliser \fBselect\fP() obtiennent un
+comportement difficile à comprendre et produisent des résultats non
+portables ou des effets de bord. Par exemple, le programme ci\-dessus est
+écrit avec précaution afin de ne bloquer nulle part, même s'il ne positionne
+pas ses descripteurs de fichier en mode non bloquant.Il est facile
+d'introduire des erreurs subtiles qui annuleraient l'avantage de
+l'utilisation de \fBselect\fP(), aussi, voici une liste de points essentiels à
+contrôler lors de l'utilisation de \fBselect\fP().
+.TP  4
+1.
+Vous devriez toujours essayer d'utiliser \fBselect\fP() sans timeout. Votre
+programme ne devrait rien avoir à faire s'il n'y a pas de données
+disponibles. Le code dépendant de timeouts n'est en général pas portable et
+difficile à déboguer.
+.TP 
+2.
+La valeur \fInfds\fP doit être calculée correctement pour des raisons
+d'efficacité comme expliqué plus haut.
+.TP 
+3.
+Aucun descripteur de fichier ne doit être ajouté à un quelconque ensemble si
+vous ne projetez pas de vérifier son état après un appel à \fBselect\fP(), et
+de réagir de façon adéquate. Voir la règle suivante.
+.TP 
+4.
+Après le retour de \fBselect\fP(), tous les descripteurs de fichier dans tous
+les ensembles devraient être testés pour savoir s'ils sont prêts.
+.TP 
+5.
+Les fonctions \fBread\fP(2), \fBrecv\fP(2), \fBwrite\fP(2) et \fBsend\fP(2) ne lisent ou
+n'écrivent \fIpas\fP forcément la quantité totale de données spécifiée. Si
+elles lisent/écrivent la quantité totale, c'est parce que vous avez une
+faible charge de trafic et un flux rapide. Ce n'est pas toujours le
+cas. Vous devriez gérer le cas où vos fonctions traitent seulement l'envoi
+ou la réception d'un unique octet.
+.TP 
+6.
+Ne lisez/n'écrivez jamais seulement quelques octets à la fois à moins que
+vous ne soyez absolument sûr de n'avoir qu'une faible quantité de données à
+traiter. Il est parfaitement inefficace de ne pas lire/écrire autant de
+données que vous pouvez en stocker à chaque fois. Les tampons de l'exemple
+ci\-dessous font 1024 octets bien qu'ils aient facilement pu être rendus plus
+grands.
+.TP 
+7.
+.\" Nonetheless, you should still cope with these errors for completeness.
+Les fonctions \fBread\fP(2), \fBrecv\fP(2), \fBwrite\fP(2) et \fBsend\fP(2) tout comme
+l'appel \fBselect\fP() peuvent renvoyer \-1 avec \fIerrno\fP positionné à \fBEINTR\fP
+ou \fBEAGAIN\fP (\fBEWOULDBLOCK\fP) ce qui ne relève pas d'une erreur. Ces
+résultats doivent être correctement gérés (cela n'est pas fait correctement
+ci\-dessus). Si votre programme n'est pas censé recevoir de signal, alors, il
+est hautement improbable que vous obteniez \fBEINTR\fP. Si votre programme n'a
+pas configuré les entrées\-sorties en mode non bloquant, vous n'obtiendrez
+pas de \fBEAGAIN\fP.
+.TP 
+8.
+N'appelez jamais \fBread\fP(2), \fBrecv\fP(2), \fBwrite\fP(2) ou \fBsend\fP(2) avec un
+tampon de taille nulle.
+.TP 
+9.
+Si l'une des fonctions \fBread\fP(2), \fBrecv\fP(2), \fBwrite\fP(2) et \fBsend\fP(2)
+échoue avec une erreur autre que celles indiquées en \fB7.\fP, ou si l'une des
+fonctions d'entrée renvoie 0, indiquant une fin de fichier, vous \fIne\fP
+devriez \fIpas\fP utiliser ce descripteur à nouveau pour un appel à
+\fBselect\fP(). Dans l'exemple ci\-dessous, le descripteur est immédiatement
+fermé et ensuite est positionné à \-1 afin qu'il ne soit pas inclus dans un
+ensemble.
+.TP 
+10.
+La valeur de timeout doit être initialisée à chaque nouvel appel à
+\fBselect\fP(), puisque des systèmes d'exploitation modifient la
+structure. Cependant, \fBpselect\fP() ne modifie pas sa structure de timeout.
+.TP 
+11.
+.\" "I have heard" does not fill me with confidence, and doesn't
+.\" belong in a man page, so I've commented this point out.
+.\" .TP
+.\" 11.
+.\" I have heard that the Windows socket layer does not cope with OOB data
+.\" properly.
+.\" It also does not cope with
+.\" .BR select ()
+.\" calls when no file descriptors are set at all.
+.\" Having no file descriptors set is a useful
+.\" way to sleep the process with sub-second precision by using the timeout.
+.\" (See further on.)
+Comme \fBselect\fP() modifie ses ensembles de descripteurs de fichiers, si
+l'appel est effectué dans une boucle alors les ensembles doivent être
+ré\-initialisés avant chaque appel.
+.SS "Émulation de usleep"
+Sur les systèmes qui ne possèdent pas la fonction \fBusleep\fP(3), vous pouvez
+appeler \fBselect\fP() avec un timeout à valeur finie et sans descripteur de
+fichier de la façon suivante\ :
+.PP
+.nf
+    struct timeval tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = 200000;  /* 0.2 secondes */
+    select(0, NULL, NULL, NULL, &tv);
+.fi
+.PP
+Le fonctionnement n'est cependant garanti que sur les systèmes Unix.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBselect\fP() renvoie le nombre total de descripteurs de
+fichiers encore présents dans les ensembles de descripteurs de fichier.
+
+En cas de timeout échu, alors les descripteurs de fichier devraient tous
+être vides (mais peuvent ne pas l'être sur certains systèmes). Par contre,
+la valeur renvoyée est zéro.
+
+Une valeur de retour égale à \-1 indique une erreur, \fIerrno\fP est alors
+positionné de façon adéquate. En cas d'erreur, le contenu des ensembles
+renvoyés et le contenu de la structure de \fItimeout\fP sont indéfinis et ne
+devraient pas être exploités. \fBpselect\fP() ne modifie cependant jamais
+\fIntimeout\fP.
+.SH NOTES
+De façon générale, tous les systèmes d'exploitation qui gèrent les sockets
+proposent également \fBselect\fP(). \fBselect\fP() peut être utilisé pour résoudre
+de façon portable et efficace de nombreux problèmes que des programmeurs
+naïfs essaient de résoudre avec des threads, des forks, des IPC, des
+signaux, des mémoires partagées et d'autres méthodes peu élégantes.
+.PP
+L'appel système \fBpoll\fP(2) a les mêmes fonctionnalités que \fBselect\fP(), tout
+en étant légèrement plus efficace quand il doit surveiller des ensembles de
+descripteurs creux. Il est disponible sur la plupart des systèmes de nos
+jours, mais était historiquement moins portable que \fBselect\fP().
+.PP
+L'API \fBepoll\fP(7) spécifique à Linux fournit une interface plus efficace que
+\fBselect\fP(2) et \fBpoll\fP(2) lorsque l'on surveille un grand nombre de
+descripteurs de fichier.
+.SH EXEMPLE
+Voici un exemple qui montre mieux l'utilité réelle de \fBselect\fP(). Le code
+ci\-dessous consiste en un programme de «\ TCP forwarding\ » qui redirige un
+port TCP vers un autre.
+.PP
+.nf
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <string.h>
+#include <signal.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <errno.h>
+
+static int forward_port;
+
+#undef max
+#define max(x,y) ((x) > (y) ? (x) : (y))
+
+static int
+listen_socket(int listen_port)
+{
+    struct sockaddr_in a;
+    int s;
+    int yes;
+
+    if ((s = socket(AF_INET, SOCK_STREAM, 0)) == \-1) {
+        perror("socket");
+        return \-1;
+    }
+    yes = 1;
+    if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
+            (char *) &yes, sizeof(yes)) == \-1) {
+        perror("setsockopt");
+        close(s);
+        return \-1;
+    }
+    memset(&a, 0, sizeof(a));
+    a.sin_port = htons(listen_port);
+    a.sin_family = AF_INET;
+    if (bind(s, (struct sockaddr *) &a, sizeof(a)) == \-1) {
+        perror("bind");
+        close(s);
+        return \-1;
+    }
+    printf("accepting connections on port %d\en", listen_port);
+    listen(s, 10);
+    return s;
+}
+
+static int
+connect_socket(int connect_port, char *address)
+{
+    struct sockaddr_in a;
+    int s;
+
+    if ((s = socket(AF_INET, SOCK_STREAM, 0)) == \-1) {
+        perror("socket");
+        close(s);
+        return \-1;
+    }
+
+    memset(&a, 0, sizeof(a));
+    a.sin_port = htons(connect_port);
+    a.sin_family = AF_INET;
+
+    if (!inet_aton(address, (struct in_addr *) &a.sin_addr.s_addr)) {
+        perror("bad IP address format");
+        close(s);
+        return \-1;
+    }
+
+    if (connect(s, (struct sockaddr *) &a, sizeof(a)) == \-1) {
+        perror("connect()");
+        shutdown(s, SHUT_RDWR);
+        close(s);
+        return \-1;
+    }
+    return s;
+}
+
+#define SHUT_FD1 do {                                \e
+                     if (fd1 >= 0) {                 \e
+                         shutdown(fd1, SHUT_RDWR);   \e
+                         close(fd1);                 \e
+                         fd1 = \-1;                   \e
+                     }                               \e
+                 } while (0)
+
+#define SHUT_FD2 do {                                \e
+                     if (fd2 >= 0) {                 \e
+                         shutdown(fd2, SHUT_RDWR);   \e
+                         close(fd2);                 \e
+                         fd2 = \-1;                   \e
+                     }                               \e
+                 } while (0)
+
+#define BUF_SIZE 1024
+
+int
+main(int argc, char *argv[])
+{
+    int h;
+    int fd1 = \-1, fd2 = \-1;
+    char buf1[BUF_SIZE], buf2[BUF_SIZE];
+    int buf1_avail, buf1_written;
+    int buf2_avail, buf2_written;
+
+    if (argc != 4) {
+        fprintf(stderr, "Utilisation\en\etfwd <listen\-port> "
+                 "<forward\-to\-port> <forward\-to\-ip\-address>\en");
+        exit(EXIT_FAILURE);
+    }
+
+    signal(SIGPIPE, SIG_IGN);
+
+    forward_port = atoi(argv[2]);
+
+    h = listen_socket(atoi(argv[1]));
+    if (h == \-1)
+        exit(EXIT_FAILURE);
+
+    for (;;) {
+        int r, nfds = 0;
+        fd_set rd, wr, er;
+
+        FD_ZERO(&rd);
+        FD_ZERO(&wr);
+        FD_ZERO(&er);
+        FD_SET(h, &rd);
+        nfds = max(nfds, h);
+        if (fd1 > 0 && buf1_avail < BUF_SIZE) {
+            FD_SET(fd1, &rd);
+            nfds = max(nfds, fd1);
+        }
+        if (fd2 > 0 && buf2_avail < BUF_SIZE) {
+            FD_SET(fd2, &rd);
+            nfds = max(nfds, fd2);
+        }
+        if (fd1 > 0 && buf2_avail \- buf2_written > 0) {
+            FD_SET(fd1, &wr);
+            nfds = max(nfds, fd1);
+        }
+        if (fd2 > 0 && buf1_avail \- buf1_written > 0) {
+            FD_SET(fd2, &wr);
+            nfds = max(nfds, fd2);
+        }
+        if (fd1 > 0) {
+            FD_SET(fd1, &er);
+            nfds = max(nfds, fd1);
+        }
+        if (fd2 > 0) {
+            FD_SET(fd2, &er);
+            nfds = max(nfds, fd2);
+        }
+
+        r = select(nfds + 1, &rd, &wr, &er, NULL);
+
+        if (r == \-1 && errno == EINTR)
+            continue;
+
+        if (r == \-1) {
+            perror("select()");
+            exit(EXIT_FAILURE);
+        }
+
+        if (FD_ISSET(h, &rd)) {
+            unsigned int l;
+            struct sockaddr_in client_address;
+
+            memset(&client_address, 0, l = sizeof(client_address));
+            r = accept(h, (struct sockaddr *) &client_address, &l);
+            if (r == \-1) {
+                perror("accept()");
+            } else {
+                SHUT_FD1;
+                SHUT_FD2;
+                buf1_avail = buf1_written = 0;
+                buf2_avail = buf2_written = 0;
+                fd1 = r;
+                fd2 = connect_socket(forward_port, argv[3]);
+                if (fd2 == \-1)
+                    SHUT_FD1;
+                else
+                    printf("connexion de %s\en",
+                            inet_ntoa(client_address.sin_addr));
+            }
+        }
+
+        /* NB : lecture des données hors bande avant les lectures normales */
+
+        if (fd1 > 0)
+            if (FD_ISSET(fd1, &er)) {
+                char c;
+
+                r = recv(fd1, &c, 1, MSG_OOB);
+                if (r < 1)
+                    SHUT_FD1;
+                else
+                    send(fd2, &c, 1, MSG_OOB);
+            }
+        if (fd2 > 0)
+            if (FD_ISSET(fd2, &er)) {
+                char c;
+
+                r = recv(fd2, &c, 1, MSG_OOB);
+                if (r < 1)
+                    SHUT_FD1;
+                else
+                    send(fd1, &c, 1, MSG_OOB);
+            }
+        if (fd1 > 0)
+            if (FD_ISSET(fd1, &rd)) {
+                r = read(fd1, buf1 + buf1_avail,
+                          BUF_SIZE \- buf1_avail);
+                if (r < 1)
+                    SHUT_FD1;
+                else
+                    buf1_avail += r;
+            }
+        if (fd2 > 0)
+            if (FD_ISSET(fd2, &rd)) {
+                r = read(fd2, buf2 + buf2_avail,
+                          BUF_SIZE \- buf2_avail);
+                if (r < 1)
+                    SHUT_FD2;
+                else
+                    buf2_avail += r;
+            }
+        if (fd1 > 0)
+            if (FD_ISSET(fd1, &wr)) {
+                r = write(fd1, buf2 + buf2_written,
+                           buf2_avail \- buf2_written);
+                if (r < 1)
+                    SHUT_FD1;
+                else
+                    buf2_written += r;
+            }
+        if (fd2 > 0)
+            if (FD_ISSET(fd2, &wr)) {
+                r = write(fd2, buf1 + buf1_written,
+                           buf1_avail \- buf1_written);
+                if (r < 1)
+                    SHUT_FD2;
+                else
+                    buf1_written += r;
+            }
+
+        /* Vérifie si l'écriture de données a rattrapé la lecture de données */
+
+        if (buf1_written == buf1_avail)
+            buf1_written = buf1_avail = 0;
+        if (buf2_written == buf2_avail)
+            buf2_written = buf2_avail = 0;
+
+        /* une extrémité a fermé la connexion, continue
+           d'écrire vers l'autre extrémité jusqu'à ce
+           que ce soit vide */
+
+        if (fd1 < 0 && buf1_avail \- buf1_written == 0)
+            SHUT_FD2;
+        if (fd2 < 0 && buf2_avail \- buf2_written == 0)
+            SHUT_FD1;
+    }
+    exit(EXIT_SUCCESS);
+}
+.fi
+.PP
+Le programme ci\-dessus redirige correctement la plupart des types de
+connexions TCP y compris les signaux de données hors bande OOB transmis par
+les serveurs \fBtelnet\fP. Il gère le problème épineux des flux de données
+bidirectionnels simultanés. Vous pourriez penser qu'il est plus efficace
+d'utiliser un appel \fBfork\fP(2) et de dédier une tâche à chaque flux. Cela
+devient alors plus délicat que vous ne l'imaginez. Une autre idée est de
+configurer les entrées\-sorties comme non bloquantes en utilisant
+\fBfcntl\fP(2). Cela pose également problème puisque ça vous force à utiliser
+des timeouts inefficaces.
+
+Le programme ne gère pas plus d'une connexion à la fois bien qu'il soit
+aisément extensible à une telle fonctionnalité en utilisant une liste
+chaînée de tampons \(em un pour chaque connexion. Pour l'instant, de
+nouvelles connexions provoquent l'abandon de la connexion courante.
+.SH "VOIR AUSSI"
+.\" .SH AUTHORS
+.\" This man page was written by Paul Sheer.
+\fBaccept\fP(2), \fBconnect\fP(2), \fBioctl\fP(2), \fBpoll\fP(2), \fBread\fP(2),
+\fBrecv\fP(2), \fBselect\fP(2), \fBsend\fP(2), \fBsigprocmask\fP(2), \fBwrite\fP(2),
+\fBsigaddset\fP(3), \fBsigdelset\fP(3), \fBsigemptyset\fP(3), \fBsigfillset\fP(3),
+\fBsigismember\fP(3), \fBepoll\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

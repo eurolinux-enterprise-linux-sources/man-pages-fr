@@ -1,0 +1,102 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single Unix specification
+.\"      http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MBRTOWC 3 "22 novembre 2001" GNU "Manuel du programmeur Linux"
+.SH NOM
+mbrtowc \- Convertir une séquence multi\-octets en caractère large.
+.SH SYNOPSIS
+.nf
+\fB#include <wchar.h>\fP
+.sp
+\fBsize_t mbrtowc(wchar_t *\fP\fIpwc\fP\fB, const char *\fP\fIs\fP\fB, size_t \fP\fIn\fP\fB, mbstate_t *\fP\fIps\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+L'utilisation principale de cette fonction est avec \fIs\fP et \fIpwc\fP non
+NULL. Dans ce cas, la fonction \fBmbrtowc\fP() examine au plus \fIn\fP octets de
+la chaîne multi\-octets commençant en \fIs\fP, en extrait le prochain caractère
+multi\-octets complet, et le place en \fI*pwc\fP. Elle met à jour l'état de
+décalage \fI*ps\fP. Si le caractère large obtenu n'est pas L\(aq\e0\(aq, elle
+renvoie le nombre d'octets consommés depuis \fIs\fP. Si le caractère large
+obtenu est L\(aq\e0\(aq, elle ré\-initialise l'état de décalage \fI*ps\fP et
+renvoie zéro.
+.PP
+Si les \fIn\fP octets commençant en \fIs\fP ne contiennent pas de caractère large
+complet, \fBmbrtowc\fP() renvoie \fI(size_t)\ \-2\fP. Cela peut se produire même si
+\fIn\fP >= \fIMB_CUR_MAX\fP, lorsque la séquence multi\-octets contient des
+séquences de décalage redondantes.
+.PP
+Si la séquence multi\-octets commençant en \fIs\fP contient une séquence
+invalide avant le prochain caractère complet, \fBmbrtowc\fP() renvoie
+\fI(size_t)\ \-1\fP et place dans \fIerrno\fP la valeur \fBEILSEQ\fP. Dans ce cas, les
+effets sur \fI*ps\fP sont indéfinis.
+.PP
+Une autre situation est possible, si \fIs\fP est non NULL, mais \fIpwc\fP est
+NULL. Dans ce cas, \fBmbrtowc\fP() se comporte comme précédemment, mais
+n'enregistre pas le caractère large obtenu.
+.PP
+Un troisième cas se présente si \fIs\fP est NULL. Alors, \fIpwc\fP et \fIn\fP sont
+ignorés. Si l'état de conversion représenté par \fI*ps\fP indique une
+conversion multi\-octets incomplète, la fonction \fBmbrtowc\fP() renvoie
+\fI(size_t)\ \-1\fP, remplie \fIerrno\fP avec \fBEILSEQ\fP, et laisse \fI*ps\fP dans un
+état indéfini. Sinon, la fonction \fBmbrtowc\fP() replace \fI*ps\fP dans l'état
+initial et renvoie 0.
+.PP
+Dans tous ces cas, si \fIps\fP est un pointeur NULL, une zone de mémoire
+statique propre à \fBmbrtowc\fP() est utilisée à sa place. Sinon, \fI*ps\fP doit
+être un objet \fImbstate_t\fP valide. Un tel objet \fImbstate_t\fP noté \fIa\fP peut
+être initialisé en le mettant à zéro, par exemple ainsi\ :
+.sp
+.in +4n
+memset(&a, 0, sizeof(a));
+.in
+.SH "VALEUR RENVOYÉE"
+La fonction \fBmbrtowc\fP() renvoie le nombre d'octets balayés depuis la
+séquence commençant en \fIs\fP, si un caractère large non nul a été
+reconnu. Elle renvoie zéro si un caractère large nul est rencontré. Elle
+renvoie \fI(size_t)\ \-1\fP et remplit \fIerrno\fP avec \fBEILSEQ\fP, si une séquence
+invalide est trouvée. Elle renvoie \fI(size_t)\ \-2\fP si elle n'a pas trouvé de
+caractère entier, et si \fIn\fP doit être augmenté.
+.SH CONFORMITÉ
+C99.
+.SH NOTES
+Le comportement de \fBmbrtowc\fP() dépend de la catégorie \fBLC_CTYPE\fP de la
+localisation en cours.
+.SH "VOIR AUSSI"
+\fBmbsrtowcs\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

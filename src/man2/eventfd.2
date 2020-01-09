@@ -1,0 +1,306 @@
+.\" Copyright (C) 2008 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" starting from a version by Davide Libenzi <davidel@xmailserver.org>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+.\" MA  02111-1307  USA
+.\"
+.\" 2008-10-10, mtk: describe eventfd2(), and EFD_NONBLOCK and EFD_CLOEXEC
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH EVENTFD 2 "26 janvier 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+eventfd \- Créer un descripteur de fichier pour la notification d'événements
+.SH SYNOPSIS
+\fB#include <sys/eventfd.h>\fP
+.sp
+\fBint eventfd(unsigned int \fP\fIinitval\fP\fB, int \fP\fIflags\fP\fB);\fP
+.SH DESCRIPTION
+\fBeventfd\fP() créée un «\ objet eventfd\ » qui peut être utilisé par les
+applications de l'espace utilisateur pour l'attente ou la notification d'un
+événement et par le noyau pour notifier des applications de certains
+événements. Les objets contiennent un compteur entier non signé sur 64\ bits
+(\fIuint64_t\fP) qui est maintenu par le noyau. Ce compteur est initialisé à la
+valeur spécifiée par le paramètre \fIinitval\fP.
+
+À partir de Linux 2.6.27, les valeurs suivantes peuvent être inclues (avec
+un OU logique) dans \fIflags\fP pour changer le comportement de \fBeventfd\fP()\ :
+.TP  14
+\fBEFD_NONBLOCK\fP
+Définir l'attribut d'état de fichier \fBO_NONBLOCK\fP sur le nouveau
+descripteur de fichier ouvert. Utiliser cet attribut économise des appels à
+\fBfcntl\fP(2) qui permettrait d'obtenir le même résultat.
+.TP 
+\fBEFD_CLOEXEC\fP
+Définir l'attribut «\ close\-on\-exec\ » (\fBFD_CLOEXEC\fP) sur le nouveau
+descripteur de fichier. Consultez la description de l'attribut \fBO_CLOEXEC\fP
+dans \fBopen\fP(2) pour savoir quand ça peut être utile.
+.PP
+Dans les versions de Linux jusqu'à la version 2.6.26, le paramètre \fIflags\fP
+n'est pas utilisé et doit avoir la valeur zéro.
+
+Comme valeur de retour, \fBeventfd\fP() renvoie un nouveau descripteur de
+fichier qui peut être utilisé pour se référer à l'objet eventfd. Les
+opérations suivantes peuvent être effectuées sur le descripteur de fichier\ :
+.TP 
+\fBread\fP(2)
+Si le compteur eventfd a une valeur non nulle, un \fBread\fP(2) renverra 8
+octets contenant cette valeur, et la valeur du compteur sera remise à
+zéro. (La valeur renvoyée utilise l'ordre des octets de l'hôte, c'est\-à\-dire
+l'ordre des octets natif pour les entiers sur la machine hôte)
+.IP
+Si le compteur est nul au moment du \fBread\fP(2), l'appel bloquera jusqu'à ce
+que le compteur devienne non nul, ou échouera avec l'erreur \fBEAGAIN\fP si le
+descripteur de fichier est en mode non bloquant.
+.IP
+Un \fBread\fP(2) échouera avec l'erreur \fBEINVAL\fP si la taille du tampon fourni
+est de moins de 8 octets.
+.TP 
+\fBwrite\fP(2)
+Un appel à \fBwrite\fP(2) ajoute au compteur la valeur de l'entier sur 8 octets
+fourni dans le tampon. La valeur maximale qui peut être stockée dans le
+compteur est le plus grand entier non signé sur 64 bits moins 1
+(c'est\-à\-dire 0xfffffffffffffffe). Si l'addition résulte en un compteur qui
+dépasserait la valeur maximale, le \fBwrite\fP(2) bloquera jusqu'à ce qu'un
+\fBread\fP(2) soit effectué sur le descripteur de fichier, ou échouera avec
+l'erreur \fBEAGAIN\fP si le descripteur de fichier est en mode non bloquant.
+.IP
+Un \fBwrite\fP(2) échouera avec l'erreur \fBEINVAL\fP si la taille du tampon
+fourni est de moins de 8 octets ou si l'on essaie d'écrire la valeur
+0xffffffffffffffff.
+.TP 
+\fBpoll\fP(2), \fBselect\fP(2) (et similaires)
+Le descripteur de fichier prend en charge les \fBpoll\fP(2) (et de façon
+analogue \fBepoll\fP(7)) et \fBselect\fP(2) de la façon suivante\ :
+.RS
+.IP * 3
+Le descripteur de fichier est lisible (le paramètre \fIreadfds\fP de
+\fBselect\fP(2)\ ; l'attribut \fBPOLLIN\fP de \fBpoll\fP(2)) si le compteur a une
+valeur supérieure à 0.
+.IP *
+Le descripteur de fichier est disponible en écriture (le paramètre
+\fIwritefds\fP de \fBselect\fP(2)\ ; l'attribut \fBPOLLOUT\fP de \fBpoll\fP(2)) s'il est
+possible d'écrire une valeur d'au moins «\ 1\ » sans bloquer.
+.IP *
+Si un dépassement de la valeur du compteur a été détectée, \fBselect\fP(2)
+indique que le descripteur de fichier est disponible en lecture et en
+écriture et \fBpoll\fP(2) renvoie un événement \fBPOLLERR\fP. Comme indiquée
+ci\-dessus, un \fBwrite\fP(2) ne peut jamais produire de dépassement. Cependant,
+un dépassement peut se produire si un «\ signal post\ » eventfd de 2^64 a été
+effectué par le sous\-système KAIO (théoriquement possible, mais très peut
+probable en pratique). Si un dépassement survient, un \fBread\fP(2) renverra la
+valeur maximale d'un \fIuint64_t\fP (c'est\-à\-dire 0xffffffffffffffff).
+.RE
+.IP
+Le descripteur de fichier eventfd prend également en charge les autres
+interfaces de multiplexage de descripteurs de fichier\ : \fBpselect\fP(2),
+\fBppoll\fP(2) et \fBepoll\fP(7).
+.TP 
+\fBclose\fP(2)
+Quand le descripteur de fichier n'est plus nécessaire il doit être
+fermé. Quand tous les descripteurs de fichier associés au même objet eventfd
+ont été fermés, les ressources pour cet objet sont libérées par le noyau.
+.PP
+Une copie d'un descripteur de fichier créé par \fBeventfd\fP() est héritée par
+le fils produit par \fBfork\fP(2). Le duplicata du descripteur de fichier est
+associé au même objet eventfd. Les descripteurs de fichier créés par
+\fBeventfd\fP() sont préservés au travers des exécutions par \fBexecve\fP(2).
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBeventfd\fP() renvoie un nouveau descripteur de fichier
+eventfd. En cas d'erreur, il renvoie \-1 et remplit \fIerrno\fP avec la valeur
+d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+\fIflags\fP n'est pas correct\ ; ou, pour les versions de Linux 2.6.26 ou
+ultérieures, \fIflags\fP n'est pas nul.
+.TP 
+\fBEMFILE\fP
+La limite des descripteurs ouverts pour le processus a été atteinte.
+.TP 
+\fBENFILE\fP
+La limite du nombre total de fichiers ouverts sur le système a été atteinte.
+.TP 
+\fBENODEV\fP
+.\" Note from Davide:
+.\" The ENODEV error is basically never going to happen if
+.\" the kernel boots correctly. That error happen only if during
+.\" the kernel initialization, some error occur in the anonymous
+.\" inode source initialization.
+Impossible de monter (en interne) le périphérique anonyme d'inoeud.
+.TP 
+\fBENOMEM\fP
+Il n'y a pas assez de mémoire pour que le noyau crée le nouveau descripteur
+de fichier eventfd.
+.SH VERSIONS
+.\" eventfd() is in glibc 2.7, but reportedly does not build
+\fBeventfd\fP() est disponible sous Linux depuis le noyau\ 2.6.22. Le support
+fonctionnel est fourni par la glibc depuis la version 2.8. L'appel système
+\fBeventfd2\fP() (voir les NOTES) est disponible sous Linux depuis le noyau
+2.6.27. Depuis la version 2.9, la fonction enveloppe de la glibc pour
+\fBeventfd\fP() utilise l'appel système \fBeventfd2\fP() s'il est pris en charge
+par le noyau.
+.SH CONFORMITÉ
+\fBeventfd\fP() et \fBeventfd2\fP() sont spécifiques à Linux.
+.SH NOTES
+Les applications peuvent utiliser un descripteur de fichier eventfd à la
+place d'un tube (voir \fBpipe\fP(2)) à chaque fois qu'un tube est utilisé pour
+signaler des événements. La surcharge du noyau pour un descripteur de
+fichier est bien plus faible que pour un tube. De plus un seul descripteur
+de fichier est nécessaire (alors que deux sont nécessaires pour un tube).
+
+.\" or eventually syslets/threadlets
+Quand un descripteur de fichier eventfd est utilisé par le noyau, il peut
+fournir un pont entre l'espace utilisateur et l'espace noyau. Par exemple,
+les fonctionnalités comme KAIO («\ kernel AIO\ ») pour signaler dans un
+descripteur de fichier que certaines opérations sont finies.
+
+Un aspect important d'un descripteur de fichier eventfd est qu'il peut être
+surveillé comme n'importe quel descripteur de fichier avec \fBselect\fP(2),
+\fBpoll\fP(2) ou \fBepoll\fP(7). Ceci signifie qu'une application peut surveiller
+simultanément la disponibilité de fichiers «\ traditionnels\ » et la
+disponibilité de mécanismes noyau qui gèrent une interface eventfd. (Sans
+l'interface \fBeventfd\fP(), ces mécanismes ne pouvaient pas être multiplexés
+avec \fBselect\fP(2), \fBpoll\fP(2) ou \fBepoll\fP(7))
+.SS "Appels système Linux sous\-jacents"
+Il y a deux appels système sous\-jacent\ : \fBeventfd\fP() et \fBeventfd2\fP(), plus
+récent. Le premier appel système n'implémente pas le paramètre \fIflags\fP. Le
+dernier appel système implémente les valeurs de \fIflags\fP décrite
+ci\-dessus. La fonction enveloppe de la glibc utilisera \fBeventfd2\fP() quand
+il est présent.
+.SS "Fonctionnalités supplémentaires de la glibc"
+La bibliothèque C de GNU définie un type supplémentaire et deux fonctions
+qui tentent d'abstraire certains détails pour la lecture ou l'écriture avec
+des descripteurs de fichier eventfd\ :
+.in +4n
+.nf
+
+typedef uint64_t eventfd_t;
+
+int eventfd_read(int fd, eventfd_t *value);
+int eventfd_write(int fd, eventfd_t value);
+.fi
+.in
+
+Les fonctions effectuent des actions de lecture ou écriture sur le
+descripteur de fichier eventfd, en renvoyant 0 si un nombre correct d'octets
+a été transféré, ou \-1 sinon.
+.SH EXEMPLE
+.PP
+Le programme suivant crée un descripteur de fichier eventfd puis crée un
+processus fils. Alors que le père commence par s'endormir, le fils écrit
+tous les entiers fournis sur la ligne de commande au descripteur de fichier
+eventfd. Quand le père se réveille, il lit dans le descripteur de fichier
+eventfd.
+
+La session shell suivante montre un exemple d'exécution du programme\ :
+.in +4n
+.nf
+
+$\fB ./a.out 1 2 4 7 14\fP
+Child writing 1 to efd
+Child writing 2 to efd
+Child writing 4 to efd
+Child writing 7 to efd
+Child writing 14 to efd
+Child completed write loop
+Parent about to read
+Parent read 28 (0x1c) from efd
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <sys/eventfd.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>             /* Definition de uint64_t */
+
+#define handle_error(msg) \e
+    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+int
+main(int argc, char *argv[])
+{
+    int efd, j;
+    uint64_t u;
+    ssize_t s;
+
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <num>...\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    efd = eventfd(0, 0);
+    if (efd == \-1)
+        handle_error("eventfd");
+
+    switch (fork()) {
+    case 0:
+        for (j = 1; j < argc; j++) {
+            printf("Child writing %s to efd\en", argv[j]);
+            u = strtoull(argv[j], NULL, 0);
+                    /* strtoull() allows various bases */
+            s = write(efd, &u, sizeof(uint64_t));
+            if (s != sizeof(uint64_t))
+                handle_error("write");
+        }
+        printf("Child completed write loop\en");
+
+        exit(EXIT_SUCCESS);
+
+    default:
+        sleep(2);
+
+        printf("Parent about to read\en");
+        s = read(efd, &u, sizeof(uint64_t));
+        if (s != sizeof(uint64_t))
+            handle_error("read");
+        printf("Parent read %llu (0x%llx) from efd\en",
+                (unsigned long long) u, (unsigned long long) u);
+        exit(EXIT_SUCCESS);
+
+    case \-1:
+        handle_error("fork");
+    }
+}
+.fi
+.SH "VOIR AUSSI"
+\fBfutex\fP(2), \fBpipe\fP(2), \fBpoll\fP(2), \fBread\fP(2), \fBselect\fP(2),
+\fBsignalfd\fP(2), \fBtimerfd_create\fP(2), \fBwrite\fP(2), \fBepoll\fP(7),
+\fBsem_overview\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

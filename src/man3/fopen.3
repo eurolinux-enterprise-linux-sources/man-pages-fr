@@ -1,0 +1,226 @@
+.\" Copyright (c) 1990, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" This code is derived from software contributed to Berkeley by
+.\" Chris Torek and the American National Standards Committee X3,
+.\" on Information Processing Systems.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)fopen.3	6.8 (Berkeley) 6/29/91
+.\"
+.\" Converted for Linux, Mon Nov 29 15:22:01 1993, faith@cs.unc.edu
+.\" Modified, aeb, 960421, 970806
+.\" Modified, joey, aeb, 2002-01-03
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FOPEN 3 "23 février 2009" GNU "Manuel du programmeur Linux"
+.SH NOM
+fopen, fdopen, freopen \- Fonctions d'ouverture de flux
+.SH SYNOPSIS
+.nf
+\fB#include <stdio.h>\fP
+.sp
+\fBFILE *fopen(const char *\fP\fIpath\fP\fB, const char *\fP\fImode\fP\fB);\fP
+
+\fBFILE *fdopen(int \fP\fIfd\fP\fB, const char *\fP\fImode\fP\fB);\fP
+
+\fBFILE *freopen(const char *\fP\fIpath\fP\fB, const char *\fP\fImode\fP\fB, FILE *\fP\fIstream\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBfdopen\fP()\ : _POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE || _POSIX_SOURCE
+.SH DESCRIPTION
+La fonction \fBfopen\fP() ouvre le fichier dont le nom est contenu dans la
+chaîne pointée par \fIpath\fP et lui associe un flux.
+.PP
+L'argument \fImode\fP pointe vers une chaîne commençant par l'une des séquences
+suivantes (d'autres caractères peuvent suivre la séquence)\ :
+.TP 
+\fBr\fP
+Ouvre le fichier en lecture. Le pointeur de flux est placé au début du
+fichier.
+.TP 
+\fBr+\fP
+Ouvre le fichier en lecture et écriture. Le pointeur de flux est placé au
+début du fichier.
+.TP 
+\fBw\fP
+Tronque le fichier à son début ou ouvre le fichier en écriture. Le pointeur
+de flux est placé au début du fichier.
+.TP 
+\fBw+\fP
+Ouvre le fichier en lecture et écriture. Le fichier est créé s'il n'existait
+pas. S'il existait déjà, sa longueur est ramenée à 0. Le pointeur de flux
+est placé au début du fichier.
+.TP 
+\fBa\fP
+Ouvre le fichier en ajout (écriture à la fin du fichier). Le fichier est
+créé s'il n'existait pas. Le pointeur de flux est placé à la fin du fichier.
+.TP 
+\fBa+\fP
+Ouvre le fichier en lecture et ajout (écriture en fin de fichier). Le
+fichier est créé s'il n'existait pas. La position initiale du fichier pour
+la lecture est en début de fichier, mais les ajouts sont toujours placés à
+la fin du fichier.
+.PP
+La chaîne \fImode\fP peut également inclure la lettre «\ b\ » comme dernier
+caractère, ou même entre les deux caractères d'une des séquences à 2
+caractères vues ci\-dessus. Ce mode sert uniquement à assurer la
+compatibilité avec C89 et n'a aucun effet. Le «\ b\ » est ignoré sur tous
+les systèmes compatibles POSIX, y compris Linux (d'autres systèmes peuvent
+traiter les fichiers textes et les fichiers binaires différemment, et
+l'ajout du «\ b\ » peut être une bonne idée si vous faites des
+entrées/sorties sur un fichier binaire et que votre programme risque d'être
+porté sur un environnement non Unix).
+.PP
+Consultez la section NOTES ci\-dessous pour le détails des extensions de la
+glibc pour \fImode\fP.
+.PP
+Tout fichier créé aura le mode \fBS_IRUSR\fP\ | \fBS_IWUSR\fP\ | \fBS_IRGRP\fP\ |
+\fBS_IWGRP\fP\ | \fBS_IROTH\fP\ | \fBS_IWOTH\fP (0666), qui sera ensuite modifié par
+la valeur d'umask du processus. Voyez \fBumask\fP(2).
+.PP
+Les lectures et les écritures peuvent être mélangées sur les flux en lecture
+et écriture, dans un ordre quelconque. Notez que AINSI C nécessite qu'une
+fonction de positionnement dans le fichier soit appelée entre une lecture et
+une écriture, à moins que l'opération de lecture atteigne la fin du
+fichier(si cette condition n'est pas rencontrée, alors une lecture est
+permise pour renvoyer le résultat d'une écriture autre que la dernière). Une
+bonne habitude (souvent nécessaire sous Linux) consiste donc à intercaler un
+\fBfseek\fP(3) ou \fBfgetpos\fP(3) entre les lectures et les écritures sur le même
+flux. Ces opérations peuvent être visiblement sans effet comme \fIfseek(...,
+0L, SEEK_CUR)\fP et ne servant que pour l'effet de bord de synchronisation.
+.PP
+Ouvrir un fichier en mode ajout (\fBa\fP comme le premier caractère dans le
+\fImode\fP) feront agir toutes les opérations d'écriture à la fin du flux,
+comme si elles étaient précédées par un appel
+.nf
+
+    fseek(stream,0,SEEK_END);
+.fi
+.PP
+systématique.
+.PP
+La fonction \fBfdopen\fP() associe un flux avec un descripteur de fichier \fIfd\fP
+existant. Le \fImode\fP du flux (une des valeurs, «\ r\ », «\ "r+\ », «\ w\ »,
+«\ w+\ », «\ a\ », ou «\ a+\ »)  doit être compatible avec celui du
+descripteur de fichier. L'indicateur de position du nouveau flux prend la
+même valeur que celui de \fIfd\fP, et les indicateurs d'erreur et de fin de
+fichier sont effacés. Les modes «\ w\ » et «\ w+\ » ne tronquent pas le
+fichier. Le descripteur n'est pas dupliqué, et sera fermé lorsque le flux
+créé par \fBfdopen\fP() sera fermé. L'appel de \fBfdopen\fP() sur un objet en
+mémoire partagée est indéfini.
+.PP
+La fonction \fBfreopen\fP() ouvre le fichier dont le nom se trouve dans la
+chaîne de caractères pointée par \fIpath\fP et lui associe le flux pointé par
+\fIstream\fP. Le flux original, s'il existe, est fermé. L'argument \fImode\fP est
+utilisé exactement comme avec \fBfopen\fP(). La principale utilisation de
+\fBfreopen\fP() est de modifier le fichier associé aux flux standard de texte
+(\fIstderr\fP, \fIstdin\fP, ou \fIstdout\fP).
+.SH "VALEUR RENVOYÉE"
+Si elles réussissent intégralement, \fBfopen\fP(), \fBfdopen\fP() et \fBfreopen\fP()
+renvoient un pointeur de type \fIFILE\fP. Sinon, elles renvoient NULL et
+\fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+Le \fImode\fP fourni à \fBfopen\fP(), \fBfdopen\fP(), ou \fBfreopen\fP() était invalide.
+.PP
+Les fonctions \fBfopen\fP(), \fBfdopen\fP() et \fBfreopen\fP() peuvent également
+échouer et définir dans \fIerrno\fP une des erreurs spécifiées par
+\fBmalloc\fP(3).
+.PP
+La fonction \fBfopen\fP() peut aussi échouer et définir dans \fIerrno\fP une des
+erreurs spécifiées par \fBopen\fP(2).
+.PP
+La fonction \fBfdopen\fP() peut aussi échouer et définir dans \fIerrno\fP une des
+erreurs spécifiées par \fBfcntl\fP(2).
+.PP
+La fonction \fBfreopen\fP() peut aussi échouer et définir dans \fIerrno\fP une des
+erreurs spécifiées par \fBopen\fP(2), \fBfclose\fP(3) et \fBfflush\fP(3).
+.SH CONFORMITÉ
+Les fonctions \fBfopen\fP() et \fBfreopen\fP() sont conformes à C89. La fonction
+\fBfdopen\fP() est conforme à POSIX.1\-1990.
+.SH NOTES
+.SS "Notes sur la glibc"
+La bibliothèque GNU C permet les extensions suivantes pour la chaîne
+spécifiée par \fImode\fP\ :
+.TP 
+\fBc\fP (depuis la glibc\ 2.3.3)
+Ne pas rendre l'opération d'ouverture ou les opérations de lectures et
+écritures ultérieures, des points d'annulation de thread.
+.TP 
+\fBe\fP (depuis la glibc 2.7)
+Ouvrir le fichier avec l'attribut \fBO_CLOEXEC\fP. Voir \fBopen\fP(2) pour plus
+d'informations.
+.TP 
+\fBm\fP (depuis la glibc\ 2.3)
+.\" As at glibc 2.4:
+Essayer d'accéder au fichier avec \fBmmap\fP(2), au lieu des appels système
+d'entrées/sorties (\fBread\fP(2), \fBwrite\fP(2)). Actuellement, l'utilisation de
+\fBmmap\fP(2) n'est seulement tentée que pour un fichier ouvert en lecture.
+.TP 
+\fBx\fP
+.\" Since glibc 2.0?
+.\" FIXME document /,ccs= charset/
+Ouvrir le fichier de manière exclusive (comme avec le drapeau \fBO_EXCL\fP de
+\fBopen\fP(2)). Si le fichier existe déjà, \fBfopen\fP() échoue et \fIerrno\fP est
+définie à \fBEEXIST\fP. Ce drapeau est ignoré par \fBfdopen\fP().
+.SH "VOIR AUSSI"
+\fBopen\fP(2), \fBfclose\fP(3), \fBfileno\fP(3), \fBfmemopen\fP(3), \fBfopencookie\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

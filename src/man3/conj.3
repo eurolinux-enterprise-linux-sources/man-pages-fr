@@ -1,0 +1,56 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" Distributed under GPL
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CONJ 3 "11 août 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+conj, conjf, conjl \- Calcule le conjugué d'un complexe
+.SH SYNOPSIS
+\fB#include <complex.h>\fP
+.sp
+\fBdouble complex conj(double complex \fP\fIz\fP\fB);\fP
+.br
+\fBfloat complex conjf(float complex \fP\fIz\fP\fB);\fP
+.br
+\fBlong double complex conjl(long double complex \fP\fIz\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.SH DESCRIPTION
+La fonction \fBconj\fP() renvoie la valeur conjuguée d'un complexe \fIz\fP. C'est
+la valeur obtenue en modifiant le signe de la partie imaginaire.
+.LP
+On a\ :
+.nf
+
+    cabs(z) = csqrt(z * conj(z))
+.fi
+.SH VERSIONS
+Ces fonctions ont été introduites dans la glibc dans sa version\ 2.1.
+.SH CONFORMITÉ
+C99.
+.SH "VOIR AUSSI"
+\fBcabs\fP(3), \fBsqrt\fP(3), \fBcomplex\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2004-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

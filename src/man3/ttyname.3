@@ -1,0 +1,89 @@
+.\" Copyright (c) 1995 Jim Van Zandt <jrv@vanzandt.mv.com>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified 2001-12-13, Martin Schulze <joey@infodrom.org>
+.\" Added ttyname_r, aeb, 2002-07-20
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TTYNAME 3 "14 juillet 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+ttyname, ttyname_r \- Obtenir le nom d'un terminal
+.SH SYNOPSIS
+.nf
+\fB#include <unistd.h>\fP
+.sp
+\fBchar *ttyname(int \fP\fIfd\fP\fB);\fP
+
+\fBint ttyname_r(int \fP\fIfd\fP\fB, char *\fP\fItampon\fP\fB, size_t \fP\fIlngtmp\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBttyname\fP() renvoie un pointeur sur le nom (terminé par un
+caractère nul) du périphérique terminal associé au descripteur de fichier
+\fIfd\fP, ou \fBNULL\fP en cas d'erreur (par exemple si \fIfd\fP n'est pas connecté à
+un terminal). La valeur renvoyée peut pointer vers des données statiques,
+susceptibles d'être écrasées lors d'un appel ultérieur. La fonction
+\fBttyname_r\fP() stocke la valeur dans le \fItampon\fP de longueur \fIlngtmp\fP.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBttyname\fP() renvoie un pointeur sur le chemin d'accès. En cas
+d'erreur, elle renvoie \fBNULL\fP et remplit \fIerrno\fP avec le code d'erreur. La
+fonction \fBttyname_r\fP() renvoie zéro si elle réussit et un code d'erreur si
+elle échoue.
+.SH ERREURS
+\fBttyname_r\fP()\ :
+.TP 
+\fBEBADF\fP
+Mauvais descripteur de fichier.
+.TP 
+\fBENOTTY\fP
+Le descripteur de fichier ne se rapporte pas à un terminal.
+.TP 
+\fBERANGE\fP
+\fIlngtmp\fP est trop court pour stocker le chemin d'accès.
+.SH CONFORMITÉ
+BSD\ 4.2, POSIX.1\-2001.
+.SH "VOIR AUSSI"
+\fBfstat\fP(2), \fBisatty\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

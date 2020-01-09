@@ -1,0 +1,224 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl) and
+.\" Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" Distributed under GPL
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETSPNAM 3 "9 juillet 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+getspnam, getspnam_r, getspent, getspent_r, setspent, endspent, fgetspent,
+fgetspent_r, sgetspent, sgetspent_r, putspent, lckpwdf, ulckpwdf \- Obtenir
+un enregistrement du fichier des mots de passe cachés
+.SH SYNOPSIS
+.nf
+/* API du fichier des mots de passe cachés */
+.br
+\fB#include <shadow.h>\fP
+.sp
+\fBstruct spwd *getspnam(const char *\fP\fIname\fP\fB);\fP
+.sp
+\fBstruct spwd *getspent(void);\fP
+.sp
+\fBvoid setspent(void);\fP
+.sp
+\fBvoid endspent(void);\fP
+.sp
+\fBstruct spwd *fgetspent(FILE *\fP\fIfp\fP\fB);\fP
+.sp
+\fBstruct spwd *sgetspent(const char *\fP\fIs\fP\fB);\fP
+.sp
+\fBint putspent(struct spwd *\fP\fIp\fP\fB, FILE *\fP\fIfp\fP\fB);\fP
+.sp
+\fBint lckpwdf(void);\fP
+.sp
+\fBint ulckpwdf(void);\fP
+.sp
+/* Extension GNU */
+.br
+\fB#include <shadow.h>\fP
+.sp
+\fBint getspent_r(struct spwd *\fP\fIspbuf\fP\fB,\fP
+.br
+\fB        char *\fP\fIbuf\fP\fB, size_t \fP\fIbuflen\fP\fB, struct spwd **\fP\fIspbufp\fP\fB);\fP
+.sp
+\fBint getspnam_r(const char *\fP\fIname\fP\fB, struct spwd *\fP\fIspbuf\fP\fB,\fP
+.br
+\fB        char *\fP\fIbuf\fP\fB, size_t \fP\fIbuflen\fP\fB, struct spwd **\fP\fIspbufp\fP\fB);\fP
+.sp
+\fBint fgetspent_r(FILE *\fP\fIfp\fP\fB, struct spwd *\fP\fIspbuf\fP\fB,\fP
+.br
+\fB        char *\fP\fIbuf\fP\fB, size_t \fP\fIbuflen\fP\fB, struct spwd **\fP\fIspbufp\fP\fB);\fP
+.sp
+\fBint sgetspent_r(const char *\fP\fIs\fP\fB, struct spwd *\fP\fIspbuf\fP\fB,\fP
+.br
+\fB        char *\fP\fIbuf\fP\fB, size_t \fP\fIbuflen\fP\fB, struct spwd **\fP\fIspbufp\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBgetspent_r\fP(), \fBgetspnam_r\fP(), \fBfgetspent_r\fP(), \fBsgetspent_r\fP()\ :
+_BSD_SOURCE || _SVID_SOURCE
+.ad b
+.SH DESCRIPTION
+Il a longtemps été considéré comme sûr d'avoir des mots de passe chiffrés
+ouvertement visibles dans le fichier des mots de passe. Lorsque les
+ordinateurs sont devenus plus rapides et que les gens sont devenus plus
+conscients des problèmes de sécurité, cela n'était plus acceptable. Julianne
+Frances Haugh a implémenté la suite d'utilitaires «\ shadow\ » qui conserve
+les mots de passe chiffrés dans la base de données des mots de passe cachés
+«\ shadow\ » (par exemple, le fichier local des mots de passe cachés
+\fI/etc/shadow\fP, NIS ou LDAP), lisible seulement par le superutilisateur.
+.LP
+.\" FIXME I've commented out the following for the
+.\" moment.  The relationship between PAM and nsswitch.conf needs
+.\" to be clearly documented in one place, which is pointed to by
+.\" the pages for the user, group, and shadow password functions.
+.\" (Jul 2005, mtk)
+.\"
+.\" This shadow password setup has been superseded by PAM
+.\" (pluggable authentication modules), and the file
+.\" .I /etc/nsswitch.conf
+.\" now describes the sources to be used.
+Les fonctions décrites ci\-dessous ressemblent aux fonctions traditionnelles
+de la base de données des mots de passe (par exemple, consultez
+\fBgetpwnam\fP(3) et \fBgetpwent\fP(3)).
+.LP
+La fonction \fBgetspnam\fP() renvoie un pointeur vers une structure contenant
+les champs d'un enregistrement extrait de la base de données «\ shadow\ » de
+l'entrée correspondant à l'utilisateur de nom \fIname\fP.
+.LP
+.\" some systems require a call of setspent() before the first getspent()
+.\" glibc does not
+La fonction \fBgetspent\fP() renvoie un pointeur sur l'entrée suivante de la
+base de données «\ shadow\ ». La position dans le flux d'entrée est
+initialisée par \fBsetspent\fP(). Lorsque la lecture est finie, le programme
+devrait appeler \fBendspent\fP() pour désallouer les ressources.
+.LP
+La fonction \fBfgetspent\fP() est similaire à \fBgetspent\fP() mais utilise le
+flux fourni plutôt que celui implicitement ouvert par \fBsetspent\fP().
+.LP
+La fonction \fBsgetspent\fP() analyse la chaîne \fIs\fP fournie dans la structure
+\fIspwd\fP.
+.LP
+La fonction \fBputspent\fP() écrit le contenu de la structure \fIspwd\fP \fI*p\fP
+fournie sous forme d'une ligne de texte au format du fichier des mots de
+passe cachés dans le flux \fIfp\fP. Les entrées chaînes de valeur NULL et les
+entrées numériques de valeur \-1 sont écrites comme des chaînes vides.
+.LP
+La fonction \fBlckpwdf\fP() a pour but de protéger la base de données des mots
+de passe cachés contre les accès simultanés. Elle tente d'obtenir un verrou,
+renvoie 0 si elle y arrive ou \-1 si elle échoue (le verrou n'a pas pu être
+obtenu dans les 15 secondes). La fonction \fBulckpwdf\fP() libère le
+verrou. Veuillez noter qu'il n'y a pas de protection contre l'accès direct
+au fichier des mots de passe cachés. Seuls les programmes qui utilisent
+\fBlckpwdf\fP() remarqueront le verrou.
+.LP
+.\" Also in libc5
+.\" SUN doesn't have sgetspent()
+C'étaient les routines qui composaient l'API originale shadow. Elles sont
+largement disponibles.
+.SS "Versions ré\-entrantes"
+De manière analogue aux routines ré\-entrantes pour la base de données des
+mots de passe, la glibc possède aussi des versions ré\-entrantes pour la base
+de données des mots de passe cachés. La fonction \fBgetspnam_r\fP() est
+équivalente à la fonction \fBgetspnam\fP() mais enregistre la structure des
+mots de passe cachés trouvée dans l'espace pointé par \fIspbuf\fP. Cette
+structure des mots de passe cachés contient des pointeurs vers des chaînes
+qui sont stockées dans le tampon \fIbuf\fP de taille \fIbuflen\fP. Un pointeur
+vers le résultat (en cas de réussite) ou NULL (au cas où aucune entrée n'ait
+été trouvée ou qu'une erreur soit survenue) est stocké dans \fI*spbufp\fP.
+.LP
+Les fonctions \fBgetspent_r\fP(), \fBfgetspent_r\fP() et \fBsgetspent_r\fP() sont
+analogues à leurs homologues non ré\-entrantes.
+.LP
+.\" SUN doesn't have sgetspent_r()
+Certains systèmes non glibc ont également des fonctions portant ces noms,
+souvent avec des prototypes différents.
+.SS Structure
+La structure des mots de passe cachés est définie dans \fI<shadow.h>\fP
+de la manière suivante\ :
+.sp
+.in +4n
+.nf
+struct spwd {
+    char *sp_namp;     /* Nom de connexion */
+    char *sp_pwdp;     /* Mot de passe chiffré */
+    long sp_lstchg;    /* Date de dernière modification
+                          mesuré en jours depuis le
+                          1er janvier 1970) */
+    long sp_min;       /* Nombre de jours minimum entre
+                          deux modifications */
+    long sp_max;       /* Nombre de jours maximum entre
+                          deux modifications */
+    long sp_warn;      /* Nombre de jours avant l'expiration
+                          du mot de passe pour avertir
+                          l'utilisateur de le modifier */
+    long sp_inact;     /* Nombre de jours après l'expiration
+                          du mot de passe pour la désactivation
+                          du compte */
+    long sp_expire;    /* Date à laquelle le compte expirera
+                          (mesuré en jours depuis le
+                          1er janvier 1970) */
+    unsigned long sp_flag; /* Réservé */
+};
+.fi
+.in
+.SH "VALEUR RENVOYÉE"
+Ces routines qui renvoient un pointeur renvoient NULL s'il n'y a plus
+d'entrée disponible ou si une erreur est survenue pendant le traitement. Les
+routines qui ont un \fIint\fP comme valeur de retour renvoient 0 en cas de
+réussite et \-1 en cas d'échec.
+.LP
+Pour les fonctions non ré\-entrantes, la valeur de retour peut pointer sur
+une zone statique et peut être écrasée par des appels consécutifs de ces
+fonctions.
+.LP
+Les fonctions ré\-entrantes renvoient zéro si elles réussissent. Si elles
+échouent, une valeur d'erreur est renvoyée.
+.SH ERREURS
+.TP 
+\fBERANGE\fP
+Le tampon fourni est trop petit.
+.SH FICHIERS
+.TP 
+\fI/etc/shadow\fP
+fichier base de données des mots de passe cachés
+.TP 
+\fI/etc/.pwd.lock\fP
+fichier verrou
+.LP
+Le fichier d'inclusion \fI<paths.h>\fP définit la constante
+\fB_PATH_SHADOW\fP comme étant le chemin du fichier des mots de passe cachés.
+.SH CONFORMITÉ
+La base de données shadow et son API ne sont pas spécifiées dans
+POSIX.1\-2001. Cependant, beaucoup de systèmes fournissent une API similaire.
+.SH "VOIR AUSSI"
+\fBgetgrnam\fP(3), \fBgetpwnam\fP(3), \fBgetpwnam_r\fP(3), \fBshadow\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2004-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

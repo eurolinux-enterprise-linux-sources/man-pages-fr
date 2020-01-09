@@ -1,0 +1,210 @@
+.\" Copyright (c) 1990, 1991 Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)stdio.3	6.5 (Berkeley) 5/6/91
+.\"
+.\" Converted for Linux, Mon Nov 29 16:07:22 1993, faith@cs.unc.edu
+.\" Modified, 2001-12-26, aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STDIO 3 "26 décembre 2001" "" "Manuel du programmeur Linux"
+.SH NOM
+stdio \- Bibliothèque standard de fonctions d'entrées\-sorties.
+.SH SYNOPSIS
+\fB#include <stdio.h>\fP
+.sp
+\fBFILE *\fP\fIstdin\fP\fB;\fP
+.br
+\fBFILE *\fP\fIstdout\fP\fB;\fP
+.br
+\fBFILE *\fP\fIstderr\fP\fB;\fP
+.SH DESCRIPTION
+Cette bibliothèque standard fournit une interface simple et efficace pour
+les entrées\-sorties avec tampons. Les entrées et les sorties sont projetées
+dans des flux de données logiques, et les caractéristiques des
+entrées\-sorties physiques sont masquées. Les fonctions et les macros sont
+présentées rapidement ci\-dessous. Des informations supplémentaires sont
+disponibles dans leurs pages de manuel individuelles.
+.PP
+Un flux est associé avec un fichier externe (qui peut aussi être un
+dispositif physique) en \fIouvrant\fP un fichier (ceci peut impliquer la
+création d'un nouveau fichier). La création d'un fichier déjà existant
+efface son contenu précédent. Si un fichier supporte les demandes de
+positionnement (par exemple un fichier sur disque, contrairement à un
+terminal), alors \fIl'indicateur de position du fichier\fP associé au flux est
+placé au début du fichier (octet zéro), à moins que le fichier soit ouvert
+en mode d'ajout. Si le mode d'ajout est utilisé, l'indicateur de position
+est placé à la fin du fichier. L'indicateur de position est mis à jour après
+chaque lecture, écriture, ou repositionnement. Toutes les entrées se
+déroulent comme si les caractères étaient lus par des appels successifs à la
+fonction \fBfgetc\fP(3). Toutes les sorties ont lieu comme si les caractères
+étaient envoyés à des appels successifs à la fonction \fBfputc\fP(3).
+.PP
+Un fichier est dissocié d'un flux en \fIfermant\fP le fichier. Les flux de
+sortie sont vidés (flush) avant que le flux soit dissocié du fichier. Ceci
+signifie que le contenu des tampons pas encore écrits est transféré dans
+l'environnement de l'hôte. La valeur d'un pointeur sur un objet \fIFILE\fP
+(fichier) est indéfinie après la fermeture d'un fichier.
+.PP
+Un fichier peut être réouvert plus tard par le même programme ou par un
+autre, et son contenu relu ou modifié (si l'on peut placer l'indicateur de
+positionnement au début). Si la fonction \fImain\fP() se termine, ou si la
+fonction \fBexit\fP(3) est invoquée, tous les fichiers sont fermés (tous les
+tampons de sortie sont transférés par fflush) avant la fin du programme. Les
+autres méthodes d'abandon du programme, telles que \fBabort\fP(3) ne s'occupent
+pas de fermer proprement les fichiers.
+.PP
+Au démarrage du programme, trois flux de texte sont prédéfinis et n'ont pas
+besoin d'être ouverts explicitement\ : \fIl'entrée standard\fP (pour la lecture
+des données), \fIla sortie standard\fP (pour l'écriture des données), et \fIle
+flux d'erreur standard\fP (pour les messages de diagnostique). Ces flux sont
+nommés \fIstdin\fP,\fIstdout\fP et \fIstderr\fP. À l'ouverture, le flux d'erreur n'a
+pas de tampon, l'entrée standard et la sortie standard ont des tampons
+complets si et seulement si ils ne se réfèrent pas à un périphérique
+interactif.
+.PP
+Les flux de sortie qui s'adressent à un périphérique terminal disposent
+toujours d'un tampon de ligne par défaut. Les caractères sont conservés dans
+le tampon jusqu'à un saut de ligne, ou jusqu'à ce qu'une lecture soit
+demandée sur un flux associé au même terminal. Il peut être nécessaire de
+déclencher intentionnellement l'écriture effective sur le terminal en
+invoquant \fBfflush\fP(3).
+.PP
+La bibliothèque standard \fIstdio\fP fait partie de la bibliothèque \fBlibc\fP et
+ses routines sont chargées automatiquement par les compilateurs \fBcc\fP(1) et
+\fBpc\fP(1) si besoin est. Les sections SYNOPSIS des pages de manuel
+mentionnées plus bas indiquent les fichiers d'en\-tête nécessaires, l'allure
+des déclarations de fonctions, et les variables externes utiles.
+.PP
+.\" Not on Linux: .BR fropen ,
+.\" Not on Linux: .BR fwopen ,
+Les noms ci\-dessous correspondent à des macros. On ne peut pas les
+réutiliser sans supprimer leur définition précédente avec \fB#undef\fP:
+\fBBUFSIZ\fP, \fBEOF\fP, \fBFILENAME_MAX\fP, \fBFOPEN_MAX\fP, \fBL_cuserid\fP,
+\fBL_ctermid\fP, \fBL_tmpnam\fP, \fBNULL\fP, \fBSEEK_END\fP, \fBSEEK_SET\fP, \fBSEEK_CUR\fP,
+\fBTMP_MAX\fP, \fBclearerr\fP, \fBfeof\fP, \fBferror\fP, \fBfileno\fP, \fBgetc\fP, \fBgetchar\fP,
+\fBputc\fP, \fBputchar\fP, \fBstderr\fP, \fBstdin\fP, \fBstdout\fP. Il existe des
+définitions sous forme de fonctions des macros \fBfeof\fP, \fBferror\fP,
+\fBclearerr\fP, \fBfileno\fP, \fBgetc\fP, \fBgetchar\fP, \fBputc\fP, et \fBputchar\fP qui
+seront utilisées si la définition de la macro est explicitement supprimée.
+.SS "Liste des fonctions"
+.TS
+;
+lb lb
+lb l.
+Fonction	Description
+_
+clearerr	vérifie et réinitialise l'état d'un flux.
+fclose	ferme un flux.
+fdopen	fonction d'ouverture d'un flux.
+feof	vérifie et réinitialise l'état d'un flux.
+ferror	vérifie et réinitialise l'état d'un flux.
+fflush	transfère les tampons d'un flux.
+fgetc	lit le caractère ou le mot suivant depuis un flux d'entrée.
+fgetpos	repositionner un flux.
+fgets	lit une ligne depuis un flux d'entrée.
+fileno	renvoie le descripteur (de type entier) de l'argument flux.
+fopen	fonction d'ouverture d'un flux.
+fprintf	écriture de données formatées.
+fpurge	transfère les tampons d'un flux.
+fputc	écriture d'un caractère ou d'un mot dans un flux.
+fputs	écriture d'une ligne dans un flux.
+fread	entrées\-sorties binaires.
+freopen	fonction d'ouverture d'un flux.
+fscanf	lecture de données formatées.
+fseek	repositionner un flux.
+fsetpos	repositionner un flux.
+ftell	repositionner un flux.
+fwrite	entrées\-sorties binaires.
+getc	lit le caractère ou le mot suivant depuis un flux d'entrée.
+getchar	lit le caractère ou le mot suivant depuis un flux d'entrée.
+gets	lit une ligne depuis un flux d'entrée.
+getw	lit le caractère ou le mot suivant depuis un flux d'entrée.
+mktemp	créer un fichier temporaire (unique).
+perror	messages d'erreur système.
+printf	écriture de données formatées.
+putc	écriture d'un caractère ou d'un mot dans un flux.
+putchar	écriture d'un caractère ou d'un mot dans un flux.
+puts	écriture d'une ligne dans un flux.
+putw	écriture d'un caractère ou d'un mot dans un flux.
+remove	supprimer une entrée de répertoire.
+rewind	repositionner un flux.
+scanf	lecture de données formatées.
+setbuf	opérations sur les tampons.
+setbuffer	opérations sur les tampons.
+setlinebuf	opérations sur les tampons.
+setvbuf	opérations sur les tampons.
+sprintf	écriture de données formatées.
+sscanf	lecture de données formatées.
+strerror	messages d'erreur système.
+sys_errlist	messages d'erreur système.
+sys_nerr	messages d'erreur système.
+tempnam	créer un fichier temporaire.
+tmpfile	créer un fichier temporaire.
+tmpnam	créer un fichier temporaire.
+ungetc	remettre un caractère dans un flux d'entrée.
+vfprintf	écriture de données formatées.
+vfscanf	lecture de données formatées.
+vprintf	écriture de données formatées.
+vscanf	lecture de données formatées.
+vsprintf	écriture de données formatées.
+vsscanf	lecture de données formatées.
+.TE
+.SH CONFORMITÉ
+La bibliothèque \fIstdio\fP est conforme à C89.
+.SH "VOIR AUSSI"
+\fBclose\fP(2), \fBopen\fP(2), \fBread\fP(2), \fBwrite\fP(2), \fBstdout\fP(3),
+\fBunlocked_stdio\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

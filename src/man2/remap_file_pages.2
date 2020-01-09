@@ -1,0 +1,125 @@
+.\" Copyright (C) 2003, Michael Kerrisk (mtk.manpages@gmail.com)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" 2003-12-10 Initial creation, Michael Kerrisk <mtk.manpages@gmail.com>
+.\" 2004-10-28 aeb, corrected prototype, prot must be 0
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH REMAP_FILE_PAGES 2 "22 avril 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+remap_file_pages \- Créer une projection non linéaire d'un fichier
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP
+\fB#include <sys/mman.h>\fP
+.sp
+\fBint remap_file_pages(void *\fP\fIaddr\fP\fB, size_t \fP\fIsize\fP\fB, int \fP\fIprot\fP\fB,\fP
+\fB                     ssize_t \fP\fIpgoff\fP\fB, int \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+L'appel système \fBremap_file_pages\fP() est utilisé pour créer une projection
+non linéaire, c'est\-à\-dire une projection dans laquelle les pages du fichier
+sont projetées en mémoire dans un ordre non séquentiel. L'avantage
+d'utiliser \fBremap_file_pages\fP() au lieu de faire des appels répétés à
+\fBmmap\fP(2) est que la première approche n'impose pas au noyau de créer des
+structures de données VMA (Virtual Memory Area\ : zone mémoire virtuelle)
+supplémentaires.
+
+Pour créer une projection non linéaire, nous allons effectuer les étapes
+suivantes\ :
+.TP  3
+1.
+Utiliser \fBmmap\fP(2) pour créer une projection (qui est initialement
+linéaire). Cette projection doit être créée avec l'attribut \fBMAP_SHARED\fP.
+.TP 
+2.
+Utiliser un ou plusieurs appels à \fBremap_file_pages\fP() pour réorganiser la
+correspondance entre les pages de la projection et les pages du fichier. Il
+est possible d'accéder à la même page d'un fichier dans plusieurs endroits
+de la région projetée.
+.LP
+Les paramètres \fIpgoff\fP et \fIsize\fP spécifient la région du fichier à reloger
+dans la projection\ : \fIpgoff\fP est un décalage de fichier (Ndt\ : file
+offset) dans l'unité de taille de page du système\ ; \fIsize\fP est la longueur
+de la région en octets.
+
+Le paramètre \fIaddr\fP sert à deux choses. Tout d'abord, il identifie la
+projection des pages que l'on souhaite réorganiser. Ainsi, \fIaddr\fP doit être
+une adresse tombant dans une région précédemment projetée par un appel à
+\fBmmap\fP(2). Ensuite, \fIaddr\fP spécifie l'adresse à laquelle les pages du
+fichier identifiées par \fIpgoff\fP et \fIsize\fP seront placées.
+
+.\" This rounding is weird, and not consistent with the treatment of
+.\" the analogous arguments for munmap()/mprotect() and for mlock().
+.\" MTK, 14 Sep 2005
+Les valeurs spécifiées dans \fIaddr\fP et \fIsize\fP doivent être des multiples de
+la taille de page système. Si elles ne le sont pas, le noyau arrondit \fIpar
+défaut\fP les \fIdeux\fP valeurs au multiple de taille de page le plus proche.
+
+Le paramètre \fIprot\fP doit être spécifié à 0.
+
+Le paramètre \fIflags\fP a la même signification que pour \fBmmap\fP(2), mais tous
+les attributs autres que \fBMAP_NONBLOCK\fP sont ignorés.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBremap_file_pages\fP() renvoie 0. S'il échoue, \-1 est renvoyé
+et \fIerrno\fP est positionnée en conséquence.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+\fIaddr\fP ne fait pas référence à une projection valide créée avec l'attribut
+\fBMAP_SHARED\fP.
+.TP 
+\fBEINVAL\fP
+.\" And possibly others from vma->vm_ops->populate()
+\fIaddr\fP, \fIsize\fP, \fIprot\fP ou \fIpgoff\fP n'est pas valable.
+.SH VERSIONS
+L'appel système \fBremap_file_pages\fP() est apparu dans Linux 2.5.46\ ; la
+glibc le gère depuis la version 2.3.3.
+.SH CONFORMITÉ
+L'appel système \fBremap_file_pages\fP() est spécifique à Linux.
+.SH "VOIR AUSSI"
+\fBgetpagesize\fP(2), \fBmmap\fP(2), \fBmmap2\fP(2), \fBmprotect\fP(2), \fBmremap\fP(2),
+\fBmsync\fP(2), \fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2004-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

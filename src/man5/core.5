@@ -1,0 +1,344 @@
+.\" Copyright (c) 2006, 2008 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CORE 5 "26 août 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+core \- Fichier image de la mémoire
+.SH DESCRIPTION
+L'action par défaut de certains signaux et de faire se terminer un processus
+et de produire un \fIfichier image mémoire\fP («\ core dump file\ »). C'est un
+fichier disque qui contient l'image mémoire du processus au moment où il
+s'est terminé. Cette image peut être utilisé dans un débogueur (par exemple,
+\fBgdb\fP(1)) pour étudier l'état du programme au moment où il a été
+terminé. Une liste des signaux provoquant la création de cette image mémoire
+se trouve dans \fBsignal\fP(7).
+
+Un processus peut définir sa propre limite de ressource \fBRLIMIT_CORE\fP afin
+de fixer une limite supérieure à la taille du fichier image mémoire qui sera
+créé s'il reçoit un signal «\ core dump\ »\ ; voir \fBgetrlimit\fP(2) pour
+davantage d'informations.
+
+Il y a diverses circonstances pour lesquelles un fichier image mémoire
+(«\ core dump\ ») n'est pas produit\ :
+.IP * 3
+Le processus ne possède pas les droits pour écrire le fichier image de la
+mémoire. (Par défaut, le fichier image de la mémoire s'appelle \fIcore\fP, il
+est créé dans le répertoire de travail en cours. Voir ci\-dessous pour
+davantage d'informations sur les règles de nommage). L'écriture du fichier
+image de la mémoire échouera si le répertoire dans lequel il devrait être
+écrit n'est pas accessible en écriture ou n'est pas un fichier normal (par
+exemple, si c'est un répertoire ou un lien symbolique).
+.IP *
+Un fichier (régulier et dans lequel on peut écrire) avec le même nom que
+celui qui serait utilisé pour l'image de la mémoire existe déjà, mais il y a
+plusieurs liens physiques vers ce fichier.
+.IP *
+Le système de fichiers dans lequel serait écrit le fichier image de la
+mémoire est plein ou il n'a plus d'inode, ou il est monté en lecture seule,
+ou l'utilisateur a atteint son quota pour le système de fichiers.
+.IP *
+Le répertoire dans lequel le fichier image de la mémoire doit être créé
+n'existe pas.
+.IP *
+Les limites de ressources \fBRLIMIT_CORE\fP (taille des fichiers «\ core\ ») ou
+\fBRLIMIT_FSIZE\fP (taille des fichiers) pour un processus ont une valeur
+nulle\ ; consultez \fBgetrlimit\fP(2) et la documentation de la commande
+\fIulimit\fP de l'interpréteur de commande (\fIlimit\fP dans \fBcsh\fP(1)).
+.IP *
+Le binaire en cours d'exécution par le processus n'a pas les droits en
+écriture activés.
+.IP *
+.\" FIXME . Perhaps relocate discussion of /proc/sys/fs/suid_dumpable
+.\" and PR_SET_DUMPABLE to this page?
+Le processus exécute un programme set\-user\-ID (respectivement, set\-group\-ID)
+qui est détenu par un utilisateur (respectivement, un groupe) autre que
+l'identifiant d'utilisateur (respectivement, de groupe) réel du
+processus. (Voir cependant la description de l'opération \fBprctl\fP(2)
+\fBPR_SET_DUMPABLE\fP, et la description du fichier
+\fI/proc/sys/fs/suid_dumpable\fP dans \fBproc\fP(5)).
+.SS "Nommage des fichiers image mémoire"
+Par défaut, un fichier image de la mémoire s'appelle \fIcore\fP, mais le
+fichier \fI/proc/sys/kernel/core_pattern\fP (depuis Linux 2.6 et 2.4.21) peut
+être configuré de manière à définir un motif qui sera utilisé pour le
+nommage des fichiers image de la mémoire. Le motif peut contenir des
+spécificateurs % qui sont substitués par les valeurs suivantes lorsqu'une
+image de la mémoire est créée\ :
+.PP
+.RS 4
+.PD 0
+.TP  4
+%%
+Caractère % unique
+.TP 
+%p
+PID du processus «\ dumpé\ »
+.TP 
+%u
+UID (numérique) réel du processus «\ dumpé\ »
+.TP 
+%g
+GID (numérique) réel du processus «\ dumpé\ »
+.TP 
+%s
+Numéro du signal ayant provoqué le «\ dump\ »
+.TP 
+%t
+Heure du «\ dump\ », exprimé en secondes depuis l'Époque (le 1er janvier
+1970, 00H00 UTC)
+.TP 
+%h
+Nom d'hôte (identique à \fInodename\fP tel que le renvoie \fBuname\fP(2))
+.TP 
+%e
+Nom du fichier exécutable (sans le chemin)
+.TP 
+%c
+Limite de ressource souple de la taille des fichiers core lors du plantage
+d'un processus (depuis Linux 2.6.24)
+.PD
+.RE
+.PP
+Un % isolé à la fin du motif est éliminé du nom de fichier de l'image
+mémoire, de même un % suivi d'un caractère autre que ceux de la liste
+ci\-dessus. Tous les autres caractères du motif conservent leur valeur
+littérale dans le nom de fichier de l'image mémoire. Un motif peut contenir
+des caractère «\ /\ », ils sont interprétés comme des délimiteurs pour les
+noms de répertoires. La taille maximum du nom de fichier de l'image mémoire
+résultant est de 128 octets (64 octets dans les noyaux antérieurs au
+2.6.19). La valeur par défaut de ce nom de fichier est «\ core\ ». Afin
+d'assurer une compatibilité ascendante, si \fI/proc/sys/kernel/core_pattern\fP
+ne contient pas «\ %p\ » et si \fI/proc/sys/kernel/core_uses_pid\fP (voir
+ci\-dessous) est non\-nul, alors .PID est ajouté au nom de fichier de l'image
+mémoire.
+
+Depuis la version 2.4, Linux procure aussi une méthode plus primitive pour
+contrôler le nom du fichier image de la mémoire. Si le fichier
+\fI/proc/sys/kernel/core_uses_pid\fP contient la valeur 0, alors le fichier
+image de la mémoire est tout simplement appelé \fIcore\fP. Si ce fichier
+contient une valeur non nulle, alors, le fichier image de la mémoire
+intégrera dans son nom le numéro d'identification du processus sous la forme
+\fIcore.PID\fP.
+.SS "Tuber les vidages mémoire vers un programme"
+Depuis le noyau\ 2.6.19, Linux gère une syntaxe alternative pour le fichier
+\fI/proc/sys/kernel/core_pattern\fP. Si le premier caractère de ce fichier est
+le symbole du tube (\fB|\fP), le reste de la ligne est interprété comme étant
+un programme à exécuter. Le vidage mémoire est alors fourni comme entrée
+standard au programme plutôt que d'être écrit dans un fichier sur le
+disque. Veuillez noter les points suivants\ :
+.IP * 3
+Le programme doit être indiqué avec un chemin d'accès absolu (ou un chemin
+relatif par rapport au répertoire racine, \fI/\fP) et doit immédiatement suivre
+le caractère «\ |\ ».
+.IP *
+Le processus créé pour exécuter le programme s'exécute avec les utilisateur
+et groupe \fIroot\fP.
+.IP *
+Des paramètre en ligne de commande peuvent être fournis au programme (depuis
+le noyau 2.6.24), séparés par des espaces (jusqu'à une longueur de ligne de
+128\ octets).
+.IP *
+Les paramètres de la ligne de commande peuvent inclure tout spécificateur %
+indiqué plus haut. Par exemple, pour passer le PID du processus à vider,
+indiquez \fI%p\fP dans un paramètre.
+.SS "Contrôler quelles projections seront écrites dans le vidage mémoire"
+Depuis le noyau 2.6.23, le fichier \fI/proc/PID/coredump_filter\fP spécifique à
+Linux peut être utilisé pour contrôler quels segments de mémoire seront
+écrits dans le fichier d'image de mémoire dans le cas où le vidage mémoire
+est effectué pour le processus avec le PID correspondant.
+
+La valeur dans ce fichier est un masque de bits des types de projection
+mémoire (voir \fBmmap\fP(2)). Si un bit est positionné dans le masque, les
+projections mémoire du type correspondant sont vidées\ ; autrement, elles ne
+le sont pas. Les bits dans ce fichier ont les significations suivantes\ :
+.PP
+.PD 0
+.RS 4
+.TP 
+bit 0
+Vider les projections privées anonymes.
+.TP 
+bit 1
+Vider les projections partagées anonymes.
+.TP 
+bit 2
+Vider les projections privées sauvegardées sur fichier
+.TP 
+bit 3
+.\" file-backed shared mappings of course also update the underlying
+.\" mapped file.
+Vider les projections partagées sauvegardées sur fichier
+.RE
+.PD
+.PP
+La valeur par défaut de \fIcoredump_filter\fP est 0x3\ ; cela reflète le
+comportement traditionnel de linux et signifie que seuls les segments de
+mémoire anonyme sont vidés.
+
+Les pages d'entrées\-sorties projetées en mémoire telles que les tampons de
+trame ne sont jamais vidées, et les pages DSO virtuelles sont toujours
+vidées, quelle que soit la valeur de \fIcoredump_filter\fP.
+
+Un processus fils créé avec \fBfork\fP(2) hérite de la valeur de
+\fIcoredump_filter\fP de son père\ ; la valeur de \fIcoredump_filter\fP est
+préservée au travers d'un \fBexecve\fP(2).
+
+Il peut être utile de définir \fIcoredump_filter\fP dans le shell parent avant
+d'exécuter le programme, par exemple\ :
+
+.in +4n
+.nf
+$\fB echo 0x7 > /proc/self/coredump_filter\fP
+$\fB ./un_programme\fP
+.fi
+.in
+.PP
+Ce fichier n'existe que si le noyau a été compilé avec l'option de
+configuration \fBCONFIG_ELF_CORE\fP.
+.SH NOTES
+La commande \fBgdb\fP(1) \fIgcore\fP peut être utilisée pour obtenir une image
+mémoire d'un processus en cours d'exécution.
+
+.\" Always including the PID in the name of the core file made
+.\" sense for LinuxThreads, where each thread had a unique PID,
+.\" but doesn't seem to serve any purpose with NPTL, where all the
+.\" threads in a process share the same PID (as POSIX.1 requires).
+.\" Probably the behavior is maintained so that applications using
+.\" LinuxThreads continue appending the PID (the kernel has no easy
+.\" way of telling which threading implementation the userspace
+.\" application is using). -- mtk, April 2006
+Si une tâche multiprocessus («\ multithreaded\ ») (ou, plus précisément, un
+processus qui partage son espace mémoire avec un autre processus en étant
+créé avec l'indicateur \fBCLONE_VM\fP de \fBclone\fP(2)) crée une image mémoire,
+alors l'identifiant du processus (PID) est toujours ajouté au nom du fichier
+image de la mémoire, à moins que l'identifiant du processus fasse déjà
+partie du nom de fichier par l'intermédiaire d'une spécification %p de
+\fI/proc/sys/kernel/core_pattern\fP. (C'est principalement utile lors de
+l'utilisation de l'implémentation LinuxThreads, pour laquelle chaque thread
+a son propre PID.)
+.SH EXEMPLE
+Le programme ci\-dessous montre l'utilisation de la syntaxe tube du fichier
+\fI/proc/sys/kernel/core_pattern\fP. La session shell suivante montre
+l'utilisation de ce programme (compilé pour créé un exécutable nommé
+\fIcore_pattern_pipe_test\fP)\ :
+.PP
+.in +4n
+.nf
+$\fB cc \-o core_pattern_pipe_test core_pattern_pipe_test.c\fP
+$\fB su\fP
+Password:
+#\fB echo \(aq|$PWD/core_pattern_pipe_test %p UID=%u GID=%g sig=%s\(aq > \e\fP
+\fB/proc/sys/kernel/core_pattern\fP
+#\fB exit\fP
+$\fB sleep 100\fP
+\fB^\e\fP                     # type control\-backslash
+Quit (core dumped)
+$\fB cat core.info\fP
+argc=5
+argc[0]=</home/mtk/core_pattern_pipe_test>
+argc[1]=<20575>
+argc[2]=<UID=1000>
+argc[3]=<GID=100>
+argc[4]=<sig=3>
+Total bytes in core dump: 282624
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+/* core_pattern_pipe_test.c */
+
+#define _GNU_SOURCE
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#define BUF_SIZE 1024
+
+int
+main(int argc, char *argv[])
+{
+    int tot, j;
+    ssize_t nread;
+    char buf[BUF_SIZE];
+    FILE *fp;
+    char cwd[PATH_MAX];
+
+    /* Change our current working directory to that of the
+       crashing process */
+
+    snprintf(cwd, PATH_MAX, "/proc/%s/cwd", argv[1]);
+    chdir(cwd);
+
+    /* Write output to file "core.info" in that directory */
+
+    fp = fopen("core.info", "w+");
+    if (fp == NULL)
+        exit(EXIT_FAILURE);
+
+    /* Display command\-line arguments given to core_pattern
+       pipe program */
+
+    fprintf(fp, "argc=%d\en", argc);
+    for (j = 0; j < argc; j++)
+        fprintf(fp, "argc[%d]=<%s>\en", j, argv[j]);
+
+    /* Count bytes in standard input (the core dump) */
+
+    tot = 0;
+    while ((nread = read(STDIN_FILENO, buf, BUF_SIZE)) > 0)
+        tot += nread;
+    fprintf(fp, "Total bytes in core dump: %d\en", tot);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBbash\fP(1), \fBgdb\fP(1), \fBgetrlimit\fP(2), \fBmmap\fP(2), \fBprctl\fP(2),
+\fBsigaction\fP(2), \fBelf\fP(5), \fBproc\fP(5), \fBpthreads\fP(7), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

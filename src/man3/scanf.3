@@ -1,0 +1,481 @@
+.\" Copyright (c) 1990, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" This code is derived from software contributed to Berkeley by
+.\" Chris Torek and the American National Standards Committee X3,
+.\" on Information Processing Systems.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)scanf.3	6.14 (Berkeley) 1/8/93
+.\"
+.\" Converted for Linux, Mon Nov 29 15:22:01 1993, faith@cs.unc.edu
+.\" modified to resemble the GNU libio setup used in the Linux libc
+.\" used in versions 4.x (x>4) and 5   Helmut.Geyer@iwr.uni-heidelberg.de
+.\" Modified, aeb, 970121
+.\" 2005-07-14, mtk, added description of %n$ form; various text
+.\"	incorporated from the GNU C library documentation ((C) The
+.\"	Free Software Foundation); other parts substantially rewritten.
+.\"
+.\" 2008-06-23, mtk
+.\"     Add ERRORS section.
+.\"     Document the 'a' and 'm' modifiers for dynamic string allocation.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SCANF 3 "12 juillet 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+scanf, fscanf, sscanf, vscanf, vsscanf, vfscanf \- Entrées formatées
+.SH SYNOPSIS
+.nf
+\fB#include <stdio.h>\fP
+
+\fBint scanf(const char *\fP\fIformat\fP\fB, ...);\fP
+\fBint fscanf(FILE *\fP\fIstream\fP\fB, const char *\fP\fIformat\fP\fB, ...);\fP
+\fBint sscanf(const char *\fP\fIstr\fP\fB, const char *\fP\fIformat\fP\fB, ...);\fP
+.sp
+\fB#include <stdarg.h>\fP
+
+\fBint vscanf(const char *\fP\fIformat\fP\fB, va_list \fP\fIap\fP\fB);\fP
+\fBint vsscanf(const char *\fP\fIstr\fP\fB, const char *\fP\fIformat\fP\fB, va_list \fP\fIap\fP\fB);\fP
+\fBint vfscanf(FILE *\fP\fIstream\fP\fB, const char *\fP\fIformat\fP\fB, va_list \fP\fIap\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBvscanf\fP(), \fBvsscanf\fP(), \fBvfscanf\fP()\ : _XOPEN_SOURCE\ >=\ 600 ||
+_ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.SH DESCRIPTION
+Les fonctions de la famille \fBscanf\fP() analysent leurs entrées conformément
+au \fIformat\fP décrit plus bas. Ce format peut contenir des \fIindicateurs de
+conversion\fP. Les résultats des conversions, s'il y en a, sont stockés dans
+des endroits pointés par des arguments \fIpointeurs\fP qui suivent le
+\fIformat\fP. Chaque argument \fIpointeur\fP doit être du type approprié pour la
+valeur retournée par la spécification de conversion correspondante.
+
+Si le nombre de spécifications de conversion dans \fIformat\fP excède le nombre
+d'arguments \fIpointeur\fP, le résultat est indéterminé. Si le nombre
+d'arguments \fIpointeur\fP excède le nombre de spécifications de conversion,
+les arguments \fIpointeur\fP en excès sont évalués mais ignorés.
+
+La fonction \fBscanf\fP() lit ses données depuis le flux d'entrée standard
+\fIstdin\fP, \fBfscanf\fP() lit ses entrées depuis le flux pointé par \fIstream\fP,
+et \fBsscanf\fP() lit ses entrées dans la chaîne de caractères pointée par
+\fIstr\fP.
+.PP
+La fonction \fBvfscanf\fP() est analogue à \fBvfprintf\fP(3) et lit ses arguments
+depuis le flux pointé par \fIstream\fP en utilisant une liste variable
+d'arguments pointeurs, voir \fBstdarg\fP(3). La fonction \fBvscanf\fP() examine
+l'entrée standard en utilisant une liste variable d'arguments pointeurs et
+la fonction \fBvsscanf\fP() examine une chaîne. Elles sont respectivement
+analogues aux fonctions \fBvprintf\fP(3) et \fBvsprintf\fP(3).
+.PP
+La chaîne \fIformat\fP consiste en une séquence de \fIdirectives\fP qui décrit
+comme traiter la séquence des caractères d'entrée. Si le traitement des
+directives échoue, aucune autre entrée n'est lue et \fBscanf\fP() revient. Un
+«\ échec\ » peut être soit un \fIéchec d'entrée\fP signifiant que les
+caractères d'entrée ne sont pas disponibles, soit un \fIéchec de
+correspondance\fP signifiant que l'entrée n'est pas appropriée (voir plus
+loin)
+
+Une directive peut être\ :
+.TP 
+\(bu
+Une séquence de caractères blancs (espace, tabulation, nouvelle ligne, etc.\
+; voir \fBisspace\fP(3)). Cette directive correspond à un nombre quelconque de
+caractères blancs, y compris aucun, dans l'entrée.
+.TP 
+\(bu
+Un caractère ordinaire (c'est\-à\-dire autre qu'un caractère blanc et que le
+caractère «\ %\ ». Ce caractère doit exactement correspondre au caractère
+suivant de l'entrée.
+.TP 
+\(bu
+Une spécification de conversion qui débute avec le caractère «\ %\ ». Une
+séquence de caractères de l'entrée est convertie conformément à la
+spécification et le résultat est placé dans l'argument \fIpointeur\fP
+correspondant. Si l'élément suivant de l'entrée ne correspond pas à la
+spécification de conversion, la conversion échoue \(em c'est un \fIéchec de
+correspondance\fP.
+.PP
+Chaque \fIspécification de conversion\fP dans \fIformat\fP commence avec soit le
+caractère «\ %\ », soit la séquence de caractères «\ \fB%\fP\fIn\fP\fB$\fP\ » (voir
+plus loin pour la distinction) suivie par\ :
+.TP 
+\(bu
+Un caractère d'affectation\-suppression optionnel «\ *\ »\ : \fBscanf\fP() lit
+l'entrée comme indiqué par la spécification de conversion mais ne tient pas
+compte de l'entrée. Aucun argument \fIpointeur\fP n'est nécessaire et cette
+spécification n'est pas comptabilisée dans le nombre d'affectations réussies
+renvoyé par \fBscanf\fP().
+.TP 
+\(bu
+Un caractère «\ a\ » optionnel. Il est utilisé dans les conversions de
+chaînes et soulage l'appelant du besoin d'allouer un tampon correspondant
+pour conserver l'entrée\ : à la place, \fBscanf\fP() alloue un tampon de taille
+suffisante et affecte l'adresse de ce tampon à l'argument \fIpointeur\fP
+correspondant qui doit être un pointeur vers une variable \fIchar *\fP (il
+n'est pas nécessaire que cette variable soit initialisée avant
+l'appel). L'appelant doit par la suite libérer (\fBfree\fP(3)) ce tampon
+lorsqu'il devient inutile. Ceci est une extension GNU\ ; C99 emploie le
+caractère «\ a\ » comme un spécificateur de conversion (il peut également
+être utilisé en tant que tel dans l'implémentation GNU).
+.TP 
+\(bu
+Un entier décimal optionnel qui indique la \fItaille maximum du champ\fP. La
+lecture des caractères s'arrête soit lorsque ce maximum est atteint, soit
+lorsque on trouve un caractère qui ne correspond pas, celui qui arrive le
+premier. La plupart des conversions abandonnent les caractères blancs de
+tête (les exceptions sont notées plus loin), et ces caractère abandonnés
+n'entrent pas en compte dans la taille maximale du champ. Les conversions
+d'entrée de chaînes stocke un octet de terminaison nul («\ \e0\ ») pour
+marquer la fin de l'entrée\ ; la largeur maximale du champ n'inclut pas ce
+caractère de terminaison.
+.TP 
+\(bu
+Un \fIcaractère modificateur de type\fP optionnel. Par exemple, le modificateur
+de type \fBl\fP est utilisé avec les conversions d'entrée telles que \fB%d\fP pour
+spécifier que l'argument \fIpointeur\fP correspondant fait référence à un
+\fIlong int\fP plutôt qu'à un pointeur sur un \fIint\fP.
+.TP 
+\(bu
+Un \fIspécificateur de conversion\fP qui spécifie le type de conversion
+d'entrée à effectuer.
+.PP
+Les spécifications de conversion dans \fIformat\fP sont de deux formes\ : soit
+elles commencent par «\ %\ », soit elles commencent par «\ \fB%\fP\fIn\fP\fB$\fP\
+». Les deux formes ne doivent pas être mélangées dans la même chaîne
+\fIformat\fP, excepté qu'une chaîne contenant les spécifications «\
+\fB%\fP\fIn\fP\fB$\fP\ » peut inclure \fB%%\fP et \fB%*\fP. Si \fIformat\fP contient des
+spécifications «\ %\ », celles\-ci correspondent, dans l'ordre, aux arguments
+\fIpointeur\fP successifs. Dans la forme «\ \fB%\fP\fIn\fP\fB$\fP\ » (qui est spécifiée
+par POSIX.1\-2001 mais pas par C99), \fIn\fP est un entier décimal qui spécifie
+que l'entrée convertie devrait être placée à l'endroit référencé par le
+\fIn\fP\-ième argument \fIpointeur\fP suivant \fIformat\fP.
+.SS Conversions
+Les \fIcaractères modificateurs de type\fP suivant peuvent se apparaître dans
+une spécification de conversion\ :
+.TP 
+\fBh\fP
+Indique que la conversion sera de type \fBd\fP, \fBi\fP, \fBo\fP, \fBu\fP, \fBx\fP, \fBX\fP ou
+\fBn\fP et que le pointeur suivant est un pointeur sur un \fIshort int\fP ou un
+\fIunsigned short int\fP (plutôt que sur un \fIint\fP).
+.TP 
+\fBhh\fP
+Comme pour \fBh\fP, sauf que le pointeur suivant est un pointeur sur un
+\fIsigned char\fP ou un \fIunsigned char\fP.
+.TP 
+\fBj\fP
+Comme pour \fBh\fP, sauf que le pointeur suivant est un pointeur sur un
+\fIintmax_t\fP ou un \fIuintmax_t\fP. Ce modificateur a été introduit dans C99.
+.TP 
+\fBl\fP
+.\" This use of l was introduced in Amendment 1 to ISO C90.
+Indique que la conversion sera de type \fBd\fP, \fBi\fP, \fBo\fP, \fBu\fP, \fBx\fP, \fBX\fP ou
+\fBn\fP et que le pointeur suivant est un pointeur sur un \fIlong int\fP ou un
+\fIunsigned long int\fP (plutôt que sur un \fIint\fP), ou que la conversion sera
+de type \fBe\fP, \fBf\fP ou \fBg\fP et que le pointeur suivant est un pointeur sur un
+\fIdouble\fP (plutôt que sur un \fIfloat\fP). Indiquer deux caractères \fBl\fP
+successifs est équivalent à indiquer \fBL\fP. Si c'est utilisé avec \fB%c\fP ou
+\fB%s\fP, le paramètre correspondant est considéré, respectivement, comme un
+pointeur vers un caractère large ou une chaîne de caractères larges.
+.TP 
+\fBL\fP
+.\" MTK, Jul 05: The following is no longer true for modern
+.\" ANSI C (i.e., C99):
+.\" (Note that long long is not an
+.\" ANSI C
+.\" type. Any program using this will not be portable to all
+.\" architectures).
+Indique que la conversion sera de type \fBe\fP, \fBf\fP ou \fBg\fP et que le pointeur
+suivant est un pointeur sur un \fIlong double\fP ou que la conversion sera de
+type \fBd\fP, \fBi\fP, \fBo\fP, \fBu\fP, ou \fBx\fP et que le pointeur suivant est un
+pointeur sur un \fIlong long\fP.
+.TP 
+\fBq\fP
+est équivalent à \fBL\fP. Ce spécificateur n'existe pas en C ANSI.
+.TP 
+\fBt\fP
+Comme pour \fBh\fP, mais le pointeur suivant est un pointeur vers un
+\fIptrdiff_t\fP. Ce modificateur a été introduit dans C99.
+.TP 
+\fBz\fP
+Comme pour \fBh\fP, mais le pointeur suivant est un pointeur vers un
+\fIsize_t\fP. Ce modificateur a été introduit dans C99.
+.PP
+Les \fIspécificateurs de conversion\fP suivant sont disponibles\ :
+.TP 
+\fB%\fP
+Correspond à un caractère «\ %\ ». Ceci signifie qu'un spécificateur \fB%\&%\fP
+dans la chaîne de format correspond à un seul caractère «\ %\ » dans la
+chaîne d'entrée. Aucune conversion (mais les caractères blancs de début sont
+ignorés), et aucune assignation n'a lieu.
+.TP 
+\fBd\fP
+Correspond à un entier décimal éventuellement signé, le pointeur
+correspondant doit être un pointeur vers un \fIint\fP.
+.TP 
+\fBD\fP
+Équivalent à \fIld\fP, utilisé uniquement pour compatibilité avec des versions
+précédentes (et seulement dans libc4. Dans libc5 et glibc, le \fB%D\fP est
+ignoré silencieusement, ce qui conduit d'anciens programmes à échouer
+mystérieusement).
+.TP 
+\fBi\fP
+Correspond à un entier éventuellement signé. Le pointeur suivant doit être
+du type \fIint\fP. L'entier est en base 16 (hexadécimal) s'il commence par
+\fI0x\fP ou \fI0X\fP, en base 8 (octal) s'il commence par un \fI0\fP, et en base 10
+sinon. Seuls les caractères correspondants à la base concernée sont
+utilisés.
+.TP 
+\fBo\fP
+Correspond à un entier octal non signé. Le pointeur correspondant doit être
+un pointeur vers un \fIunsigned int\fP.
+.TP 
+\fBu\fP
+Correspond à un entier décimal non signé. Le pointeur suivant doit être un
+pointeur vers un \fIunsigned int\fP.
+.TP 
+\fBx\fP
+Correspond à un entier hexadécimal non signé. Le pointeur suivant doit être
+un pointeur vers un \fIunsigned int\fP.
+.TP 
+\fBX\fP
+Équivalent à \fBx\fP
+.TP 
+\fBf\fP
+Correspond à un nombre réel éventuellement signé. Le pointeur correspondant
+doit être un pointeur vers un \fIfloat\fP.
+.TP 
+\fBe\fP
+Équivalent à \fBf\fP.
+.TP 
+\fBg\fP
+Équivalent à \fBf\fP.
+.TP 
+\fBE\fP
+Équivalent à \fBf\fP.
+.TP 
+\fBa\fP
+(C99) Équivalent à \fBf\fP.
+.TP 
+\fBs\fP
+Correspond à une séquence de caractères différents des caractères blancs. Le
+pointeur correspondant doit être un pointeur sur un tableau de caractères
+qui doit être assez large pour accueillir toute la séquence d'entrée, ainsi
+que l'octet nul final («\ \e0\ ») qui est ajouté automatiquement. La
+conversion s'arrête au premier caractère blanc, ou à la longueur maximale du
+champ.
+.TP 
+\fBc\fP
+Correspond à une séquence de caractères dont la longueur est spécifiée par
+la \fIlargeur maximum de champ\fP (par défaut 1). Le pointeur suivant doit être
+un pointeur vers un \fIchar\fP, et il doit y avoir suffisamment de place dans
+la chaîne pour tous les caractères. Aucun octet nul final n'est ajouté. Les
+caractères blancs de début ne sont pas supprimés. Si on veut les éliminer,
+il faut utiliser une espace dans le format.
+.TP 
+\fB\&[\fP
+Correspond à une séquence non vide de caractères appartenant à un ensemble
+donné. Le pointeur correspondant doit être un pointeur vers un \fIchar\fP et il
+doit y avoir suffisamment de place dans le tableau de caractères pour
+accueillir la chaîne ainsi qu'un octet nul final. Les caractères blancs du
+début ne sont pas supprimés. La chaîne est constituées de caractères inclus
+ou exclus d'un ensemble donné. L'ensemble est composé des caractères compris
+entre les deux crochets \fB[\fP et \fB]\fP. L'ensemble \fIexclut\fP ces caractères si
+le premier après le crochet ouvrant est un accent circonflexe (\fB^\fP). Pour
+inclure un crochet fermant dans l'ensemble, il suffit de le placer en
+première position après le crochet ouvrant, ou l'accent circonflexe\ ; à
+tout autre emplacement il servira à terminer l'ensemble. Le caractère tiret
+\fB\-\fP a également une signification particulière. Quand il est placé entre
+deux autres caractères, il ajoute à l'ensemble les caractères
+intermédiaires. Pour inclure un tiret dans l'ensemble, il faut le placer en
+dernière position avant le crochet fermant. Par exemple, \fB[^]0\-9\-]\fP
+correspond à l'ensemble «\ Tout sauf le crochet fermant, les chiffres de 0 à
+9, et le tiret\ ». La chaîne se termine dès l'occurrence d'un caractère
+exclu (ou inclus s'il y à un accent circonflexe ) de l'ensemble, ou dès
+qu'on atteint la longueur maximale du champ.
+.TP 
+\fBp\fP
+Correspond à une valeur de pointeur (comme affichée par \fB%p\fP dans
+\fBprintf\fP(3). Le pointeur suivant doit être un pointeur sur un pointeur sur
+\fIvoid\fP.
+.TP 
+\fBn\fP
+Aucune lecture n'est faite. Le nombre de caractères déjà lus est stocké dans
+le pointeur correspondant, qui doit être un pointeur vers un \fIint\fP. Ce
+n'est \fIpas\fP une conversion, mais le stockage peut quand même être supprimé
+avec le caractère d'affectation\-suppression \fB*\fP. Le standard C indique\ :
+«\ L'exécution d'une directive \fB%n\fP n'incrémente pas le compteur
+d'assignations renvoyé à la fin de l'exécution\ ». Mais il semble qu'il y
+ait des contradictions sur ce point. Il est probablement sage de ne pas
+faire de suppositions sur l'effet de la conversion \fB%n\fP sur la valeur
+renvoyée.
+.SH "VALEUR RENVOYÉE"
+Ces fonctions renvoient le nombre d'éléments d'entrées correctement mis en
+correspondance et assignés. Ce nombre peut être plus petit que le nombre
+d'éléments attendus, et même être nul, s'il y a une erreur de mise en
+correspondance.
+
+La valeur \fBEOF\fP est renvoyée si la fin de l'entrée est atteinte avant la
+première conversion réussie ou si un échec de correspondance
+survient. \fBEOF\fP est également renvoyé si une erreur de lecture survient,
+auquel cas l'indicateur d'erreur pour le flux (voir \fBferror\fP(3)) est
+positionné et \fIerrno\fP est remplie en conséquence
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+Le descripteur de fichier \fIstream\fP sous\-jacent est non bloquant et
+l'opération de lecture bloquerait.
+.TP 
+\fBEBADF\fP
+Le descripteur de fichier \fIstream\fP sous\-jacent n'est pas valide ou bien
+n'est pas ouvert en lecture.
+.TP 
+\fBEILSEQ\fP
+La séquence d'octet en entrée ne constitue pas un caractère valable.
+.TP 
+\fBEINTR\fP
+La lecture a été interrompue par un signal\ ; voir \fBsignal\fP(7).
+.TP 
+\fBEINVAL\fP
+Pas suffisamment de paramètres\ ; ou bien \fIformat\fP est NULL.
+.TP 
+\fBENOMEM\fP
+Pas suffisamment de mémoire disponible.
+.TP 
+\fBERANGE\fP
+Le résultat de la conversion entière est plus grand que la taille pouvant
+être stockée dans le type entier correspondant.
+.SH CONFORMITÉ
+Les fonctions \fBfscanf\fP(), \fBscanf\fP(), et \fBsscanf\fP() sont conformes à C89,
+C99 et POSIX.1\-2001. Ces normes ne spécifient pas l'erreur \fBERANGE\fP.
+.PP
+Le spécificateur \fBq\fP est une notation BSD\ 4.4 pour \fIlong long\fP, alors que
+\fBll\fP ou l'utilisation de \fBL\fP dans les conversions entières sont des
+notations GNU.
+.PP
+Les versions Linux de ces fonctions sont basées sur la bibliothèque \fIlibio
+GNU\fP. Jetez un oeil sur la documentation \fIinfo\fP de la \fIlibc GNU
+(glibc\-1.08)\fP pour une description complète.
+.SH NOTES
+.\" This feature seems to be present at least as far back as glibc 2.0.
+Pour utiliser cette fonctionnalité, indiquez \fBa\fP comme modificateur de
+longueur (par conséquent \fB%as\fP ou \fB%a[\fP\fIrange\fP\fB]\fP). L'appelant doit
+libérer (\fBfree\fP(3)) l'espace occupé par la chaîne renvoyée, comme dans
+l'exemple suivant\ :
+.in +4n
+.nf
+
+char *p;
+int n;
+
+errno = 0;
+n = scanf("%a[a\-z]", &p);
+if (n == 1) {
+    printf("read: %s\en", p);
+    free(p);
+} else if (errno != 0) {
+    perror("scanf");
+} else {
+    fprintf(stderr, "No matching characters\en"):
+}
+.fi
+.in
+.PP
+Comme montré dans cet exemple, il n'est nécessaire d'appeler \fBfree\fP(3) que
+si l'appel à \fBscanf\fP() a réussi à lire une chaîne.
+.PP
+Le modificateur \fBa\fP n'est pas disponible si le programme a été compilé avec
+\fIgcc \-std=c99\fP ou \fIgcc \-D_ISOC99_SOURCE\fP (à moins que \fB_GNU_SOURCE\fP n'ait
+également été indiqué), auquel cas \fBa\fP est interprété comme un
+spécificateur de nombres en virgule flottante (voir plus haut).
+
+Depuis la version\ 2.7, la glibc fournit aussi le modificateur \fBm\fP pour
+faire la même chose que le modificateur \fBa\fP. Le modificateur \fBm\fP a les
+avantages suivants\ :
+.IP * 2
+Il peut être appliqué aux spécificateurs de conversion \fB%c\fP (par exemple
+\fB%3mc\fP).
+.IP *
+Il lève toute ambiguité avec le spécificateur de conversion en virgule
+flottante \fB%a\fP (et n'est pas affecté par \fIgcc \-std=c99\fP etc.)
+.IP *
+Il est spécifié dans la version POSIX.1 à venir.
+.SH BOGUES
+Toutes ces fonctions sont totalement conformes à C89, mais lui ajoutent les
+spécificateurs \fBq\fP et \fBa\fP ainsi que des comportements supplémentaires des
+spécificateurs \fBL\fP et \fBl\fP. Ce derniers doivent être considérés comme des
+bogues, car ils modifient le comportement de spécificateurs définis dans
+C89.
+.PP
+Certaines combinaisons de modificateurs de type et de spécificateurs de
+conversion définis par le C ANSI n'ont pas de sens (par exemple
+\fB%Ld\fP). Bien qu'elles aient un comportement bien défini sous Linux, ce
+n'est peut être pas le cas sur d'autres architectures. Il vaut donc mieux
+n'utiliser que des modificateurs définis en C ANSI, c'est\-à\-dire, utilisez
+\fBq\fP à la place de \fBL\fP avec les conversions \fBd\fP, \fBi\fP, \fBo\fP, \fBu\fP, \fBx\fP et
+\fBX\fP ou \fBll\fP.
+.PP
+L'utilisation \fBq\fP n'est pas la même sous BSD\ 4.4, car il peut être utilisé
+avec des conversions de réels de manière équivalente à \fBL\fP. [NDT] La
+conversion \fB%s\fP devrait toujours être accompagnée d'une longueur maximale
+de chaîne de caractères. En effet, il existe un risque de débordement de
+tampon, qui peut conduire à un trou de sécurité important dans un programme
+setuid ou setgid.
+.SH "VOIR AUSSI"
+\fBgetc\fP(3), \fBprintf\fP(3), \fBsetlocale\fP(3), \fBstrtod\fP(3), \fBstrtol\fP(3),
+\fBstrtoul\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,130 @@
+.\" Copyright 1997 Nicolás Lichtmaier <nick@debian.org>
+.\" Created Thu Aug  7 00:44:00 ART 1997
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" Added section stuff, aeb, 2002-04-22.
+.\" Corrected include file, drepper, 2003-06-15.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LOCKF 3 "25 juillet 2009" GNU "Manuel du programmeur Linux"
+.SH NOM
+lockf \- Poser, examiner ou supprimer un verrou POSIX sur un fichier ouvert
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBint lockf(int \fP\fIfd\fP\fB, int \fP\fIcmd\fP\fB, off_t \fP\fIlen\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBlockf\fP()\ : _BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500
+.SH DESCRIPTION
+Cette fonction pose, examine, ou supprime un verrou POSIX sur un fichier
+ouvert. Le fichier est spécifié par \fIfd\fP, un descripteur ouvert en
+écriture, l'action par \fIcmd\fP, et la section par les octets aux positions
+\fIpos\fP..\fIpos\fP+\fIlen\fP\-1 si \fIlen\fP est positive et \fIpos\fP\-\fIlen\fP..\fIpos\fP\-1 si
+\fIlen\fP est négative, où \fIpos\fP est la position actuelle dans le fichier. Si
+\fIlen\fP vaut zéro, la section s'étend de la position courant à l'infini,
+englobant la fin de fichier et les extensions ultérieures. Dans tous les
+cas, la section peut s'étendre au delà de la fin du fichier.
+.LP
+Sous Linux, \fBlockf\fP() est une interface de vérrou au dessus de
+\fBfcntl\fP(2). Beaucoup d'autres systèmes implémentent \fBlockf\fP() de cette
+façon, cependant POSIX.1\-2001 ne spécifie pas la relation de vérrou entre
+\fBlockf\fP() et \fBfcntl\fP(2). Une application portable ne devrait pas mixer des
+appels à ces deux interfaces.
+.LP
+Les opérations valides sont les suivantes\ :
+.TP 
+\fBF_LOCK\fP
+Poser un verrou exclusif sur la section indiquée du fichier. Si (une partie
+de) la section est déjà verrouillée, l'appel bloque jusqu'à la suppression
+du verrou précédent. Si la section recouvre un verrou existant (du même
+processus), les deux sont regroupés. Les verrouillages sont libérés lorsque
+le processus ferme un descripteur du fichier. Un processus fils n'hérite pas
+du verrou.
+.TP 
+\fBF_TLOCK\fP
+Comme \fBF_LOCK\fP mais l'appel n'est pas bloquant, il renvoie une erreur si le
+fichier est déjà verrouillé.
+.TP 
+\fBF_ULOCK\fP
+Déverrouiller la section indiquée du fichier. Ceci peut conduire une section
+verrouillée à être découpée en deux sections.
+.TP 
+\fBF_TEST\fP
+Vérifier s'il y a un verrou\ : l'appel renvoie 0 si la section indiquée est
+libre ou verrouillée par le processus appelant, et \-1 avec \fBEAGAIN\fP
+(\fBEACCES\fP sur d'autres systèmes) dans \fIerrno\fP si un autre processus
+possède le verrou.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEACCES\fP ou \fBEAGAIN\fP
+Le fichier est verrouillé et \fBF_TLOCK\fP ou \fBF_TEST\fP étaient indiqués, ou
+encore l'opération est impossible car le fichier est projetée dans la
+mémoire d'un autre processus.
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier ouvert.
+.TP 
+\fBEDEADLK\fP
+L'opération \fBT_LOCK\fP demandée amènerait à un cas de blocage.
+.TP 
+\fBEINVAL\fP
+Une opération invalide a été réclamée sur \fIfd\fP.
+.TP 
+\fBENOLCK\fP
+La table des verrous est pleine.
+.SH CONFORMITÉ
+SVr4, POSIX.1\-2001.
+.SH "VOIR AUSSI"
+\fBfcntl\fP(2), \fBflock\fP(2)
+.br
+Il existe aussi \fIlocks.txt\fP et \fImandatory\-locking.txt\fP dans le répertoire
+\fIDocumentation/filesystems\fP des sources du noyau (sur d'anciens noyaux, ces
+fichiers se trouvent dans le répertoire \fIDocumentation/\fP et
+\fImandatory\-locking.txt\fP est appelé \fImandatory.txt\fP).
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

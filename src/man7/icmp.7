@@ -1,0 +1,186 @@
+.\" This man page is Copyright (C) 1999 Andi Kleen <ak@muc.de>.
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" $Id: icmp.7,v 1.6 2000/08/14 08:03:45 ak Exp $
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ICMP 7 "24 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+icmp, IPPROTO_ICMP \- Module ICMP IPv4 du noyau Linux.
+.SH DESCRIPTION
+Ce module du noyau implémente le protocole ICMP (Internet Control Message
+Protocol) défini dans la RFC\ 792. Il sert pour diagnostiquer et indiquer
+des conditions d'erreurs. L'utilisateur n'interagit pas directement avec ce
+module. À la place, il communique avec les autres protocoles dans le noyau,
+et ceux\-ci transmettent les erreurs ICMP aux couches applicatives. Ce module
+répond également aux requêtes ICMP.
+.PP
+Un protocole utilisateur peut recevoir des paquets ICMP pour toutes les
+sockets locales en utilisant une socket \fBraw\fP avec le protocole
+\fBIPPROTO_ICMP\fP. Voir la page \fBraw\fP(7) pour plus de détails. Les types de
+paquets ICMP transmis à la socket peuvent être filtrés en utilisant l'option
+\fBICMP_FILTER\fP de la socket. Les paquets ICMP sont toujours traités par le
+noyau aussi, même lorsqu'ils sont transmis à une socket utilisateur.
+.LP
+Linux limite le débit des paquets d'erreurs ICMP pour chaque
+destination. \fBICMP_REDIRECT\fP et \fBICMP_DEST_UNREACH\fP sont aussi limitées
+par la route de destination des paquets entrants.
+.SS "Interfaces /proc"
+.\" FIXME better description needed
+ICMP prend en charge une série d'interfaces \fI/proc\fP pour configurer
+certains paramètres IP globaux. Ces paramètre sont accessibles en lisant ou
+écrivant les fichiers du répertoire \fI/proc/sys/net/ipv4/\fP. La plupart de
+ces paramètres sont des limitations de débit pour des types ICMP
+spécifiques. Linux 2.2 utilise un filtre à jeton pour limiter les ICMPs. La
+valeur est un délai en jiffies jusqu'à ce que le filtre soit vidé. Un jiffy
+est une unité de temps dépendant du système, en général 10ms sur i386 et
+environ 1ms sur alpha et ia64.
+.TP 
+\fIicmp_destunreach_rate\fP (Linux 2.2 à 2.4.9)
+.\" Precisely: from 2.1.102
+Fréquence maximale pour envoyer des paquets ICMP «\ Destination
+inaccessible\ ». Ceci limite le débit avec lequel ces paquets sont émis vers
+des routes individuelles ou collectives. Cette limite n'affecte par l'envoi
+des paquets \fBICMP_FRAG_NEEDED\fP nécessaire pour rechercher le MTU d'un
+chemin.
+.TP 
+\fIicmp_echo_ignore_all\fP (depuis Linux 2.2)
+.\" Precisely: 2.1.68
+Si cette valeur est non nulle, Linux ignorera toutes les requêtes
+\fBICMP_ECHO\fP.
+.TP 
+\fIicmp_echo_ignore_broadcasts\fP (depuis Linux 2.2)
+.\" Precisely: from 2.1.68
+Si cette valeur est non nulle, Linux ignorera toutes les requêtes
+\fBICMP_ECHO\fP envoyées à une adresse broadcast.
+.TP 
+\fIicmp_echoreply_rate\fP (Linux 2.2 à 2.4.9)
+.\" Precisely: from 2.1.102
+Vitesse maximale pour envoyer les paquets \fBICMP_ECHOREPLY\fP en réponse aux
+requêtes \fBICMP_ECHOREQUEST\fP.
+.TP 
+\fIicmp_errors_use_inbound_ifaddr\fP (booléen\ ; désactivé par défaut\ ; depuis Linux 2.6.12)
+.\" The following taken from 2.6.28-rc4 Documentation/networking/ip-sysctl.txt
+Lorsqu'il est désactivé, les messages d'erreurs ICMP sont envoyés avec
+l'adresse primaire de l'interface existante.
+
+Lorsqu'il est activé, le message est envoyé avec l'adresse primaire de
+l'interface qui a reçu le paquet qui a causé l'erreur ICMP. Il s'agit du
+comportement que beaucoup d'administrateurs réseau attendent d'un
+routeur. Et cela peut faciliter le déboguage de réseaux complexes.
+
+Notez que s'il n'y a pas d'adresse primaire pour l'interface sélectionnée,
+l'adresse de la première interface n'étant pas une interface de boucle
+(loopback) et ayant une adresse primaire sera utilisée quelle que soit la
+configuration de ce booléen.
+.TP 
+\fIicmp_ignore_bogus_error_responses\fP (booléen\ ; désactivé par défaut\ ; depuis Linux 2.2)
+.\" precisely: since 2.1.32
+.\" The following taken from 2.6.28-rc4 Documentation/networking/ip-sysctl.txt
+Certains routeurs ne respectent pas la RFC\ 1122 et renvoient des réponses
+erronées aux trames de diffusion générale. Ceci est généralement enregistré
+dans les journaux comme des avertissements par le noyau. Si ce paramètre est
+activé, le noyau ne produira pas d'avertissement, ce qui évitera de
+surcharger le fichier de journal.
+.TP 
+\fIicmp_paramprob_rate\fP (Linux 2.2 à 2.4.9)
+.\" Precisely: from 2.1.102
+Débit maximal pour émettre les paquets \fBICMP_PARAMETERPROB\fP. Ceux\-ci sont
+envoyés lorsqu'un paquet arrive avec un en\-tête IP invalide.
+.TP 
+\fIicmp_ratelimit\fP (entier\ ; défaut\ : 1000\ ; depuis Linux 2.4.10)
+.\" The following taken from 2.6.28-rc4 Documentation/networking/ip-sysctl.txt
+Limiter les taux maximum pour l'envoie de paquets ICMP dont le type
+correspond à \fIicmp_ratemask\fP (voir ci\-dessous). 0 désactive toute limite,
+sinon il s'agit de l'intervalle minimum entre deux réponses, en
+millisecondes.
+.TP 
+\fIicmp_ratemask\fP (entier\ ; voir ci\-dessous la valeur par défaut\ ; depuis Linux 2.4.10)
+.\" The following taken from 2.6.28-rc4 Documentation/networking/ip-sysctl.txt
+Masque de types ICMP pour lesquels les taux sont limités.
+
+bit significatifs\ : IHGFEDCBA9876543210
+.br
+Masque par défaut\ : 0000001100000011000 (0x1818)
+
+Définitions des bits (voir le fichier \fIinclude/linux/icmp.h\fP dans les
+sources du noyau)\ :
+
+.in +4n
+.nf
+0 Réponse Echo
+3 Destination inaccessible *
+4 Extinction de la source *
+5 Redirection
+8 Demande d'un Echo
+B Temps dépassé *
+C Problème de paramètre *
+D Demande d'horodatage
+E Horodatage en réponse
+F Demande d'information
+G Information en réponse
+H Demande d'un masque de sous\-réseau
+I Masque de sous\-réseau en réponse
+.fi
+.in
+
+Les bits marqués d'un astérisque sont limités par défaut (voir le masque de
+bits par défaut ci\-dessus).
+.TP 
+\fIicmp_timeexceed_rate\fP (Linux 2.2 à 2.4.9)
+Débit maximal pour émettre les paquets \fBICMP_TIME_EXCEEDED\fP. Ceux\-ci sont
+envoyés pour empêcher les boucles quand un paquet a réalisé trop de sauts.
+.SH VERSIONS
+Le support pour les requêtes \fBICMP_ADDRESS\fP a été supprimé dans le noyau
+2.2.
+.PP
+Le support pour \fBICMP_SOURCE_QUENCH\fP a été supprimé dans Linux 2.2.
+.SH NOTES
+.\" not really true ATM
+.\" .PP
+.\" Linux ICMP should be compliant to RFC 1122.
+Comme beaucoup d'autres implémentations ne supportent pas les socket raw
+\fBIPPROTO_ICMP\fP, on ne doit pas se reposer sur cette fonctionnalité dans les
+programmes portables.
+.PP
+Les paquets \fBICMP_REDIRECT\fP ne sont pas envoyés quand Linux ne fonctionne
+pas en routeur. Ils ne sont également acceptés que d'une passerelle
+précédemment définie dans la table de routage, et les routes de redirection
+expirent après un certain délai.
+.PP
+L'horodatage 64 bits renvoyé par \fBICMP_TIMESTAMP\fP est en millisecondes
+depuis le 1er janvier 1970.
+.PP
+En interne, l'ICMP Linux utilise une socket raw pour envoyer les
+ICMPs. Cette socket peut apparaître dans la sortie de \fBnetstat\fP(8) avec un
+in\(oeud nul.
+.SH "VOIR AUSSI"
+\fBip\fP(7)
+.PP
+RFC\ 792 pour une description du protocole ICMP.
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

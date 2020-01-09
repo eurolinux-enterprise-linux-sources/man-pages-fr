@@ -1,0 +1,235 @@
+.de  xx
+.in \\n(INu+\\$1
+.ti -\\$1
+..
+.\" Copyright (C), 1995, Graeme W. Wilford. (Wilf.)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Wed Jun 14 16:10:28 BST 1995 Wilf. (G.Wilford@ee.surrey.ac.uk)
+.\" Tiny change in formatting - aeb, 950812
+.\" Modified 8 May 1998 by Joseph S. Myers (jsm28@cam.ac.uk)
+.\"
+.\" show the synopsis section nicely
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH REGEX 3 "29 mai 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+regcomp, regexec, regerror, regfree \- Fonctions POSIX pour les expressions
+rationnelles («\ regex\ »)
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <regex.h>\fP
+
+\fBint regcomp(regex_t *\fP\fIpreg\fP\fB, const char *\fP\fIregex\fP\fB, int \fP\fIcflags\fP\fB);\fP
+
+\fBint regexec(const regex_t *\fP\fIpreg\fP\fB, const char *\fP\fIstring\fP\fB, size_t \fP\fInmatch\fP\fB,\fP
+\fB            regmatch_t \fP\fIpmatch[]\fP\fB, int \fP\fIeflags\fP\fB);\fP
+
+\fBsize_t regerror(int \fP\fIerrcode\fP\fB, const regex_t *\fP\fIpreg\fP\fB, char *\fP\fIerrbuf\fP\fB,\fP
+\fB                size_t \fP\fIerrbuf_size\fP\fB);\fP
+
+\fBvoid regfree(regex_t *\fP\fIpreg\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+.SS "Compilation d'expressions rationnelles POSIX"
+\fBregcomp\fP() est utilisée pour compiler une expression rationnelle sous une
+forme utilisable par la suite pour des recherches avec \fBregexec\fP().
+
+On fournit à \fBregcomp\fP() les arguments \fIpreg\fP, un pointeur vers une zone
+de stockage du motif, \fIregex\fP, un pointeur vers une chaîne terminée par un
+caractère nul, et \fIcflags\fP, les attributs indiquant le type de compilation.
+
+Toutes les recherches d'expressions rationnelles sont effectuées à travers
+la zone de motif compilé, ainsi \fBregexec\fP() doit toujours recevoir
+l'adresse d'un motif initialisé par \fBregcomp\fP().
+
+\fIcflags\fP peut être un \fBOU binaire\fP entre une ou plusieurs constantes
+symboliques suivantes\ :
+.TP 
+\fBREG_EXTENDED\fP
+Utiliser la syntaxe d'expression rationnelle étendue \fBPOSIX\fP pour
+interpréter \fIregex\fP. Sinon, la syntaxe d'expression rationnelle de base
+\fBPOSIX\fP est utilisée.
+.TP 
+\fBREG_ICASE\fP
+Ne pas différencier les majuscules des minuscules. Les recherches
+\fBregexec\fP() suivantes utilisant le tampon de motif n'effectueront pas la
+différenciation.
+.TP 
+\fBREG_NOSUB\fP
+Ne pas utiliser les correspondances de sous\-chaînes. Les paramètres
+\fInmatch\fP et \fIpmatch\fP de \fBregexec\fP() sont ignorés si le tampon de motif
+est compilé avec cet attribut.
+.TP 
+\fBREG_NEWLINE\fP
+L'opérateur "n'importe\-quel\-caractère" ne s'identifie pas avec le saut de
+ligne.
+
+Une liste d'exceptions (\fB[^...]\fP) ne contenant pas de saut de ligne ne
+s'identifie pas avec un saut de ligne.
+
+L'opérateur début\-de\-ligne (\fB^\fP) s'identifie avec une chaîne vide suivant
+immédiatement un saut de ligne, même si l'attribut \fIeflags\fP de \fBregexec\fP()
+contient \fBREG_NOTBOL\fP.
+
+L'opérateur fin\-de\-ligne (\fB$\fP) s'identifie avec une chaîne vide précédant
+immédiatement un saut de ligne, même si l'attribut \fIeflags\fP contient
+\fBREG_NOTEOL\fP.
+.SS "Correspondance d'expressions rationnelles POSIX"
+\fBregexec\fP() est utilisée pour mettre en correspondance une chaîne terminée
+par un caractère nul, avec le tampon de motif précompilé \fIpreg\fP. \fInmatch\fP
+et \fIpmatch\fP fournissent des informations concernant l'emplacement des
+correspondances. \fIeflags\fP peut être un \fBOU binaire\fP entre les constantes
+\fBREG_NOTBOL\fP ou \fBREG_NOTEOL\fP qui modifient le comportement de la mise en
+correspondance décrite ci\-dessous.
+.TP 
+\fBREG_NOTBOL\fP
+L'opérateur début\-de\-ligne échoue toujours (mais voyez l'attribut de
+compilation \fBREG_NEWLINE\fP ci\-dessus). Cet attribut peut être utilisé quand
+différentes portions d'une chaîne sont transmises à \fBregexec\fP() et que le
+début de la chaîne ne correspond pas à un début de ligne.
+.TP 
+\fBREG_NOTEOL\fP
+L'opérateur fin\-de\-ligne échoue toujours (mais voyez l'attribut de
+compilation \fBREG_NEWLINE\fP ci\-dessus)
+.SS "Décalage d'octets"
+À moins que l'attribut \fBREG_NOSUB\fP n'ait été utilisé lors de la compilation
+du motif, il est possible d'obtenir des informations sur les correspondances
+de sous\-chaînes. \fIpmatch\fP doit être dimensionnée pour contenir au moins
+\fInmatch\fP éléments. Ils sont remplis par \fBregexec\fP() avec les adresses des
+sous\-chaînes mises en correspondance. Tous les éléments inutilisés de
+structure contiendront la valeur \-1.
+
+La structure \fIregmatch_t\fP du type \fIpmatch\fP est définie dans
+\fI<regex.h>\fP.
+
+.in +4n
+.nf
+typedef struct {
+    regoff_t rm_so;
+    regoff_t rm_eo;
+} regmatch_t;
+.fi
+.in
+
+Chaque élément \fIrm_so\fP différent de \-1 indique le point de départ de la
+sous\-chaîne suivante la plus longue qui soit mise en
+correspondance. L'élément \fIrm_eo\fP indique le décalage de la fin de la
+sous\-chaîne, qui est l'emplacement du premier caractère après le texte qui
+correspond.
+.SS "Retours d'erreurs POSIX"
+\fBregerror\fP() est utilisé pour transformer les codes d'erreur renvoyés par
+\fBregcomp\fP() et par \fBregexec\fP() en libellés.
+
+\fBregerror\fP() reçoit le code \fIerrcode\fP, le tampon de motif \fIpreg\fP, un
+pointeur sur une chaîne de caractères \fIerrbuf\fP, et la longueur maximale de
+cette chaîne \fIerrbuf_size\fP. Cette fonction renvoie la taille \fIerrbuf\fP
+nécessaire pour contenir le libellé d'erreur terminé par un caractère
+nul. Si \fIerrbuf\fP et \fIerrbuf_size\fP son non nuls, \fIerrbuf\fP est rempli avec
+les \fIerrbuf_size \- 1\fP premiers caractères du libellé d'erreur, suivis d'un
+caractère nul.
+.SS "Libération des tampons de motifs POSIX"
+En fournissant à \fBregfree\fP() un tampon de motif précompilé \fIpreg\fP, il
+libérera la mémoire allouée au tampon durant la compilation avec
+\fBregcomp\fP().
+.SH "VALEUR RENVOYÉE"
+\fBregcomp\fP() renvoie zéro si la compilation réussit, ou un code d'erreur en
+cas d'échec.
+
+\fBregexec\fP() renvoie zéro si la correspondance réussit, et \fBREG_NOMATCH\fP si
+elle échoue.
+.SH ERREURS
+Les erreurs suivantes peuvent être déclenchées par \fBregcomp\fP()\ :
+.TP 
+\fBREG_BADBR\fP
+Utilisation illégale de l'opérateur de référence inverse.
+.TP 
+\fBREG_BADPAT\fP
+Utilisation illégale d'un opérateur du type groupe ou liste.
+.TP 
+\fBREG_BADRPT\fP
+Utilisation invalide d'opérateurs de répétition, comme un caractère «\ *\ »
+en première place.
+.TP 
+\fBREG_EBRACE\fP
+Accolade manquante.
+.TP 
+\fBREG_EBRACK\fP
+Crochet manquant.
+.TP 
+\fBREG_ECOLLATE\fP
+Élément de classement invalide.
+.TP 
+\fBREG_ECTYPE\fP
+Nom de classe de caractère inconnu.
+.TP 
+\fBREG_EEND\fP
+Erreur non spécifique. Elle n'est pas définie par POSIX.2.
+.TP 
+\fBREG_EESCAPE\fP
+Barre oblique inverse de fin.
+.TP 
+\fBREG_EPAREN\fP
+Parenthèse manquante.
+.TP 
+\fBREG_ERANGE\fP
+Utilisation illégale de l'opérateur d'intervalle. Par exemple, la fin de
+l'intervalle est inférieure au début de l'intervalle.
+.TP 
+\fBREG_ESIZE\fP
+La compilation aurait besoin d'un tampon de taille supérieure à 64 Ko. Ce
+n'est pas défini par POSIX.2.
+.TP 
+\fBREG_ESPACE\fP
+Les routines regex ont épuisé la mémoire.
+.TP 
+\fBREG_ESUBREG\fP
+Référence inverse illégale vers une sous\-expression.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH "VOIR AUSSI"
+\fBgrep\fP(1), \fBregex\fP(7), Manuel GNU pour les expressions rationnelles
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

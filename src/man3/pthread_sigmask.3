@@ -1,0 +1,152 @@
+.\" Copyright (c) 2009 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_SIGMASK 3 "25 janvier 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_sigmask \- Examiner et modifier le masque des signaux bloqués
+.SH SYNOPSIS
+.nf
+\fB#include <signal.h>\fP
+
+\fBint pthread_sigmask(int \fP\fIhow\fP\fB, const sigset_t *\fP\fIset\fP\fB, sigset_t *\fP\fIoldset\fP\fB);\fP
+.fi
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.SH DESCRIPTION
+La fonction \fBpthread_sigmask\fP() est identique à \fBsigprocmask\fP(2), à la
+différence près que son utilisation dans des programmes multithread est
+explicitement spécifié dans POSIX.1\-2001. D'autres différences soont
+indiquées dans cette page.
+
+Pour une description des arguments et du mode d'opération de cette fonction,
+voir \fBsigprocmask\fP(2).
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, \fBpthread_sigmask\fP() renvoie 0\ ; en cas d'erreur, elle
+renvoie un numéro d'erreur.
+.SH ERREURS
+Voir \fBsigprocmask\fP(2).
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Un nouveau thread hérite d'une copie du masque de signaux de son créateur.
+.SH EXEMPLE
+Le programme ci\-dessous bloque certains signaux dans le thread principal,
+puis crée un thread dédié pour récupérer ces signaux avec \fBsigwait\fP(3).  La
+session d'interpréteur de commande ci\-dessous démontre l'utilisation du
+programme.
+
+.in +4n
+.nf
+$\fB ./a.out &\fP
+[1] 5423
+$\fB kill \-QUIT %1\fP
+Signal handling thread got signal 3
+$\fB kill \-USR1 %1\fP
+Signal handling thread got signal 10
+$\fB kill \-TERM %1\fP
+[1]+  Terminated              ./a.out
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <signal.h>
+#include <errno.h>
+
+/* Simple error handling functions */
+
+#define handle_error_en(en, msg) \e
+        do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
+
+static void *
+sig_thread(void *arg)
+{
+    sigset_t *set = (sigset_t *) arg;
+    int s, sig;
+
+    for (;;) {
+        s = sigwait(set, &sig);
+        if (s != 0)
+            handle_error_en(s, "sigwait");
+        printf("Signal handling thread got signal %d\en", sig);
+    }
+}
+
+int
+main(int argc, char *argv[])
+{
+    pthread_t thread;
+    sigset_t set;
+    int s;
+
+    /* Block SIGINT; other threads created by main() will inherit
+       a copy of the signal mask. */
+
+    sigemptyset(&set);
+    sigaddset(&set, SIGQUIT);
+    sigaddset(&set, SIGUSR1);
+    s = pthread_sigmask(SIG_BLOCK, &set, NULL);
+    if (s != 0)
+        handle_error_en(s, "pthread_sigmask");
+
+    s = pthread_create(&thread, NULL, &sig_thread, (void *) &set);
+    if (s != 0)
+        handle_error_en(s, "pthread_create");
+
+    /* Main thread carries on to create other threads and/or do
+       other work */
+
+    pause();            /* Dummy pause so we can test program */
+}
+.fi
+.SH "VOIR AUSSI"
+\fBsigaction\fP(2), \fBsigpending\fP(2), \fBsigprocmask\fP(2)  \fBpthread_create\fP(3),
+\fBpthread_kill\fP(3), \fBsigsetops\fP(3), \fBpthreads\fP(7), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Denis Barbier (2010).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

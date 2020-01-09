@@ -1,0 +1,85 @@
+.\" Copyright 2007 (C) Michael Kerrisk <mtk.manpages@gmail.com>
+.\" some parts Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 21:46:21 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Fri Aug  4 10:51:53 2000 - patch from Joseph S. Myers
+.\" 2007-12-15, mtk, Mostly rewritten
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ABORT 3 "15 décembre 2007" GNU "Manuel du programmeur Linux"
+.SH NOM
+abort \- Terminer de manière anormale un programme
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBvoid abort(void);\fP
+.fi
+.SH DESCRIPTION
+\fBabort\fP() déverrouille le signal \fBSIGABRT\fP, puis émet celui\-ci pour le
+processus appelant. Le processus est alors terminé de façon anormal, sauf si
+le signal \fBSIGABRT\fP est intercepté ou si le gestionnaire de signaux ne rend
+pas la main (voyez \fBlongjmp\fP(3)).
+.PP
+Si \fBabort\fP() produit effectivement la fin d'exécution du processus, tous
+les flux ouverts sont vidés et fermés
+.PP
+Si le signal \fBSIGABRT\fP est ignoré ou intercepté par un gestionnaire de
+signaux qui retourne, \fBabort\fP() terminera de toute façon le processus. Il
+effectue ceci en restaurant la disposition par défaut de \fBSIGABRT\fP et en
+émettant le signal une second fois.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBabort\fP() ne revient jamais.
+.SH CONFORMITÉ
+SVr4, POSIX.1\-2001, BSD\ 4.3, C89, C99.
+.SH "VOIR AUSSI"
+\fBgdb\fP(1), \fBsigaction\fP(2), \fBexit\fP(3), \fBlongjmp\fP(3), \fBraise\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

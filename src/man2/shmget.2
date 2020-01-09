@@ -1,0 +1,218 @@
+.\" Copyright (c) 1993 Luigi P. Bai (lpb@softint.com) July 28, 1993
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified Wed Jul 28 10:57:35 1993, Rik Faith <faith@cs.unc.edu>
+.\" Modified Sun Nov 28 16:43:30 1993, Rik Faith <faith@cs.unc.edu>
+.\"          with material from Giorgio Ciucci <giorgio@crcc.it>
+.\" Portions Copyright 1993 Giorgio Ciucci <giorgio@crcc.it>
+.\" Modified Tue Oct 22 22:03:17 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified, 8 Jan 2003, Michael Kerrisk, <mtk.manpages@gmail.com>
+.\"	Removed EIDRM from errors - that can't happen...
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\" Modified, 11 Nov 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Language and formatting clean-ups
+.\"	Added notes on /proc files
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SHMGET 2 "2 mai 2006" Linux "Manuel du programmeur Linux"
+.SH NOM
+shmget \- Allouer un segment de mémoire partagée
+.SH SYNOPSIS
+.ad l
+\fB#include <sys/ipc.h>\fP
+.br
+\fB#include <sys/shm.h>\fP
+.sp
+\fBint shmget(key_t \fP\fIkey\fP\fB, size_t \fP\fIsize\fP\fB, int \fP\fIshmflg\fP\fB);\fP
+.ad b
+.SH DESCRIPTION
+\fBshmget\fP() renvoie l'identifiant du segment de mémoire partagée associé à
+la valeur de l'argument \fIkey\fP. Un nouveau segment mémoire, de taille
+\fIsize\fP arrondie au multiple supérieur de \fBPAGE_SIZE\fP, est créé si \fIkey\fP a
+la valeur \fBIPC_PRIVATE\fP ou si aucun segment de mémoire partagée n'est
+associé à \fIkey\fP, et \fBIPC_CREAT\fP est présent dans \fIshmflg\fP.
+.PP
+Si \fIshmflg\fP contient à la fois les attributs \fBIPC_CREAT\fP et \fBIPC_EXCL\fP,
+et si un segment de mémoire partagée est déjà associé à \fIkey\fP, \fBshmget\fP()
+échoue avec le code d'erreur \fBEEXIST\fP. Ceci est similaire au comportement
+de \fBopen\fP(2) avec la combinaison \fBO_CREAT | O_EXCL\fP.
+.PP
+\fIshmflg\fP est composé de\ :
+.TP  12
+\fBIPC_CREAT\fP
+Créer un nouveau segment. Sinon \fBshmget\fP() recherche le segment associé à
+\fIkey\fP et vérifie que l'appelant a la permission d'y accéder.
+.TP 
+\fBIPC_EXCL\fP
+Utilisé avec \fBIPC_CREAT\fP pour garantir l'échec si le segment existe déjà.
+.TP 
+\fImode d'accès\fP
+(les 9 bits de poids faibles) Permissions pour le propriétaire, le groupe et
+les autres. Ces bits ont le même format et la même signification que
+l'argument \fImode\fP de \fBopen\fP(2). Actuellement la permission d'exécution
+n'est pas utilisée par le système.
+.TP 
+\fBSHM_HUGETLB\fP (depuis Linux 2.6)
+Allouer le segment en utilisant des pages immenses. Voir le fichier
+\fIDocumentation/vm/hugetlbpage.txt\fP dans les sources du noyau pour plus
+d'informations.
+.TP 
+\fBSHM_NORESERVE\fP (depuis Linux 2.6.15)
+.\" As at 2.6.17-rc2, this flag has no effect if SHM_HUGETLB was also
+.\" specified.
+Cet attribut a le même objet que l'attribut \fBMAP_NORESERVE\fP de
+\fBmmap\fP(2). Ne pas réserver d'espace de swap pour ce segment. Lorsque de
+l'espace en swap est réservé, le système garantit qu'il sera possible de
+modifier le segment. Lorsque l'espace en swap n'est pas réservé, on peut
+recevoir \fBSIGSEGV\fP lors d'une écriture si la mémoire physique est
+pleine. Voir aussi la discussion du fichier
+\fI/proc/sys/vm/overcommit_memory\fP dans \fBproc\fP(5).
+.PP
+Si un nouveau segment de mémoire partagée est créé, le système initialise
+son contenu à zéro, et la structure \fIshmid_ds\fP (voir \fBshmctl\fP(2)) associée
+au segment comme suit\ :
+.IP
+\fIshm_perm.cuid\fP et \fIshm_perm.uid\fP contiennent l'UID effectif de
+l'appelant.
+.IP
+\fIshm_perm.cgid\fP et \fIshm_perm.gid\fP contiennent le GID effectif de
+l'appelant.
+.IP
+Les 9 bits de poids faibles de \fIshm_perm.mode\fP contiennent les 9 bits de
+poids faibles de \fIshmflg\fP.
+.IP
+\fIshm_segsz\fP prend la valeur \fIsize\fP.
+.IP
+\fIshm_lpid\fP, \fIshm_nattch\fP, \fIshm_atime\fP et \fIshm_dtime\fP sont mis à 0.
+.IP
+\fIshm_ctime\fP contient l'heure actuelle.
+.PP
+Si le segment de mémoire existe déjà, les permissions d'accès sont
+vérifiées, et un contrôle a lieu pour voir s'il est marqué pour destruction.
+.SH "VALEUR RENVOYÉE"
+Un identifiant de segment \fIshmid\fP valide est renvoyé en cas de réussite,
+sinon \-1 est renvoyé et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+En cas d'erreur, \fIerrno\fP prend l'une des valeurs suivantes\ :
+.TP 
+\fBEACCES\fP
+L'appelant n'a pas les autorisations d'accès au segment, et n'a pas la
+capacité \fBCAP_IPC_OWNER\fP.
+.TP 
+\fBEEXIST\fP
+\fIshmflg\fP contient \fBIPC_CREAT | IPC_EXCL\fP mais le segment existe déjà.
+.TP 
+\fBEINVAL\fP
+Un nouveau segment devait être créé et \fIsize\fP < \fBSHMMIN\fP ou \fIsize\fP
+> \fBSHMMAX\fP, ou bien un segment associé à \fIkey\fP existe, mais sa taille
+est inférieure à \fIsize\fP.
+.TP 
+\fBENFILE\fP
+.\" [2.6.7] shmem_zero_setup()-->shmem_file_setup()-->get_empty_filp()
+La limite du nombre total de fichiers ouverts sur le système a été atteinte.
+.TP 
+\fBENOENT\fP
+Aucun segment n'est associé à \fIkey\fP, et \fBIPC_CREAT\fP n'était pas indiqué.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour allouer le segment.
+.TP 
+\fBENOSPC\fP
+Tous les identifiants de mémoire partagée sont utilisés (\fBSHMMNI\fP), ou
+l'allocation d'un segment partagé de taille \fIsize\fP dépasserait les limites
+de mémoire partagée du système (\fBSHMALL\fP).
+.TP 
+\fBEPERM\fP
+L'attribut \fBSHM_HUGETLB\fP est indiqué, mais l'appelant n'est pas privilégié
+(ne possède pas la capacité \fBCAP_IPC_LOCK\fP).
+.SH CONFORMITÉ
+.\" SVr4 documents an additional error condition EEXIST.
+SVr4, POSIX.1\-2001.
+
+\fBSHM_HUGETLB\fP est spécifique à Linux.
+.SH NOTES
+\fBIPC_PRIVATE\fP n'est pas une option mais une valeur de type \fIkey_t\fP. Si
+cette valeur spéciale est utilisée comme clé, l'appel système ignore tout
+sauf les 9 bits de poids faibles de \fIshmflg\fP et tente de créer un nouveau
+segment.
+.PP
+Les limites suivantes influent sur l'appel système \fBshmget\fP\ :
+.TP 
+\fBSHMALL\fP
+Nombre maximal de pages de mémoire partagée sur le système (sous Linux,
+cette limite peut être lue et modifiée grâce au fichier
+\fI/proc/sys/kernel/shmall\fP).
+.TP 
+\fBSHMMAX\fP
+Taille maximale, en octets, d'un segment partagé (sous Linux, cette limite
+peut être lue et modifiée grâce au fichier \fI/proc/sys/kernel/shmmax\fP).
+.TP 
+\fBSHMMIN\fP
+Taille minimale, en octets, d'un segment partagé\ : dépend de
+l'implémentation (actuellement 1 octet, bien que \fBPAGE_SIZE\fP soit la valeur
+effectivement utilisée).
+.TP 
+\fBSHMMNI\fP
+.\" Kernels between 2.4.x and 2.6.8 had an off-by-one error that meant
+.\" that we could create one more segment than SHMMNI -- MTK
+.\" This /proc file is not available in Linux 2.2 and earlier -- MTK
+Nombre maximal de segments de mémoire partagée sur le système (actuellement
+4096, mais 128 avant Linux 2.3.99\ ; sous Linux, cette limite peut être lue
+et modifiée grâce au fichier \fI/proc/sys/kernel/shmmni\fP).
+.PP
+L'implémentation n'a pas de limite spécifique pour le nombre maximal de
+segments partagés par processus (\fBSHMSEG\fP).
+.SS "Notes sur Linux"
+Jusqu'au noyau 2.3.30, Linux renvoyait l'erreur \fBEIDRM\fP pour un \fBshmget\fP()
+sur un segment de mémoire marqué pour destruction.
+.SH BOGUES
+Le choix du nom \fBIPC_PRIVATE\fP est malheureux, \fBIPC_NEW\fP aurait mieux
+décrit sa fonction.
+.SH "VOIR AUSSI"
+\fBshmat\fP(2), \fBshmctl\fP(2), \fBshmdt\fP(2), \fBftok\fP(3), \fBcapabilities\fP(7),
+\fBshm_overview\fP(7), \fBsvipc\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

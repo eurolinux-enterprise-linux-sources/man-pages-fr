@@ -1,0 +1,118 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH AIO_READ 3 "14 novembre 2003" "" "Manuel du programmeur Linux"
+.SH NOM
+aio_read \- Lecture asynchrone
+.SH SYNOPSIS
+\fB#include <aio.h>\fP
+.sp
+\fBint aio_read(struct aiocb *\fP\fIaiocbp\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP.
+.SH DESCRIPTION
+La fonction \fBaio_read\fP() sollicite un «\ n = read(fd, buf, count)\ »
+asynchrone avec fd, buf, count donnés respectivement par
+\fIaiocbp\->aio_fildes\fP, \fIaiocbp\->aio_buf\fP et
+\fIaiocbp\->aio_nbytes\fP. L'état de retour n peut être récupéré à la fin
+avec \fBaio_return\fP(3).
+.LP
+La donnée est lue en commençant au décalage absolu du fichier
+\fIaiocbp\->aio_offset\fP, quelle que soit la position actuelle du pointeur
+sur le fichier. Après cette requête, la valeur de la position courante du
+pointeur du fichier est indéfinie.
+.LP
+«\ Asynchrone\ » signifie que cet appel s'achève aussitôt que la requête a
+été mise dans la file d'attente\ ; la lecture peut être ou ne pas être
+achevée lorsque l'appel s'achève. On peut tester cet achèvement en utilisant
+\fBaio_error\fP(3).
+.LP
+Si \fB_POSIX_PRIORITIZED_IO\fP est définie et si le fichier le supporte,
+l'opération asynchrone est soumise à une priorité égale à celle du processus
+appelant moins \fIaiocbp\->aio_reqprio\fP.
+.LP
+Le membre \fIaiocbp\->aio_lio_opcode\fP est ignoré.
+.LP
+Aucune donnée n'est lue dans un fichier régulier au\-delà de son décalage
+maximum.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, 0 est renvoyé. En cas d'erreur, la requête n'est pas
+mise dans la file d'attente, \-1 est renvoyé et \fIerrno\fP est définie en
+conséquence. Si une erreur est détectée plus tard, elle sera signalée via
+\fBaio_return\fP(3) (état de retour \-1) et \fBaio_error\fP(3) (état d'erreur\ :
+tout ce qu'on veut, récupéré dans \fIerrno\fP, comme \fBEBADF\fP).
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+Ressources insuffisantes.
+.TP 
+\fBEBADF\fP
+\fIaio_fildes\fP n'est pas un descripteur de fichier valable ouvert en lecture.
+.TP 
+\fBEINVAL\fP
+Une ou plusieurs valeurs parmi \fIaio_offset\fP, \fIaio_reqprio\fP, \fIaio_nbytes\fP
+ne sont pas valables.
+.TP 
+\fBENOSYS\fP
+La fonction n'est pas implémentée sur ce système.
+.TP 
+\fBEOVERFLOW\fP
+Le fichier est un fichier régulier, nous avons commencé la lecture avant la
+fin de fichier et voulons au moins un octet, mais la position de départ a
+dépassé le décalage maximum du fichier.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+.\" or the control block of the operation
+C'est une bonne idée de mettre à zéro le bloc de contrôle avant de
+l'utiliser. Ce bloc de contrôle ne doit pas être modifié pendant l'opération
+de lecture. Il ne faut pas accéder à la zone tampon à lire pendant
+l'opération, sinon des résultats indéfinis peuvent survenir. Les zones
+mémoires atteintes doivent rester valides.
+.SH "VOIR AUSSI"
+\fBaio_cancel\fP(3), \fBaio_error\fP(3), \fBaio_fsync\fP(3), \fBaio_return\fP(3),
+\fBaio_suspend\fP(3), \fBaio_write\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2004-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,101 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_ATTR_SETSTACKADDR 3 "24 octobre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_attr_setstackaddr, pthread_attr_getstackaddr \- Définir ou obtenir
+l'adresse de la pile de l'objet d'attributs de thread
+.SH SYNOPSIS
+.nf
+\fB#include <pthread.h>\fP
+
+\fBint pthread_attr_setstackaddr(pthread_attr_t *\fP\fIattr\fP\fB, void *\fP\fIstackaddr\fP\fB);\fP
+\fBint pthread_attr_getstackaddr(pthread_attr_t *\fP\fIattr\fP\fB, void **\fP\fIstackaddr\fP\fB);\fP
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.SH DESCRIPTION
+Ces fonctions sont obsolètes\ : \fBne les utilisez pas\fP. Utilisez
+\fBpthread_attr_setstack\fP(3) et \fBpthread_attr_getstack\fP(3) à la place.
+
+La fonction \fBpthread_attr_setstackaddr\fP() définit, à la valeur indiquée
+dans \fIstackaddr\fP, l'attribut d'adresse de la pile de l'objet d'attributs de
+thread \fIattr\fP. Cet attribut indique l'emplacement de la pile qui devrait
+être utilisée par un thread créé en utilisant l'objet d'attributs de thread
+\fIattr\fP.
+
+\fIstackaddr\fP devrait pointer vers un tampon d'au moins \fBPTHREAD_STACK_MIN\fP
+octets, alloué par l'appelant. Les pages du tampon alloué devraient être
+accessibles à la fois en lecture et en écriture.
+
+La fonction \fBpthread_attr_getstackaddr\fP() renvoie, dans le tampon pointé
+par \fIstackaddr\fP, l'attribut d'adresse de la pile de l'objet d'attributs de
+thread \fIattr\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient 0\ ; en cas d'erreur elles
+renvoient un numéro d'erreur non nul.
+.SH ERREURS
+Aucune erreur n'est définie (mais les applications devraient néanmoins
+prendre en charge un possible code d'erreur).
+.SH VERSIONS
+Ces fonctions sont fournies par la glibc depuis la version\ 2.1.
+.SH CONFORMITÉ
+POSIX.1\-2001 spécifie ces fonctions, mais les marques comme étant
+obsolètes. POSIX.1\-2008 supprime la spécification de ces fonctions.
+.SH NOTES
+\fIN'utilisez pas ces fonction\ !\fP Elles ne peuvent pas être utilisées de
+façon portable, puisqu'elle ne fournissent aucun moyen d'indiquer la
+direction ni l'intervalle de la pile. Par exemple, sur une architecture où
+la pile croit vers le bas, \fIstackaddr\fP indique l'adresse après l'adresse
+\fIla plus haute\fP de la zone de pile. Mais sur les architectures dont la pile
+croit vers le haut, \fIstackaddr\fP indique l'adresse \fIla plus basse\fP de la
+zone de pile allouée. A l'opposé, le paramètre \fIstackaddr\fP utilisé par
+\fBpthread_attr_setstack\fP(3) et \fBpthread_attr_getstack\fP(3) est toujours un
+pointeur vers l'adresse la plus basse de la zone de pile allouée (et le
+paramètre \fIstacksize\fP indique l'intervalle de la pile).
+.SH "VOIR AUSSI"
+\fBpthread_attr_init\fP(3), \fBpthread_attr_setstack\fP(3),
+\fBpthread_attr_setstacksize\fP(3), \fBpthread_create\fP(3), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

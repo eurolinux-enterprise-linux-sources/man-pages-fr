@@ -1,0 +1,240 @@
+.\" This is _*_ nroff _*_ source. Emacs, gimme all those colors :)
+.\"
+.\" Copyright (c) International Business Machines orp., 2006
+.\"
+.\" This program is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+.\" the GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+.\" MA 02111-1307 USA
+.\"
+.\" HISTORY:
+.\" 2006-04-27, created by Eduardo M. Fleury <efleury@br.ibm.com>
+.\" with various additions by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH IOPRIO_SET 2 "9 juillet 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+ioprio_get, ioprio_set \- Lire/écrire la classe et la priorité
+d'ordonnancement des E/S
+.SH SYNOPSIS
+.nf
+\fBint ioprio_get(int \fP\fIwhich\fP\fB, int \fP\fIwho\fP\fB);\fP
+\fBint ioprio_set(int \fP\fIwhich\fP\fB, int \fP\fIwho\fP\fB, int \fP\fIioprio\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Les appels système \fBioprio_get\fP() et \fBioprio_set\fP() lisent et écrivent la
+classe et la priorité d'ordonnancement des E/S pour un ou plusieurs
+processus.
+
+Les arguments \fIwhich\fP et \fIwho\fP identifient le(s) processus auxquels les
+appels système s'appliquent. L'argument \fIwhich\fP détermine comment \fIwho\fP
+est interprété, et prend l'une des valeurs suivantes\ :
+.TP 
+\fBIOPRIO_WHO_PROCESS\fP
+\fIwho\fP contient le PID d'un processus.
+.TP 
+\fBIOPRIO_WHO_PGRP\fP
+\fIwho\fP est l'identifiant d'un groupe de processus, et se réfère à tous les
+membres de ce groupe.
+.TP 
+\fBIOPRIO_WHO_USER\fP
+\fIwho\fP est un UID identifiant tous les processus dont l'UID réel correspond.
+.PP
+Si \fIwhich\fP vaut \fBIOPRIO_WHO_PGRP\fP ou \fBIOPRIO_WHO_USER\fP à l'appel de
+\fBioprio_get\fP(), et si plus d'un processus correspond à \fIwho\fP, la priorité
+renvoyée sera la plus grande des priorités des processus correspondants. Une
+priorité est dite plus grande qu'une autre si elle appartient à une classe
+de priorité supérieure (\fBIOPRIO_CLASS_RT\fP est la classe la plus haute\ ;
+\fBIOPRIO_CLASS_IDLE\fP est la plus basse) ou si elle appartient à la même
+classe mais a un niveau de priorité plus élevé (donc un numéro de priorité
+plus faible).
+
+L'argument \fIioprio\fP donné à \fBioprio_set\fP() est un masque de bits indiquant
+la classe et la priorité à donner au(x) processus cible(s). Les macros
+suivantes servent à créer et à tester les valeurs \fIioprio\fP\ :
+.TP 
+\fBIOPRIO_PRIO_VALUE(\fP\fIclass\fP\fB, \fP\fIdata\fP\fB)\fP
+Étant données une classe d'ordonnancement (\fIclass\fP) et une priorité
+(\fIdata\fP), cette macro combine les deux valeurs pour créer une valeur
+\fIioprio\fP, qui est renvoyée comme résultat.
+.TP 
+\fBIOPRIO_PRIO_CLASS(\fP\fImask\fP\fB)\fP
+À partir de \fImask\fP (une valeur \fIioprio\fP) cette macro renvoie sa classe
+d'E/S, c'est\-à\-dire une valeur parmi \fBIOPRIO_CLASS_RT\fP, \fBIOPRIO_CLASS_BE\fP
+et \fBIOPRIO_CLASS_IDLE\fP.
+.TP 
+\fBIOPRIO_PRIO_DATA(\fP\fImask\fP\fB)\fP
+Étant donné \fImask\fP (une valeur \fIioprio\fP), renvoie la priorité (\fIdata\fP)
+correspondante.
+.PP
+Voir la section NOTES pour plus d'informations sur les classes et priorités
+d'ordonnancement.
+
+Les priorités d'E/S sont gérées pour les lectures et pour les écritures
+synchrones (\fBO_DIRECT\fP, \fBO_SYNC\fP). Les priorités d'E/S ne sont pas gérées
+pour les écritures asynchrones parce qu'elles sont lancées hors du contexte
+du programme touchant la mémoire, ce qui fait que les priorités spécifiques
+à chaque programme ne s'appliquent pas.
+.SH "VALEUR RENVOYÉE"
+Lorsqu'il réussit, \fBioprio_get\fP() renvoie la valeur \fIioprio\fP du processus
+dont la priorité d'E/S est la plus grande parmi les processus correspondant
+aux critères indiqués par \fIwhich\fP et \fIwho\fP. En cas d'erreur, \-1 est
+renvoyé, et \fIerrno\fP contient le code d'erreur.
+.PP
+S'il réussit, \fBioprio_set\fP() renvoie zéro. En cas d'erreur, il renvoie \-1
+et remplit \fIerrno\fP avec la valeur d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+\fIwhich\fP ou \fIioprio\fP est invalide. Voir la section NOTES pour les classes
+et priorités d'ordonnancement disponibles pour \fIioprio\fP.
+.TP 
+\fBEPERM\fP
+Le processus appelant n'a pas les privilèges nécessaires pour attribuer
+cette priorité \fIioprio\fP au(x) processus indiqué(s). Voir la section NOTES
+pour plus d'informations sur les privilèges nécessaires pour
+\fBioprio_set\fP().
+.TP 
+\fBESRCH\fP
+Aucun processus ne correspond aux critères indiqués par \fIwhich\fP et \fIwho\fP.
+.SH VERSIONS
+Ces appels système sont disponibles sous Linux depuis le noyau 2.6.13.
+.SH CONFORMITÉ
+Ces appels système sont spécifiques à Linux.
+.SH NOTES
+La glibc ne fournit pas de fonction autour de ces appels système\ ;
+appelez\(hyles avec \fBsyscall\fP(2).
+
+Ces appels système n'ont d'effet que lorsqu'ils sont utilisés avec un
+ordonnanceur d'E/S qui gère les priorités d'E/S. Sous Linux 2.6.17,
+l'ordonnanceur «\ Completely Fair Queuing\ » (CFQ) est le seul ordonnanceur
+d'E/S de ce type.
+.SS "Choisir un ordonnanceur d'E/S"
+Les ordonnanceurs d'E/S sont sélectionnés pour chaque périphérique par le
+fichier spécial \fI/sys/block/<device>/queue/scheduler\fP.
+
+On peut voir quel ordonnanceur d'E/S est actuellement sélectionnés via le
+système de fichiers \fI/sys\fP. Par exemple, la commande suivante affiche la
+liste des ordonnanceurs chargés dans le noyau\ :
+.sp
+.RS
+.nf
+$\fB cat /sys/block/hda/queue/scheduler\fP
+noop anticipatory deadline [cfq]
+.fi
+.RE
+.sp
+L'ordonnanceur entre crochets est celui qui est utilisé pour le périphérique
+(\fIhda\fP dans l'exemple). Pour choisir un autre ordonnanceur, on écrit son
+nom dans ce fichier. Par exemple, la commande suivante fixe l'ordonnanceur
+pour le périphérique \fIhda\fP à \fIcfq\fP\ :
+.sp
+.RS
+.nf
+$\fB su\fP
+Password:
+#\fB echo cfq > /sys/block/hda/queue/scheduler\fP
+.fi
+.RE
+.SS "L'ordonnanceur d'E/S «\ Completely Fair Queuing\ » (CFQ)"
+Depuis la version 3 («\ CFQ Time Sliced\ »), CFQ implémente des niveaux de
+politesse d'E/S similaires à ceux de l'ordonnancement CPU. Ces niveaux de
+politesse sont groupés en trois classes d'ordonnancement, chacune de ces
+classes contenant un ou plusieurs niveaux de priorité\ :
+.TP 
+\fBIOPRIO_CLASS_RT\fP (1)
+Il s'agit de la classe d'E/S temps réel. Cette classe d'ordonnancement a une
+priorité plus grande que toutes les autres classes\ : les processus de cette
+classe ont toujours accès au disque en premier. Cette classe d'E/S doit donc
+être utilisée avec parcimonie\ : un seul processus avec des E/S temps réel
+peut bloquer tout le système. Au sein de la classe temps réel, il y a 8
+niveaux de priorité qui déterminent exactement pendant combien de temps ce
+processus aura besoin du disque à chaque service. La plus haute priorité
+temps réel est 0\ ; la plus basse est 7. Dans le futur, ceci pourra changer
+afin d'être plus directement corrélé à la performance, en passant le débit
+de données souhaité à la place de la priorité.
+.TP 
+\fBIOPRIO_CLASS_BE\fP (2)
+Classe d'ordonnancement «\ best\-effort\ », qui est utilisée par défaut pour
+les processus qui n'ont pas indiqué de priorité d'E/S particulière. La
+priorité de classe détermine combien de bande passante d'E/S le processus
+obtiendra. Les niveaux de priorité best\-effort sont similaires aux valeurs
+de politesse CPU (voir \fBgetpriority\fP(2)). Le niveau de priorité détermine
+une priorité par rapport aux autres processus dans la classe
+d'ordonnancement best\-effort. Les niveaux de priorité vont de 0 (plus
+prioritaire) à 7 (moins prioritaire).
+.TP 
+\fBIOPRIO_CLASS_IDLE\fP (3)
+Classe d'ordonnancement «\ idle\ ». Les processus s'exécutant à ce niveau
+n'obtiennent du temps d'E/S que lorsque personne d'autre n'a besoin du
+disque. La classe idle n'a pas de donnée (priorité) de classe. Il faut faire
+attention lorsque l'on met un processus dans cette classe de priorité, car
+il peut être bloqué si des processus de plus haute priorité accèdent
+constamment au disque.
+.PP
+Voir \fIDocumentation/block/ioprio.txt\fP pour plus d'informations sur
+l'ordonnanceur d'E/S CFQ et un exemple de programme.
+.SS "Permissions nécessaires pour fixer les priorités d'E/S"
+La permission de modifier la priorité d'un processus est accordée ou refusée
+en fonction de deux critères\ :
+.TP 
+\fBPropriétaire du processus\fP
+Un processus non privilégié ne peut fixer la priorité d'E/S que des
+processus dont l'UID réel est égal à l'UID réel ou effectif du processus
+appelant. Un processus ayant la capacité \fBCAP_SYS_NICE\fP peut modifier la
+priorité de n'importe quel processus.
+.TP 
+\fBPriorité désirée\fP
+Pour pouvoir définir une priorité très haute ((\fBIOPRIO_CLASS_RT\fP), il faut
+avoir la capacité \fBCAP_SYS_ADMIN\fP. Les noyaux antérieurs à 2.6.24 (compris)
+nécessitent également \fBCAP_SYS_ADMIN\fP pour définir une priorité très faible
+((\fBIOPRIO_CLASS_IDLE\fP), mais depuis 2.6.25, ce n'est plus le cas.
+.PP
+Un appel à \fBioprio_set\fP() doit suivre ces deux règles, sans quoi il échoue
+avec l'erreur \fBEPERM\fP.
+.SH BOGUES
+.\" 6 May 07: Bug report raised:
+.\" http://sources.redhat.com/bugzilla/show_bug.cgi?id=4464
+.\" Ulriich Drepper replied that he wasn't going to add these
+.\" to glibc.
+Glibc ne fournit pas encore de fichier d'en\(hytête définissant les
+prototypes de fonctions et les macros décrits dans cette page. Les
+définitions se trouvent dans \fIlinux/ioprio.h\fP.
+.SH "VOIR AUSSI"
+\fBgetpriority\fP(2), \fBopen\fP(2), \fBcapabilities\fP(7)
+.sp
+Documentation/block/ioprio.txt dans les sources du noyau.
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

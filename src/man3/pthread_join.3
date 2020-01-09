@@ -1,0 +1,119 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_JOIN 3 "27 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_join \- Joindre un thread terminé
+.SH SYNOPSIS
+.nf
+\fB#include <pthread.h>\fP
+
+\fBint pthread_join(pthread_t \fP\fIthread\fP\fB, void **\fP\fIretval\fP\fB);\fP
+.fi
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.SH DESCRIPTION
+La fonction \fBpthread_join\fP()  attend que le thread spécifié par \fIthread\fP
+se termine. Si ce thread s'est déjà terminé, \fBpthread_join\fP() revient tout
+de suite. Le thread spécifié par \fIthread\fP doit être joignable.
+
+Si \fIretval\fP n'est pas NULL, \fBpthread_join\fP() copie la valeur de sortie du
+thread cible (c'est\-à\-dire la valeur que le thread cible a fournie à
+\fBpthread_exit\fP(3))  dans l'emplacement pointé par \fI*retval\fP. Si le thread
+cible est annulé, \fBPTHREAD_CANCELED\fP est placé dans \fI*retval\fP.
+
+Si plusieurs threads essaient simultanément de joindre le même thread, le
+résultat est indéfini. Si le thread appelant \fBpthread_join\fP()  est annulé,
+le thread cible reste joignable (c'est\-à\-dire qu'il ne sera pas détaché).
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, \fBpthread_join\fP() renvoie 0\ ; en cas d'erreur, elle
+renvoie un numéro d'erreur.
+.SH ERREURS
+.TP 
+\fBEDEADLK\fP
+.\" The following verified by testing on glibc 2.8/NPTL:
+.\" The following verified by testing on glibc 2.8/NPTL:
+Un verrou perpétuel (\fIdeadlock\fP) a été détecté, par exemple deux threads
+essaient de se joindre mutuellement\ ; ou bien \fIthread\fP est aussi le thread
+appelant.
+.TP 
+\fBEINVAL\fP
+\fIthread\fP n'est pas un thread joignable.
+.TP 
+\fBEINVAL\fP
+.\" POSIX.1-2001 does not specify this error case.
+Un autre thread attend déjà de joindre ce thread.
+.TP 
+\fBESRCH\fP
+Aucun thread avec pour identifiant \fIthread\fP n'a pu être trouvé.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Après un appel réussi à \fBpthread_create\fP(), l'appelant est sûr que le
+thread cible s'est terminé.
+
+Joindre un thread qui avait préalablement été joint résulte en un
+comportement indéfini.
+
+Un échec à joindre un thread qui est joignable (c'est\-à\-dire non détaché)
+produit un «\ thread zombie\ ». Il faut l'éviter, car chaque thread zombie
+consomme des ressources du système, et si trop de threads zombies
+s'accumulent, il ne sera plus possible de créer de nouveaux threads (ou de
+nouveaux processus).
+
+Il n'existe pas d'analogue pthreads à \fIwaitpid(\-1,\ &status,\ 0)\fP pour
+joindre tout thread non terminé. Si vous pensez avoir besoin de cette
+fonctionnalité, vous devez probablement repenser la conception de votre
+application.
+
+Tous les threads dans un processus sont au même niveau\ : tout thread peut
+joindre tout autre thread du processus.
+.SH EXEMPLE
+Voir \fBpthread_create\fP(3).
+.SH "VOIR AUSSI"
+\fBpthread_cancel\fP(3), \fBpthread_create\fP(3), \fBpthread_detach\fP(3),
+\fBpthread_exit\fP(3), \fBpthread_tryjoin_np\fP(3), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Denis Barbier (2010).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

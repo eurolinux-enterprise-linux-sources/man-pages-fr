@@ -1,0 +1,203 @@
+.\" Copyright (C) 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 16:09:49 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 11 June 1995 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified 22 July 1996 by Andries Brouwer (aeb@cwi.nl)
+.\" 2007-07-30 Ulrich Drepper <drepper@redhat.com>, mtk:
+.\"     Rework discussion of non-standard structure fields.
+.\" 2008-09-11, mtk, Document readdir_r().
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH READDIR 3 "4 juillet 2009" "" "Manuel du programmeur Linux"
+.SH NOM
+readdir, readdir_r \- Consulter un répertoire
+.SH SYNOPSIS
+.nf
+\fB#include <dirent.h>\fP
+.sp
+\fBstruct dirent *readdir(DIR *\fP\fIdirp\fP\fB);\fP
+.sp
+\fBint readdir_r(DIR *\fP\fIdirp\fP\fB, struct dirent *\fP\fIentry\fP\fB, struct dirent **\fP\fIresult\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.ad l
+.in
+.sp
+\fBreaddir_r\fP()\ : _POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE || _BSD_SOURCE
+|| _SVID_SOURCE || _POSIX_SOURCE
+.ad b
+.SH DESCRIPTION
+La fonction \fBreaddir\fP() renvoie un pointeur sur une structure \fIdirent\fP
+représentant l'entrée suivante du flux répertoire pointé par \fIdirp\fP. Elle
+renvoie NULL a la fin du répertoire, ou en cas d'erreur.
+.PP
+Avec Linux, la structure \fIdirent\fP est définie comme suit\ :
+.PP
+.in +4n
+.nf
+struct dirent {
+    ino_t          d_ino;       /* numéro de l'inode */
+    off_t          d_off;       /* décalage vers le prochain dirent */
+    unsigned short d_reclen;    /* longueur de cet enregistrement */
+    unsigned char  d_type;      /* type du fichier\ ; pas pris en
+                                   charge par tous les types de
+                                   système de fichiers */
+    char           d_name[256]; /* nom du fichier */
+};
+.fi
+.in
+.PP
+Les seuls champs exigés par POSIX.1 pour la structure \fIdirent\fP sont\ :
+\fId_name\fP[], de taille non définie, avec au plus \fBNAME_MAX\fP caractères
+avant le caractère nul final\ ; et (en tant qu'extension XSI) \fId_ino\fP. Les
+autres champs ne sont pas standard, et ne sont pas présents sur tous les
+systèmes\ ; voyez les NOTES ci\-dessous pour plus de détails.
+.PP
+Les données renvoyées par \fBreaddir\fP() sont écrasées lors de l'appel suivant
+à \fBreaddir\fP() sur le même flux répertoire.
+
+La fonction \fBreaddir_r\fP() est la version réentrante de \fBreaddir\fP(). Elle
+lit la prochaine entrée de répertoire à partir du flux de répertoire
+\fIdirp\fP, et la renvoie dans le tampon de l'appelant pointé par
+\fIentry\fP. (Voir la section NOTES pour des informations sur l'allocation de
+ce tampon.) Un pointeur vers l'élément renvoyé est placé dans \fI*result\fP\ ;
+si la fin du flux de répertoire est rencontrée, NULL est renvoyé dans
+\fI*result\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBreaddir\fP() renvoie un pointeur sur une structure
+\fIdirent\fP (cette structure peut avoir été alouée statiquement\ ; n'essayez
+pas de la désalouer avec \fBfree\fP(3)). Lorsque la fin du répertoire est
+atteinte, NULL est renvoyé et \fIerrno\fP n'est pas modifiée. En cas d'erreur,
+NULL est renvoyée et \fIerrno\fP contient le code d'erreur.
+
+La fonction \fBreaddir_r\fP() renvoie 0 si elle réussit. Si elle échoue, elle
+renvoie un code d'erreur positif. Si la fin du répertoire est atteinte,
+\fBreaddir_r\fP() renvoie 0 et renvoie NULL dans \fI*result\fP.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+Le descripteur de flux du répertoire, \fIdirp\fP, n'est pas valable.
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3, POSIX.1\-2001.
+.SH NOTES
+Seuls les champs \fId_name\fP et \fId_ino\fP sont spécifiés dans POSIX.1\-2001. les
+autres champs sont disponibles sur beaucoup de systèmes, mais pas sur
+tous. Sur la glibc, les programmes peuvent vérifier la disponibilités des
+champs non définis dans POSIX.1 en testant sir les macros
+\fB_DIRENT_HAVE_D_NAMLEN\fP, \fB_DIRENT_HAVE_D_RECLEN\fP, \fB_DIRENT_HAVE_D_OFF\fP ou
+\fB_DIRENT_HAVE_D_TYPE\fP sont définie.
+
+En dehors de Linux, le champ \fId_type\fP est disponible presque uniquement sur
+les systèmes BSD. Ce champ évite d'avoir à appeler \fBlstat\fP(2) si les
+actions qui suivent dépendent du type de fichier. Si la macro de test de
+fonctionnalités \fB_BSD_SOURCE\fP est définie, alors la glibc définie les
+macros suivantes pour les valeurs renvoyées dans \fId_type\fP\ :
+.TP  12
+\fBDT_BLK\fP
+Il s'agit d'un périphérique en mode blocs.
+.TP 
+\fBDT_CHR\fP
+Il s'agit d'un périphérique en mode caractères.
+.TP 
+\fBDT_DIR\fP
+Il s'agit d'un répertoire
+.TP 
+\fBDT_FIFO\fP
+Il s'agit d'un tube nommé (FIFO).
+.TP 
+\fBDT_LNK\fP
+Il s'agit d'un lien symbolique.
+.TP 
+\fBDT_REG\fP
+Il s'agit d'un fichier régulier
+.TP 
+\fBDT_SOCK\fP
+Il s'agit d'une socket de domaine Unix.
+.TP 
+\fBDT_UNKNOWN\fP
+.\" The glibc manual says that on some systems this is the only
+.\" value returned
+Le type de fichier est inconnu.
+.PP
+Si le type de fichier ne peut pas être déterminé, la valeur \fBDT_UNKNOWN\fP
+est renvoyée dans \fId_type\fP.
+
+.\" kernel 2.6.27
+.\" The same sentence is in getdents.2
+Actuellement, seuls certains systèmes de fichiers (parmi lesquels Btrfs,
+ext2, ext3 et ext4) prennent complètement en charge le type de fichier dans
+\fId_type\fP. Toutes les applications doivent gérer correctement une valeur de
+retour valant \fBDT_UNKNOWN\fP.
+
+Puisque POSIX.1 ne spécifie pas la taille du champ \fId_name\fP, et que
+d'autres champs non standard peuvent précéder ce champ dans la structure
+\fIdirent\fP, les applications portables utilisant \fBreaddir_r\fP() devraient
+allouer le tampon dont l'adresse est passée dans \fIentry\fP de la façon
+suivante\ :
+.in +4n
+.nf
+
+len = offsetof(struct dirent, d_name) +
+          pathconf(dirpath, _PC_NAME_MAX) + 1
+entryp = malloc(len);
+
+.fi
+.in
+(POSIX.1 demande que \fId_name\fP soit le dernier champ d'une structure
+\fIdirent\fP.)
+.SH "VOIR AUSSI"
+\fBgetdents\fP(2), \fBread\fP(2), \fBclosedir\fP(3), \fBdirfd\fP(3), \fBftw\fP(3),
+\fBoffsetof\fP(3), \fBopendir\fP(3), \fBrewinddir\fP(3), \fBscandir\fP(3),
+\fBseekdir\fP(3), \fBtelldir\fP(3), \fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,129 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) 2005 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTY 7 "10 octobre 2005" Linux "Manuel du programmeur Linux"
+.SH NOM
+pty \- Interfaces de pseudo\-terminaux
+.SH DESCRIPTION
+Un pseudo\-terminal est une paire de périphériques en mode caractère virtuels
+qui fournissent un canal de communication bidirectionnelle. Un bout du canal
+est appelé le \fImaître\fP\ ; l'autre bout est appelé \fIesclave\fP. Le bout
+esclave du pseudo\-terminal fournit une interface qui se comporte exactement
+comme un terminal classique. Un processus qui s'attend à être connecté à un
+terminal peut ouvrir le bout esclave d'un pseudo\-terminal puis être piloté
+par un programme qui a ouvert le bout maître. Tout ce qui est écrit sur le
+maître est fourni au processus sur l'esclave comme si c'était écrit sur un
+terminal. Par exemple, écrire le caractère d'interruption (en général
+control\-C) sur le périphérique maître cause l'envoi d'un signal
+d'interruption (\fBSIGINT\fP) au groupe de processus qui est connecté à
+l'esclave. Réciproquement, tout ce qui est écrit sur l'esclave peut être lu
+par le processus qui est connecté au périphérique maître. Les
+pseudo\-terminaux sont utilisés par des applications telles que des services
+de login à distance (\fBssh\fP(1), \fBrlogin\fP(1), \fBtelnet\fP(1)), les émulateurs
+de terminaux, \fBscript\fP(1), \fBscreen\fP(1), et \fBexpect\fP(1).
+
+Historiquement, deux API de pseudo\-terminaux ont évolué\ : BSD et
+System\ V. SUSv1 a standardisé une API de pseudo\-terminal basée sur
+l'interface System\ V, et cette API doit être utilisée dans tous les nouveaux
+programmes qui utilisent des pseudo\-terminaux.
+
+Linux fournit à la fois des pseudo\-terminaux de type BSD et de type System\ V
+(standardisés). Les terminaux de type System\ V sont souvent appelés
+pseudo\-terminaux Unix 98 sur les systèmes Linux. Depuis le noyau 2.6.4, les
+pseudo\-terminaux de type BSD sont considérés obsolètes (il peuvent être
+désactivés à la configuration du noyau)\ ; les pseudo\-terminaux Unix 98
+doivent être utilisés dans les nouvelles applications.
+.SS "Pseudo\-terminaux Unix 98"
+Un maître de pseudo\-terminal Unix 98 est ouvert en appelant
+\fBposix_openpt\fP(3). (Cette fonction ouvre le périphérique de clonage de
+maître, \fI/dev/ptmx\fP\ ; voir \fBpts\fP(4).) Après avoir initialisé le
+périphérique, changé le propriétaire et les permissions du périphérique
+esclave avec \fBgrantpt\fP(3), et déverrouillé l'esclave avec \fBunlockpt\fP(3),
+le périphérique esclave correspondant peut être ouvert en passant le nom
+renvoyé par \fBptsname\fP(3) dans un appel à \fBopen\fP(2).
+
+Le noyau Linux impose une limite au nombre de pseudo\-terminaux Unix 98
+disponibles. Dans les noyaux jusqu'à 2.6.3 inclus, cette limite est
+configurée à la compilation du noyau (\fBCONFIG_UNIX98_PTYS\fP), et le nombre
+de pseudo\-terminaux autorisé peut être jusqu'à 2048, avec une valeur par
+défaut de 256. Depuis le noyau 2.6.4, la limite est ajustable de façon
+dynamique par le fichier \fI/proc/sys/kernel/pty/max\fP, et un autre fichier,
+\fI/proc/sys/kernel/pty/nr\fP, indique combien de pseudo\-terminaux sont
+actuellement utilisés. Pour plus de détails sur ces fichiers, voir
+\fBproc\fP(5).
+.SS "Pseudo\-terminaux BSD"
+Les pseudo\-terminaux de type BSD sont fournis comme des paires pré\-créées,
+avec des noms de la forme \fI/dev/ptyXY\fP (maître) et \fI/dev/ttyXY\fP (esclave),
+où X est une lettre de l'ensemble de 16 caractères [p\-za\-e], et Y est une
+lettre de l'ensemble de 16 caractères [0\-9a\-f]. (L'intervalle précis de
+lettre dans ces ensembles varie entre les différentes versions d'Unix.) Par
+exemple, \fI/dev/ptyp1\fP et \fI/dev/ttyp1\fP constitue une paire de
+pseudo\-terminal BSD. Un processus trouve un pseudo\-terminal inutilisé en
+essayant d'ouvrir chaque maître de pseudo\-terminal avec \fBopen\fP(2) jusqu'à
+ce qu'une ouverture réussisse. L'esclave de pseudo\-terminal correspondant
+peut ensuite être ouvert (en remplaçant «\ pty\ » par «\ tty\ » dans le nom
+du maître).
+.SH FICHIERS
+\fI/dev/ptmx\fP (périphérique de clonage de maître Unix 98)
+.br
+\fI/dev/pts/*\fP (périphériques esclaves Unix 98)
+.br
+\fI/dev/pty[p\-za\-e][0\-9a\-f]\fP (périphériques maîtres BSD)
+.br
+\fI/dev/tty[p\-za\-e][0\-9a\-f]\fP (périphériques esclaves BSD)
+.SH NOTES
+Une description de l'\fBioctl\fP(2) \fBTIOCPKT\fP, qui contrôle l'opération en
+mode paquet, se trouve dans \fBtty_ioctl\fP(4).
+
+Les opérations \fBioctl\fP(2) BSD \fBTIOCSTOP\fP, \fBTIOCSTART\fP, \fBTIOCUCNTL\fP et
+\fBTIOCREMOTE\fP ne sont pas implémentées sous Linux.
+.SH "VOIR AUSSI"
+\fBselect\fP(2), \fBsetsid\fP(2), \fBforkpty\fP(3), \fBopenpty\fP(3), \fBtermios\fP(3),
+\fBpts\fP(4), \fBtty\fP(4), \fBtty_ioctl\fP(4)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

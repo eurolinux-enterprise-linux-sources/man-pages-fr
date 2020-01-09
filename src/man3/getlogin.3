@@ -1,0 +1,173 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright 1995  James R. Van Zandt <jrv@vanzandt.mv.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Changed Tue Sep 19 01:49:29 1995, aeb: moved from man2 to man3
+.\"  added ref to /etc/utmp, added BUGS section, etc.
+.\" modified 2003 Walter Harms, aeb - added getlogin_r, note on stdin use
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETLOGIN 3 "29 juin 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+getlogin, getlogin_r, cuserid \- Obtenir le nom de l'utilisateur
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBchar *getlogin(void);\fP
+.br
+\fBint getlogin_r(char *\fP\fIbuf\fP\fB, size_t \fP\fIbufsize\fP\fB);\fP
+.sp
+\fB#include <stdio.h>\fP
+.sp
+\fBchar *cuserid(char *\fP\fIstring\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBgetlogin_r\fP()\ : _REENTRANT || _POSIX_C_SOURCE\ >=\ 199506L
+.br
+\fBcuserid\fP()\ : _XOPEN_SOURCE
+.SH DESCRIPTION
+La fonction \fBgetlogin\fP() renvoie un pointeur sur une chaîne de caractères
+contenant le nom de l'utilisateur connecté sur le terminal contrôlant le
+processus, ou un pointeur NULL si cette information n'est pas disponible. La
+chaîne est allouée de manière statique et peut donc être écrasée lors des
+appels ultérieurs à \fBgetlogin\fP() ou à \fBcuserid\fP().
+.PP
+\fBgetlogin_r\fP() renvoie le même nom d'utilisateur dans le tableau \fIbuf\fP de
+taille \fIbufsize\fP.
+.PP
+La fonction \fBcuserid\fP() renvoie un pointeur sur une chaîne de caractères
+contenant le nom de l'utilisateur associé à l'UID effectif du processus. Si
+\fIstring\fP n'est pas un pointeur NULL, ce doit être une table contenant au
+moins \fBL_cuserid\fP caractères. La chaîne sera alors renvoyée dans cette
+table. Sinon (si \fIstring\fP vaut NULL), un pointeur sur une chaîne allouée
+statiquement sera renvoyé. Cette chaîne peut être écrasée par des appels
+ultérieurs à \fBgetlogin\fP().
+.PP
+La constante symbolique \fBL_cuserid\fP est un entier indiquant la longueur
+nécessaire pour stocker un nom d'utilisateur. \fBL_cuserid\fP est déclarée dans
+\fI<stdio.h>\fP.
+.PP
+Ces fonctions permettent d'identifier correctement l'utilisateur qui exécute
+le programme (\fBcuserid\fP()), ou l'utilisateur connecté à la session
+(\fBgetlogin\fP()). Ces deux éléments peuvent différer si le bit Set\-UID du
+programme est validé.
+.PP
+La plupart du temps, il est plus utile d'utiliser la variable
+d'environnement \fBLOGNAME\fP pour déterminer l'utilisateur. Ceci est plus
+flexible car il est justement possible de modifier \fBLOGNAME\fP
+arbitrairement.
+.SH "VALEUR RENVOYÉE"
+\fBgetlogin\fP() renvoie un pointeur sur le nom de l'utilisateur si elle
+réussit, et NULL si elle échoue. \fBgetlogin_r\fP() renvoie 0 si elle réussit
+et une valeur non nulle si elle échoue.
+.SH ERREURS
+POSIX spécifie
+.TP 
+\fBEMFILE\fP
+Le processus appelant a déjà le nombre maximal autorisé de fichiers ouverts.
+.TP 
+\fBENFILE\fP
+Le système a déjà le nombre maximal autorisé de fichiers ouverts.
+.TP 
+\fBENXIO\fP
+Le processus appelant n'a pas de terminal (tty) contrôlant.
+.TP 
+\fBERANGE\fP
+(getlogin_r)  La longueur du nom d'utilisateur, en incluant le caractère NUL
+final, est plus grande que \fIbufsize\fP.
+.LP
+Linux/glibc a aussi les erreurs\ :
+.TP 
+\fBENOENT\fP
+Il n'y a pas d'entrée correspondante dans le fichier utmp.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour allouer la structure passwd.
+.TP 
+\fBENOTTY\fP
+L'entrée standard ne fait pas référence à un terminal (voir BOGUES).
+.SH FICHIERS
+.TP 
+\fI/etc/passwd\fP
+Fichier de base de données des mots de passe
+.TP 
+\fI/var/run/utmp\fP
+(traditionnellement \fI/etc/utmp\fP\ ; certaines versions de la libc utilisent
+\fI/var/adm/utmp\fP)
+.SH CONFORMITÉ
+\fBgetlogin\fP() et \fBgetlogin_r\fP() sont spécifiées dans POSIX.1\-2001.
+
+System\ V dispose d'une fonction \fBcuserid\fP() qui utilise l'UID réel plutôt
+que l'UID effectif. La fonction \fBcuserid\fP() a été incorporée dans la
+version POSIX de 1988, mais supprimée de la version de 1990. Elle était
+présente dans SUSv2, mais elle a été supprimée de POSIX.1\-2001.
+.LP
+OpenBSD a \fBgetlogin\fP() et \fBsetlogin\fP(), et un nom d'utilisateur associé à
+une session, même s'il n'a pas de terminal de contrôle.
+.SH BOGUES
+Malheureusement, il est souvent assez facile de tromper
+\fBgetlogin\fP(). Parfois, il ne fonctionne pas du tout car certains programmes
+n'utilisent pas le fichier utmp correctement. Souvent, il ne retourne que
+les 8 premiers caractères du nom. L'utilisateur connecté sur le terminal de
+contrôle d'un programme n'est pas nécessairement celui qui a lancé le
+programme. Évitez \fBgetlogin\fP() pour des problèmes de sécurité.
+.LP
+Veuillez noter que la glibc ne suit pas la spécification POSIX et utilise
+\fIstdin\fP au lieu de \fI/dev/tty\fP. Un bogue (les autres systèmes récents,
+comme SunOS\ 5.8, HP\-UX\ 11.11 et FreeBSD\ 4.8 renvoient l'identifiant de
+connexion même si \fIstdin\fP est redirigée).
+.LP
+Personne ne sait précisément ce que fait \fBcuserid\fP(). Évitez\-le dans des
+programmes portables. Évitez\-le de toute manière. Utilisez
+\fIgetpwuid(geteuid())\fP à la place si vous en avez besoin. \fBN'utilisez pas\fP
+\fBcuserid\fP().
+.SH "VOIR AUSSI"
+\fBgeteuid\fP(2), \fBgetuid\fP(2), \fButmp\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

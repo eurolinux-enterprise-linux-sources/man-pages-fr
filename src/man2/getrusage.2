@@ -1,0 +1,157 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 1992 Drew Eckhardt, March 28, 1992
+.\" and Copyright (c) 2002 Michael Kerrisk
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" 2004-11-16 -- mtk: the getrlimit.2 page, which formerly included
+.\" coverage of getrusage(2), has been split, so that the latter is
+.\" now covered in its own getrusage.2.  For older details of change
+.\" history, etc., see getrlimit.2
+.\"
+.\" Modified 2004-11-16, mtk, Noted that the non-conformance
+.\"	when SIGCHLD is being ignored is fixed in 2.6.9.
+.\" 2008-02-22, Sripathi Kodi <sripathik@in.ibm.com>: Document RUSAGE_THREAD
+.\" 2008-05-25, mtk, clarify RUSAGE_CHILDREN + other clean-ups.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETRUSAGE 2 "25 août 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+getrusage \- Lire l'utilisation des ressources
+.SH SYNOPSIS
+\fB#include <sys/time.h>\fP
+.br
+\fB#include <sys/resource.h>\fP
+.sp
+\fBint getrusage(int \fP\fIwho\fP\fB, struct rusage *\fP\fIusage\fP\fB);\fP
+.SH DESCRIPTION
+.PP
+\fBgetrusage\fP() renvoie la mesure de l'utilisation des ressources pour
+\fIwho\fP, qui peut valoir une des valeurs suivantes\ :
+.TP 
+\fBRUSAGE_SELF\fP
+Renvoyer les statistiques d'utilisation des ressources pour le processus
+appelant, ce qui correspond à la somme des ressources utilisées par tous les
+threads du processus.
+.TP 
+\fBRUSAGE_CHILDREN\fP
+Renvoyer les statistiques d'utilisation des ressources pour tous les
+processus fils du processus appelant qui se sont terminés et dont la fin a
+été attendue (avec \fBwait\fP(2)). Ces statistiques incluront les ressources
+utilisées par les petits\-enfants, et autres descendants déjà retirés si tous
+les descendants en question ont attendu la fin de leurs enfants.
+.TP 
+\fBRUSAGE_THREAD\fP (depuis Linux 2.6.26)
+Renvoyer les statistiques d'utilisation des ressources du thread appelant.
+.PP
+L'utilisation des ressources est renvoyée dans la structure pointée par
+\fIusage\fP, qui est de la forme suivante\ :
+.PP
+.in +4n
+.nf
+struct rusage {
+  struct timeval ru_utime; /* Temps utilisateur écoulé         */
+  struct timeval ru_stime; /* Temps système écoulé             */
+  long  ru_maxrss;         /* Taille résidente maximale        */
+  long  ru_ixrss;          /* Taille de mémoire partagée       */
+  long  ru_idrss;          /* Taille des données non partagées */
+  long  ru_isrss;          /* Taille de pile                   */
+  long  ru_minflt;         /* Demandes de pages                */
+  long  ru_majflt;         /* Nombre de fautes de pages        */
+  long  ru_nswap;          /* Nombre de swaps                  */
+  long  ru_inblock;        /* Nombre de lectures de blocs      */
+  long  ru_oublock;        /* Nombre d'écritures de blocs      */
+  long  ru_msgsnd;         /* Nombre de messages émis          */
+  long  ru_msgrcv;         /* Nombre de messages reçus         */
+  long  ru_nsignals;       /* Nombre de signaux reçus          */
+  long  ru_nvcsw;          /* Chgmnts de contexte volontaires  */
+  long  ru_nivcsw;         /* Chgmnts de contexte involontaires*/
+};
+.fi
+.in
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fIusage\fP pointe en dehors de l'espace d'adressage disponible.
+.TP 
+\fBEINVAL\fP
+\fIwho\fP est invalide.
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3. POSIX.1\-2001 spécifie \fBgetrusage\fP(), mais spécifie
+seulement les champs \fIru_utime\fP et \fIru_stime\fP.
+
+\fBRUSAGE_THREAD\fP est spécifique à Linux.
+.SH NOTES
+Les mesures de l'utilisation des ressources sont conservées au travers d'un
+\fBexecve\fP(2).
+
+L'inclusion de \fI<sys/time.h>\fP n'est plus obligatoire mais améliore
+la portabilité. (En fait, \fIstruct timeval\fP est définie dans
+\fI<sys/time.h>\fP).
+.PP
+.\" See the description of getrusage() in XSH.
+.\" A similar statement was also in SUSv2.
+Sous Linux avant la version 2.6.9, si le traitement de \fBSIGCHLD\fP est
+configuré avec \fBSIG_IGN\fP, les statistiques d'utilisation des processus
+enfants sont automatiquement incluses dans les valeurs renvoyées par
+\fBRUSAGE_CHILDREN\fP, bien que POSIX.1\-2001 interdise explicitement
+cela. Cette non conformité est corrigée sous Linux 2.6.9 et ultérieurs.
+.LP
+La définition de structure du début de la page provient de BSD\ 4.3
+Reno. Tous les champs ne sont pas significatifs sous Linux. Sous Linux 2.4
+seuls les champs \fIru_utime\fP, \fIru_stime\fP, \fIru_minflt\fP, \fIru_majflt\fP sont
+remplis. Depuis Linux 2.6, \fIru_nvcsw\fP et \fIru_nivcsw\fP sont également
+remplis. Depuis Linux 2.6.22, \fIru_inblock\fP et \fIru_oublock\fP sont également
+remplis.
+
+Consultez aussi la description de \fI/proc/PID/stat\fP dans \fBproc\fP(5).
+.SH "VOIR AUSSI"
+\fBclock_gettime\fP(2), \fBgetrlimit\fP(2), \fBtimes\fP(2), \fBwait\fP(2), \fBwait4\fP(2),
+\fBclock\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

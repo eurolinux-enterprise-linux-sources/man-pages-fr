@@ -1,0 +1,70 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single Unix specification http://www.UNIX-systems.org/online.html
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH WCSNCASECMP 3 "4 février 2009" GNU "Manuel du programmeur Linux"
+.SH NOM
+wcsncasecmp \- Comparer indépendamment de la casse deux chaînes de caractères
+larges de longueurs fixées
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP
+\fB#include <wchar.h>\fP
+.sp
+\fBint wcsncasecmp(const wchar_t *\fP\fIs1\fP\fB, const wchar_t *\fP\fIs2\fP\fB, size_t \fP\fIn\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBwcsncasecmp\fP() est l'équivalent pour caractères larges de la
+fonction \fBstrncasecmp\fP(3). Elle compare la chaîne de caractères larges
+pointée par \fIs1\fP avec celle pointée par \fIs2\fP, en ne considérant que \fIn\fP
+caractères larges au maximum, et en ignorant les différences de casse
+(\fBtowupper\fP(3), \fBtowlower\fP(3)).
+.SH "VALEUR RENVOYÉE"
+La fonction \fBwcsncasecmp\fP() renvoie zéro si les chaînes de caractères
+larges \fIs1\fP et \fIs2\fP, tronquées éventuellement à \fIn\fP caractères, sont
+égales hormis pour les distinctions de casse. Elle renvoie un entier positif
+si la chaîne tronquée \fIs1\fP est supérieure à la chaîne tronquée \fIs2\fP, en
+ignorant la casse. Elle renvoie un entier négatif si la chaîne tronquée
+\fIs1\fP est inférieure à la chaîne tronquée \fIs2\fP, en ignorant la casse.
+.SH CONFORMITÉ
+POSIX.1\-2008. Cette fonction n'est pas spécifiée dans POSIX.1\-2001 et n'est
+pas largement diffusée sur les autres systèmes.
+.SH NOTES
+Le comportement de \fBwcsncasecmp\fP() dépend de la catégorie \fBLC_CTYPE\fP de la
+locale utilisée.
+.SH "VOIR AUSSI"
+\fBstrncasecmp\fP(3), \fBwcsncmp\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

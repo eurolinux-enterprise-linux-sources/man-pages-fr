@@ -1,0 +1,138 @@
+.\" Copyright (c) 1983, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)readlink.2	6.8 (Berkeley) 3/10/91
+.\"
+.\" Modified Sat Jul 24 00:10:21 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Tue Jul  9 23:55:17 1996 by aeb
+.\" Modified Fri Jan 24 00:26:00 1997 by aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH READLINK 2 "26 juillet 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+readlink \- Lire le contenu d'un lien symbolique
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBssize_t readlink(const char *\fP\fIpath\fP\fB, char *\fP\fIbuf\fP\fB, size_t
+\fP\fIbufsiz\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBreadlink\fP()\ : _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_POSIX_C_SOURCE\ >=\ 200112L
+.ad b
+.SH DESCRIPTION
+\fBreadlink\fP() place le contenu du lien symbolique \fIpath\fP dans le tampon
+\fIbuf\fP, dont la taille est \fIbufsiz\fP. \fBreadlink\fP() n'ajoute pas de
+caractère \fBNUL\fP dans le tampon \fIbuf\fP. Il tronquera le contenu (à la
+longueur \fIbufsiz\fP) si le tampon est trop petit pour recevoir les données.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBreadlink\fP() renvoie le nombre d'octets placés dans
+\fIbuf\fP. S'il échoue, il renvoie \-1 et écrit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+Un élément du chemin d'accès ne permet pas la recherche. (Voir aussi
+\fBpath_resolution\fP(7).)
+.TP 
+\fBEFAULT\fP
+\fIbuf\fP pointe en\-dehors de l'espace d'adressage accessible.
+.TP 
+\fBEINVAL\fP
+.\" At the glibc level, bufsiz is unsigned, so this error can only occur
+.\" if bufsiz==0.  However, the in the kernel syscall, bufsiz is signed,
+.\" and this error can also occur if bufsiz < 0.
+.\" See: http://thread.gmane.org/gmane.linux.man/380
+.\" Subject: [patch 0/3] [RFC] kernel/glibc mismatch of "readlink" syscall?
+\fIbufsiz\fP n'est pas positif.
+.TP 
+\fBEINVAL\fP
+Le fichier n'est pas un lien symbolique.
+.TP 
+\fBEIO\fP
+Une erreur d'entrée\-sortie est survenue lors de la lecture sur le système de
+fichiers.
+.TP 
+\fBELOOP\fP
+Trop de liens symboliques ont été rencontrés en parcourant le chemin.
+.TP 
+\fBENAMETOOLONG\fP
+\fIpath\fP ou l'un des composants de ce chemin d'accès est trop long.
+.TP 
+\fBENOENT\fP
+Le fichier indiqué n'existe pas.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.TP 
+\fBENOTDIR\fP
+Un élément du chemin d'accès n'est pas un répertoire.
+.SH CONFORMITÉ
+BSD\ 4.4 (la fonction \fBreadlink\fP() est apparue dans BSD\ 4.2),
+POSIX.1\-2001.
+.SH NOTES
+Dans les versions de glibc jusqu'à 2.4 incluse, le type de retour de
+\fBreadlink\fP() était déclaré comme \fIint\fP. À présent, le type de retour est
+déclaré comme \fIssize_t\fP, ainsi que le prescrit POSIX.1\-2001.
+.SH "VOIR AUSSI"
+\fBlstat\fP(2), \fBreadlinkat\fP(2), \fBstat\fP(2), \fBsymlink\fP(2),
+\fBpath_resolution\fP(7), \fBsymlink\fP(7)\fBlstat\fP(2), \fBreadlinkat\fP(2),
+\fBstat\fP(2), \fBsymlink\fP(2), \fBpath_resolution\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

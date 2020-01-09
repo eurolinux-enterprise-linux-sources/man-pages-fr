@@ -1,0 +1,106 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 1992 Drew Eckhardt <drew@cs.colorado.edu>, March 28, 1992
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified 1993-07-24 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1996-11-04 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 2001-06-04 by aeb
+.\" Modified 2004-05-27 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH NICE 2 "26 juillet 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+nice \- Modifier la politesse du processus
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBint nice(int \fP\fIinc\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBnice\fP()\ : _BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE
+.SH DESCRIPTION
+\fBnice\fP() ajoute \fIinc\fP à la valeur de politesse du processus appelant. (Une
+grande valeur de politesse signifie une faible priorité.) Seul le
+superutilisateur peut spécifier une valeur \fIinc\fP négative (ce qui rend le
+processus plus prioritaire). L'intervalle des valeurs de politesse est
+décrit dans \fBgetpriority\fP(2).
+.SH "VALEUR RENVOYÉE"
+\fBnice\fP renvoie la nouvelle valeur de politesse s'il réussit (voir NOTES
+ci\(hydessous, ou \-1 s'il échoue, auquel cas \fIerrno\fP contient le code
+d'erreur.
+.SH ERREURS
+.TP 
+\fBEPERM\fP
+Le processus appelant a tenté d'augmenter sa priorité en fournissant une
+valeur \fIinc\fP négative mais il n'a pas les privilèges suffisants. Sous
+Linux, la capacité \fBCAP_SYS_NICE\fP est nécessaire. (Mais voir l'explication
+de la limite de ressources \fBRLIMIT_NICE\fP dans \fBsetrlimit\fP(2).)
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3, POSIX.1\-2001. Toutefois, la valeur de retour sous Linux avec
+la glibc (jusqu'à glibc 2.2.4) n'est pas standard, voir ci\-dessous. SVr4
+documente un code d'erreur supplémentaire \fBEINVAL\fP.
+.SH NOTES
+SUSv2 et POSIX.1\-2001 indiquent que cet appel système renvoie la nouvelle
+valeur de courtoisie, tandis que l'appel système Linux et la routine de la
+glibc (jusqu'à glibc 2.2.4) renvoient 0 en cas de réussite. La nouvelle
+valeur de courtoisie peut être obtenue grâce à \fBgetpriority\fP(2).
+
+Depuis la glibc 2.2.4, \fBnice\fP() est implémenté comme une fonction de
+bibliothèque qui appelle \fBgetpriority\fP(2) pour obtenir la nouvelle valeur
+de politesse, qu'elle renvoie à l'appelant. Avec cette implémentation, un
+code de retour \-1 est tout à fait possible. Pour détecter les erreurs, il
+faut mettre \fIerrno\fP à zéro avant l'appel, et examiner sa valeur si
+\fBnice\fP() renvoie \-1.
+.SH "VOIR AUSSI"
+\fBnice\fP(1), \fBfork\fP(2), \fBgetpriority\fP(2), \fBsetpriority\fP(2),
+\fBcapabilities\fP(7), \fBrenice\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

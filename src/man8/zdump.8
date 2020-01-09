@@ -1,0 +1,51 @@
+.\" This page is in the public domain
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ZDUMP 8 "18 mai 2007" "" "Manuel de l'administrateur Linux"
+.SH NOM
+zdump \- Affichage du fuseau horaire.
+.SH SYNOPSIS
+\fBzdump\fP [ \fB\-v\fP ] [ \fB\-c\fP année_finale ] [ fuseau ... ]
+.SH DESCRIPTION
+\fIZdump\fP affiche la date et l'heure actuelle dans chaque \fIfuseau\fP horaire
+cité sur la ligne de commande.
+.PP
+Les options disponibles sont\ :
+.TP 
+\fB\-v\fP
+Pour chaque \fIfuseau\fP de la ligne de commande, afficher\ : la date et l'heure
+à la valeur la plus petite possible\ ; la date et l'heure un jour plus tard\ ;
+puis une seconde avant et à l'heure juste de chaque discontinuité
+temporelle\ ; et enfin la date et l'heure un jour avant la plus grande valeur
+possible et à cette valeur. Chaque ligne se termine avec \fBisdst=1\fP si
+l'heure indiquée prend en compte le décalage d'été ou \fBisdst=0\fP dans le cas
+contraire.
+.TP 
+\fB\-c \fP\fIannée_finale\fP
+Arrêter la sortie volubile au début de l'année finale indiquée.
+.SH "VOIR AUSSI"
+.\" @(#)zdump.8	7.3
+\fBtzfile\fP(5), \fBzic\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1999-2007).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,108 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" This manpage is Copyright (C) 2006, Michael Kerrisk
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LINKAT 2 "21 août 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+linkat \- Créer un lien vers un fichier relatif à un répertoire
+.SH SYNOPSIS
+.nf
+\fB#define _ATFILE_SOURCE\fP
+\fB#include <fcntl.h> /* Définition des constantes AT_* */\fP
+\fB#include <unistd.h>\fP
+.sp
+\fBint linkat(int \fP\fIolddirfd\fP\fB, const char *\fP\fIoldpath\fP\fB,\fP
+\fB           int \fP\fInewdirfd\fP\fB, const char *\fP\fInewpath\fP\fB, int \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+L'appel système \fBlinkat\fP() fonctionne exactement comme \fBlink\fP(2), les
+seules différences étant celles décrites dans cette page.
+
+Si le chemin donné dans \fIoldpath\fP est relatif, il est interprété par
+rapport au répertoire référencé par le descripteur de fichier \fIolddirfd\fP
+(plutôt que par rapport au répertoire courant du processus appelant, comme
+dans \fBlink\fP(2)).
+
+Si \fIoldpath\fP est relatif et \fIolddirfd\fP a la valeur spéciale \fBAT_FDCWD\fP,
+\fIoldpath\fP est interprété relativement au répertoire courant du processus
+appelant, comme \fBlink\fP(2).
+
+Si \fIoldpath\fP est un chemin absolu, \fIolddirfd\fP est ignoré.
+
+L'interprétation de \fInewpath\fP est identique à celle de \fIoldpath\fP, excepté
+qu'un chemin relatif est interprété par rapport au répertoire correspondant
+à \fInewdirfd\fP.
+
+Par défaut, \fBlinkat\fP() ne déréférence pas \fIoldpath\fP si c'est un lien
+symbolique (de même que \fBlink\fP(2)). Depuis Linux 2.6.18, l'attribut
+\fBAT_SYMLINK_FOLLOW\fP peut être passé dans \fIflags\fP pour forcer le
+déréférencement de \fIoldpath\fP si c'est un lien symbolique. Avant le noyau
+2.6.18, l'argument \fIflags\fP n'était pas utilisé, et devait être nul.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBlinkat\fP() renvoie zéro. En cas d'erreur, il renvoie \-1 et
+remplit \fIerrno\fP avec la valeur d'erreur.
+.SH ERREURS
+Les erreurs renvoyées par \fBlink\fP(2) peuvent aussi l'être par
+\fBlinkat\fP(). Les erreurs supplémentaires suivantes peuvent également se
+produire pour \fBlinkat\fP()\ :
+.TP 
+\fBEBADF\fP
+\fIolddirfd\fP ou \fInewdirfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBENOTDIR\fP
+\fIoldpath\fP est un chemin relatif, et \fIolddirfd\fP est un descripteur de
+fichier ne référençant pas un répertoire\ ; ou bien c'est le cas pour
+\fInewpath\fP et \fInewdirfd\fP.
+.SH VERSIONS
+\fBlinkat\fP() a été ajouté au noyau Linux dans sa version 2.6.16.
+.SH CONFORMITÉ
+POSIX.1\-2008.
+.SH NOTES
+Voir \fBopenat\fP(2) pour une explication de la nécessité de \fBlinkat\fP().
+.SH "VOIR AUSSI"
+\fBlink\fP(2), \fBopenat\fP(2), \fBpath_resolution\fP(7), \fBsymlink\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

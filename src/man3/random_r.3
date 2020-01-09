@@ -1,0 +1,117 @@
+.\" Copyright 2008 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RANDOM_R 3 "7 mars 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+random_r, srandom_r, initstate_r, setstate_r \- Générateur de nombres
+aléatoires réentrant
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBint random_r(struct random_data *\fP\fIbuf\fP\fB, int32_t *\fP\fIresult\fP\fB);\fP
+
+\fBint srandom_r(unsigned int \fP\fIseed\fP\fB, struct random_data *\fP\fIbuf\fP\fB);\fP
+
+\fBint initstate_r(unsigned int \fP\fIseed\fP\fB, char *\fP\fIstatebuf\fP\fB,\fP
+\fB                size_t \fP\fIstatelen\fP\fB, struct random_data *\fP\fIbuf\fP\fB);\fP
+.br
+\fBint setstate_r(char *\fP\fIstatebuf\fP\fB, struct random_data *\fP\fIbuf\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBrandom_r\fP(), \fBsrandom_r\fP(), \fBinitstate_r\fP(), \fBsetstate_r\fP()\ :
+_SVID_SOURCE || _BSD_SOURCE
+.ad b
+.SH DESCRIPTION
+Ces fonctions sont les équivalents réentrants des fonctions décrites dans
+\fBrandom\fP(3). Elles sont appropriées à l'utilisation dans des programmes
+multithreadés où chaque thread doit pouvoir obtenir une séquence
+indépendante et reproductible de nombres aléatoires.
+
+La fonction \fBrandom_r\fP() est identique à \fBrandom\fP(3), excepté qu'au lieu
+d'utiliser l'information d'état maintenue dans une variable globale, elle
+utilise l'information d'état située dans l'argument pointé par \fIbuf\fP. Le
+nombre aléatoire généré est renvoyé dans l'argument \fIresult\fP.
+
+La fonction \fBsrandom_r\fP() est identique à \fBsrandom\fP(3), excepté qu'elle
+initialise la graine du générateur de nombre aléatoire dont l'état est
+maintenu dans l'objet pointé par \fIbuf\fP, au lieu de la graine associée à la
+variable d'état globale.
+
+La fonction \fBinitstate_r\fP() est identique à \fBinitstate\fP(3) excepté qu'elle
+initialise l'état dans l'objet pointé par \fIbuf\fP, plutôt que d'initialiser
+la variable d'état globale.
+
+La fonction \fBsetstate_r\fP() est identique à \fBsetstate\fP(3) excepté qu'elle
+modifie l'état dans l'objet pointé par \fIbuf\fP, plutôt que de modifier la
+variable d'état globale.
+.SH "VALEUR RENVOYÉE"
+Toutes ces fonctions renvoient 0 si elles réussissent, ou \-1 si une erreur
+se produit.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+Une table d'états de moins de 8\ octets a été fournie à \fBinitstate_r\fP().
+.TP 
+\fBEINVAL\fP
+Le paramètre \fIstatebuf\fP ou \fIbuf\fP de \fBsetstate_r\fP() était NULL.
+.TP 
+\fBEINVAL\fP
+Le paramètre \fIbuf\fP ou \fIresult\fP de \fBrandom_r\fP() était NULL.
+.SH CONFORMITÉ
+.\" These functions appear to be on Tru64, but don't seem to be on
+.\" Solaris, HP-UX, or FreeBSD.
+Ces fonctions sont des extensions non standard de la glibc.
+.SH "VOIR AUSSI"
+\fBdrand48\fP(3), \fBrand\fP(3), \fBrandom\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,217 @@
+.\" Michael Haardt (michael@cantor.informatik.rwth.aachen.de)
+.\"     Sat Sep  3 22:00:30 MET DST 1994
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Sun Feb 19 21:32:25 1995, faith@cs.unc.edu edited details away
+.\"
+.\" TO DO: This manual page should go more into detail how DES is perturbed,
+.\" which string will be encrypted, and what determines the repetition factor.
+.\" Is a simple repetition using ECB used, or something more advanced?  I hope
+.\" the presented explanations are at least better than nothing, but by no
+.\" means enough.
+.\"
+.\" added _XOPEN_SOURCE, aeb, 970705
+.\" added GNU MD5 stuff, aeb, 011223
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CRYPT 3 "25 août 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+crypt, crypt_r \- Chiffrage de données ou de mot de passe
+.SH SYNOPSIS
+.nf
+\fB#define _XOPEN_SOURCE\fP
+.br
+\fB#include <unistd.h>\fP
+.sp
+\fBchar *crypt(const char *\fP\fIkey\fP\fB, const char *\fP\fIsalt\fP\fB);\fP
+.sp
+\fBchar *crypt_r(const char *\fP\fIkey\fP\fB, const char *\fP\fIsalt\fP\fB,\fP
+\fB              struct crypt_data *\fP\fIdata\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lcrypt\fP.
+.SH DESCRIPTION
+La fonction \fBcrypt\fP est celle utilisée pour le cryptage des mots de
+passe. Elle est basée sur l'algorithme DES («\ Data Encryption Standard\ »)
+avec des variantes prévues entre autres choses pour éviter l'implémentation
+matérielle d'un casseur de code.
+.PP
+L'argument \fIkey\fP est le mot de passe saisi par l'utilisateur.
+.PP
+\fIsalt\fP est une chaîne de deux caractères pris dans l'ensemble
+[\fBa\fP\(en\fBzA\fP\(en\fBZ0\fP\(en\fB9./\fP]. Cette chaîne est utilisée pour
+introduire une perturbation (parmi 4096) dans l'algorithme.
+.PP
+En utilisant les sept bits de poids faibles des huit premiers caractères de
+\fIkey\fP, une clé de 56\ bits est obtenue, qui est alors utilisée pour crypter
+de manière répétée une chaîne de caractères constante (souvent une chaîne de
+zéros). La valeur renvoyée pointe sur le mot de passe chiffré, une chaîne de
+13 caractères ASCII imprimables, les deux premiers caractères représentant
+l'argument \fIsalt\fP lui\-même. Cette valeur renvoyée pointe sur des données
+statiques dont le contenu est écrasé à chaque appel.
+.PP
+Attention\ : L'espace des clés consistent en
+.if  t 2\s-2\u56\s0\d
+.if  n 2**56
+soient 7,2e16 valeurs possibles. Une recherche exhaustive est possible en
+utilisant des ordinateurs massivement parallèles. Certains logiciels sont
+disponibles, comme \fBcrack\fP(1), qui exploreront la portion de l'espace des
+clés contenant les mots de passe habituellement utilisés par les
+humains. Ainsi, le choix d'un mot de passe doit au minimum éviter les noms
+propres ou communs. On recommande fortement l'utilisation d'un programme
+comme \fBpasswd\fP(1) pour vérifier la fiabilité des mots de passe dès la
+saisie.
+.PP
+L'algorithme DES lui\-même a quelques inconvénients qui rendent l'utilisation
+de \fBcrypt\fP() peu recommandable pour autre chose que le cryptage de mots de
+passe. Si vous comptez développer un projet cryptographique en utilisant
+\fBcrypt\fP(), abandonnez cette idée\ : achetez un bon bouquin sur la
+cryptographie, et utilisez une bibliothèque DES toute faite.
+
+\fBcrypt_r\fP() est la version ré\-entrante de \fBcrypt\fP(). La structure pointée
+par \fIdata\fP est utilisée pour sauvegarder les données et marquer les
+informations. En plus de l'allocation, l'appelant doit initialiser
+\fIdata\->initialized\fP à zéro avant le premier appel à \fBcrypt_r\fP().
+.SH "VALEUR RENVOYÉE"
+En cas de succès, un pointeur vers le mot de passe chiffré est renvoyé. En
+cas d'erreur, NULL est renvoyé.
+.SH ERREURS
+.TP 
+\fBENOSYS\fP
+.\" This level of detail is not necessary in this man page. . .
+.\" .PP
+.\" When encrypting a plain text P using DES with the key K results in the
+.\" encrypted text C, then the complementary plain text P' being encrypted
+.\" using the complementary key K' will result in the complementary encrypted
+.\" text C'.
+.\" .PP
+.\" Weak keys are keys which stay invariant under the DES key transformation.
+.\" The four known weak keys 0101010101010101, fefefefefefefefe,
+.\" 1f1f1f1f0e0e0e0e and e0e0e0e0f1f1f1f1 must be avoided.
+.\" .PP
+.\" There are six known half weak key pairs, which keys lead to the same
+.\" encrypted data.  Keys which are part of such key clusters should be
+.\" avoided.
+.\" Sorry, I could not find out what they are.
+.\""
+.\" .PP
+.\" Heavily redundant data causes trouble with DES encryption, when used in the
+.\" .I codebook
+.\" mode that
+.\" .BR crypt ()
+.\" implements.  The
+.\" .BR crypt ()
+.\" interface should be used only for its intended purpose of password
+.\" verification, and should not be used as part of a data encryption tool.
+.\" .PP
+.\" The first and last three output bits of the fourth S-box can be
+.\" represented as function of their input bits.  Empiric studies have
+.\" shown that S-boxes partially compute the same output for similar input.
+.\" It is suspected that this may contain a back door which could allow the
+.\" NSA to decrypt DES encrypted data.
+.\" .PP
+.\" Making encrypted data computed using crypt() publicly available has
+.\" to be considered insecure for the given reasons.
+La fonction \fBcrypt\fP() est absente, probablement en raison des restrictions
+d'exportation des États\-Unis.
+.SH CONFORMITÉ
+\fBcrypt\fP()\ : SVr4, 4.3BSD, POSIX.1\-2001. \fBcrypt_r\fP() est une extension
+\fBGNU\fP.
+.SH NOTES
+.SS "Notes sur la glibc"
+La version glibc2 de cette fonction prend en charge des algorithmes de
+chiffrement supplémentaires.
+
+Si \fIsalt\fP est une chaîne de caractères commençant par les caractères
+«\ $\fIid\fP$\ » et suivit par une chaîne se terminant par «\ $\ »\ :
+.RS
+
+$\fIid\fP$\fIsalt\fP$\fIencrypted\fP
+
+.RE
+alors au lieu d'utiliser la machine DES, \fIid\fP indique la méthode de
+chiffrement utilisée et comment le reste de la chaîne de mot de passe est
+interprétée. Les valeur suivantes sont prises en charge pour \fIid\fP\ :
+.RS
+.TS
+l l.
+ID  | Method
+_
+1   | MD5
+2a  | Blowfish (pas dans la glibc officielle\ ; ajoutée
+    | par certaines distributions Linux)
+.\" openSUSE has Blowfish, but AFAICS, this option is not supported
+.\" natively by glibc -- mtk, Jul 08
+.\"
+.\" md5 | Sun MD5
+.\" glibc doesn't appear to natively support Sun MD5; I don't know
+.\" if any distros add the support.
+5   | SHA\-256 (depuis la glibc 2.7)
+6   | SHA\-512 (depuis la glibc 2.7)
+.TE
+.RE
+
+Ainsi, $5$\fIsalt\fP$\fIencrypted\fP est un mot de passe chiffré SHA\-256 et
+$6$\fIsalt\fP$\fIencrypted\fP est un mot de passe SHA\-512.
+
+«\ \fIsalt\fP\ » comprend jusqu'à 16 caractères de sel après «\ $\fIid\fP$\ ». La
+partie \fIencrypted\fP de la chaîne de mot de passe correspond au mot de passe
+chiffré. La taille de cette chaîne est fixe\ :
+.TS
+l l.
+MD5     | 22 caractères
+SHA\-256 | 43 caractères
+SHA\-512 | 86 caractères
+.TE
+
+Les caractères de «\ \fIsalt\fP\ » et «\ \fIencrypted\fP\ » sont tiré de l'ensemble
+[\fBa\fP\(en\fBzA\fP\(en\fBZ0\fP\(en\fB9./\fP]. Dans l'implémentation SHA, \fIkey\fP est
+utilisé entièrement (au lieu de seulement les 8 premiers octets dans
+l'implémentation MD5).
+.SH "VOIR AUSSI"
+\fBlogin\fP(1), \fBpasswd\fP(1), \fBencrypt\fP(3), \fBgetpass\fP(3), \fBpasswd\fP(5),
+\fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

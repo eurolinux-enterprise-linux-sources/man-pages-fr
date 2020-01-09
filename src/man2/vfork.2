@@ -1,0 +1,161 @@
+.\" Copyright (c) 1999 Andries Brouwer (aeb@cwi.nl), 1 Nov 1999
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" 1999-11-10: Merged text taken from the page contributed by
+.\" Reed H. Petty (rhp@draper.net)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH VFORK 2 "21 juin 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+vfork \- Créer un processus fils et bloquer le père.
+.SH SYNOPSIS
+\fB#include <sys/types.h>\fP
+.br
+\fB#include <unistd.h>\fP
+.sp
+\fBpid_t vfork(void);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBvfork\fP()\ : _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500
+.SH DESCRIPTION
+.SS "Description des normes"
+(D'après POSIX.1). La routine \fBvfork\fP() a le même effet que \fBfork\fP(2),
+sauf que le comportement est indéfini si le processus créé par \fBvfork\fP()
+effectue l'une des actions suivantes avant d'appeler avec succès \fB_exit\fP(2)
+ou une routine de la famille \fBexec\fP(3)\ : modification d'une donnée autre
+que la variable de type \fIpid_t\fP stockant le retour de \fBvfork\fP(), revenir
+de la fonction dans laquelle \fBvfork\fP() a été invoqué, appel d'une autre
+fonction.
+.SS "Description de l'implémentation Linux"
+\fBvfork\fP(), tout comme \fBfork\fP(2), crée un processus fils à partir du
+processus appelant. Pour plus de détails sur les valeurs renvoyées et les
+erreurs possibles, voir \fBfork\fP(2).
+.PP
+\fBvfork\fP() est conçu comme un cas particulier de \fBclone\fP(2). Il sert à
+créer un nouveau processus sans effectuer de copie de la table des pages
+mémoire du processus père. Ceci peut être utile dans des applications
+nécessitant une grande rapidité d'exécution, si le fils doit invoquer
+immédiatement un appel \fBexecve\fP(2).
+.PP
+\fBvfork\fP() diffère aussi de \fBfork\fP(2) car le processus père reste suspendu
+jusqu'à ce que le fils se termine (soit normalement, en appelant
+\fB_exit\fP(2), soit de façon anormale après l'envoie d'un signal fatal) ou
+qu'il appelle \fBexecve\fP(2). Jusqu'à ce point, le fils partage toute la
+mémoire avec son père, y compris la pile. Le processus fils ne doit donc pas
+revenir de la fonction en cours, ni invoquer une nouvelle routine. Il ne
+doit pas appeler \fBexit\fP(3), mais à la place \fB_exit\fP(2).
+.PP
+Les gestionnaires de signaux sont hérités mais pas partagés. Les signaux
+pour le processus père sont délivrés après que le fils libère la mémoire du
+père (c'est\-à\-dire après que le fils se termine ou qu'il appelle
+\fBexecve\fP(2)).
+.SS "Description historique"
+Sous Linux, \fBfork\fP(2) est implémenté en utilisant un mécanisme de copie en
+écriture, ainsi ses seuls coûts sont le temps et la mémoire nécessaire pour
+dupliquer la table des pages mémoire du processus père, et créer une
+structure de tâche pour le fils. Toutefois, jadis \fBfork\fP(2) nécessitait
+malheureusement une copie complète de l'espace d'adresse du père, souvent
+inutile car un appel \fBexec\fP(3) est souvent réalisé immédiatement par le
+fils. Pour améliorer les performances, BSD a introduit un appel système
+\fBvfork\fP() qui ne copie pas l'espace d'adressage du père, mais emprunte au
+parent son espace d'adressage et son fil de contrôle jusqu'à un appel à
+\fBexecve\fP(2) ou exit. Le processus père était suspendu tant que le fils
+utilisait les ressources. L'utilisation de \fBvfork\fP() était loin d'être
+facile, car pour éviter de modifier les données du processus père, il
+fallait être capable de déterminer quelles variables se trouvaient dans des
+registres du processeur.
+.SH CONFORMITÉ
+.\" In AIXv3.1 vfork is equivalent to fork.
+BSD\ 4.3, POSIX.1\-2001. POSIX.1\-2008 supprime la spécification de
+\fBvfork\fP(). Les exigences que les standards apportent sur \fBvfork\fP() sont
+plus relâchées que celles sur \fBfork\fP(2), ainsi il est possible d'avoir une
+implémentation conforme où les deux appels sont synonymes. En particulier,
+un programmeur ne doit pas s'appuyer sur le fait que le père reste bloqué
+jusqu'à ce que le fils se termine ou appelle \fBexecve\fP(2), ni sur le
+comportement par rapport à la mémoire partagée.
+.SH NOTES
+.SS "Notes sur Linux"
+Les gestionnaires enregistrés avec \fBpthread_atfork\fP(3) ne sont pas appelés
+lorsqu'un programme multithreadé utilisant la bibliothèque de threads NPTL
+appelle \fBvfork\fP(). En revanche ces gestionnaires sont appelés si le
+programme utilise la bibliothèque LinuxThreads. (Voir \fBpthreads\fP(7) pour
+une description des bibliothèques de threads pour Linux.)
+.SS Historique
+.\" In the release notes for 4.2BSD Sam Leffler wrote: `vfork: Is still
+.\" present, but definitely on its way out'.
+L'appel système \fBvfork\fP() est apparu dans BSD\ 3.0. Dans BSD\ 4.4, il est
+devenu synonyme de \fBfork\fP(2), mais NetBSD l'a réintroduit à nouveau
+(consultez http://www.netbsd.org/Documentation/kernel/vfork.html). Sous
+Linux, il fut l'équivalent de \fBfork\fP(2) jusqu'au noyau 2.2.0\-pre\-6. Depuis
+le 2.2.0\-pre\-9 il s'agit d'un appel système indépendant. Le support dans la
+bibliothèque a été introduit dans la glibc 2.0.112.
+.SH BOGUES
+Il est regrettable que Linux ait ressuscité ce spectre du passé. La page de
+manuel de BSD indique que «\ cet appel système sera supprimé quand des
+mécanismes de partage appropriés seront implémentés. Il ne faut pas essayer
+de tirer profit du partage mémoire induit par \fBvfork\fP(), car dans ce cas il
+sera rendu synonyme de \fBfork\fP(2)\ ».
+
+.\"
+.\" As far as I can tell, the following is not true in 2.6.19:
+.\" Currently (Linux 2.3.25),
+.\" .BR strace (1)
+.\" cannot follow
+.\" .BR vfork ()
+.\" and requires a kernel patch.
+Les détails de la gestion des signaux sont compliqués, et varient suivant
+les systèmes. La page de manuel BSD indique\ : «\ Pour éviter une possible
+situation d'interblocage, les processus qui sont des fils au milieu d'un
+\fBvfork\fP() ne reçoivent jamais le signal \fBSIGTTOU\fP ou \fBSIGTTIN\fP\ ; des
+sorties et des \fIioctl\fP sont autorisés, mais des tentatives de lecture
+donneront une indication de fin de fichier.\ »
+.SH "VOIR AUSSI"
+\fBclone\fP(2), \fBexecve\fP(2), \fBfork\fP(2), \fBunshare\fP(2), \fBwait\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

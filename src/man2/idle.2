@@ -1,0 +1,85 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright 1993 Rickard E. Faith (faith@cs.unc.edu)
+.\" Portions extracted from linux/mm/swap.c:
+.\"                Copyright (C) 1991, 1992  Linus Torvalds
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified 21 Aug 1994 by Michael Chastain <mec@shell.portal.com>:
+.\"   Added text about calling restriction (new in kernel 1.1.20 I believe).
+.\"   N.B. calling "idle" from user process used to hang process!
+.\" Modified Thu Oct 31 14:41:15 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" "
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH IDLE 2 "21 août 1994" Linux "Manuel du programmeur Linux"
+.SH NOM
+idle \- Rendre le processus 0 inactif
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBint idle(void);\fP
+.SH DESCRIPTION
+\fBidle\fP() est un appel système interne, utilisé pendant le démarrage du
+système. Il sert à rendre swappables les pages du processus, à abaisser sa
+priorité, et entrer dans la boucle principale de l'ordonnanceur. \fBidle\fP()
+ne retourne jamais.
+.PP
+Seul le processus 0 peut appeler \fBidle\fP(). Tout processus utilisateur, même
+avec les privilèges de superutilisateur déclenchera l'erreur \fBEPERM\fP s'il
+tente d'appeler \fBidle\fP().
+.SH "VALEUR RENVOYÉE"
+\fBidle\fP() ne retourne jamais lorsqu'il est appelé par le processus 0, et
+renvoie toujours \-1 aux processus utilisateurs.
+.SH ERREURS
+.TP 
+\fBEPERM\fP
+Toujours déclenchée pour un processus utilisateur.
+.SH VERSIONS
+Depuis le noyau 2.3.13, cet appel système n'existe plus.
+.SH CONFORMITÉ
+Cette fonction est spécifique à Linux et ne doit pas être employée dans des
+programmes destinés à être portables.
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

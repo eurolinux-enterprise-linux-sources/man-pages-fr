@@ -1,0 +1,104 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 19:40:39 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Fri Jun 25 12:10:47 1999 by Andries Brouwer (aeb@cwi.nl)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ECVT 3 "15 mars 2009" "" "Manuel du programmeur Linux"
+.SH NOM
+ecvt, fcvt \- Convertir des nombres réels en chaînes de caractères
+.SH SYNOPSIS
+\fB#include <stdlib.h>\fP
+.sp
+\fBchar *ecvt(double \fP\fInumber\fP\fB, int \fP\fIndigits\fP\fB, int *\fP\fIdecpt\fP\fB,\fP
+\fBint *\fP\fIsign\fP\fB);\fP
+.sp
+\fBchar *fcvt(double \fP\fInumber\fP\fB, int \fP\fIndigits\fP\fB, int *\fP\fIdecpt\fP\fB,\fP
+\fBint *\fP\fIsign\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBecvt\fP(), \fBfcvt\fP()\ : _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500
+.SH DESCRIPTION
+La fonction \fBecvt\fP() convertit \fInumber\fP en une chaîne de caractères
+terminée par un caractère nul, de \fIndigits\fP chiffres (\fIndigits\fP étant
+limité par une valeur spécifique au système, déterminée par la précision
+d'un \fIdouble\fP). La fonction renvoie un pointeur sur cette chaîne. Le
+chiffre d'ordre le plus élevé est non nul, sauf si \fInumber\fP vaut zéro. Le
+chiffre d'ordre le plus faible est arrondi. La chaîne elle\-même ne contient
+pas de point décimal, néanmoins la position du point décimal relativement au
+début de la chaîne est stockée dans \fI*decpt\fP. Une valeur négative de
+\fI*decpt\fP signifie que le point décimal est à gauche du début de la
+chaîne. Si le signe de \fInumber\fP est négatif, \fI*sign\fP est défini avec une
+valeur non nulle, sinon il est mis à 0. Si \fInumber\fP est nul, il n'est pas
+précisé si \fI*decpt\fP vaut zéro ou un.
+.PP
+La fonction \fBfcvt\fP() est identique à \fBecvt\fP(), à la différence que
+\fIndigits\fP indique le nombre de décimales après la virgule.
+.SH "VALEUR RENVOYÉE"
+Les deux fonctions \fBecvt\fP() et \fBfcvt\fP() renvoient un pointeur sur une
+chaîne de caractères statique contenant la représentation ASCII de
+\fInumber\fP. La chaîne statique est écrasée à chaque appel de \fBecvt\fP() ou
+\fBfcvt\fP().
+.SH CONFORMITÉ
+SVr2, marqué comme «\ LEGACY\ » dans POSIX.1\-2001. POSIX.1\-2008 supprime les
+spécifications de \fBecvt\fP() et \fBfcvt\fP() et recommande à la place
+l'utilisation de \fBsprintf\fP(3) (bien que \fBsnprintf\fP(3) soit préférable).
+.SH NOTES
+Les bibliothèques Linux, libc4 et libc5, déclaraient le type de \fIndigits\fP
+en \fIsize_t\fP et certaines localisations n'utilisent pas le point comme
+séparateur décimal.
+.SH "VOIR AUSSI"
+\fBecvt_r\fP(3), \fBgcvt\fP(3), \fBqecvt\fP(3), \fBsetlocale\fP(3), \fBsprintf\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

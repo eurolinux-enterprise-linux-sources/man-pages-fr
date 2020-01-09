@@ -1,0 +1,331 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) 1998 Andries Brouwer (aeb@cwi.nl)
+.\" and Copyright (C) 2002 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" and Copyright Guillem Jover <guillem@hadrons.org>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified Thu Nov 11 04:19:42 MET 1999, aeb: added PR_GET_PDEATHSIG
+.\" Modified 27 Jun 02, Michael Kerrisk
+.\" 	Added PR_SET_DUMPABLE, PR_GET_DUMPABLE,
+.\"	PR_SET_KEEPCAPS, PR_GET_KEEPCAPS
+.\" Modified 2006-08-30 Guillem Jover <guillem@hadrons.org>
+.\"	Updated Linux versions where the options where introduced.
+.\"	Added PR_SET_TIMING, PR_GET_TIMING, PR_SET_NAME, PR_GET_NAME,
+.\"	PR_SET_UNALIGN, PR_GET_UNALIGN, PR_SET_FPEMU, PR_GET_FPEMU,
+.\"	PR_SET_FPEXC, PR_GET_FPEXC
+.\" 2008-04-29 Serge Hallyn, Document PR_CAPBSET_READ and PR_CAPBSET_DROP
+.\" 2008-06-13 Erik Bosman, <ejbosman@cs.vu.nl>
+.\"     Document PR_GET_TSC and PR_SET_TSC.
+.\" 2008-06-15 mtk, Document PR_SET_SECCOMP, PR_GET_SECCOMP
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PRCTL 2 "16 juillet 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+prctl \- Opérations sur un processus
+.SH SYNOPSIS
+.nf
+\fB#include <sys/prctl.h>\fP
+.sp
+\fBint prctl(int \fP\fIoption\fP\fB, unsigned long \fP\fIarg2\fP\fB, unsigned long \fP\fIarg3\fP\fB,\fP
+\fB          unsigned long \fP\fIarg4\fP\fB, unsigned long \fP\fIarg5\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBprctl\fP() est invoqué avec un premier paramètre indiquant ce qu'il faut
+faire, (ses valeurs sont définies dans \fI<linux/prctl.h>\fP), et des
+paramètres supplémentaires dont la signification dépend du premier
+paramètre. Celui\-ci peut être\ :
+.TP 
+\fBPR_CAPBSET_READ\fP (depuis Linux 2.6.25)
+Renvoyer (en résultat de fonction) 1 si la capacité indiquée par \fIarg2\fP est
+présente dans la limitation de capacités du thread appelant ou 0 si elle ne
+l'est pas. Les constantes des capacités sont définies dans
+\fI<linux/capability.h>\fP. L'ensemble des capacités liées contrôle si
+le processus peut recevoir la capacité par un ensemble de capacités
+autorisées pour un fichier lors d'un appel futur à \fBexecve\fP(2).
+
+Si la capacité indiquée dans \fIarg2\fP n'est pas valable, alors l'appel échoue
+avec l'erreur \fBEINVAL\fP.
+.TP 
+\fBPR_CAPBSET_DROP\fP (depuis Linux 2.6.25)
+Si le thread appelant a la capacité \fBCAP_SETPCAP\fP, alors enlever la
+capacité indiquée par \fIarg2\fP dans l'ensemble de limitation de capacités du
+thread appelant. Les fils du thread appelant hériteront de cette nouvelle
+limitation de capacités réduite.
+
+L'appel échoue avec l'erreur \fBEPERM\fP si le thread appelant n'a pas la
+capacité \fBCAP_SETPCAP\fP\ ; ou avec l'erreur \fBEINVAL\fP si \fIarg2\fP ne
+représente pas une capacité correcte\ ; ou avec l'erreur \fBEINVAL\fP si les
+capacités de fichier ne sont pas activée dans le noyau, auquel cas les
+limitations ne sont pas prises en charge par le noyau.
+.TP 
+\fBPR_SET_DUMPABLE\fP (depuis Linux 2.3.20)
+.\" See http://marc.theaimsgroup.com/?l=linux-kernel&m=115270289030630&w=2
+.\" Subject:    Fix prctl privilege escalation (CVE-2006-2451)
+.\" From:       Marcel Holtmann <marcel () holtmann ! org>
+.\" Date:       2006-07-12 11:12:00
+Fixer l'attribut déterminant si un fichier core est produit lorsque le
+processus reçoit un signal dont le comportement par défaut est de produire
+un fichier core. (Normalement cet attribut est validé pour un processus par
+défaut, mais est effacé à l'exécution d'un programme Set\-UID ou Set\-GID
+ainsi que par divers appels système manipulant des UID et GID). Dans les
+noyaux jusqu'à 2.6.12 inclus, \fIarg2\fP doit valoir 0 (pas de fichier core) ou
+1 (fichier core possible). Entre les noyaux 2.6.13 et 2.6.17, la valeur 2
+était également autorisée\ ; elle permettait à un binaire qui ne produirait
+normalement pas de fichier core d'en créer un uniquement lisible par root\ ;
+cette fonctionnalité a été supprimée pour des raisons de sécurité. (Voir
+aussi la description de \fI/proc/sys/fs/suid_dumpable\fP dans \fBproc\fP(5).)
+.TP 
+\fBPR_GET_DUMPABLE\fP (depuis Linux 2.3.20)
+.\" Since Linux 2.6.13, the dumpable flag can have the value 2,
+.\" but in 2.6.13 PR_GET_DUMPABLE simply returns 1 if the dumpable
+.\" flags has a non-zero value.  This was fixed in 2.6.14.
+Renvoyer (en résultat de fonction) l'état actuel de l'attribut de création
+de fichier core du processus appelant.
+.TP 
+\fBPR_SET_ENDIAN\fP (depuis Linux 2.6.18, seulement sur PowerPC)
+.\" Respectively 0, 1, 2
+Fixer le boutisme (endianness) du processus appelant à la valeur donnée dans
+\fIarg2\fP, qui doit être l'une des valeurs suivantes\ : \fBPR_ENDIAN_BIG\fP,
+\fBPR_ENDIAN_LITTLE\fP, ou \fBPR_ENDIAN_PPC_LITTLE\fP (PowerPC pseudo petit
+boutiste).
+.TP 
+\fBPR_GET_ENDIAN\fP (depuis Linux 2.6.18, seulement sur PowerPC)
+Renvoyer le boutisme (endianness) du processus appelant, dans l'emplacement
+pointé par \fI(int\ *) arg2\fP.
+.TP 
+\fBPR_SET_FPEMU\fP (depuis Linux 2.4.18, 2.5.9, seulement sur ia64)
+Fixer les bits de contrôle de l'émulation de FPU à \fIarg2\fP. Passer
+\fBPR_FPEMU_NOPRINT\fP pour émuler silencieusement les opérations flottantes,
+ou \fBPR_FPEMU_SIGFPE\fP pour ne pas émuler les opérations flottantes, et
+envoyer \fBSIGFPE\fP.
+.TP 
+\fBPR_GET_FPEMU\fP (depuis Linux 2.4.18, 2.5.9, seulement sur ia64)
+Renvoyer les bits de contrôle de l'émulation de FPU, dans l'emplacement
+pointé par \fI(int\ *) arg2\fP.
+.TP 
+\fBPR_SET_FPEXC\fP (depuis Linux 2.4.21, 2.5.32, seulement sur PowerPC)
+Fixer le mode d'exception flottante à \fIarg2\fP. Passer la valeur
+\fBPR_FP_EXC_SW_ENABLE\fP pour utiliser FPEXC pour activer les exceptions
+flottantes, \fBPR_FP_EXC_DIV\fP pour les divisions flottantes par zéro,
+\fBPR_FP_EXC_OVF\fP pour les dépassements de capacité vers le haut,
+\fBPR_FP_EXC_UND\fP pour les dépassements de capacité vers le bas,
+\fBPR_FP_EXC_RES\fP pour les résultats flottants inexacts, \fBPR_FP_EXC_INV\fP
+pour les opérations flottantes invalides, \fBPR_FP_EXC_DISABLED\fP pour
+désactiver les exceptions flottantes, \fBPR_FP_EXC_NONRECOV\fP pour le mode
+d'exceptions asynchrone non récupérable, \fBPR_FP_EXC_ASYNC\fP pour le mode
+d'exceptions asynchrone récupérable, \fBPR_FP_EXC_PRECISE\fP pour le mode
+d'exception précis.
+.TP 
+\fBPR_GET_FPEXC\fP (depuis Linux 2.4.21, 2.5.32, seulement sur PowerPC)
+Renvoyer le mode d'exception flottante, dans l'emplacement pointé par
+\fI(int\ *) arg2\fP.
+.TP 
+\fBPR_SET_KEEPCAPS\fP (depuis Linux 2.2.18)
+Fixer l'état de l'attribut de conservation des capacités du thread, qui
+détermine si les ensembles de capacités effectives et disponibles sont
+effacés lorsqu'on modifie les UID réel, effectif et sauvé du thread de
+manière à ce que tous soient non nuls alors qu'auparavant l'un au moins
+était nul. (Par défaut les ensembles sont effacés). \fIarg2\fP doit valoir 0
+(les capacités sont effacées) ou 1 (capacités conservées). Cette valeur est
+remise à zéro pour les appels ultérieurs à \fBexecve\fP(2).
+.TP 
+\fBPR_GET_KEEPCAPS\fP (depuis Linux 2.2.18)
+Renvoyer (en résultat de fonction) l'état actuel de l'attribut de
+conservation des capacités du thread appelant.
+.TP 
+\fBPR_SET_NAME\fP (depuis Linux 2.6.9)
+.\" TASK_COMM_LEN in include/linux/sched.h
+Fixer le nom du processus appelant, en utilisant la valeur de l'emplacement
+pointé par \fI(char\ *) arg2\fP. Le nom peut avoir jusqu'à 16 octets de long et
+doit être terminé par un caractère nul s'il est plus petit.
+.TP 
+\fBPR_GET_NAME\fP (depuis Linux 2.6.11)
+Renvoyer le nom du processus appelant, dans le tampon pointé par \fI(char\ *)
+arg2\fP. Le tampon doit être suffisamment grand pour contenir jusqu'à 16
+octets\ ; la chaîne sera terminée par un caractère nul si elle est plus
+petite.
+.TP 
+\fBPR_SET_PDEATHSIG\fP (depuis Linux 2.1.57)
+Configurer le signal de mort du père du processus appelant avec la valeur
+\fIarg2\fP (qui peut être un numéro de signal dans l'intervalle 1..maxsig, ou
+être nul pour effacer le signal). Il s'agit du numéro du signal que le
+processus appelant recevra si son père se termine. Cette valeur est effacée
+pour le fils d'un \fBfork\fP(2).
+.TP 
+\fBPR_GET_PDEATHSIG\fP (depuis Linux 2.3.15)
+Renvoyer la valeur actuelle du signal de mort du processus père, dans
+l'emplacement pointé par \fI(int\ *) arg2\fP.
+.TP 
+\fBPR_SET_SECCOMP\fP (depuis Linux 2.6.23)
+.\" See http://thread.gmane.org/gmane.linux.kernel/542632
+.\" [PATCH 0 of 2] seccomp updates
+.\" andrea@cpushare.com
+Configurer le mode de traitement sécurisé pour le thread appelant. Dans
+l'implémentation actuelle, \fIarg2\fP doit valoir 1. Quand le mode de
+traitement sécurisé a été mis à 1, les seuls appels système permis pour le
+thread sont \fBread\fP(2), \fBwrite\fP(2), \fB_exit\fP(2) et \fBsigreturn\fP(2). Les
+autres appels système provoque la réception d'un signal \fBSIGKILL\fP. Le mode
+de traitement sécurisé est utile pour les applications de traitement
+numérique qui peuvent avoir besoin d'exécuter des instructions ne provenant
+pas d'une source de confiance, lues à partir d'un tuyau («\ pipe\ ») ou d'une
+socket. Cette opération n'est disponible que si le noyau a été configuré
+avec l'option CONFIG_SECCOMP activée.
+.TP 
+\fBPR_GET_SECCOMP\fP (depuis Linux 2.6.23)
+Renvoyer le mode de traitement sécurisé du thread appelant. Ce n'est pas
+très utile avec l'implémentation actuelle (le mode vaut toujours 1), mais
+pourrait être utile dans le future pour d'autres modes\ : si l'appelant n'est
+pas dans un mode de traitement sécurisé, cette opération renvoie 0\ ; si
+l'appelant est dans le mode de traitement sécurisé, alors l'appel \fBprctl\fP()
+provoquera l'envoie d'un signal \fBSIGKILL\fP au processus. Cette opération
+n'est disponible que si le noyau a été configuré avec l'option
+CONFIG_SECCOMP activée.
+.TP 
+\fBPR_SET_SECUREBITS\fP (depuis Linux 2.6.26)
+Configurer l'attribut «\ securebits\ » du thread appelant à la valeur fournie
+par \fIarg2\fP. Voir \fBcapabilities\fP(7).
+.TP 
+\fBPR_GET_SECUREBITS\fP (depuis Linux 2.6.26)
+Renvoyer (en résultat de fonction) l'état actuel de l'attribut
+«\ securebits\ » du thread appelant. Voir \fBcapabilities\fP(7).
+.TP 
+\fBPR_SET_TIMING\fP (depuis Linux 2.6.0\-test4)
+.\" 0
+.\" 1
+.\" PR_TIMING_TIMESTAMP doesn't do anything in 2.6.26-rc8,
+.\" and looking at the patch history, it appears
+.\" that it never did anything.
+Permet de choisir la méthode de mesure du temps du processus à utiliser, en
+passant dans \fIarg2\fP soit \fBPR_TIMING_STATISTICAL\fP (méthode statistique
+traditionnelle) ou \fBPR_TIMING_TIMESTAMP\fP (méthode exacte utilisant des
+horodatages). \fBPR_TIMING_TIMESTAMP\fP n'est pas implémenté pour l'instant
+(l'utilisation de ce mode renverra l'erreur \fBEINVAL\fP).
+.TP 
+\fBPR_GET_TIMING\fP (depuis Linux 2.6.0\-test4)
+Renvoyer (en résultat de fonction) quelle méthode de mesure du temps du
+processus est utilisée actuellement.
+.TP 
+\fBPR_SET_TSC\fP (depuis Linux 2.6.26, seulement sur x86)
+Configurer l'état de l'attribut qui indique si le compteur d'horodatage peut
+être lu par le processus. Utilisez \fBPR_TSC_ENABLE\fP pour \fIarg2\fP permet
+d'autoriser les lectures ou \fBPR_TSC_SIGSEGV\fP pour produire un \fBSIGSEGV\fP
+quand le processus essaie de lire le compteur d'horodatage.
+.TP 
+\fBPR_GET_TSC\fP (depuis Linux 2.6.26, seulement sur x86)
+Renvoyer, dans l'emplacement pointé par \fI(int\ *) arg2\fP, l'état de
+l'attribut qui indique si le compteur d'horodatage peut être lu.
+.TP 
+\fBPR_SET_UNALIGN\fP
+(Seulement sur\ : ia64, depuis Linux 2.3.48\ ; parisc, depuis Linux 2.6.15\ ;
+PowerPC, depuis Linux 2.6.18\ ; Alpha, depuis Linux 2.6.22) Fixer les bits de
+contrôle pour les accès non alignés à \fIarg2\fP. La valeur
+\fBPR_UNALIGN_NOPRINT\fP signifie que les accès non alignés en espace
+utilisateurs sont silencieusement corrigés, et \fBPR_UNALIGN_SIGBUS\fP cause
+l'envoi de \fBSIGBUS\fP lors d'un accès non aligné.
+.TP 
+\fBPR_GET_UNALIGN\fP
+(Voir \fBPR_SET_UNALIGN\fP pour les informations sur les versions et les
+architectures) Renvoyer les bits de contrôle des accès non alignés, dans
+l'emplacement pointé par \fI(int\ *) arg2\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, \fBPR_GET_DUMPABLE\fP, \fBPR_GET_KEEPCAPS\fP,
+\fBPR_CAPBSET_READ\fP, \fBPR_GET_TIMING\fP, \fBPR_GET_SECUREBITS\fP et (si elle rend
+la main) \fBPR_GET_SECCOMP\fP renvoient les valeurs positives décrites
+ci\-dessus. Toute autre valeur d'\fIoption\fP renvoie 0en cas de réussite. En
+cas d'échec, \-1 est renvoyé et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fIarg2\fP est une adresse non valable.
+.TP 
+\fBEINVAL\fP
+La valeur de \fIoption\fP n'est pas reconnue.
+.TP 
+\fBEINVAL\fP
+\fIarg2\fP n'est pas une valeur valable pour cette \fIoption\fP.
+.TP 
+\fBEINVAL\fP
+\fIoption\fP vaut \fBPR_SET_SECCOMP\fP ou \fBPR_SET_SECCOMP\fP et le noyau n'a pas
+été configuré avec \fBCONFIG_SECCOMP\fP.
+.TP 
+\fBEPERM\fP
+\fIoption\fP vaut \fBPR_SET_SECUREBITS\fP et l'appelant n'a pas la capacité
+\fBCAP_SETPCAP\fP ou a essayé d'enlever un attribut de «\ verrouillage\ » ou a
+essayer de positionner un attribut pour lequel l'attribut de verrouillage
+était positionné (voir \fBcapabilities\fP(7)).
+.TP 
+\fBEPERM\fP
+\fIoption\fP vaut \fBPR_SET_KEEPCAPS\fP et l'attribut \fBSECURE_KEEP_CAPS_LOCKED\fP
+de l'appelant est positionné (voir \fBcapabilities\fP(7)).
+.TP 
+\fBEPERM\fP
+.\" The following can't actually happen, because prctl() in
+.\" seccomp mode will cause SIGKILL.
+.\" .TP
+.\" .B EPERM
+.\" .I option
+.\" is
+.\" .BR PR_SET_SECCOMP ,
+.\" and secure computing mode is already 1.
+\fIoption\fP vaut \fBPR_CAPBSET_DROP\fP et l'appelant n'a pas la capacité
+\fBCAP_SETPCAP\fP.
+.SH VERSIONS
+.\" The library interface was added in glibc 2.0.6
+L'appel système \fBprctl\fP() a été introduit dans Linux 2.1.57.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux. IRIX dispose d'un appel système
+\fBprctl\fP() (également introduit dans Linux 2.1.44 sur l'architecture MIPS
+sous le nom irix_prctl), dont le prototype est
+.sp
+\fBptrdiff_t prctl(int \fP\fIoption\fP\fB, int \fP\fIarg2\fP\fB, int \fP\fIarg3\fP\fB);\fP
+.sp
+et les options permettent de d'obtenir le nombre maximum de processus par
+utilisateur, le nombre maximal de processeurs utilisables par un processus,
+vérifier si un processus est bloqué, lire ou fixer la taille des piles,...
+.SH "VOIR AUSSI"
+\fBsignal\fP(2), \fBcore\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

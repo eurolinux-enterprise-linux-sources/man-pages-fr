@@ -1,0 +1,149 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified 1993-03-29, David Metcalfe
+.\" Modified 1993-07-24, Rik Faith (faith@cs.unc.edu)
+.\" Modified 2003-10-25, Walter Harms
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ATEXIT 3 "5 décembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+atexit \- Enregistrer une fonction à appeler à la fin d'un programme
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBint atexit(void (*\fP\fIfunction\fP\fB)(void));\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBatexit\fP() enregistre la fonction \fIfunction\fP donnée pour que
+celle\-ci soit automatiquement appelée lorsque le programme se termine
+normalement avec \fBexit\fP(3) ou lors de la fin de la fonction \fImain\fP. Les
+fonctions ainsi enregistrées sont invoquées dans l'ordre inverse de leur
+enregistrement\ ; aucun argument n'est transmis.
+
+Une même fonction peut être enregistrée plusieurs fois\ : elle sera appelée
+une fois pour chaque enregistrement.
+.LP
+POSIX.1\-2001 exige que l'implémentation permette d'enregistrer au moins
+\fBATEXIT_MAX\fP (32) de ces fonctions. La limite actuelle de l'implémentation
+peut être obtenue avec \fBsysconf\fP(3).
+.LP
+Lorsqu'un processus fils est créé avec \fBfork\fP(2), il hérite d'un copie des
+enregistrements de son parent. À la suite d'un appel réussi à l'une des
+fonctions \fBexec\fP(3), tous les enregistrements sont supprimés.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBatexit\fP() renvoie 0 en cas de succès et une valeur non nulle
+en cas d'échec.
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3, C89, C99, POSIX.1\-2001.
+.SH NOTES
+Les fonctions enregistrées avec \fBatexit\fP() (et \fBon_exit\fP(3)) ne sont pas
+appelées si le programme se termine anormalement à cause de l'envoi d'un
+signal.
+
+Si l'une des fonctions enregistrées appelle \fB_exit\fP(2), alors toutes les
+autres fonctions enregistrées ne seront pas appelées, et les étapes de fin
+de processus effectuées par \fBexit\fP(3) ne seront pas réalisées.
+
+.\" This can happen on OpenBSD 4.2 for example, and is documented
+.\" as occurring on FreeBSD as well.
+.\" Glibc does "the Right Thing" -- invocation of the remaining
+.\" exit handlers carries on as normal.
+POSIX.1\-2001 dit que le résultat de plusieurs appels à \fBexit\fP(3) (par
+exemple, appelé \fBexit\fP(3) dans une fonction enregistrée avec \fBatexit\fP(3))
+est indéfini. Sur quelques systèmes (mais pas sous Linux), cela peut
+produire une boucle infinie\ ; les programmes portables ne doivent pas
+appeler \fBexit\fP(3) dans une fonction enregistrée avec \fBatexit\fP(3).
+
+Les fonctions \fBatexit\fP() et \fBon_exit\fP(3) enregistrent les fonctions dans
+la même liste\ : les fonctions ainsi enregistrées sont invoquées dans
+l'ordre inverse de leur enregistrement par ces deux fonctions.
+
+.\" In glibc, things seem to be handled okay
+POSIX.1\-2001 dit que le résultat est indéfini si \fBlongjmp\fP(3) est utilisée
+pour terminer l'exécution d'une fonction enregistrée avec \fBatexit\fP().
+.SS "Notes sur Linux"
+Depuis la version\ 2.2.3 de la glibc, \fBatexit\fP() (et \fBon_exit\fP(3)) peut
+être utilisée dans une bibliothèque partagée pour définir les fonctions qui
+sont appelées lorsque la bibliothèque partagée est déchargée.
+.SH EXEMPLE
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+void
+bye(void)
+{
+    printf("That was all, folks\en");
+}
+
+int
+main(void)
+{
+    long a;
+    int i;
+
+    a = sysconf(_SC_ATEXIT_MAX);
+    printf("ATEXIT_MAX = %ld\en", a);
+
+    i = atexit(bye);
+    if (i != 0) {
+        fprintf(stderr, "cannot set exit function\en");
+        exit(EXIT_FAILURE);
+    }
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fB_exit\fP(2), \fBexit\fP(3), \fBon_exit\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

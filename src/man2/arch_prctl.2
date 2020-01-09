@@ -1,0 +1,128 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) 2003 Andi Kleen
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ARCH_PRCTL 2 "26 décembre 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+arch_prctl \- Fixer l'état spécifique à l'architecture
+.SH SYNOPSIS
+.nf
+\fB#include <asm/prctl.h>\fP
+.br
+\fB#include <sys/prctl.h>\fP
+.sp
+\fBint arch_prctl(int \fP\fIcode\fP\fB, unsigned long \fP\fIaddr\fP\fB);\fP
+\fBint arch_prctl(int \fP\fIcode\fP\fB, unsigned long *\fP\fIaddr\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBarch_prctl\fP() fixe l'état spécifique à l'architecture pour le
+thread ou le processus. \fIcode\fP sélectionne une sous\(hyfonction et lui
+passe l'argument \fIaddr\fP\ ; \fIaddr\fP est interprété comme un \fIunsigned long\fP
+pour les opérations «\ set\ », ou comme un \fIunsigned long *\fP, pour les
+opérations «\ get\ ».
+.LP
+Les sous\(hyfonctions pour l'architecture x86\-64 sont\ :
+.TP 
+\fBARCH_SET_FS\fP
+Remplit la base 64\ bits pour le registre \fIFS\fP avec \fIaddr\fP.
+.TP 
+\fBARCH_GET_FS\fP
+Renvoie la base 64\ bits pour le registre \fIFS\fP du thread en cours dans la
+variable \fIunsigned long\fP pointée par \fIaddr\fP.
+.TP 
+\fBARCH_SET_GS\fP
+Remplit la base 64\ bits pour le registre \fIGS\fP avec \fIaddr\fP.
+.TP 
+\fBARCH_GET_GS\fP
+Renvoie la base 64\ bits pour le registre \fIGS\fP du thread en cours dans la
+variable \fIunsigned long\fP pointée par \fIaddr\fP.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBarch_prctl\fP() renvoie zéro. En cas d'erreur, il renvoie \-1
+et remplit \fIerrno\fP avec la valeur d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fIaddr\fP pointe vers une adresse non affectée ou est en dehors de l'espace
+d'adressage.
+.TP 
+\fBEINVAL\fP
+\fIcode\fP n'est pas une sous\(hycommande valide.
+.TP 
+\fBEPERM\fP
+.\" .SH AUTHOR
+.\" Man page written by Andi Kleen.
+\fIaddr\fP pointe en dehors de l'espace d'adressage du processus.
+.SH CONFORMITÉ
+\fBarch_prctl\fP() est une extension Linux/x86\-64 et ne doit pas être employée
+dans un programme portable.
+.SH NOTES
+\fBarch_prctl\fP() n'est supporté sur Linux/x86\-64 que pour les programmes
+64\ bits.
+
+La base 64\ bits change lorsqu'un nouveau sélecteur de segment 32\ bits est
+chargé.
+
+\fBARCH_SET_GS\fP est inactif dans certains noyaux.
+
+Les changements de contexte pour les bases 64\ bits sont assez coûteux. Il
+peut être plus rapide de fixer une base 32\ bits avec un sélecteur de segment
+en fixant une LDT avec \fBmodify_ldt\fP(2) ou en utilisant l'appel système
+\fBset_thread_area\fP(2) des noyaux 2.5 et suivants. \fBarch_prctl\fP() n'est
+utile que si vous désirez fixer des bases plus grandes que 4\ Go. La mémoire
+dans les premiers 2\ Go d'adressage peut être allouée en utilisant
+\fBmmap\fP(2) avec l'attribut \fBMAP_32BIT\fP.
+
+Il n'y a pas de prototype pour \fBarch_prctl\fP() dans la glibc 2.7. Vous devez
+le déclarer vous\(hymême. Ceci sera peut\(hyêtre corrigé dans les futures
+versions de la glibc.
+
+\fIFS\fP peut être déjà utilisé par la bibliothèque de multi\(hythreading.
+.SH "VOIR AUSSI"
+\fBmmap\fP(2), \fBmodify_ldt\fP(2), \fBprctl\fP(2), \fBset_thread_area\fP(2)
+.sp
+Manuel du programmeur AMD X86\-64
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

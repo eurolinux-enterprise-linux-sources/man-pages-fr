@@ -1,0 +1,103 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 17:46:57 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 2001-11-17, aeb
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TMPFILE 3 "14 juillet 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+tmpfile \- Créer un fichier temporaire
+.SH SYNOPSIS
+.nf
+\fB#include <stdio.h>\fP
+.sp
+\fBFILE *tmpfile(void);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBtmpfile\fP() crée un nom de fichier unique, ouvert en
+lecture/écriture binaire (mode w+b). Le fichier sera automatiquement détruit
+lors de sa fermeture ou lorsque le programme se termine normalement.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBtmpfile\fP() renvoie un pointeur de flux, ou NULL si la création
+du fichier temporaire est impossible, auquel cas \fIerrno\fP indique l'erreur.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+Autorisation de parcours refusée dans un répertoire du chemin d'accès.
+.TP 
+\fBEEXIST\fP
+Impossible de créer un nom de fichier unique.
+.TP 
+\fBEINTR\fP
+L'appel a été interrompu par un signal.
+.TP 
+\fBEMFILE\fP
+Trop de descripteurs de fichier utilisés par le processus.
+.TP 
+\fBENFILE\fP
+Trop de fichiers ouverts sur le système.
+.TP 
+\fBENOSPC\fP
+Pas assez de place dans le répertoire pour ajouter un fichier.
+.TP 
+\fBEROFS\fP
+Système de fichiers en lecture seule.
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3, C89, C99, SUSv2, POSIX.1\-2001.
+.SH NOTES
+POSIX.1\-2001 spécifie\ : un message d'erreur peut être écrit sur \fIstdout\fP si
+le flux ne peut pas être ouvert.
+.LP
+Le standard ne précise pas le répertoire employé par \fBtmpfile\fP(). La glibc
+essaiera d'utiliser le préfixe \fIP_tmpdir\fP défini dans \fI<stdio.h>\fP,
+puis \fI/tmp\fP en cas d'échec.
+.SH "VOIR AUSSI"
+\fBexit\fP(3), \fBmkstemp\fP(3), \fBmktemp\fP(3), \fBtempnam\fP(3), \fBtmpnam\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

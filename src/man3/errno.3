@@ -1,0 +1,517 @@
+.\" Copyright (c) 1996 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" 5 Oct 2002, Modified by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" 	Updated for POSIX.1 2001
+.\" 2004-12-17 Martin Schulze <joey@infodrom.org>, mtk
+.\"	Removed errno declaration prototype, added notes
+.\" 2006-02-09 Kurt Wall, mtk
+.\"     Added non-POSIX errors
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ERRNO 3 "9 juillet 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+errno \- Code de la dernière erreur
+.SH SYNOPSIS
+.\".sp
+.\".BI "extern int " errno ;
+\fB#include <errno.h>\fP
+.SH DESCRIPTION
+Le fichier d'en\-tête \fI<errno.h>\fP définit la variable entière
+\fIerrno\fP, qui est renseignée par les appels système et quelques fonctions de
+bibliothèque pour décrire les conditions d'erreurs. Sa valeur n'est
+significative que lorsque la valeur de retour l'appel système indique une
+erreur (c'est\-à\-dire \-1 pour la plupart des appels système\ ; \-1 ou NULL pour
+la plupart des fonctions de bibliothèque)\ ; en cas de réussite une fonction
+de bibliothèque peut modifier \fIerrno\fP.
+
+Les numéros d'erreur correctes son tous non nuls\ ; \fIerrno\fP n'est mis à zéro
+par aucun appel système ou fonction de bibliothèque.
+
+Pour certains appels système et fonctions de bibliothèque (par exemple
+\fBgetpriority\fP(2)), \-1 est une valeur de retour correcte en cas de
+réussite. Dans de tels cas, une valeur de retour en cas de réussite peut
+être distinguée d'un cas d'erreur est positionnant \fIerrno\fP à zéro avant
+l'appel, puis, quand l'appel fourni une valeur qui indique qu'une erreur a
+pu se produire, en vérifiant si \fIerrno\fP a une valeur non nulle.
+
+\fIerrno\fP est définie par le standard ISO C comme une «\ lvalue\ » modifiable
+de type \fIint\fP, et n'a pas besoin d'être définie explicitement\ ; \fIerrno\fP
+peut être une macro. \fIerrno\fP est locale à un thread\ ; lui affecter une
+valeur dans un thread ne modifie pas sa valeur dans les autres threads.
+
+Toutes les erreurs détaillées dans POSIX.1 doivent avoir des valeurs
+différentes à l'exception de \fBEAGAIN\fP et \fBEWOULDBLOCK\fP qui peuvent avoir
+la même valeur.
+
+.\" The following is now
+.\" POSIX.1 (2001 edition) lists the following symbolic error names.  Of
+.\" these, \fBEDOM\fP and \fBERANGE\fP are in the ISO C standard.  ISO C
+.\" Amendment 1 defines the additional error number \fBEILSEQ\fP for
+.\" coding errors in multibyte or wide characters.
+.\"
+Ci\-dessous, un liste des noms d'erreurs symboliques qui sont définis sous
+Linux. Certains sont marqués avec \fIPOSIX.1\fP, cela signifie que POSIX.1\-2001
+les définit, ceux marqués avec \fIC99\fP, sont définis par C99.
+.TP  16
+\fBE2BIG\fP
+Liste d'arguments trop longue (POSIX.1)
+.TP 
+\fBEACCES\fP
+Permission refusée (POSIX.1)
+.TP 
+\fBEADDRINUSE\fP
+Adresse déjà en cours d'utilisation (POSIX.1)
+.TP 
+\fBEADDRNOTAVAIL\fP
+.\" EADV is only an error on HURD(?)
+Adresse non disponible (POSIX.1)
+.TP 
+\fBEAFNOSUPPORT\fP
+Famille d'adresses non supportée (POSIX.1)
+.TP 
+\fBEAGAIN\fP
+Ressource temporairement indisponible (peut être la même valeur que
+\fBEWOULDBLOCK\fP) (POSIX.1)
+.TP 
+\fBEALREADY\fP
+Connexion déjà en cours (POSIX.1)
+.TP 
+\fBEBADE\fP
+Échange invalide
+.TP 
+\fBEBADF\fP
+Mauvais descripteur de fichier (POSIX.1)
+.TP 
+\fBEBADFD\fP
+Descripteur de fichier dans un mauvais état
+.TP 
+\fBEBADMSG\fP
+Mauvais message (POSIX.1)
+.TP 
+\fBEBADR\fP
+Descripteur de requête non valable
+.TP 
+\fBEBADRQC\fP
+Code de requête non valable
+.TP 
+\fBEBADSLT\fP
+.\" EBFONT is defined but appears not to be used by kernel or glibc.
+Emplacement («\ Slot\ ») non valable
+.TP 
+\fBEBUSY\fP
+Périphérique ou ressource indisponible (POSIX.1)
+.TP 
+\fBECANCELED\fP
+Opération annulée (POSIX.1)
+.TP 
+\fBECHILD\fP
+Pas de processus fils (POSIX.1)
+.TP 
+\fBECHRNG\fP
+Numéro de voie hors du domaine de définition
+.TP 
+\fBECOMM\fP
+Échec de la communication lors de l'envoi
+.TP 
+\fBECONNABORTED\fP
+Connexion abandonnée (POSIX.1)
+.TP 
+\fBECONNREFUSED\fP
+Connexion refusée (POSIX.1)
+.TP 
+\fBECONNRESET\fP
+Connexion ré\-initialisée (POSIX.1)
+.TP 
+\fBEDEADLK\fP
+Blocage d'une ressource évité (POSIX.1)
+.TP 
+\fBEDEADLOCK\fP
+Synonyme de \fBEDEADLK\fP
+.TP 
+\fBEDESTADDRREQ\fP
+Adresse de destination nécessaire (POSIX.1)
+.TP 
+\fBEDOM\fP
+.\" EDOTDOT is defined but appears to be unused
+Argument mathématique hors du domaine de définition de la fonction (POSIX.1,
+C99)
+.TP 
+\fBEDQUOT\fP
+.\" POSIX just says "Reserved"
+Quota du disque dépassé (POSIX.1)
+.TP 
+\fBEEXIST\fP
+Fichier existant (POSIX.1)
+.TP 
+\fBEFAULT\fP
+Mauvaise adresse (POSIX.1)
+.TP 
+\fBEFBIG\fP
+Fichier trop grand (POSIX.1)
+.TP 
+\fBEHOSTDOWN\fP
+Hôte éteint
+.TP 
+\fBEHOSTUNREACH\fP
+Hôte non accessible (POSIX.1)
+.TP 
+\fBEIDRM\fP
+Identificateur supprimé (POSIX.1)
+.TP 
+\fBEILSEQ\fP
+Séquence d'octets illégale (POSIX.1, C99)
+.TP 
+\fBEINPROGRESS\fP
+Opération en cours (POSIX.1)
+.TP 
+\fBEINTR\fP
+Appel système interrompu (POSIX.1)\ ; voir \fBsignal\fP(7).
+.TP 
+\fBEINVAL\fP
+Argument invalide (POSIX.1)
+.TP 
+\fBEIO\fP
+Erreur d'entrée/sortie (POSIX.1)
+.TP 
+\fBEISCONN\fP
+La socket est connectée (POSIX.1)
+.TP 
+\fBEISDIR\fP
+Est un répertoire (POSIX.1)
+.TP 
+\fBEISNAM\fP
+Est un fichier nommé
+.TP 
+\fBEKEYEXPIRED\fP
+Clé expirée
+.TP 
+\fBEKEYREJECTED\fP
+La clé a été rejeté par le service
+.TP 
+\fBEKEYREVOKED\fP
+La clé a été révoquée
+.TP 
+\fBEL2HLT\fP
+Niveau 2 arrêté
+.TP 
+\fBEL2NSYNC\fP
+Niveau 2 non synchronisé
+.TP 
+\fBEL3HLT\fP
+Niveau 3 arrêté
+.TP 
+\fBEL3RST\fP
+Niveau 3 arrêté
+.TP 
+\fBELIBACC\fP
+Impossible d'accéder à la bibliothèque partagée nécessaire
+.TP 
+\fBELIBBAD\fP
+Accès à une bibliothèque partagée corrompue
+.TP 
+\fBELIBMAX\fP
+Tentative de liaison avec trop de bibliothèques partagées
+.TP 
+\fBELIBSCN\fP
+Section lib dans a.out corrompue
+.TP 
+\fBELIBEXEC\fP
+Impossible d'exécuter directement une bibliothèque partagée
+.TP 
+\fBELOOP\fP
+.\" ELNRNG is defined but appears to be unused
+Trop de niveau de liens symboliques rencontrés (POSIX.1)
+.TP 
+\fBEMEDIUMTYPE\fP
+Mauvais type de médium
+.TP 
+\fBEMFILE\fP
+Trop de fichiers ouverts (POSIX.1)
+.TP 
+\fBEMLINK\fP
+Trop de liens symboliques (POSIX.1)
+.TP 
+\fBEMSGSIZE\fP
+Message trop long (POSIX.1)
+.TP 
+\fBEMULTIHOP\fP
+.\" POSIX says "Reserved"
+Tentative de saut multiple «\ Multihop\ » (POSIX.1)
+.TP 
+\fBENAMETOOLONG\fP
+.\" ENAVAIL is defined, but appears not to be used
+Nom de fichier trop long (POSIX.1)
+.TP 
+\fBENETDOWN\fP
+Le réseau est désactivé (POSIX.1)
+.TP 
+\fBENETRESET\fP
+Connexion annulée par le réseau (POSIX.1)
+.TP 
+\fBENETUNREACH\fP
+Réseau inaccessible (POSIX.1)
+.TP 
+\fBENFILE\fP
+.\" ENOANO is defined but appears to be unused.
+Trop de fichiers ouverts sur le système (POSIX.1)
+.TP 
+\fBENOBUFS\fP
+.\" ENOCSI is defined but appears to be unused.
+Plus de tampons disponibles (POSIX.1 (option des FLUX XSI))
+.TP 
+\fBENODATA\fP
+Pas de message disponible en tête de la queue de lecture du FLUX (POSIX.1)
+.TP 
+\fBENODEV\fP
+Périphérique inexistant (POSIX.1)
+.TP 
+\fBENOENT\fP
+Fichier ou répertoire inexistant (POSIX.1)
+.TP 
+\fBENOEXEC\fP
+Erreur de format d'exécution (POSIX.1)
+.TP 
+\fBENOKEY\fP
+Clé nécessaire non disponible
+.TP 
+\fBENOLCK\fP
+Pas de verrou disponible (POSIX.1)
+.TP 
+\fBENOLINK\fP
+.\" POSIX says "Reserved"
+Un lien a été disjoint (POSIX.1)
+.TP 
+\fBENOMEDIUM\fP
+Aucun média trouvé
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire (POSIX.1)
+.TP 
+\fBENOMSG\fP
+Pas de message du type attendu (POSIX.1)
+.TP 
+\fBENONET\fP
+La machine n'est pas sur le réseau
+.TP 
+\fBENOPKG\fP
+Paquet non installé
+.TP 
+\fBENOPROTOOPT\fP
+Protocole indisponible (POSIX.1)
+.TP 
+\fBENOSPC\fP
+Plus de place sur le périphérique (POSIX.1)
+.TP 
+\fBENOSR\fP
+Pas de ressources FLUX (POSIX.1 (option des FLUX XSI))
+.TP 
+\fBENOSTR\fP
+Pas un FLUX (POSIX.1 (option des FLUX XSI))
+.TP 
+\fBENOSYS\fP
+Fonction non implémentée (POSIX.1)
+.TP 
+\fBENOTBLK\fP
+Périphérique de bloc nécessaire
+.TP 
+\fBENOTCONN\fP
+La socket n'est pas connectée (POSIX.1)
+.TP 
+\fBENOTDIR\fP
+Pas un répertoire (POSIX.1)
+.TP 
+\fBENOTEMPTY\fP
+.\" ENOTNAM is defined but appears to be unused.
+Répertoire non vide (POSIX.1)
+.TP 
+\fBENOTSOCK\fP
+Pas une socket (POSIX.1)
+.TP 
+\fBENOTSUP\fP
+Opération non supportée (POSIX.1)
+.TP 
+\fBENOTTY\fP
+Opération de contrôle d'entrée/sortie invalide (POSIX.1)
+.TP 
+\fBENOTUNIQ\fP
+Le nom sur le réseau n'est pas unique
+.TP 
+\fBENXIO\fP
+Périphérique ou adresse inexistant (POSIX.1)
+.TP 
+\fBEOPNOTSUPP\fP
+Opération non supportée par la socket (POSIX.1)
+.sp
+(\fBENOTSUP\fP et \fBEOPNOTSUPP\fP ont la même valeur sous Linux, mais selon
+POSIX.1, ces codes d'erreurs doivent être différents).
+.TP 
+\fBEOVERFLOW\fP
+Valeur trop grande pour être sauvé dans ce type de donnée (POSIX.1)
+.TP 
+\fBEPERM\fP
+Opération interdite (POSIX.1)
+.TP 
+\fBEPFNOSUPPORT\fP
+Famille de protocole non supportée
+.TP 
+\fBEPIPE\fP
+Tube cassé (POSIX.1)
+.TP 
+\fBEPROTO\fP
+Erreur de protocole (POSIX.1)
+.TP 
+\fBEPROTONOSUPPORT\fP
+Protocole non supporté (POSIX.1)
+.TP 
+\fBEPROTOTYPE\fP
+Mauvais type de protocole pour la socket (POSIX.1)
+.TP 
+\fBERANGE\fP
+Résultat trop grand (POSIX.1, C99)
+.TP 
+\fBEREMCHG\fP
+Adresse distante changée
+.TP 
+\fBEREMOTE\fP
+L'objet est distant
+.TP 
+\fBEREMOTEIO\fP
+Erreur d'entrées\-sorties distante
+.TP 
+\fBERESTART\fP
+L'appel système interrompu devrait être relancé
+.TP 
+\fBEROFS\fP
+Système de fichiers en lecture seule (POSIX.1)
+.TP 
+\fBESHUTDOWN\fP
+Impossible d'effectuer l'envoi après l'arrêt du point final du transport
+.TP 
+\fBESPIPE\fP
+Recherche invalide (POSIX.1)
+.TP 
+\fBESOCKTNOSUPPORT\fP
+Type de socket non supporté
+.TP 
+\fBESRCH\fP
+.\" ESRMNT is defined but appears not to be used
+Processus inexistant (POSIX.1)
+.TP 
+\fBESTALE\fP
+Vieux descripteur de fichier (POSIX.1)
+.sp
+Cette erreur peut se produire avec le système de fichiers NFS et d'autres
+.TP 
+\fBESTRPIPE\fP
+Tube de flux cassé
+.TP 
+\fBETIME\fP
+Compteur de temps écoulé (POSIX.1 (option des FLUX XSI))
+.sp
+(POSIX.1 dit «\ délai du FLUX \fBioctl\fP(2) dépassé)
+.TP 
+\fBETIMEDOUT\fP
+.\" ETOOMANYREFS is defined, but appears not to be used.
+Délai maximal de connexion écoulé (POSIX.1)
+.TP 
+\fBETXTBSY\fP
+Fichier texte occupé (POSIX.1)
+.TP 
+\fBEUCLEAN\fP
+La structure nécessite un nettoyage
+.TP 
+\fBEUNATCH\fP
+Protocole indisponible
+.TP 
+\fBEUSERS\fP
+Trop d'utilisateurs
+.TP 
+\fBEWOULDBLOCK\fP
+L'opération serait bloquante (peut être la même valeur que \fBEAGAIN\fP)
+(POSIX.1)
+.TP 
+\fBEXDEV\fP
+Lien inapproprié (POSIX.1)
+.TP 
+\fBEXFULL\fP
+Échange plein
+.SH NOTES
+Une erreur fréquente est de faire
+.in +4n
+.nf
+
+if (somecall() == \-1) {
+    printf("somecall() failed\en");
+    if (errno == ...) { ... }
+}
+
+.fi
+.in
+où \fIerrno\fP n'a plus besoin de la valeur qu'elle avait juste après le retour
+de \fIsomecall\fP() (par exemple, elle peut être changée par \fBprintf\fP(3)). Si
+la valeur de \fIerrno\fP doit être préservée à travers un appel bibliothèque,
+elle doit être sauvegardée\ :
+.in +4n
+.nf
+
+if (somecall() == \-1) {
+    int errsv = errno;
+    printf("somecall() failed\en");
+    if (errsv == ...) { ... }
+}
+.fi
+.in
+.PP
+C'est commun en C traditionnel de déclarer \fIerrno\fP manuellement (par
+exemple, \fIextern int errno\fP) au lieu d'inclure \fI<errno.h>\fP. \fBNe
+faites pas ceci\fP. Cela ne fonctionnera pas avec les versions modernes des
+bibliothèque C. Toutefois, sur de (très) vieux systèmes Unix, il peut ne pas
+y avoir de \fI<errno.h>\fP et dans ce cas la déclaration est
+nécessaire.
+.SH "VOIR AUSSI"
+\fBerr\fP(3), \fBerror\fP(3), \fBperror\fP(3), \fBstrerror\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

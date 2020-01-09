@@ -1,0 +1,106 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\" Distributed under GPL
+.\" based on glibc infopages
+.\" polished, aeb
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH REMQUO 3 "11 août 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+remquo, remquof, remquol \- Reste et partie d'un quotient
+.SH SYNOPSIS
+.nf
+\fB#include <math.h>\fP
+.sp
+\fBdouble remquo(double \fP\fIx\fP\fB, double \fP\fIy\fP\fB, int *\fP\fIquo\fP\fB);\fP
+.br
+\fBfloat remquof(float \fP\fIx\fP\fB, float \fP\fIy\fP\fB, int *\fP\fIquo\fP\fB);\fP
+.br
+\fBlong double remquol(long double \fP\fIx\fP\fB, long double \fP\fIy\fP\fB, int *\fP\fIquo\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBremquo\fP(), \fBremquof\fP(), \fBremquol\fP()\ : _XOPEN_SOURCE\ >=\ 600 ||
+_ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.ad b
+.SH DESCRIPTION
+Ces fonctions calculent le reste et la partie du quotient de la division de
+\fIx\fP par \fIy\fP. Quelques bits du quotient sont stockés via le pointeur
+\fIquo\fP. Le reste est renvoyé comme la valeur de retour de la fonction.
+
+La valeur du reste est la même que si elle avait été calculée par la
+fonction \fBremainder\fP(3).
+
+La valeur stockée via le pointeur \fIquo\fP a le signe de \fIx\ /\ y\fP et est
+d'accord avec le quotient sur au moins les 3 bits de poids faible.
+
+.\" A possible application of this function might be the computation
+.\" of sin(x). Compute remquo(x, pi/2, &quo) or so.
+.\"
+.\" glibc, UnixWare: return 3 bits
+.\" MacOS 10: return 7 bits
+Par exemple, \fIremquo(29.0,\ 3.0)\fP renvoie \-1.0 et devrait stocker
+2. Veuillez noter que le quotient actuel peut ne pas tenir sur un entier.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient la même valeur que les fonctions
+analogues décrites dans \fBremainder\fP(3).
+
+Si \fIx\fP ou \fIy\fP est un NaN, un NaN est renvoyé.
+
+Si \fIx\fP est infini et \fIy\fP n'est pas un NaN, une erreur de domaine se
+produit et un NaN est renvoyé.
+
+Si \fIy\fP est nul et \fIx\fP n'est pas un NaN, une erreur de domaine se produit
+et un NaN est renvoyé.
+.SH ERREURS
+Consultez \fBmath_error\fP(7) pour savoir comment déterminer qi une erreur est
+survenue lors de l'appel de ces fonctions.
+.PP
+Les erreurs suivantes peuvent se produire\ :
+.TP 
+Erreur de domaine\ : \fIx\fP est un infini ou \fIy\fP est nul et l'autre paramètre n'est pas un NaN
+.\" .I errno
+.\" is set to
+.\" .BR EDOM .
+Une exception de virgule flottante incorrecte (\fBFE_INVALID\fP) est levée.
+.PP
+.\" FIXME . Is it intentional that these functions do not set errno?
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6802
+Ces fonctions ne positionnent pas \fIerrno\fP.
+.SH VERSIONS
+Ces fonctions ont été introduites dans la glibc dans sa version\ 2.1.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001.
+.SH "VOIR AUSSI"
+\fBfmod\fP(3), \fBlogb\fP(3), \fBremainder\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

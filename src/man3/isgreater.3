@@ -1,0 +1,105 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" Distributed under GPL
+.\" 2002-07-27 Walter Harms
+.\" this was done with the help of the glibc manual
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ISGREATER 3 "5 août 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+isgreater, isgreaterequal, isless, islessequal, islessgreater, isunordered \-
+Relations d'ordre pour nombre à virgule flottante, sans exception pour NaN
+.SH SYNOPSIS
+.nf
+\fB#include <math.h>\fP
+.sp
+\fBint isgreater(\fP\fIx\fP\fB, \fP\fIy\fP\fB);\fP
+.sp
+\fBint isgreaterequal(\fP\fIx\fP\fB, \fP\fIy\fP\fB);\fP
+.sp
+\fBint isless(\fP\fIx\fP\fB, \fP\fIy\fP\fB);\fP
+.sp
+\fBint islessequal(\fP\fIx\fP\fB, \fP\fIy\fP\fB);\fP
+.sp
+\fBint islessgreater(\fP\fIx\fP\fB, \fP\fIy\fP\fB);\fP
+.sp
+\fBint isunordered(\fP\fIx\fP\fB, \fP\fIy\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+Pour toutes les fonctions décrites ici\ : _XOPEN_SOURCE\ >=\ 600 ||
+_ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.ad b
+.SH DESCRIPTION
+L'opérateur normal de relation (comme \fB<\fP, «\ inférieur à\ ») échouera si
+l'un des opérandes est le non nombre NaN. Ceci déclenche une exception. Pour
+l'éviter, C99 définit ces macros. Elles garantissent de n'évaluer leurs
+opérandes qu'une seule fois. Les opérandes peuvent être n'importe quel type
+réel.
+.TP 
+\fBisgreater\fP()
+détermine si \fI(x)\ >\ (y)\fP sans erreur si \fIx\fP ou \fIy\fP vaut NaN.
+.TP 
+\fBisgreaterequal\fP()
+détermine si \fI(x)\ >=\ (y)\fP sans erreur si \fIx\fP ou \fIy\fP vaut NaN.
+.TP 
+\fBisless\fP()
+détermine si \fI(x)\ <\ (y)\fP sans erreur si \fIx\fP ou \fIy\fP vaut NaN.
+.TP 
+\fBislessequal\fP()
+détermine si \fI(x)\ <=\ (y)\fP sans erreur si \fIx\fP ou \fIy\fP vaut NaN.
+.TP 
+\fBislessgreater\fP()
+détermine si \fI(x)\ < (y) || (x) >\ (y)\fP sans erreur si \fIx\fP ou \fIy\fP
+vaut NaN. Cette macro n'est pas équivalente à \fIx\ !=\ y\fP cette expression
+est vraie si \fIx\fP ou \fIy\fP vaut NaN.
+.TP 
+\fBisunordered\fP()
+détermine si ses paramètre n'ont pas d'ordre, c'est\-à\-dire si au moins un de
+ses paramètres est un NaN.
+.SH "VALEUR RENVOYÉE"
+Les macros autres que \fBisunordered\fP() renvoient le résultat de la relation
+d'ordre\ ; ces macros renvoient 0 si l'un des paramètres est un NaN.
+
+\fBisunordered\fP() renvoie 1 si \fIx\fP ou \fIy\fP vaut NaN et 0 sinon.
+.SH ERREURS
+Aucune erreur ne se produit.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001.
+.SH NOTES
+Tous les matériels ne supportent pas ces fonctions, et quand une gestion
+matérielle n'est pas fournie, elle sont émulées par des macros. Cela diminue
+les performances. Ne les utilisez pas si NaN ne vous concerne pas.
+.SH "VOIR AUSSI"
+\fBfpclassify\fP(3), \fBisnan\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

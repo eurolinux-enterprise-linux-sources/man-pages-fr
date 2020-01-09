@@ -1,0 +1,301 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified 1993-05-22, David Metcalfe
+.\" Modified 1993-07-25, Rik Faith (faith@cs.unc.edu)
+.\" Modified 1997-02-16, Andries Brouwer (aeb@cwi.nl)
+.\" Modified 1998-12-21, Andries Brouwer (aeb@cwi.nl)
+.\" Modified 2000-08-12, Andries Brouwer (aeb@cwi.nl)
+.\" Modified 2001-05-19, Andries Brouwer (aeb@cwi.nl)
+.\" Modified 2002-08-05, Michael Kerrisk
+.\" Modified 2004-10-31, Andries Brouwer
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETHOSTBYNAME 3 "15 mars 2009" "" "Manuel du programmeur Linux"
+.SH NOM
+gethostbyname, gethostbyaddr, sethostent, gethostent, endhostent, h_errno,
+herror, hstrerror, gethostbyaddr_r, gethostbyname2, gethostbyname2_r,
+gethostbyname_r, gethostent_r \- Obtenir des informations concernant le
+réseau
+.SH SYNOPSIS
+.nf
+\fB#include <netdb.h>\fP
+\fBextern int h_errno;\fP
+.sp
+\fBstruct hostent *gethostbyname(const char *\fP\fIname\fP\fB);\fP
+.sp
+\fB#include <sys/socket.h>\fP       /* pour AF_INET */
+\fBstruct hostent *gethostbyaddr(const void *\fP\fIaddr\fP\fB,\fP
+\fB                              socklen_t \fP\fIlen\fP\fB, int \fP\fItype\fP\fB);\fP
+.sp
+\fBvoid sethostent(int \fP\fIstayopen\fP\fB);\fP
+.sp
+\fBvoid endhostent(void);\fP
+.sp
+\fBvoid herror(const char *\fP\fIs\fP\fB);\fP
+.sp
+\fBconst char *hstrerror(int \fP\fIerr\fP\fB);\fP
+.sp
+/* Extension System\ V/POSIX */
+.br
+\fBstruct hostent *gethostent(void);\fP
+.sp
+/* Extensions GNU */
+.br
+\fBstruct hostent *gethostbyname2(const char *\fP\fIname\fP\fB, int \fP\fIaf\fP\fB);\fP
+.sp
+\fBint gethostent_r(\fP
+\fB        struct hostent *\fP\fIret\fP\fB, char *\fP\fIbuf\fP\fB, size_t \fP\fIbuflen\fP\fB,\fP
+\fB        struct hostent **\fP\fIresult\fP\fB, int *\fP\fIh_errnop\fP\fB);\fP
+.sp
+\fBint gethostbyaddr_r(const void *\fP\fIaddr\fP\fB, socklen_t \fP\fIlen\fP\fB, int \fP\fItype\fP\fB,\fP
+\fB        struct hostent *\fP\fIret\fP\fB, char *\fP\fIbuf\fP\fB, size_t \fP\fIbuflen\fP\fB,\fP
+\fB        struct hostent **\fP\fIresult\fP\fB, int *\fP\fIh_errnop\fP\fB);\fP
+.sp
+\fBint gethostbyname_r(const char *\fP\fIname\fP\fB,\fP
+\fB        struct hostent *\fP\fIret\fP\fB, char *\fP\fIbuf\fP\fB, size_t \fP\fIbuflen\fP\fB,\fP
+\fB        struct hostent **\fP\fIresult\fP\fB, int *\fP\fIh_errnop\fP\fB);\fP
+.sp
+\fBint gethostbyname2_r(const char *\fP\fIname\fP\fB, int \fP\fIaf,\fP
+\fB        struct hostent *\fP\fIret\fP\fB, char *\fP\fIbuf\fP\fB, size_t \fP\fIbuflen\fP\fB,\fP
+\fB        struct hostent **\fP\fIresult\fP\fB, int *\fP\fIh_errnop\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBgethostbyname2\fP(), \fBgethostent_r\fP(), \fBgethostbyaddr_r\fP(),
+\fBgethostbyname_r\fP(), \fBgethostbyname2_r\fP()\ : _BSD_SOURCE || _SVID_SOURCE
+.ad b
+.SH DESCRIPTION
+\fBgethostbyname*\fP() et \fBgethostbyaddr*\fP() sont déconseillées. Les
+applications devraient utiliser \fBgetaddrinfo\fP(3) et \fBgetnameinfo\fP(3) à la
+place.
+
+La fonction \fBgethostbyname\fP() renvoie une structure de type \fIhostent\fP pour
+l'hôte \fIname\fP. La chaîne \fIname\fP est soit un nom d'hôte, soit une adresse
+IPv4 en notation pointée standard (comme pour \fBinet_addr\fP(3)), soit une
+adresse IPv6 avec la notation points\-virgules et points (Cf RFC\ 1884 pour
+la description des adresses IPv6). Si \fIname\fP est une adresse IPv4 ou IPv6,
+aucune recherche supplémentaire n'a lieu et \fBgethostbyname\fP() copie
+simplement la chaîne \fIname\fP dans le champ \fIh_name\fP et le champ équivalent
+\fIstruct in_addr\fP dans le champ \fIh_addr_list[0]\fP de la structure \fIhostent\fP
+renvoyée. Si \fIname\fP ne se termine pas par un point, et si la variable
+d'environnement \fBHOSTALIASES\fP est configurée, le fichier d'alias pointé par
+\fBHOSTALIASES\fP sera d'abord parcouru à la recherche de \fIname\fP (voyez
+\fBhostname\fP(7) pour le format du fichier). Le domaine courant et ses parents
+sont parcourus si \fIname\fP ne se termine pas par un point.
+.PP
+La fonction \fBgethostbyaddr\fP() renvoie une structure du type \fIhostent\fP pour
+l'hôte d'adresse \fIaddr\fP. Cette adresse est de longueur \fIlen\fP et du type
+\fItype\fP. Les types d'adresse valides sont \fBAF_INET\fP et
+\fBAF_INET6\fP. L'argument adresse de l'hôte est un pointeur vers une structure
+de type dépendant du type de l'adresse, par exemple \fIstruct in_addr *\fP
+(probablement obtenu via un appel à \fBinet_addr\fP(3)) pour une adresse de
+type \fBAF_INET\fP.
+.PP
+La fonction \fBsethostent\fP() indique, si \fIstayopen\fP est vrai (vaut 1),
+qu'une socket TCP connectée doit être utilisée pour interroger le serveur de
+noms et que la connexion doit rester ouverte durant les demandes
+successives. Sinon l'interrogation utilisera des datagrammes UDP.
+.PP
+La fonction \fBendhostent\fP() ferme la socket TCP connectée utilisée pour
+interroger le serveur de noms.
+.PP
+La fonction (obsolète) \fBherror\fP() affiche le message d'erreur associé avec
+la valeur courante de \fIh_errno\fP sur la sortie standard \fIstderr\fP.
+.PP
+La fonction (obsolète) \fBhstrerror\fP() reçoit un numéro d'erreur en argument
+(typiquement \fIh_errno\fP) et renvoie la chaîne de message d'erreur.
+.PP
+.\" (See
+.\" .BR resolv+ (8)).
+Les interrogations du serveur de noms effectuées par \fBgethostbyname\fP() et
+\fBgethostbyaddr\fP() utilisent les éléments suivants\ : le serveur de noms
+\fBnamed\fP(8), les lignes de \fI/etc/hosts\fP, et l'annuaire Network Information
+Service (NIS ou YP), suivant le contenu de la ligne \fIorder\fP du fichier
+\fI/etc/host.conf\fP. L'action par défaut consiste à interroger \fBnamed\fP(8),
+puis \fI/etc/hosts\fP.
+.PP
+La structure \fIhostent\fP est définie ainsi dans \fI<netdb.h>\fP\ :
+.sp
+.in +4n
+.nf
+.ne 7
+struct hostent {
+    char  *h_name;            /* Nom officiel de l'hôte */
+    char **h_aliases;         /* Liste d'alias */
+    int    h_addrtype;        /* Type d'adresse de l'hôte */
+    int    h_length;          /* Longueur de l'adresse */
+    char **h_addr_list;       /* Liste d'adresses */
+}
+#define h_addr h_addr_list[0] /* for backward compatibility */
+.fi
+.in
+.PP
+Les membres de la structure \fIhostent\fP sont\ :
+.TP 
+\fIh_name\fP
+Nom officiel de l'hôte.
+.TP 
+\fIh_aliases\fP
+Un tableau, terminé par un pointeur NULL, d'alternatives au nom officiel de
+l'hôte.
+.TP 
+\fIh_addrtype\fP
+Le type d'adresse\ : actuellement toujours \fBAF_INET\fP ou \fBAF_INET6\fP.
+.TP 
+\fIh_length\fP
+La longueur, en octets, de l'adresse.
+.TP 
+\fIh_addr_list\fP
+Un tableau, terminé par un pointeur NULL, d'adresses réseau pour l'hôte,
+avec l'ordre des octets du réseau.
+.TP 
+\fIh_addr\fP
+La première adresse dans \fIh_addr_list\fP pour respecter la compatibilité
+ascendante.
+.SH "VALEUR RENVOYÉE"
+Les fonctions \fBgethostbyname\fP() et \fBgethostbyaddr\fP() renvoient un pointeur
+vers la structure \fIhostent\fP, ou un pointeur NULL si une erreur se produit,
+auquel cas \fIh_errno\fP contient le code d'erreur. Lorsqu'elle n'est pas NULL,
+la valeur de retour peut pointer sur une donnée statique. Voyez les notes
+plus loin.
+.SH ERREURS
+La variable \fIh_errno\fP peut prendre les valeurs suivantes\ :
+.TP 
+\fBHOST_NOT_FOUND\fP
+L'hôte indiqué est inconnu.
+.TP 
+\fBNO_ADDRESS\fP ou \fBNO_DATA\fP
+Le nom est valide mais ne possède pas d'adresse IP.
+.TP 
+\fBNO_RECOVERY\fP
+Une erreur fatale du serveur de noms est apparue.
+.TP 
+\fBTRY_AGAIN\fP
+Une erreur temporaire du serveur de noms est apparue, essayez un peu plus
+tard.
+.SH FICHIERS
+.TP 
+\fI/etc/host.conf\fP
+Fichier de configuration de la résolution de noms.
+.TP 
+\fI/etc/hosts\fP
+Base de données des hôtes.
+.TP 
+\fI/etc/nsswitch.conf\fP
+Configuration du service de noms.
+.SH CONFORMITÉ
+POSIX.1\-2001 spécifie \fBgethostbyname\fP(), \fBgethostbyaddr\fP(),
+\fBsethostent\fP(), \fBendhostent\fP(), \fBgethostent\fP() et
+\fIh_errno\fP. \fBgethostbyname\fP(), \fBgethostbyaddr\fP(), et \fIh_errno\fP sont
+marquées obsolètes dans ce standard. POSIX.1\-2008 supprime les
+spécifications de \fBgethostbyname\fP(), \fBgethostbyaddr\fP() et \fIh_errno\fP et
+recommande à la place l'utilisation de \fBgetaddrinfo\fP(3) et
+\fBgetnameinfo\fP(3).
+.SH NOTES
+Les fonctions \fBgethostbyname\fP() et \fBgethostbyaddr\fP() peuvent renvoyer des
+pointeurs sur des données statiques susceptibles d'être écrasées d'un appel
+à l'autre. Copier la structure \fIstruct hostent\fP ne suffit pas car elle
+contient elle\-même des pointeurs. Une copie en profondeur est indispensable.
+.LP
+Dans l'implémentation BSD originale, l'argument \fIlen\fP de \fBgethostbyname\fP()
+était un \fIint\fP. Les spécifications SUS\-v2 sont défectueuses et déclarent le
+paramètre \fIlen\fP de \fBgethostbyaddr\fP() comme étant de type \fIsize_t\fP (ceci
+est erroné car il doit obligatoirement être un \fIint\fP, ce que \fIsize_t\fP
+n'est pas toujours. POSIX.1\-2001 le déclare \fIsocklen_t\fP, ce qui est
+correct). Consultez également \fBaccept\fP(2).
+.LP
+Le prototype BSD pour \fBgethostbyaddr\fP() utilise \fIconst char *\fP comme
+premier argument.
+.SS "Extension System\ V/POSIX"
+.\" e.g., Linux, FreeBSD, Unixware, HP-UX
+.\" e.g., FreeBSD, AIX
+POSIX réclame l'appel \fBgethostent\fP(), qui devrait renvoyer la prochaine
+entrée de la base de données des hôtes. Avec DNS/BIND, cela n'a pas plus de
+sens, mais cela peut être raisonnable si la base de données des hôtes est un
+fichier qui peut être lu ligne par ligne. Sur beaucoup de systèmes, une
+routine de ce nom lit le fichier \fI/etc/hosts\fP. Elle est disponible que
+lorsque la bibliothèque est construite sans la gestion DNS. L'équivalent de
+la glibc ignore les entrées IPv6. Cette fonction n'est pas ré\-entrante, mais
+la glibc propose une version ré\-entrante, \fBgethostent_r\fP().
+.SS "Extensions GNU"
+La glibc2 propose aussi une fonction \fBgethostbyname2\fP() qui agit comme
+\fBgethostbyname\fP(), qui permet de préciser la famille à laquelle l'adresse
+doit appartenir.
+.LP
+La glibc2 propose aussi les versions ré\-entrantes \fBgethostent_r\fP(),
+\fBgethostbyaddr_r\fP(), \fBgethostbyname_r\fP() et
+\fBgethostbyname2_r\fP(). L'appelant fournit une structure \fIhostent\fP via
+\fIret\fP qui sera remplie en cas de succès et un tampon de travail temporaire
+\fIbuf\fP de taille \fIbuflen\fP. Après l'appel, \fIresult\fP pointera vers le
+résultat en cas de succès. En cas d'erreur ou si aucune entrée n'a été
+trouvée, \fIresult\fP vaudra NULL Les fonctions renvoient 0 en cas de succès et
+une valeur non nulle en cas d'erreur. En plus des erreurs renvoyées par ces
+fonctions ré\-entrantes, si \fIbuf\fP est trop petit, les fonctions renvoient
+\fBERANGE\fP et l'appel devra être effectué par la suite avec un tampon plus
+grand. La variable \fIh_errno\fP n'est pas modifiée, mais l'adresse d'une
+variable où est stocké le code d'erreur est transmise dans \fIh_errnop\fP.
+.SH BOGUES
+.\" http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=482973
+\fBgethostbyname\fP() ne reconnaît pas les éléments d'une adresse IPv4 en
+notation pointée si ces éléments sont exprimés en hexadécimal.
+.SH "VOIR AUSSI"
+.\" .BR getipnodebyaddr (3),
+.\" .BR getipnodebyname (3),
+.\" .BR resolv+ (8)
+\fBgetaddrinfo\fP(3), \fBgetnameinfo\fP(3), \fBinet\fP(3), \fBinet_ntop\fP(3),
+\fBinet_pton\fP(3), \fBresolver\fP(3), \fBhosts\fP(5), \fBnsswitch.conf\fP(5),
+\fBhostname\fP(7), \fBnamed\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

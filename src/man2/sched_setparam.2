@@ -1,0 +1,122 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) Tom Bjorkholm & Markus Kuhn, 1996
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" 1996-04-01 Tom Bjorkholm <tomb@mydata.se>
+.\"            First version written
+.\" 1996-04-10 Markus Kuhn <mskuhn@cip.informatik.uni-erlangen.de>
+.\"            revision
+.\" Modified 2004-05-27 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SCHED_SETPARAM 2 "23 mars 2006" Linux "Manuel du programmeur Linux"
+.SH NOM
+sched_getparam, sched_setparam \- Lire/écrire les paramètres
+d'ordonnancement.
+.SH SYNOPSIS
+.nf
+\fB#include <sched.h>\fP
+.sp
+\fBint sched_setparam(pid_t \fP\fIpid\fP\fB, const struct sched_param *\fP\fIparam\fP\fB);\fP
+.sp
+\fBint sched_getparam(pid_t \fP\fIpid\fP\fB, struct sched_param *\fP\fIparam\fP\fB);\fP
+.sp
+\fBstruct sched_param {
+    ...
+    int \fP\fIsched_priority\fP\fB;
+    ...
+};\fP
+.fi
+.SH DESCRIPTION
+\fBsched_setparam\fP() fixe les paramètres associés à la politique
+d'ordonnancement du processus identifié par \fIpid\fP. Si \fIpid\fP vaut zéro, les
+paramètres concernant le processus appelant sont fixés. L'interprétation du
+paramètre \fIparam\fP dépend de la politique d'ordonnancement du processus
+identifié par \fIpid\fP. Voir \fBsched_setscheduler\fP(2) pour une description des
+politiques d'ordonnancement possibles sous Linux.
+
+\fBsched_getparam\fP() lit les paramètres associés à la politique
+d'ordonnancement du processus identifié par \fIpid\fP. Si \fIpid\fP vaut zéro, les
+paramètres concernant le processus appelant sont lus.
+
+\fBsched_setparam\fP() vérifie la validité de \fIparam\fP pour la politique
+concernée. Le valeur de \fIparam\->sched_priority\fP doit se situer dans
+l'intervalle obtenu par \fBsched_get_priority_min\fP(2) et
+\fBsched_get_priority_max\fP(2).
+
+Pour une explication des privilèges et limites de ressources liées à la
+priorité et à la politique d'ordonnancement, voir \fBsched_setscheduler\fP(2).
+
+Les systèmes POSIX sur lesquels \fBsched_setparam\fP() et \fBsched_getparam\fP()
+sont disponibles définissent \fB_POSIX_PRIORITY_SCHEDULING\fP dans
+\fI<unistd.h>\fP.
+.SH "VALEUR RENVOYÉE"
+\fBsched_setparam\fP() et \fBsched_getparam\fP() renvoient 0 s'ils réussissent. En
+cas d'échec, \-1 est renvoyé, et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+Le paramètre \fIparam\fP n'a pas de sens pour la politique d'ordonnancement
+utilisée.
+.TP 
+\fBEPERM\fP
+L'appelant n'a pas les privilèges nécessaires (Linux\ : n'a pas la capacité
+\fBCAP_SYS_NICE\fP).
+.TP 
+\fBESRCH\fP
+Le processus numéro \fIpid\fP n'existe pas.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH "VOIR AUSSI"
+\fBgetpriority\fP(2), \fBnice\fP(2), \fBsched_get_priority_max\fP(2),
+\fBsched_get_priority_min\fP(2), \fBsched_getaffinity\fP(2),
+\fBsched_getscheduler\fP(2), \fBsched_setaffinity\fP(2), \fBsched_setscheduler\fP(2),
+\fBsetpriority\fP(2), \fBcapabilities\fP(7)
+.PP
+\fIProgramming for the real world \- POSIX.4\fP de Bill O. Gallmeister, O'Reilly
+& Associates, Inc., ISBN 1\-56592\-074\-0
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

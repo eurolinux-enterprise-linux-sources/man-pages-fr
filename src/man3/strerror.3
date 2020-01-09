@@ -1,0 +1,150 @@
+.\" Copyright (C) 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright (C) 2005, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 18:05:30 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Fri Feb 16 14:25:17 1996 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified Sun Jul 21 20:55:44 1996 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified Mon Oct 15 21:16:25 2001 by John Levon <moz@compsoc.man.ac.uk>
+.\" Modified Tue Oct 16 00:04:43 2001 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified Fri Jun 20 03:04:30 2003 by Andries Brouwer <aeb@cwi.nl>
+.\" 2005-12-13, mtk, Substantial rewrite of strerror_r() description
+.\"         Addition of extra material on portability and standards.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STRERROR 3 "30 mars 2009" "" "Manuel du programmeur Linux"
+.SH NOM
+strerror, strerror_r \- Obtenir le libellé d'un numéro d'erreur
+.SH SYNOPSIS
+.nf
+\fB#include <string.h>\fP
+.sp
+\fBchar *strerror(int \fP\fIerrnum\fP\fB);\fP
+.sp
+\fBint strerror_r(int \fP\fIerrnum\fP\fB, char *\fP\fIbuf\fP\fB, size_t \fP\fIbuflen\fP\fB);\fP
+            /* conforme XSI */
+.sp
+\fBchar *strerror_r(int \fP\fIerrnum\fP\fB, char *\fP\fIbuf\fP\fB, size_t \fP\fIbuflen\fP\fB);\fP
+            /* spécifique GNU */
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+La version compatible XSI de \fBstrerror_r\fP() est fournie si\ :
+.br
+(_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !\
+_GNU_SOURCE
+.br
+Autrement, c'est la version GNU qui est fournie.
+.SH DESCRIPTION
+La fonction \fBstrerror\fP() renvoie un pointeur vers une chaîne qui décrit le
+code d'erreur passé en argument \fIerrnum\fP, en utilisant éventuellement la
+catégorie \fBLC_MESSAGES\fP de la localisation pour sélectionner la langue
+appropriée. Cette chaîne ne doit pas être modifiée par l'application, mais
+peut être écrasée par un appel ultérieur à \fBperror\fP(3) ou
+\fBstrerror\fP(). Aucune autre fonction de bibliothèque ne modifie cette
+chaîne.
+
+La fonction \fBstrerror_r\fP() est identique à \fBstrerror\fP() mais fonctionne
+correctement dans un environnement multithread. Cette fonction est
+disponible en deux versions\ : une version conforme XSI spécifiée dans
+POSIX.1\-2001 (disponible depuis la glibc 2.3.4) et une version spécifique
+GNU (disponible depuis la glibc 2.0). La version compatible XSI est fournie
+par la macro de test mentionnée dans le SYNOPSIS\  sino la version spécifique
+GNU est fournie. Si aucune macro de test n'est définie explicitement, alors
+(depuis la glibc 2.4) \fB_POSIX_SOURCE\fP est définie par défaut avec la valeur
+200112L, de telle sorte que la version compatible XSI de \fBstrerror_r\fP() est
+fournie par défaut.
+
+La version de \fBstrerror_r\fP() conforme XSI est préférée pour les
+applications portables. Elle renvoie la chaîne dans le tampon \fIbuf\fP de
+longueur \fIbuflen\fP fourni par l'appelant.
+
+La version de \fBstrerror_r\fP() spécifique GNU renvoie un pointeur sur une
+chaîne contenant le message d'erreur. Cela peut être soit un pointeur vers
+une chaîne que la fonction stocke dans \fIbuf\fP, soit un pointeur vers une
+chaîne statique (immuable) (auquel cas \fIbuf\fP n'est pas utilisé). Si la
+fonction stocke une chaîne dans \fIbuf\fP, au plus \fIbuflen\fP octets sont
+stockés (la chaîne peut être tronquée si \fIbuflen\fP est trop petit) et la
+chaîne inclut toujours l'octet nul de terminaison.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBstrerror\fP() et la fonction GNU \fBstrerror_r\fP() renvoient la
+description correspondant au code transmis, ou un message «\ Unknown error
+nnn\ » si le numéro d'erreur n'existe pas.
+
+La fonction \fBstrerror_r\fP() conforme XSI renvoie 0 si elle réussit et \-1 si
+elle échoue et écrit \fIerrno\fP pour indiquer l'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+La valeur de \fIerrnum\fP n'est pas un code d'erreur valide.
+.TP 
+\fBERANGE\fP
+Le tampon fourni n'est pas assez grand.
+.SH CONFORMITÉ
+\fBstrerror\fP() est spécifiée par POSIX.1\-2001, C89 et C99. \fBstrerror_r\fP()
+est spécifiée par POSIX.1\-2001.
+
+La fonction \fBstrerror_r\fP() spécifique GNU n'est pas une extension standard.
+
+.\" e.g., Solaris 8, HP-UX 11
+.\" e.g., FreeBSD 5.4, Tru64 5.1B
+POSIX.1\-2001 permet à \fBstrerror\fP() d'écrire \fIerrno\fP si l'appel rencontre
+une erreur mais ne spécifie pas quelle valeur devrait être retournée comme
+résultat de fonction dans l'éventualité d'une erreur. Sur certains systèmes,
+\fBstrerror\fP() renvoie NULL si le numéro d'erreur est inconnu. Sur d'autres,
+\fBstrerror\fP() renvoie une chaîne du style «\ Error nnn occurred\ » et écrit
+\fBEINVAL\fP dans \fIerrno\fP si le numéro d'erreur est inconnu.
+.SH "VOIR AUSSI"
+\fBerr\fP(3), \fBerrno\fP(3), \fBerror\fP(3), \fBperror\fP(3), \fBstrsignal\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

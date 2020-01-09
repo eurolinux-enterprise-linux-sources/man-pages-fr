@@ -1,0 +1,215 @@
+.\" Copyright (C) 1995 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Written 11 June 1995 by Andries Brouwer <aeb@cwi.nl>
+.\" 2008-02-15, Jeremy Kerr <jk@ozlabs.org>
+.\"     Add info on command type 10; add details on types 6, 7, 8, & 9.
+.\" 2008-02-15, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Update LOG_BUF_LEN details; update RETURN VALUE section.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYSLOG 2 "20 juin 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+syslog, klogctl \- Lire et/ou effacer les tampons circulaires de messages du
+noyau.
+.SH SYNOPSIS
+.nf
+\fBint syslog(int \fP\fItype\fP\fB, char *\fP\fIbufp\fP\fB, int \fP\fIlen\fP\fB);\fP
+\fB/* Pas de fonction fournie par glibc */\fP
+.sp
+/* L'interface glibc */
+.br
+\fB#include <sys/klog.h>\fP
+.sp
+\fBint klogctl(int \fP\fItype\fP\fB, char *\fP\fIbufp\fP\fB, int \fP\fIlen\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Si vous avez besoin de la fonction \fBsyslog\fP() de la bibliothèque C (qui
+communique avec \fBsyslogd\fP(8)), voyez \fBsyslog\fP(3). L'appel système de ce
+nom contrôle le tampon \fIprintk\fP() du noyau, et la version glibc est appelée
+\fBklogctl\fP().
+
+L'argument \fItype\fP détermine l'action effectuée par cette fonction.
+
+Extrait de \fIkernel/printk.c\fP:
+.nf
+/*
+ * Commandes de sys_syslog\ :
+ *
+ *    0 \-\- Fermer le journal (actuellement NOP)
+ *    1 \-\- ouvrir le journal (actuellement NOP)
+ *    2 \-\- Lire depuis le journal
+ *    3 \-\- Lire tous les derniers messages du tampon circulaire
+ *    4 \-\- Lire et effacer tous les derniers messages du tampon circulaire
+ *    5 \-\- Vider le tampon circulaire
+ *    6 \-\- Désactiver printk sur la console
+ *    7 \-\- Activer printk sur la console
+ *    8 \-\- Indiquer le niveau des messages à afficher sur la console
+ *    9 \-\- Renvoie le nombre de caractères non lus dans le tampon
+ *   10 \-\- Renvoie la taille du tampon de journalisation
+ */
+.fi
+
+Seules les commandes 3 et 10 sont permises pour les processus non
+privilégiés. Le type 9 a été ajouté dans 2.4.10\ ; le type 10 dans 2.6.6.
+.SS "Le tampon de journalisation du noyau."
+.\" Under "General setup" ==> "Kernel log buffer size"
+.\" For 2.6, precisely the option seems to have appeared in 2.5.55.
+Le noyau dispose d'un tampon circulaire d'une longueur \fBLOG_BUF_LEN\fP dans
+lequel il stocke les messages fournis en paramètre à la fonction du noyau
+\fBprintk\fP() (sans tenir compte du niveau de journalisation). Dans les
+premiers noyaux, \fBLOG_BUF_LEN\fP avait pour valeur 4096\ ; à partir du noyau
+1.3.54 elle valait 8192\ ; à partir du noyau 2.1.113 elle valait 16384;
+depuis 2.4.23/2.6 la valeur est une option de configuration du noyau. Dans
+les noyaux récent, la taille peut être demandée avec la commande de type 10.
+
+L'appel \fIsyslog(2,buf,len)\fP attend que ce journal soit non vide, puis lit
+au plus \fIlen\fP octets qu'il place dans le tampon \fIbuf\fP. Il renvoie le
+nombre d'octets lus. Les octets lus sont extraits du journal\ : les
+informations ne peuvent être lues qu'une seule fois. C'est la fonction
+exécutée par le noyau quand un programme utilisateur lit \fI/proc/kmsg\fP.
+
+L'appel \fIsyslog(3,buf,len)\fP lit les \fIlen\fP dernier octets depuis le journal
+(de manière non destructive). Il ne lira pas plus que ce qui a été écrit
+dans le tampon depuis la dernière commande de nettoyage (commande «\ clear
+ring buffer\ », qui ne nettoie pas en fait le tampon). Il renvoie le nombre
+d'octets lus.
+
+L'appel \fIsyslog(4,buf,len)\fP effectue la même chose puis vide le tampon
+(avec la commande «\ clear ring buffer\ »).
+
+L'appel \fIsyslog(5,dummy,dummy)\fP vide uniquement le tampon (avec la commande
+«\ clear ring buffer\ »). (Dans tous les appels pour lesquels \fIbuf\fP ou \fIlen\fP
+est remplacé par «\ dummy\ », la valeur du paramètre est ignoré par l'appel).
+
+L'appel \fIsyslog(6,dummy,dummy)\fP fixe le niveau de journalisation de la
+console au minimum, de telle sorte qu'aucun message n'est affiché sur la
+console.
+
+L'appel \fIsyslog(7,dummy,dummy)\fP fixe le niveau de journalisation de la
+console à la valeur par défaut, de telle sorte que des messages soient
+affichés sur la console.
+
+L'appel \fIsyslog(8,dummy,level)\fP fixe le niveau de journalisation de la
+console à \fIlevel\fP, qui doit être un entier compris entre 1 et 8
+(inclus). Consultez la section \fBLe niveau de journalisation (loglevel)\fP
+pour plus de détails.
+
+L'appel \fIsyslog(9,dummy,dummy)\fP renvoie le nombre d'octets actuellement
+disponibles en lecture dans le tampon de journalisation du noyau.
+
+L'appel \fIsyslog(10,dummy,dummy)\fP renvoie la taille totale du tampon de
+journalisation du noyau.
+.SS "Le niveau de journalisation (loglevel)"
+La routine du noyau \fBprintk\fP() n'écrira un message sur la console que si
+celui\-ci a un niveau de journalisation inférieur à la valeur de la variable
+\fIconsole_loglevel\fP. Initialement la valeur de cette variable est
+\fBDEFAULT_CONSOLE_LOGLEVEL\fP (7), mais elle est augmentée à 10 si la ligne de
+commande du noyau contient le mot «\ debug\ », et à 15 si une faute du noyau
+se produit (en réalité, les valeurs 10 et 15 sont idiotes et n'apportent
+rien de plus que 8). Cette variable est positionnée (dans l'intervalle
+1\(en8) par l'appel \fIsyslog(8,dummy,value)\fP. L'appel
+\fIsyslog(type,dummy,dummy)\fP avec \fItype\fP égal à 6 ou 7 la positionne à 1
+(seulement les messages kernel panics) ou 7 (tout sauf les messages de
+débogage), respectivement.
+
+Chaque ligne de texte dans un message a son propre niveau de
+journalisation. Ce niveau est \fIDEFAULT_MESSAGE_LOGLEVEL \- 1\fP (6) à moins
+que la ligne ne commence par <d> où \fId\fP est un chiffre dans
+l'intervalle 1\(en7. La signification conventionnelle des niveaux de
+journalisation est définie dans \fI<linux/kernel.h>\fP comme suit\ :
+
+.nf
+#define KERN_EMERG    "<0>"  /* système inutilisable             */
+#define KERN_ALERT    "<1>"  /* action à effectuer immédiatement */
+#define KERN_CRIT     "<2>"  /* conditions critiques             */
+#define KERN_ERR      "<3>"  /* conditions d'erreurs             */
+#define KERN_WARNING  "<4>"  /* message d'avertissement          */
+#define KERN_NOTICE   "<5>"  /* normal mais significatif         */
+#define KERN_INFO     "<6>"  /* informations                     */
+#define KERN_DEBUG    "<7>"  /* messages de débugging            */
+.fi
+.SH "VALEUR RENVOYÉE"
+Quand \fItype\fP est égal à 2, 3 ou 4, un appel réussi à \fBsyslog\fP() renvoie le
+nombre d'octets lus. Pour le \fItype\fP 9, \fBsyslog\fP() renvoie le nombre
+d'octets disponibles actuellement en lecture dans le tampon de
+journalisation du noyau. Pour le \fItype\fP 10, \fBsyslog\fP() renvoie la taille
+totale du tampon de journalisation du noyau. Pour les autres valeurs de
+\fItype\fP, 0 est renvoyé en cas de succès.
+
+En cas d'erreur, \-1 est renvoyé et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+Mauvais paramètres (par exemple, mauvais \fItype\fP\ ; ou \fItype\fP égal à 2, 3 ou
+4 et \fIbuf\fP est NULL, ou \fIlen\fP est inférieur à 0\ ; ou pour \fItype\fP égal à
+8, le niveau \fIlevel\fP est en dehors de l'intervalle allant de 1 à 8).
+.TP 
+\fBEPERM\fP
+Une tentative de changer console_loglevel ou d'effacer le tampon circulaire
+du noyau par un processus sans les privilèges suffisants (plus précisément
+sans la capacité \fBCAP_SYS_ADMIN\fP).
+.TP 
+\fBERESTARTSYS\fP
+L'appel système a été interrompu par un signal, et rien n'a été lu. (Ceci ne
+peut être vu que pendant un suivi de processus).
+.TP 
+\fBENOSYS\fP
+L'appel système \fBsyslog\fP() n'est pas disponible car le noyau a été compilé
+sans que l'option \fBCONFIG_PRINTK\fP de configuration du noyau n'ait été
+activée.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux et ne devrait pas être employé dans
+des programmes destinés à être portables.
+.SH NOTES
+Depuis longtemps, des gens trouvent regrettable qu'un appel système et une
+routine de bibliothèque aient le même nom bien qu'ils n'aient pas de rapport
+entre eux. Dans les libc4 et libc5 le numéro de cet appel système était
+défini par \fBSYS_klog\fP. Dans la glibc 2.0, l'appel système est nommé
+\fBklogctl\fP().
+.SH "VOIR AUSSI"
+\fBsyslog\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

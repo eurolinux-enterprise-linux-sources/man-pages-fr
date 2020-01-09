@@ -1,0 +1,129 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" License.
+.\" Modified Wed Jul 28 11:12:07 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Fri Sep  8 15:48:13 1995 by Andries Brouwer (aeb@cwi.nl)
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETS 3 "6 août 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+gets, fgetc, fgets, getc, getchar, ungetc \- Saisie de caractères et de
+chaînes
+.SH SYNOPSIS
+.nf
+\fB#include <stdio.h>\fP
+.sp
+\fBint fgetc(FILE *\fP\fIstream\fP\fB);\fP
+
+\fBchar *fgets(char *\fP\fIs\fP\fB, int \fP\fIsize\fP\fB, FILE *\fP\fIstream\fP\fB);\fP
+
+\fBint getc(FILE *\fP\fIstream\fP\fB);\fP
+
+\fBint getchar(void);\fP
+
+\fBchar *gets(char *\fP\fIs\fP\fB);\fP
+
+\fBint ungetc(int \fP\fIc\fP\fB, FILE *\fP\fIstream\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBfgetc\fP() lit le caractère suivant depuis le flux \fIstream\fP et le renvoie
+sous forme d'un \fIunsigned char\fP, transformé en \fIint\fP, ou \fBEOF\fP en cas
+d'erreur ou de fin de fichier.
+.PP
+\fBgetc\fP() est équivalent à \fBfgetc\fP() sauf qu'il peut être implémenté sous
+forme de macro, qui évalue l'argument \fIstream\fP plusieurs fois.
+.PP
+\fBgetchar\fP() est équivalent à \fBgetc(\fP\fIstdin\fP\fB)\fP.
+.PP
+\fBgets\fP() lit une ligne depuis \fIstdin\fP et la place dans le tampon pointé
+par \fIs\fP jusqu'à atteindre un retour\-chariot, ou \fBEOF\fP, qu'il remplace par
+\fB\(aq\e0\(aq\fP. Il n'y a pas de vérification de débordement de tampon (voir
+la section BOGUES plus bas).
+.PP
+\fBfgets\fP() lit au plus \fIsize \- 1\fP caractères depuis \fIstream\fP et les place
+dans le tampon pointé par \fIs\fP. La lecture s'arrête après \fBEOF\fP ou un
+retour\-chariot. Si un retour\-chariot (newline) est lu, il est placé dans le
+tampon. Un caractère nul \fB\(aq\e0\(aq\fP est placé à la fin de la ligne.
+.PP
+\fBungetc\fP() replace le caractère \fIc\fP dans le flux \fIstream\fP, en le
+transformant en \fIunsigned char\fP, où il sera disponible pour une lecture
+ultérieure. Les caractères replacés seront renvoyés en ordre inverse. Le
+fonctionnement n'est garanti que pour le replacement d'un seul caractère.
+.PP
+Les fonctions décrites ci\-dessus peuvent être utilisées conjointement, ainsi
+qu'avec les autres fonctions de lecture de la bibliothèque \fIstdio\fP.
+.PP
+Pour des versions de ces fonctions ignorant les verrouillages, voir
+\fBunlocked_stdio\fP(3).
+.SH "VALEUR RENVOYÉE"
+\fBfgetc\fP(), \fBgetc\fP() et \fBgetchar\fP() renvoient un caractère, lu comme un
+\fIunsigned char\fP, et transformé en \fIint\fP, ou \fBEOF\fP à la fin du fichier, ou
+en cas d'erreur.
+.PP
+\fBgets\fP() et \fBfgets\fP() renvoient le pointeur \fIs\fP si elles réussissent, et
+NULL en cas d'erreur, ou si la fin de fichier est atteinte avant d'avoir pu
+lire au moins un caractère.
+.PP
+\fBungetc\fP() renvoie \fIc\fP s'il réussit, ou \fBEOF\fP en cas d'erreur.
+.SH CONFORMITÉ
+C89, C99, POSIX.1\-2001. LSB marque \fBgets\fP() comme étant
+obsolète. POSIX.1\-2008 supprime la spécification de \fBgets\fP().
+.SH BOGUES
+N'utilisez jamais \fBgets\fP(). Comme il est impossible de savoir à l'avance
+combien de caractères seront lus par \fBgets\fP(), et comme celui\-ci écrira
+tous les caractères lus, même s'ils débordent du tampon, cette fonction est
+extrêmement dangereuse à utiliser. On a déjà utilisé ce dysfonctionnement
+pour créer des trous de sécurité. UTILISEZ TOUJOURS \fBfgets\fP() À LA PLACE DE
+\fBgets\fP().
+.PP
+Il est fortement déconseillé de mélanger les appels aux fonctions de lecture
+de la bibliothèque \fIstdio\fP avec les appels aux fonctions de lecture
+bas\-niveau \fBread\fP(2) sur le descripteur de fichier associé au flux. Les
+résultats sont indéfinis, et très probablement indésirables.
+.SH "VOIR AUSSI"
+\fBread\fP(2), \fBwrite\fP(2), \fBferror\fP(3), \fBfgetwc\fP(3), \fBfgetws\fP(3),
+\fBfopen\fP(3), \fBfread\fP(3), \fBfseek\fP(3), \fBgetline\fP(3), \fBgetwchar\fP(3),
+\fBputs\fP(3), \fBscanf\fP(3), \fBungetwc\fP(3), \fBunlocked_stdio\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

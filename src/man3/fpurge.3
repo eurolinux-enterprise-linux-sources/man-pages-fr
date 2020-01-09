@@ -1,0 +1,91 @@
+.\" Copyright (C) 2001 Andries Brouwer <aeb@cwi.nl>.
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FPURGE 3 "15 décembre 2001" "" "Manuel du programmeur Linux"
+.SH NOM
+fpurge, __fpurge \- Purger un flux
+.SH SYNOPSIS
+.nf
+/* Non supporté */
+\fB#include <stdio.h>\fP
+.sp
+\fBint fpurge(FILE *\fP\fIstream\fP\fB);\fP
+.sp
+/* Supporté */
+\fB#include <stdio.h>\fP
+.br
+\fB#include <stdio_ext.h>\fP
+.sp
+\fBvoid  __fpurge(FILE *\fP\fIstream\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBfpurge\fP() efface les tampons d'un flux donné. Pour les flux de
+sortie, on se débarrasse de toute sortie n'ayant pas encore été écrite. Pour
+les flux d'entrée, on renonce à toute entrée lue par l'objet sous\-jacent
+mais n'ayant pas encore été acquise par \fBgetc\fP(3). Cela inclut tout texte
+réinjecté dans le flux par \fBungetc\fP(3). Voyez aussi \fBfflush\fP(3).
+.LP
+La fonction \fB__fpurge\fP() fait exactement la même chose mais ne renvoie pas
+de code de retour.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBfpurge\fP() renvoie 0. En cas d'erreur, elle renvoie \-1 et
+définit \fIerrno\fP.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIstream\fP ne correspond pas à un flux ouvert.
+.SH CONFORMITÉ
+Ces fonctions ne sont ni standard ni portables. La fonction \fBfpurge\fP() a
+été introduite sous BSD\ 4.4 et n'est pas disponible sous Linux. La fonction
+\fB__fpurge\fP() a été introduite sous Solaris, et se trouve dans la glibc\
+2.1.95 et ses versions ultérieures.
+.SH NOTES
+Vouloir purger des tampons d'entrée constitue généralement une erreur.
+.SH "VOIR AUSSI"
+.\" .BR fclean (3),
+\fBfflush\fP(3), \fBsetbuf\fP(3), \fBstdio_ext\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

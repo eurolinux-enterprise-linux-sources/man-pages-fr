@@ -1,0 +1,227 @@
+.\" Copyright (c) 2006, Michael Kerrisk <mtk.manpages@gmail.com>
+.\" includes some material by other authors that was formerly
+.\" in intro.2.
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STANDARDS 7 "1er juin 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+standards \- Normes C et UNIX
+.SH DESCRIPTION
+La section CONFORMITÉ, qui apparaît dans beaucoup de pages de manuel,
+identifie les diverses normes auxquelles les interfaces documentées se
+conforment. La liste suivante décrit brièvement ces normes.
+.TP 
+\fBV7\fP
+Version 7, l'UNIX ancestral des laboratoires Bell.
+.TP 
+\fBBSD\ 4.2\fP
+L'implémentation standard définie par la version 4.2 de \fIBerkeley Software
+Distribution\fP, mise en production par l'Université de Californie à
+Berkeley. C'était la première version Berkeley qui contenait une pile TCP/IP
+et l'API sockets. BSD\ 4.2 a été mise en production en 1983.
+
+Les versions majeures précédentes de BSD sont \fIBSD\ 3\fP (1980), \fIBSD\ 4\fP
+(1980) et \fIBSD\ 4.1\fP (1981).
+.TP 
+\fBBSD\ 4.3\fP
+Le successeur de BSD\ 4.2, sorti en 1986.
+.TP 
+\fBBSD\ 4.4\fP
+Le successeur de BSD\ 4.3, sorti en 1993. C'est la dernière version majeure
+de Berkeley.
+.TP 
+\fBSystem\ V\fP
+C'est une implémentation standard définie par la version 1983 d'AT&T de sa
+version commerciale System\ V (cinq). La version majeure précédente d'AT&T
+était \fISystem\ III\fP, sortie en 1981.
+.TP 
+\fBSystem\ V release 2 (SVr2)\fP
+C'était la version suivante de System\ V, sortie en 1985. SVr2 était
+formellement décrit dans \fISystem V Interface Definition version 1\fP (\fISVID\
+1\fP) publié en 1985.
+.TP 
+\fBSystem\ V release 3 (SVr3)\fP
+Le successeur de SVr2, sorti en 1986. Cette version était formellement
+décrite dans \fISystem V Interface Definition version 2\fP (\fISVID\ 2\fP).
+.TP 
+\fBSystem\ V release 4 (SVr4)\fP
+Le successeur de SVr3, sorti en 1989. Cette version de System\ V est décrite
+dans «\ Programmer's Reference Manual: Operating System API (Intel
+processors)\ » (Prentice\-Hall 1992, ISBN 0\-13\-951294\-2) Cette version était
+formellement décrite dans \fISystem V Interface Definition version 3\fP (\fISVID
+3\fP), et est considérée comme la version définitive de System\ V.
+.TP 
+\fBSVID 4\fP
+«\ System V Interface Definition version 4\ », sortie en 1995 (disponible en
+ligne à http://www.sco.com/developers/devspecs/).
+.TP 
+\fBC89\fP
+C'était la première norme du langage C, ratifiée par l'ANSI (American
+National Standards Institute) en 1989 (\fIX3.159\-1989\fP). Parfois connu sous
+le terme de \fIC ANSI\fP, mais depuis que C99 est également une norme ANSI, le
+terme est ambigu. Cette norme a été ratifiée par l'ISO (International
+Standards Organization) en 1990 (\fIISO/IEC 9899:1990\fP), parfois appelée
+\fIISO C90\fP.
+.TP 
+\fBC99\fP
+Cette révision de la norme du langage C a été ratifiée par l'ISO en 1999
+(\fIISO/IEC 9899:1999\fP). Disponible en ligne sur
+http://www.open\-std.org/jtc1/sc22/wg14/www/standards.
+.TP 
+\fBPOSIX.1\-1990\fP
+«\ Portable Operating System Interface for Computing Environments\ ». IEEE
+1003.1\-1990 partie 1, ratifiée par l'ISO en 1990 (\fIISO/IEC
+9945\-1:1990\fP). Le terme «\ POSIX\ » a été inventé par Richard Stallman.
+.TP 
+\fBPOSIX.2\fP
+IEEE Std 1003.2\-1992, décrivant les commandes et les utilitaires, ratifiée
+par l'ISO en 1993 (\fIISO/IEC 9945\-2:1993\fP).
+.TP 
+\fBPOSIX.1b\fP (connue comme \fIPOSIX.4\fP)
+IEEE Std 1003.1b\-1993, décrivant les extension pour le temps réel pour les
+systèmes d'exploitation portables, ratifiée par l'ISO en 1993 (\fIISO/IEC
+9945\-1:1996\fP).
+.TP 
+\fBPOSIX.1c\fP
+IEEE Std 1003.1c\-1995 décrivant les interfaces de threads POSIX.
+.TP 
+\fBPOSIX.1d\fP
+IEEE Std 1003.1c\-1999 décrivant les extensions temps réel supplémentaires.
+.TP 
+\fBPOSIX.1g\fP
+IEEE Std 1003.1g\-2000 décrivant les API réseaux (y compris les sockets).
+.TP 
+\fBPOSIX.1j\fP
+IEEE Std 1003.1j\-2000 décrivant les extensions temps réel avancées.
+.TP 
+\fBPOSIX.1\-1996\fP
+Une révision, en 1996, de POSIX.1 qui incorpore POSIX.1b et POSIX.1c.
+.TP 
+\fBXPG3\fP
+Sortie en 1989, c'était la première version significative de \fIX/Open
+Portability Guide\fP, produite par la Compagnie X/Open, un consortium
+multi\-vendeurs. Ce guide multi\-volumes était basé sur les normes POSIX.
+.TP 
+\fBXPG4\fP
+Une révision de «\ X/Open Portability Guide\ », sortie en 1992.
+.TP 
+\fBXPG4v2\fP
+Une révision, en 1994, de XPG4. Également appelée \fISpec 1170\fP, où 1170 fait
+référence au nombre d'interfaces définies par cette norme.
+.TP 
+\fBSUS (SUSv1)\fP
+Single UNIX Specification. C'était un reconditionnement de XPG4v2 et
+d'autres normes X/Open (X/Open Curses Issue 4 version 2, X/Open Networking
+Service (XNS) Issue 4). Les systèmes se conformant à cette norme peuvent
+être marqués \fIUNIX 95\fP.
+.TP 
+\fBSUSv2\fP
+Single UNIX Specification version 2. Parfois nommée \fIXPG5\fP. Cette norme est
+apparue en 1997. Les systèmes se conformant à cette norme peuvent être
+marqués \fIUNIX 98\fP (consultez aussi http://www.UNIX\-systems.org/version2/).
+.TP 
+\fBPOSIX.1\-2001, SUSv3\fP
+La révision 2001 et la consolidation des normes POSIX.1, POSIX.2 et SUS dans
+un seul document, conduit sous les auspices du groupe Austin
+(http://www.opengroup.org/austin/). Cette norme est disponible en ligne à
+http://www.unix\-systems.org/version3/, et les interfaces qu'elle décrit sont
+également disponibles dans les pages de manuel Linux dans les sections 1p et
+3p (par exemple, «\ man 1p sleep\ »).
+
+La norme définit deux niveaux de conformité\ : \fIconformité POSIX\fP, qui est
+un ensemble de base des interfaces nécessaires à un système conforme\ ; et
+\fIconformité XSI\fP, qui mandate en plus un ensemble d'interfaces (l'extension
+XSI) optionnelles pour la conformité POSIX. Les systèmes conformes à XSI
+peuvent être marqués \fIUNIX 03\fP. (La conformité XSI est la \fISingle UNIX
+Specification version 3\fP (\fISUSv3\fP).)
+
+Le document POSIX.1\-2001 comporte quatre parties\ :
+
+\fBXBD\fP\ : Définitions, termes et concepts, spécifications des fichiers
+d'en\-têtes.
+
+\fBXSH\fP\ : Spécifications de fonctions (c'est\-à\-dire, appels système et
+fonctions de bibliothèque dans les implémentations actuelles).
+
+\fBXCU\fP\ : Spécifications des commandes et utilitaires (c'est\-à\-dire, la
+partie formellement décrite par POSIX.2).
+
+\fBXRAT\fP\ : Texte informatif sur les autres parties de la norme.
+
+POSIX.1\-2001 est alignée sur C99, aussi, toutes les fonctions de
+bibliothèque normalisées dans C99 sont également normalisées dans
+POSIX.1\-1001.
+
+Deux errata techniques (petites corrections et améliorations) de la norme
+originale 2001 ont été publiées\ : TC1 en 2003 (nommée \fIPOSIX.1\-2003\fP), et
+TC2 en 2004 (nommée \fIPOSIX.1\-2004\fP).
+.TP 
+\fBPOSIX.1\-2008, SUSv4\fP
+Les travaux sur la révision suivante de POSIX.1/SUS se sont terminés et ont
+été acceptés en 2008.
+
+Les modifications dans cette révision ne sont pas aussi importantes que
+celles qui ont été introduites dans POSIX.1\-2001/SUSv3, mais de nouvelles
+interfaces ont été ajoutées et divers détails de spécifications existantes
+ont été modifiés. Beaucoup des interfaces qui étaient optionnelles dans
+POSIX.1\-2001 deviennent obligatoires dans la révision de 2008 de la
+norme. Quelques interfaces présentes dans POSIX.1\-2001 sont marquées comme
+obsolètes dans POSIX.1\-2008, ou tout supprimées de la norme.
+
+La norme révisée est scindée en quatre parties, les mêmes que dans
+POSIX.1\-2001, et il y a à nouveau deux niveaux de conformité\ : celle de
+référence \fIConformité POSIX\fP, et \fIConformité XSI\fP, qui mandate un ensemble
+supplémentaire d'interfaces au\-delà de celles des spécifications de
+référence.
+
+En général, quand une section CONFORMITÉ d'une page de manuel liste
+POSIX.1\-2001, on peut supposer qua l'interface se conforme également à
+POSIX.1\-2008, sauf si l'inverse est indiqué.
+
+Vous trouverez plus d'informations sur le site web du groupe Austin
+http://www.opengroup.org/austin/ .
+.SH "VOIR AUSSI"
+\fBfeature_test_macros\fP(7), \fBlibc\fP(7), \fBposixoptions\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

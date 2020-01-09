@@ -1,0 +1,334 @@
+.\" Copyright (c) 1996 Eric S. Raymond <esr@thyrsus.com>
+.\"                and Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" This is combined from many sources, including notes by aeb and
+.\" research by esr.  Portions derive from a writeup by Roman Czyborra.
+.\"
+.\" Last changed by David Starner <dstarner98@aasaa.ofe.org>.
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CHARSETS 7 "3 juin 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+charsets \- Jeux de caractères et internationalisation pour les programmeurs.
+.SH DESCRIPTION
+Linux est un système d'exploitation international. Plusieurs de ses
+utilitaires et de ses gestionnaires de périphériques (y compris le
+gestionnaire de console) supportent les jeux de caractères multilingues
+contenant les lettres de l'alphabet latin avec des accents et des liaisons,
+et des alphabets non\-latin complets comme le grec, le cyrillique, l'arabe ou
+l'hébreu.
+.LP
+Cette page de manuel présente le point de vue du programmeur sur les
+différents jeux de caractères, et comment ils s'organisent sous Linux. Les
+standards présentés comprennent l'ASCII, l'ISO 8859, le KOI8\-R, l'Unicode,
+l'ISO 2022 et l'ISO 4873. Un accent particulier est mis sur les jeux de
+caractères véritablement utilisés dans les localisations, et non sur la
+myriade de jeux provenant d'autres systèmes.
+.LP
+Une liste complète des jeux de caractères utilisés dans une localisation
+officielle de la GlibC est\ :vISO\-8859\-{1,2,3,5,6,7,8,9,13,15}, CP1251,
+UTF\-8, EUC\-{KR,JP,TW}, OI8\-{R,U}, GB2312, GB18030, GBK, BIG5, BIG5\-HKSCS et
+TIS\-620, sans ordre particulier. Le roumain va peut\-être basculer sur
+ISO\-8859\-16).
+.SS ASCII
+L'ASCII (American Standard Code For Information Interchange) est le jeu de
+caractères 7 bits original, prévu pour l'anglais (américain). Il est décrit
+actuellement dans le standard ECMA\-6.
+.LP
+Différentes variantes d'ASCII existent, qui remplacent le dollar par
+d'autres symboles monétaires et la ponctuation par des caractères accentués
+pour couvrir l'allemand, le français, l'espagnol et d'autres langues en
+7\ bits. Elles sont toutes obsolètes, la glibc ne gère que les locales dont
+le jeu de caractères est un surensemble d'ASCII (ces jeux de caractères sont
+aussi appelés ISO\-646, un cousin proche d'ASCII qui permettait de remplacer
+ces caractères).
+.LP
+Comme Linux est écrit sur du matériel conçu pour les États\-Unis, il supporte
+l'ASCII US de manière native.
+.SS "ISO 8859"
+L'ISO 8859 est une série de 10 jeux de caractères 8 bits, contenant l'ASCII
+US dans leur première moitié (7 bits), des caractères de contrôle non
+imprimables entre les positions 128 et 159, et 96 symboles graphiques de
+largeur fixe aux emplacements 160 à 255.
+.LP
+De tous ces jeux, le plus important (Ndt\ : notamment pour nous\ !) est
+l'ISO 8859\-1 (Latin\-1). Il est supporté de manière native par le
+gestionnaire de console Linux, assez bien supporté par X11R6, et c'est le
+jeu de caractères de base pour l'HTML.
+.LP
+.\" // some distributions still have the deprecated consolechars
+Le support console des autres jeux de caractères 8859 est disponible sous
+Linux, à travers des utilitaires comme \fBsetfont\fP(8), qui modifient la
+correspondance des touches du clavier, la table graphique EGA, et utilisent
+une projection personnalisée de la table de fonte du gestionnaire de
+console.
+.LP
+Voici une brève description des jeux de caractères 8859\ :
+.TP 
+8859\-1 (Latin\-1)
+Le Latin\-1 couvre la plupart des langues d'Europe de l'Ouest, comme
+l'albanais, l'allemand, l'anglais, le catalan, le danois, l'espagnol, le
+férovingien, le finnois, le français, le gallois, le néerlandais,
+l'irlandais, l'islandais, l'italien, le norvégien, le portugais et le
+suédois. Le manque de liaison entre les «\ ij\ » néerlandais, entre les «\
+oe\ » français, et l'absence des anciens guillemets ,,allemands\*(lq est
+tolérable.
+.TP 
+8859\-2 (Latin\-2)
+Le Latin\-2 contient la plupart des langues slaves d'Europe de l'Est
+utilisant l'alphabet latin\ : allemand, croate, hongrois, polonais, roumain,
+slovaque, slovène et tchèque.
+.TP 
+8859\-3 (Latin\-3)
+Le Latin\-3 est utilisé pour les textes en esperanto, gallois, maltais et
+turc.
+.TP 
+8859\-4 (Latin\-4)
+Le Latin\-4 introduit des lettres pour l'estonien et le lituanien. Il est
+presque obsolète, remplacé par 8859\-10 (Latin\-6).
+.TP 
+8859\-5
+L'alphabet cyrillique est utilisé en bulgare, biélorusse, macédonien, russe,
+serbe et ukrainien. Les Ukrainiens prononcent la lettre «\ ghe\ » fermée,
+comme «\ heh\ » et aurait besoin d'un accent pour distinguer le «\ ghe\ »
+correct. Voir les remarques concernant le KOI8\-R ci\-dessous.
+.TP 
+8859\-6
+Supporte l'arabe. La table 8859\-6 est une police de caractères de largeur
+fixe, mais un affichage correct doit combiner les lettres en utilisant leurs
+formes initiale, centrale et finale.
+.TP 
+8859\-7
+Supporte le grec moderne.
+.TP 
+8859\-8
+Supporte l'hébreu sans niqqud (diacritiques). Les niqqud et l'hébreu
+biblique dans son ensemble sont en dehors de la portée de ce jeu de
+caractères\ ; sous Linux, UTF\-8 est recommandé pour cela.
+.TP 
+8859\-9 (Latin\-5)
+Il s'agit d'une variante du Latin\-1 qui remplace les lettres islandaises
+rarement utilisées par des lettres turques.
+.TP 
+8859\-10 (Latin\-6)
+Le Latin 6 ajoute les dernières lettres inuit (Groënland) et sami (lappon)
+qui manquaient dans le Latin 4 pour couvrir toute la zone nordique. La RFC
+1345 indique un latin 6 préliminaire et différent. Le sami nécessite en
+réalité plus d'accents que ceux proposés.
+.TP 
+8859\-11
+Ceci n'existe qu'en tant que proposition rejetée. Il s'agit d'une version
+identique au TIS\-620, utilisé sous Linux pour le thaï.
+.TP 
+8859\-12
+Ce jeu n'existe pas. On a proposé de l'utiliser pour le vietnamien, mais il
+ne tient pas dans les 96 caractères (sans combinaisons) offerts par l'ISO
+8850. L'UTF\-8 est le jeu de caractère préféré pour l'utilisation du
+vietnamien sous Linux.
+.TP 
+8859\-13 (Latin\-7)
+Supporte les langues baltiques, en particulier les caractères lituaniens
+absents du Latin\-4.
+.TP 
+8859\-14 (Latin\-8)
+Jeu de caractères celtique, couvrant le gaëlique et le gallois. Ce jeu
+contient les caractères pointés nécessaires pour l'irlandais ancien.
+.TP 
+8859\-15 (Latin\-9)
+Dans ce jeu se trouvent le symbole euro et les ligatures françaises qui
+manquaient dans le Latin\-1.
+.TP 
+8859\-16 (Latin\-10)
+Ce jeu recouvre la plupart des langues du 8859\-2, et supporte mieux le
+Roumain.
+.SS KOI8\-R
+Le KOI8\-R est un jeu de caractères non\-ISO très répandu en Russie. La
+première moitié correspond à l'ASCII US, la seconde est un jeu de caractère
+cyrillique un peu mieux conçu que l'ISO 8859\-5. Le KOI8\-U est un jeu commun,
+basé sur le KOI8\-R, qui a un meilleur support pour l'ukrainien. Aucun de ces
+jeux n'est compatible avec l'ISO\-2022, contrairement à l'ISO\-8859.
+.LP
+.\" Thanks to Tomohiro KUBOTA for the following sections about
+.\" national standards.
+Le support console du KOI8\-R est disponible sous Linux, à travers des
+utilitaires comme \fIsetfont\fP(8), qui modifient la correspondance des touches
+du clavier, la table graphique EGA, et utilisent une projection
+personnalisée de la table de fonte du gestionnaire de console.
+.SS "JIS X 0208"
+JIS X 0208 est un jeu de caractères standard japonais. Bien qu'il y ait
+plusieurs jeux de caractères standard japonais, (comme JIS X 0201, JIS X
+0212, et JIS X 0213), celui\-ci est le plus important. Les caractères sont
+projetés dans une matrice de deux octets 94x94, dont chaque octet est dans
+l'intervalle x21\-0x7E. Notez que JIS X 0208 est un jeu de caractères, pas un
+encodage. Ceci signifie que JIS X 0208 lui\-même n'est pas utilisé pour
+exprimer des données de texte. Il est utilisé comme composant pour
+construire un encodage comme EUC\-JP, Shift_JIS, et ISO\-2022\-JP. EUC\-JP est
+le plus important encodage sous Linux et inclut l'ASCII US et le JIS X
+0208. Dans l'EUC\-JP, les caractères du JIS X 0208 sont exprimés sur deux
+octets, chacun étant le code JIS X 0208 plus 0x80.
+.SS "KS X 1001"
+KS X 1001 est un jeu de caractères standard coréen. Comme dans le JIS X
+0208, les caractères sont projetés dans une matric 94x94 sur deux octets. KS
+X 1001 est utilisé, comme le JIS X 0208, comme composant pour construire un
+encodage comme le EUC\-KR, Johab, et ISO\-2022\-KR. EUC\-KR est l'encodage le
+plus important sous Linux et inclut l'ASCII US et le KS X 1001. KS C 5601
+est un ancien nom pour le KS X 1001.
+.SS "GB 2312"
+GB 2312 est le principal jeu de caractères chinois, utilisé pour exprimer le
+chinois simplifié. Comme avec le JIS X 0208, les caractères sont projetés
+dans une matrice 94x94 sur deux octets pour construire l'EUC\-CN. Celui\-ci
+est l'encodage le plus important sous Linux et inclut l'ASCII US et le GB
+2312. Notez que l'EUC\-CN est souvent appelé GB, GB 2312 ou CN\-GB.
+.SS Big5
+Big5 est un jeu de caractères populaire à Taïwan pour exprimer le chinois
+traditionnel (Big5 est à la fois un jeu de caractères et un encodage). C'est
+un surensemble de l'ASCII. Les caractères non ASCII sont exprimés sur deux
+octets. Les octets 0xA1\-0xFE sont utilisés en préambule pour les caractères
+de deux octets. Le Big5 et son extension sont largement utilisés à Taiwan et
+Hong\-Kong. Il n'est pas compatible ISO 2022.
+.SS "TIS 620"
+Le TIS 620 est un jeu de caractère standard thaï, et un surensemble de
+l'ASCII US. Comme la série des ISO 8859, les caractères thaïs sont projetés
+dans l'intervalle 0xA1\-0xFE. Le TIS 620 est le seul jeu de caractères
+couramment utilisé sous Linux, hormis l'UTF\-8, avec des caractères combinés.
+.SS UNICODE
+L'Unicode (ISO 10646) est un standard destiné à représenter sans ambiguïté
+tous les signes écrits de toutes les langues humaines connues. La structure
+de l'Unicode offre 21 bits pour chaque caractère. Comme les ordinateurs
+n'ont pas d'entiers avec 21 bits, l'encodage Unicode interne est sur 32
+bits, et en externe sur des séries d'entiers 16 bits (UTF\-16) (qui ne
+nécessite deux entiers 16 bits que pour des caractères rares) ou une série
+d'octets 8 bits (UTF\-8). Des informations supplémentaires sur l'Unicode sont
+disponibles sur <http://www.unicode.org>.
+.LP
+Linux représente l'Unicode en utilisant le format de transfert sur 8 bits
+(UTF\-8). L'UTF\-8 est un codage à longueur variable. Il utilise un octet pour
+coder 7 bits, 2 octets pour 11 bits, 3 octets pour 16 bits, 4 octets pour 21
+bits, 5 octets pour 26 bits, 6 octets pour 31 bits.
+.LP
+Représentons par 0,1,x des bits à 0, à 1, ou quelconque. Un octet 0xxxxxxx
+correspond à l'Unicode 00000000 0xxxxxxx qui indique le même symbole que
+l'ASCII 0xxxxxxx. Ainsi, ASCII n'est pas modifié par UTF\-8, et les gens
+utilisant uniquement l'ASCII ne remarqueront aucun changement\ : ni dans le
+codage, ni dans les tailles de fichiers.
+.LP
+Un octet 110xxxxx représente le début d'un code sur 2 octets, et 110xxxxx
+10yyyyyy est assemblé en 00000xxx xxyyyyyy. Un octet 1110xxxx correspond au
+début d'un code sur 3 octets, et 1110xxxx 10yyyyyy 10zzzzzz sont assemblés
+en xxxxyyyy yyzzzzzz. Quand l'UTF\-8 est utilisé pour coder les 31 bits de
+l'ISO 10646 cette progression continue jusqu'à des codes sur 6 octets.
+.LP
+Pour les utilisateurs de l'ISO\-8859\-1, ceci signifie que les caractères avec
+le bit de poids fort à 1 sont désormais codés sur deux octets. Ceci tend à
+allonger les fichiers de texte ordinaires de 1 à 2 pour cent ([NDT] Dans
+quelle langue ? Il y a plus d'un à deux pour cent de caractères accentués en
+français\ !). Il n'y a pas de problèmes de conversion néanmoins, car les
+symboles Unicode correspondant aux caractères ISO\-8859\-1 conservent les
+mêmes valeurs (étendues avec 8 bits à zéro en tête). Pour les utilisateurs
+japonais, ceci signifie que les codes sur 16 bits couramment employés
+prendront désormais 3 octets, et que les tables de transcodage devront être
+étendues. D'ailleurs de nombreux japonais préfèrent le standard ISO 2022.
+.LP
+Remarquez que l'UTF\-8 se synchronise automatiquement\ : 10xxxxxx est le
+corps ou la fin d'un code, et tout autre octet est un début de code. Notez
+également que les octets ASCII dans un flux UTF\-8 ne peuvent que représenter
+les caractères ASCII correspondants. En particulier il n'y a pas de
+caractères nuls ('\(rs0') ou '/' faisant partie d'un code plus grand.
+.LP
+Comme l'ASCII, et en particulier NUL et «\ /\ », ne sont pas modifiés, le
+noyau ne remarque pas que l'UTF\-8 est utilisé. Il n'a pas à se préoccuper de
+la signification des octets qu'il manipule.
+.LP
+La gestion des flux de données Unicode est généralement effectuée à travers
+des tables de «\ sous\-fontes\ » correspondant à un sous\-ensemble des
+caractères Unicode. En interne, le noyau utilise l'Unicode pour décrire les
+sous\-fontes chargées en mémoire vidéo. Ceci signifie qu'en mode UTF\-8, on
+peut utiliser le jeu de caractères japonais avec 512 symboles différents. Ce
+n'est pas assez pour le japonais, le chinois ou le coréen, mais c'est
+généralement suffisant pour toutes les autres utilisations.
+.LP
+À l'heure actuelle, le pilote de la console ne permet pas d'utiliser les
+caractères combinants. Les langages Thai, Sioux, et tout autre nécessitant
+des caractères combinants ne peut pas être utilisé sur la console.
+.SS "ISO 2022 et ISO 4873"
+Les standards ISO 2022 et 4873 décrivent un modèle de contrôle des fontes
+basé sur le fonctionnement du VT100. Ce modèle est (partiellement) supporté
+par le noyau Linux et \fBxterm\fP(1). Il est assez populaire au Japon et en
+Corée.
+.LP
+Il existe 4 jeux de caractères graphiques, nommés G0, G1, G2 et G3, l'un
+d'entre eux est utilisé comme jeu de caractères en cours pour les codes avec
+le bit de poids fort à 0 (par défaut G0), et un autre est utilisé pour les
+codes avec le bit de poids fort à 1 (initialement G1). Chaque ensemble
+dispose de 94 ou 96 caractères, et est constitué de caractères sur 7
+bits. Ce modèle utilise soit les codes 040\-0177 (041\-0176) soit les codes
+0240\-0377 (0241\-0376). G0 a toujours une taille de 94 caractères et utilise
+les codes 041\-0176.
+.LP
+Le basculement entre les jeux de caractères est effectué à travers les
+séquences \fB^N\fP (SO ou LS1), \fB^O\fP (SI ou LS0), ESC n (LS2), ESC o (LS3),
+ESC N (SS2), ESC O (SS3), ESC ~ (LS1R), ESC } (LS2R), ESC | (LS3R). La
+fonction LS\fIn\fP réclame le jeu G\fIn\fP pour les codes dont le bit de poids
+fort est à zéro. La fonction S\fIn\fP demande le jeu G\fIn\fP pour les codes dont
+le bit de poids fort est à un. La fonction SS\fIn\fP réclame le jeu G\fIn\fP
+(\fIn\fP=2 ou 3) pour le caractère suivant uniquement (quelle que soit la
+valeur du bit de poids fort).
+.LP
+Un jeu de 94 caractères est désigné comme jeu G\fIn\fP par une séquence ESC (
+xx (pour G0), ESC ) xx (pour G1), ESC * xx (pour G2), ESC + xx (pour G3), où
+xx est un symbole, ou une paire de symboles du standard ISO 2375
+International Register of Coded Character Sets. Par exemple, ESC ( @
+sélectionne le jeu ISO 646 en tant que G0, ESC ( A sélectionne le jeu
+standard UK (avec la livre sterling à la place du dièse), ESC ( B
+sélectionne l'ASCII, ESC ( M sélectionne un jeu de caractères africain, ESC
+( ! A sélectionne les caractères cubains, etc.
+.LP
+Un jeu de 96 caractères est désigné comme jeu G\fIn\fP par une séquence ESC \-
+xx (pour G1), ESC . xx (pour G2) ou ESC / xx (pour G3). Par exemple, ESC \- G
+sélectionne l'alphabet hébreu comme G1.
+.LP
+Un jeu de caractères multioctets est désigné comme jeu G\fIn\fP par une
+séquence ESC $ xx ou ESC $ ( xx (pour G0), ESC $ ) xx (pour G1), ESC $ * xx
+(pour G2), ESC $ + xx (pour G3). Par exemple, ESC $ ( C sélectionne les
+caractères coréens pour le jeu G0. Le jeu de caractères japonais sélectionné
+par ESC $ B dispose d'une version plus récente sélectionnée par ESC & @ ESC
+$ B.
+.LP
+L'ISO 4873 réclame une utilisation précise des jeux de caractères, dans
+laquelle G0 est fixé (toujours l'ASCII), ainsi seuls G1, G2 et G3 peuvent
+être invoqués pour les codes avec un bit de poids fort à 1. En particulier,
+\fB^N\fP et \fB^O\fP ne sont plus utilisés, ESC ( xx peut seulement être utilisé
+avec xx=B, et ESC ) xx, ESC * xx, ESC + xx sont équivalents à ESC \- xx, ESC
+\&. xx, ESC / xx, respectivement.
+.SH "VOIR AUSSI"
+\fBconsole\fP(4), \fBconsole_codes\fP(4), \fBconsole_ioctl\fP(4), \fBascii\fP(7),
+\fBiso_8859\-1\fP(7), \fBunicode\fP(7), \fButf\-8\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

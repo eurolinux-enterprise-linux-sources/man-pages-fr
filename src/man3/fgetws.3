@@ -1,0 +1,82 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single Unix specification
+.\"     http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.\" Modified Tue Oct 16 23:18:40 BST 2001 by John Levon <moz@compsoc.man.ac.uk>
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FGETWS 3 "25 juillet 1999" GNU "Manuel du programmeur Linux"
+.SH NOM
+fgetws \- Lire une chaîne de caractères larges depuis un flux FILE
+.SH SYNOPSIS
+.nf
+\fB#include <wchar.h>\fP
+.sp
+\fBwchar_t *fgetws(wchar_t *\fP\fIws\fP\fB, int \fP\fIn\fP\fB, FILE *\fP\fIstream\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBfgetws\fP() est l'équivalent pour les caractères larges de la
+fonction \fBfgets\fP(3). Elle lit une chaîne de caractères d'au plus \fIn\-1\fP
+caractères larges dans le tableau de caractères larges pointés par \fIws\fP,
+puis ajoute un caractère nul final. La lecture s'arrête dès qu'un caractère
+large de saut de ligne a été rencontré, et stocké. Elle s'arrête aussi
+lorsque la fin du flux est atteinte.
+.PP
+Il est de la responsabilité du programmeur de s'assurer qu'il y a assez de
+place pour au moins \fIn\fP caractères larges dans \fIws\fP.
+.PP
+Pour une version de cette fonction ignorant les verrouillages, voir
+\fBunlocked_stdio\fP(3).
+.SH "VALEUR RENVOYÉE"
+La fonction \fBfgetws\fP() renvoie \fIws\fP s'il n'y a pas d'erreur. Si la fin du
+flux est déjà atteinte, ou si une erreur se produit, elle renvoie NULL.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001.
+.SH NOTES
+Le comportement de \fBfgetws\fP() dépend de la catégorie \fBLC_CTYPE\fP de la
+localisation.
+.PP
+En l'absence d'information supplémentaire transmise à l'appel \fBfopen\fP(3),
+on peut raisonnablement supposer que \fBfgetws\fP() lira en fait une chaîne
+multi\-octets depuis le flux, et la convertira en chaîne de caractères
+larges.
+.PP
+Cette fonction n'est pas fiable, car elle ne permet pas de traiter
+correctement les caractères larges nuls, susceptible d'être rencontrés en
+entrée.
+.SH "VOIR AUSSI"
+\fBfgetwc\fP(3), \fBunlocked_stdio\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

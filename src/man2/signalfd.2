@@ -1,0 +1,320 @@
+.\" Copyright (C) 2008 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" starting from a version by Davide Libenzi <davidel@xmailserver.org>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+.\" MA  02111-1307  USA
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SIGNALFD 2 "13 janvier 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+signalfd \- Créer un descripteur de fichier pour accepter des signaux
+.SH SYNOPSIS
+\fB#include <sys/signalfd.h>\fP
+.sp
+\fBint signalfd(int \fP\fIfd\fP\fB, const sigset_t *\fP\fImask\fP\fB, int \fP\fIflags\fP\fB);\fP
+.SH DESCRIPTION
+\fBsignalfd\fP() crée un descripteur de fichier qui peut être utilisé pour
+accepter des signaux à destination de l'appelant. Ceci fournit une
+alternative à l'utilisation d'un gestionnaire de signal ou de
+\fBsigwaitinfo\fP(2), et a l'avantage que le descripteur de fichier peut être
+surveillé avec \fBselect\fP(2), \fBpoll\fP(2) ou \fBepoll\fP(7).
+
+Le paramètre \fImask\fP spécifie l'ensemble des signaux que l'appelant veut
+accepter par le descripteur de fichier. Ce paramètre est un ensemble de
+signaux dont le contenu peut être initialisé en utilisant les macros
+décrites dans \fBsigsetops\fP(3). Normalement, l'ensemble des signaux reçus par
+le descripteur de fichier devrait être bloqués en utilisant
+\fBsigprocmask\fP(2) pour éviter que les signaux soient pris en charge par les
+gestionnaires par défaut. Il n'est pas possible de recevoir les signaux
+\fBSIGKILL\fP ou \fBSIGSTOP\fP par un descripteur de fichier signalfd\ ; ces
+signaux sont ignorés sans rien dire s'ils sont spécifiés dans \fImask\fP.
+
+Si le paramètre \fIfd\fP vaut \-1, l'appel crée un nouveau descripteur de
+fichier et associe l'ensemble des signaux spécifiés dans \fImask\fP avec ce
+descripteur. Si \fIfd\fP ne vaut pas \-1, alors il doit indiquer un descripteur
+de fichier signalfd existant valable, et \fImask\fP est utilisé pour remplacer
+l'ensemble des signaux associés avec ce descripteur.
+
+À partir de Linux 2.6.27, les valeurs suivantes peuvent être incluses avec
+un OU binaire dans \fIflags\fP pour changer le comportement de \fBsignalfd\fP()\ :
+.TP  14
+\fBSFD_NONBLOCK\fP
+Placer l'attribut d'état de fichier \fBO_NONBLOCK\fP sur le nouveau descripteur
+de fichier ouvert. Utiliser cet attribut économise des appels
+supplémentaires à \fBfcntl\fP(2) pour obtenir le même résultat.
+.TP 
+\fBSFD_CLOEXEC\fP
+Placer l'attribut «\ close\-on\-exec\ » (\fBFD_CLOEXEC\fP) sur le nouveau
+descripteur de fichier. Consultez la description de l'attribut \fBO_CLOEXEC\fP
+dans \fBopen\fP(2) pour savoir pourquoi ça peut être utile.
+.PP
+Sous Linux, jusqu'à la version 2.6.26, le paramètre \fIflags\fP n'est pas
+utilisé et doit valoir zéro.
+
+\fBsignalfd\fP() renvoie un descripteur de fichier qui gère les opérations
+suivantes\ :
+.TP 
+\fBread\fP(2)
+Si un (ou plus) des signaux spécifiés dans \fImask\fP est en attente pour le
+processus, alors le tampon fourni à \fBread\fP(2) est utilisé pour renvoyer une
+structure (ou plus) de type \fIsignalfd_siginfo\fP (voir ci\-dessous) qui décrit
+les signaux. \fBread\fP(2) renvoie les informations pour tous les signaux qui
+sont en attente et qui tiennent dans le tampon fourni. Le tampon doit avoir
+une taille d'au moins \fIsizeof(struct signalfd_siginfo)\fP octets. La valeur
+de retour de \fBread\fP(2) est égale au nombre total d'octets lus.
+.IP
+En conséquence du \fBread\fP(2), les signaux sont consommés, de telle sorte
+qu'ils ne seront plus en attente pour le processus (c'est\-à\-dire qu'ils ne
+seront plus attrapés par les gestionnaires de signaux, et ne seront plus
+acceptés par \fBsigwaitinfo\fP(2)).
+.IP
+Si aucun des signaux de \fImask\fP ne sont en attente pour le processus,
+\fBread\fP(2) sera bloquera jusqu'à ce qu'un des signaux de \fImask\fP soit généré
+pour le processus, ou échouera avec l'erreur \fBEAGAIN\fP si le descripteur de
+fichier est en mode non bloquant.
+.TP 
+\fBpoll\fP(2), \fBselect\fP(2) (et similaires)
+Le descripteur de fichier est lisible (le paramètre \fIreadfds\fP de
+\fBselect\fP(2)\ ; l'attribut \fBPOLLIN\fP de \fBpoll\fP(2)) si un signal ou plus de
+\fImask\fP est en attente pour le processus.
+.IP
+Le descripteur de fichier signalfd gère également les autres interfaces de
+multiplexage de descripteurs de fichier\ : \fBpselect\fP(2), \fBppoll\fP(2) et
+\fBepoll\fP(7).
+.TP 
+\fBclose\fP(2)
+Quand le descripteur de fichier n'est plus nécessaire il doit être
+fermé. Quand tous les descripteurs de fichier associés au même objet
+signalfd ont été fermés, les ressources pour cet objet sont libérées par le
+noyau.
+.SS "La structure signalfd_siginfo"
+Les structures \fIsignalfd_siginfo\fP renvoyées par \fBread\fP(2) sur une
+descripteur de fichier signalfd sont au format suivant\ :
+.in +4n
+.nf
+
+.\" ssi_trapno is unused on most arches
+struct signalfd_siginfo {
+    uint32_t ssi_signo;   /* Numéro de signal */
+    int32_t  ssi_errno;   /* Numéro d'erreur (pas utilisé) */
+    int32_t  ssi_code;    /* Code du signal */
+    uint32_t ssi_pid;     /* PID de l'émetteur */
+    uint32_t ssi_uid;     /* UID réel de l'émetteur */
+    int32_t  ssi_fd;      /* Descripteur de fichier (SIGIO) */
+    uint32_t ssi_tid;     /* Identifiant de la temporisation
+                             du noyau (timers POSIX)
+    uint32_t ssi_band;    /* Band event (SIGIO) */
+    uint32_t ssi_overrun; /* POSIX timer overrun count */
+    uint32_t ssi_trapno;  /* Numéro de trappe ayant causé le signal */
+    int32_t  ssi_status;  /* Code de sortie ou signal (SIGCHLD) */
+    int32_t  ssi_int;     /* Entier envoyé par sigqueue(2) */
+    uint64_t ssi_ptr      /* Pointeur envoyé par sigqueue(2) */
+    uint64_t ssi_utime;   /* Temps CPU utilisateur consommé (SIGCHLD) */
+    uint64_t ssi_stime;   /* Temps CPU système consommé (SIGCHLD) */
+    uint64_t ssi_addr;    /* Address that generated signal
+                             (for hardware\-generated signals) */
+    uint8_t  pad[\fIX\fP];      /* Remplissage jusqu'à 128 octets
+                             (espace prévu pour des champs
+                             supplémentaires futures) */
+};
+
+.fi
+.in
+Chacun des champs de cette structure est analogue aux champs de noms
+similaires d'une structure \fIsiginfo_t\fP. La structure \fIsiginfo_t\fP est
+décrite dans \fBsigaction\fP(2). Tous les champs de la structure
+\fIsignalfd_siginfo\fP renvoyée ne seront pas valable pour un signal donné\ ;
+l'ensemble des champs valables peut être déterminé grâce au champ
+\fIssi_code\fP de la valeur de retour. Ce champ est analogue au champ
+\fIsi_code\fP de \fIsiginfo_t\fP\ ; consultez \fBsigaction\fP(2) pour plus de détails.
+.SS "Sémantique de fork(2)"
+Après un \fBfork\fP(2), le fils hérite d'une copie du descripteur de fichier
+signalfd. Un appel à \fBread\fP(2) sur le descripteur de fichier depuis le fils
+en attente pour le fils.
+.SS "Sémantique de execve(2)"
+Comme tout descripteur de fichier, un descripteur de fichier signalfd reste
+ouvert au travers d'un \fBexecve\fP(2), à moins qu'il ait été marqué comme
+«\ close\-on\-exec\ » (consultez \fBfcntl\fP(2)). Tout signal qui était disponible
+en lecture avant un \fBexecve\fP(2) reste disponible pour le nouveau
+programme. (C'est analogue à la sémantique traditionnelle des signaux, pour
+laquelle un signal bloqué qui est en attente reste en attente au travers
+d'un \fBexecve\fP(2))
+.SS "Sémantique des threads"
+La sémantique des descripteurs de fichier signalfd dans un programme
+multithreadé copie la sémantique standard des signaux. En d'autres mots,
+quand un thread lit un descripteur de fichier signalfd, il lira les signaux
+qui sont envoyés pour le thread lui\-même ou pour le processus (c'est\-à\-dire
+l'ensemble du group de threads). (Un thread ne sera pas capable de lire les
+signaux qui sont envoyés aux autres threads du processus)
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBsignalfd\fP() renvoie un descripteur de fichier signalfd\ ; il
+s'agit soit d'un nouveau descripteur de fichier (si \fIfd\fP valait \-1), ou
+\fIfd\fP si \fIfd\fP était un descripteur de fichier signalfd valable. En cas
+d'erreur, il renvoie \-1 et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+Le descripteur de fichier \fIfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBEINVAL\fP
+.\" or, the
+.\" .I sizemask
+.\" argument is not equal to
+.\" .IR sizeof(sigset_t) ;
+\fIfd\fP n'est pas un descripteur de fichier signalfd valable.
+.TP 
+\fBEINVAL\fP
+\fIflags\fP n'est pas correct\ ; ou, pour les versions de Linux 2.6.26 ou
+ultérieures, \fIflags\fP n'est pas nul.
+.TP 
+\fBEMFILE\fP
+La limite du nombre total de descripteurs de fichier ouverts par processus a
+été atteinte.
+.TP 
+\fBENFILE\fP
+La limite du nombre total de fichiers ouverts sur le système a été atteinte.
+.TP 
+\fBENODEV\fP
+Impossible de monter (en interne) le périphérique anonyme d'inoeud.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour créer le descripteur de fichier signalfd.
+.SH VERSIONS
+.\" signalfd() is in glibc 2.7, but reportedly does not build
+\fBsignalfd\fP() est disponible sous Linux depuis le noyau\ 2.6.22. La glibc le
+gère depuis la version 2.8. L'appel système \fBsignalfd4\fP() (voir NOTES) est
+disponible sous Linux depuis le noyau\ 2.6.27.
+.SH CONFORMITÉ
+\fBsignalfd\fP() et \fBsignalfd4\fP() sont spécifiques à Linux.
+.SH NOTES
+L'appel système Linux sous\-jacent nécessite un paramètre supplémentaire,
+\fIsize_t sizemask\fP, qui spécifie la taille du paramètre \fImask\fP. La fonction
+enveloppe \fBsignalfd\fP() de la glibc n'a pas ce paramètre, puisqu'elle
+fournit ce paramètre à l'appel système sous\-jacent.
+
+Un processus peut créer plusieurs descripteurs de fichier signalfd. Ceci
+permet d'accepter différents signaux sur différents descripteurs de fichier
+(et peut être utile si les descripteurs de fichier sont surveillés en
+utilisant \fBselect\fP(2), \fBpoll\fP(2) ou \fBepoll\fP(7)\ : l'arrivée de différents
+signaux rendra différents descripteurs de fichier disponibles). Si un signal
+apparaît dans le \fImask\fP de plusieurs descripteurs de fichier, un signal
+reçu pourra être lu (une seule fois) depuis n'importe lequel des
+descripteurs.
+.SS "Appels système Linux sous\-jacents"
+Il y a deux appels système sous\-jacent\ : \fBsignalfd\fP() et \fBsignalfd4\fP(),
+qui est plus récent. Le premier appel système n'implémente pas de paramètre
+\fIflags\fP. Le dernier appel système implémente les valeurs de \fIflags\fP
+décrites ci\-dessous. À partir de la glibc 2.9, la fonction enveloppe
+\fBsignalfd\fP() utilisera \fBsignalfd4\fP() quand il est disponible.
+.SH BOGUES
+.\" The fix also was put into 2.6.24.5
+Dans les noyaux antérieurs à 2.6.25, les champs \fIssi_ptr\fP et \fIssi_int\fP
+n'étaient pas renseignés avec les données accompagnant un signal envoyé par
+\fBsigqueue\fP(2).
+.SH EXEMPLE
+Le programme ci\-dessous accèpte les signaux \fBSIGINT\fP et \fBSIGQUIT\fP en
+utilisant un descripteur de fichier signalfd. Le programme se termine après
+avoir accepté le signal \fBSIGQUIT\fP. La session shell suivante montre
+l'utilisation du programme\ :
+.in +4n
+.nf
+
+$\fB ./signalfd_demo\fP
+\fB^C\fP                   # Contrôle\-C génère un SIGINT
+Got SIGINT
+\fB^C\fP
+Got SIGINT
+\fB^\e\fP                    # Contrôle\-\e génère un SIGQUIT
+Got SIGQUIT
+$
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <sys/signalfd.h>
+#include <signal.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#define handle_error(msg) \e
+    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+int
+main(int argc, char *argv[])
+{
+    sigset_t mask;
+    int sfd;
+    struct signalfd_siginfo fdsi;
+    ssize_t s;
+
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGINT);
+    sigaddset(&mask, SIGQUIT);
+
+    /* Bloquer les signaux pour qu'il ne soit plus géré
+       par les gestionnaire par défaut */
+
+    if (sigprocmask(SIG_BLOCK, &mask, NULL) == \-1)
+        handle_error("sigprocmask");
+
+    sfd = signalfd(\-1, &mask, 0);
+    if (sfd == \-1)
+        handle_error("signalfd");
+
+    for (;;) {
+        s = read(sfd, &fdsi, sizeof(struct signalfd_siginfo));
+        if (s != sizeof(struct signalfd_siginfo))
+            handle_error("read");
+
+        if (fdsi.ssi_signo == SIGINT) {
+            printf("Got SIGINT\en");
+        } else if (fdsi.ssi_signo == SIGQUIT) {
+            printf("Got SIGQUIT\en");
+            exit(EXIT_SUCCESS);
+        } else {
+            printf("Read unexpected signal\en");
+        }
+    }
+}
+.fi
+.SH "VOIR AUSSI"
+\fBeventfd\fP(2), \fBpoll\fP(2), \fBread\fP(2), \fBselect\fP(2), \fBsigaction\fP(2),
+\fBsigprocmask\fP(2), \fBsigwaitinfo\fP(2), \fBtimerfd_create\fP(2), \fBsigsetops\fP(3),
+\fBsigwait\fP(3), \fBepoll\fP(7), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

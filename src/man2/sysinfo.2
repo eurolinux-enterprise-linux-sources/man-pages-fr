@@ -1,0 +1,112 @@
+.\" -*- nroff -*-
+.\"
+.\" Copyright (C) 1993 by Dan Miner (dminer@nyx.cs.du.edu)
+.\"
+.\"  Permission is granted to freely distribute or modify this file
+.\"  for the purpose of improving Linux or its documentation efforts.
+.\"  If you modify this file, please put a date stamp and HOW you
+.\"  changed this file.  Thanks.   -DM
+.\"
+.\" Modified Sat Jul 24 12:35:12 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Tue Oct 22 22:29:51 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Mon Aug 25 16:06:11 1997 by Nicolás Lichtmaier <nick@debian.org>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYSINFO 2 "15 novembre 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+sysinfo \- Obtenir des informations statistiques sur le système.
+.SH SYNOPSIS
+\fB#include <sys/sysinfo.h>\fP
+.sp
+\fBint sysinfo(struct sysinfo *\fP\fIinfo\fP\fB);\fP
+.SH DESCRIPTION
+Jusqu'au noyau 2.3.16, \fBsysinfo\fP() renvoyait les informations dans la
+structure suivante\ :
+
+.nf
+.in +4n
+struct sysinfo {
+    long uptime;             /* Secondes écoulées depuis le boot.*/
+    unsigned long loads[3];  /* Charges depuis 1, 5, et 15 mn.   */
+    unsigned long totalram;  /* Mémoire totale du système.       */
+    unsigned long freeram;   /* Mémoire disponible.              */
+    unsigned long sharedram; /* Mémoire partagée.                */
+    unsigned long bufferram; /* Mémoire utilisée par les tampons */
+    unsigned long totalswap; /* Taille totale du swap.           */
+    unsigned long freeswap;  /* Espace disponible dans le swap.  */
+    unsigned short procs;    /* Nombre de processus actuels.     */
+    char _f[22];             /* Remplissage jusqu'à 64 octets.   */
+};
+.in
+.fi
+.PP
+et les tailles étaient indiquées en octets.
+
+Depuis le noyau 2.3.23 (i386) et 2.3.48 (toutes architectures), la structure
+est devenue\ :
+
+.nf
+.in +4n
+struct sysinfo {
+    long uptime;             /* Secondes écoulées depuis le boot.  */
+    unsigned long loads[3];  /* Charges depuis 1, 5, et 15 mn.     */
+    unsigned long totalram;  /* Mémoire totale du système.         */
+    unsigned long freeram;   /* Mémoire disponible.                */
+    unsigned long sharedram; /* Mémoire partagée.                  */
+    unsigned long bufferram; /* Mémoire utilisée par les tampons   */
+    unsigned long totalswap; /* Taille totale du swap.             */
+    unsigned long freeswap;  /* Espace disponible dans le swap.    */
+    unsigned short procs;    /* Nombre de processus actuel.        */
+    unsigned long totalhigh; /* Taille totale mémoire haute.       */
+    unsigned long freehigh;  /* Taille mémoire haute libre.        */
+    usigned int mem_unit;    /* Taille de bloc mémoire en octets   */
+    char _f[20\-2*sizeof(long)\-sizeof(int)];  /* remplissage (libc5)*/
+};
+.in
+.fi
+.PP
+et les tailles sont indiquées sous forme de multiples de \fImem_unit\fP octets.
+
+\fBsysinfo\fP() permet d'obtenir facilement des statistiques systèmes. C'est
+plus portable que la lecture de \fI/dev/kmem\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+Le pointeur vers \fIstruct\ sysinfo\fP n'est pas valable
+.SH CONFORMITÉ
+Cette fonction est spécifique à Linux et ne devrait pas être employée dans
+des programmes destinés à être portables.
+.sp
+Le noyau Linux dispose d'un appel système \fBsysinfo\fP() depuis la version
+0.98pl6. La bibliothèque libc de Linux contient une routine \fBsysinfo\fP()
+depuis la version 5.3.5, et la bibliothèque glibc depuis 1.90.
+.SH "VOIR AUSSI"
+\fBproc\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

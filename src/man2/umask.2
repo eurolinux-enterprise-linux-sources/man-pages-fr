@@ -1,0 +1,116 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 2006, 2008, Michael Kerrisk (mtk.manpages@gmail.com)
+.\" (A few fragments remain from an earlier (1992) version written in
+.\" 1992 by Drew Eckhardt <drew@cs.colorado.edu>.)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified Sat Jul 24 12:51:53 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Tue Oct 22 22:39:04 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Thu May  1 06:05:54 UTC 1997 by Nicolás Lichtmaier
+.\"  <nick@debian.com> with Lars Wirzenius <liw@iki.fi> suggestion
+.\" 2006-05-13, mtk, substantial rewrite of description of 'mask'
+.\" 2008-01-09, mtk, a few rewrites and additions.
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UMASK 2 "9 janvier 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+umask \- Fixer le masque de création de fichiers
+.SH SYNOPSIS
+\fB#include <sys/types.h>\fP
+.br
+\fB#include <sys/stat.h>\fP
+.sp
+\fBmode_t umask(mode_t \fP\fImask\fP\fB);\fP
+.SH DESCRIPTION
+\fBumask\fP() fixe le masque de création de fichiers à la valeur \fImask\fP & 0777
+(c'est\-à\-dire seuls les bits relatifs aux permissions des fichiers de
+\fImask\fP sont utilisés), et renvoie la valeur précédente du masque.
+
+.\" e.g., mkfifo(), creat(), mknod(), sem_open(), mq_open(), shm_open()
+.\" but NOT the System V IPC *get() calls
+Ce masque est utilisé par \fBopen\fP(2), \fBmkdir\fP(2) et autres pour positionner
+les permissions d'accès initiales sur les fichiers nouvellement créés. Les
+bits contenus dans l'umask sont éliminés de l'argument \fImode\fP de l'appel
+\fBopen\fP(2) ou \fBmkdir\fP(2).
+
+Les constantes à utiliser pour indiquer \fImask\fP sont décrites dans
+\fBstat\fP(2).
+
+La valeur par défaut typique pour l'umask d'un processus est \fIS_IWGRP\ |\
+S_IWOTH\fP (022 en octal). Dans le cas général, où l'argument \fImode\fP de
+\fBopen\fP(2) est indiqué comme\ :
+.nf
+
+    S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH
+
+.fi
+(0666 en octal) à la création d'un nouveau fichier, les permissions sur le
+fichier créé seront\ :
+.nf
+
+    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH
+
+.fi
+(car 0666 & ~022 = 0644, c'est\-à\-dire rw\-r\-\-r\-\-).
+.SH "VALEUR RENVOYÉE"
+Cet appel système n'échoue jamais, et la valeur précédente du masque est
+renvoyée.
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3, POSIX.1\-2001.
+.SH NOTES
+Un processus fils créé par \fBfork\fP(2) hérite de l'umask de son père. L'umask
+est conservé après un \fBexecve\fP(2).
+
+La configuration de l'umask affecte également les permissions des objets IPC
+POSIX (\fBmq_open\fP(3), \fBsem_open\fP(3), \fBshm_open\fP(3)), FIFO (\fBmkfifo\fP(3)),
+et sockets de domaine Unix (\fBunix\fP(7)) créés par le processus. L'umask
+n'affecte pas les permissions des objets IPC System V créés par le processus
+(en utilisant \fBmsgget\fP(2), \fBsemget\fP(2), \fBshmget\fP(2)).
+.SH "VOIR AUSSI"
+.\" FIXME . eventually: .BR acl (5)
+\fBchmod\fP(2), \fBmkdir\fP(2), \fBopen\fP(2), \fBstat\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

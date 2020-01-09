@@ -1,0 +1,133 @@
+.\" Copyright (c) 2001 John Levon <moz@compsoc.man.ac.uk>
+.\" Based in part on GNU libc documentation
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" License.
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETLINE 3 "17 mai 2006" GNU "Manuel du programmeur Linux"
+.SH NOM
+getline, getdelim \- Saisie de chaîne délimitée
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP
+\fB#include <stdio.h>\fP
+.sp
+\fBssize_t getline(char **\fP\fIlineptr\fP\fB, size_t *\fP\fIn\fP\fB, FILE *\fP\fIstream\fP\fB);\fP
+
+\fBssize_t getdelim(char **\fP\fIlineptr\fP\fB, size_t *\fP\fIn\fP\fB, int \fP\fIdelim\fP\fB, FILE *\fP\fIstream\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBgetline\fP() lit une ligne entière dans \fIstream\fP et stocke l'adresse du
+tampon contenant le texte dans \fI*lineptr\fP. Le tampon se termine par un
+caractère nul et inclut le caractère saut\-de\-ligne, si un tel séparateur a
+été trouvé.
+
+Si \fI*lineptr\fP est NULL, la routine \fBgetline\fP() allouera un tampon pour
+sauver la ligne. Ce tampon devra être libéré par le programme utilisateur
+(la valeur dans \fI*n\fP est ignorée).
+
+Alternativement, avant d'appeler \fBgetline\fP(), \fI*lineptr\fP peut contenir un
+pointeur vers un tampon de \fI*n\fP octets alloué par \fBmalloc\fP(3). Si le
+tampon n'est pas suffisant pour sauver la ligne saisie, \fBgetline\fP() le
+redimensionnera avec \fBrealloc\fP(3), mettant à jour \fI*lineptr\fP et \fI*n\fP
+comme il se doit.
+
+ Quoi qu'il en soit, en cas de succès, \fI*lineptr\fP et \fI*n\fP seront mis à
+jour afin de rendre compte respectivement de l'adresse et de la taille du
+tampon.
+
+\fBgetdelim\fP() fonctionne comme \fBgetline\fP(), si ce n'est qu'un séparateur
+différent de saut\-de\-ligne peut être spécifié en tant qu'argument
+\fIdelimiter\fP. Tout comme avec \fBgetline\fP(), aucun séparateur n'est ajouté
+s'il n'y en avait pas dans l'entrée avant que la fin du fichier ne soit
+atteinte.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBgetline\fP() et \fBgetdelim\fP() renvoient le nombre de
+caractères lus, séparateur inclus, mais sans compter le zéro terminal. Cette
+valeur peut être utilisée afin de traiter les caractères nuls insérés dans
+la ligne lue.
+
+Les deux fonctions renvoient \-1 en cas d'échec de lecture de la ligne
+(condition de fin de fichier incluse).
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+Paramètres erronés (\fIn\fP ou \fIlineptr\fP valent NULL, ou bien \fIstream\fP n'est
+pas valide).
+.SH CONFORMITÉ
+\fBgetline\fP() tout comme \fBgetdelim\fP() sont des extensions GNU. Elles sont
+disponibles depuis la libc 4.6.27.
+.SH EXEMPLE
+.nf
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main(void)
+{
+    FILE * fp;
+    char * line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    fp = fopen("/etc/motd", "r");
+    if (fp == NULL)
+        exit(EXIT_FAILURE);
+
+    while ((read = getline(&line, &len, fp)) != \-1) {
+        printf("Réception d'une ligne de longueur %zu :\en", read);
+        printf("%s", line);
+    }
+
+    if (line)
+        free(line);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBread\fP(2), \fBfgets\fP(3), \fBfopen\fP(3), \fBfread\fP(3), \fBgets\fP(3), \fBscanf\fP(3),
+\fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

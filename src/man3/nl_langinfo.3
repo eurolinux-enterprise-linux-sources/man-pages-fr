@@ -1,0 +1,136 @@
+.\" Copyright (c) 2001 Markus Kuhn <mkuhn@acm.org>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 manual
+.\"   OpenGroup's Single Unix specification http://www.UNIX-systems.org/online.html
+.\"
+.\" Corrected prototype, 2002-10-18, aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH NL_LANGINFO 3 "11 mai 2001" GNU "Manuel du programmeur Linux"
+.SH NOM
+nl_langinfo \- Demande d'informations sur la langue et la localisation
+.SH SYNOPSIS
+.nf
+\fB#include <langinfo.h>\fP
+.sp
+\fBchar *nl_langinfo(nl_item \fP\fIitem\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBnl_langinfo\fP() fournit un accès aux informations de
+localisation de façon plus flexible que ne le fait \fBlocaleconv\fP(3). Des
+éléments individuels et supplémentaires des catégories de localisation
+peuvent être interrogés.
+.PP
+Voici des exemples d'éléments de localisation qui peuvent être spécifiés via
+\fIitem\fP en utilisant les constantes définies dans \fI<langinfo.h>\fP\ :
+.TP 
+\fBCODESET\fP\ (LC_CTYPE)
+renvoie une chaîne contenant le nom du codage de caractères utilisé dans la
+localisation sélectionnée, par exemple «\ UTF\-8\ », «\ ISO\-8859\-1\ » ou «\
+ANSI_X3.4\-1968\ » (mieux connu sous le nom US\-ASCII). Il s'agit de la même
+chaîne que celle obtenue avec «\ locale charmap\ ». Pour une liste des noms
+de codage de caractères, essayez «\ locale \-m\ », cf.\& \fBlocale\fP(1).
+.TP 
+\fBD_T_FMT\fP\ (LC_TIME)
+renvoie une chaîne qui peut être utilisée en tant que chaîne de format pour
+\fBstrftime\fP(3) afin de représenter l'heure et la date de façon spécifique à
+la localisation.
+.TP 
+\fBD_FMT\fP\ (LC_TIME)
+renvoie une chaîne qui peut être utilisée en tant que chaîne de format pour
+\fBstrftime\fP(3) afin de représenter la date de façon spécifique à la
+localisation.
+.TP 
+\fBT_FMT\fP\ (LC_TIME)
+renvoie une chaîne qui peut être utilisée en tant que chaîne de format pour
+\fBstrftime\fP(3) afin de représenter l'heure de façon spécifique à la
+localisation.
+.TP 
+\fBDAY_\fP{1\(en7} (LC_TIME)
+renvoie le nom du \fIn\fP\-ième jour de la semaine. [Attention\ : cela suit la
+convention américaine stipulant que DAY_1 = dimanche, et pas la convention
+internationale (ISO 8601) spécifiant que lundi est le premier jour de la
+semaine]
+.TP 
+\fBABDAY_\fP{1\(en7} (LC_TIME)
+renvoie le nom abrégé du \fIn\fP\-ième jour de la semaine.
+.TP 
+\fBMON_\fP{1\(en12} (LC_TIME)
+renvoie le nom du \fIn\fP\-ième mois.
+.TP 
+\fBABMON_\fP{1\(en12} (LC_TIME)
+renvoie le nom abrégé du \fIn\fP\-ième mois.
+.TP 
+\fBRADIXCHAR\fP\ (LC_NUMERIC)
+renvoie le caractère indiquant la base (point, virgule, etc.).
+.TP 
+\fBTHOUSEP\fP\ (LC_NUMERIC)
+renvoie le caractère séparateur pour les milliers (groupe de trois
+chiffres).
+.TP 
+\fBYESEXPR\fP\ (LC_MESSAGES)
+renvoie une expression rationnelle qui peut être utilisée avec la fonction
+\fBregex\fP(3) afin de reconnaître une réponse affirmative à une question de
+type oui/non.
+.TP 
+\fBNOEXPR\fP\ (LC_MESSAGES)
+renvoie une expression rationnelle qui peut être utilisée avec la fonction
+\fBregex\fP(3) afin de reconnaître une réponse négative à une question de type
+oui/non.
+.TP 
+\fBCRNCYSTR\fP\ (LC_MONETARY)
+renvoie le symbole monétaire précédé par «\ \-\ » si le symbole doit
+apparaître avant la valeur, «\ +\ » si le symbole doit apparaître après la
+valeur, ou bien «\ .\ » si le symbole doit remplacer la virgule.
+.PP
+La liste ci\-dessus ne couvre que quelques exemples des éléments qui peuvent
+être obtenus. Pour une liste plus détaillée, consultez \fIThe GNU C Library
+Reference Manual\fP.
+.SH "VALEUR RENVOYÉE"
+Si aucune localisation n'a été sélectionnée pour la catégorie appropriée,
+\fBnl_langinfo\fP() renvoie un pointeur vers la chaîne correspondante dans la
+localisation "C".
+.PP
+Si \fIitem\fP n'est pas valide, alors un pointeur vers une chaîne vide est
+renvoyée.
+.PP
+Ce pointeur peut faire référence à une donnée statique susceptible d'être
+écrasée lors du prochain appel à \fBnl_langinfo\fP() ou à \fBsetlocale\fP(3).
+.SH CONFORMITÉ
+SUSv2, POSIX.1\-2001.
+.SH "VOIR AUSSI"
+\fBlocale\fP(1), \fBlocaleconv\fP(3), \fBsetlocale\fP(3), \fBcharsets\fP(7),
+\fBlocale\fP(7)
+.br
+Le manuel de référence de la bibliothèque C GNU
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

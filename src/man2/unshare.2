@@ -1,0 +1,170 @@
+.\" Copyright (C) 2006, Janak Desai <janak@us.ibm.com>
+.\" and Copyright (C) 2006, Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Licensed under the GPL
+.\"
+.\" Patch Justification:
+.\" unshare system call is needed to implement, using PAM,
+.\" per-security_context and/or per-user namespace to provide
+.\" polyinstantiated directories. Using unshare and bind mounts, a
+.\" PAM module can create private namespace with appropriate
+.\" directories(based on user's security context) bind mounted on
+.\" public directories such as /tmp, thus providing an instance of
+.\" /tmp that is based on user's security context. Without the
+.\" unshare system call, namespace separation can only be achieved
+.\" by clone, which would require porting and maintaining all commands
+.\" such as login, and su, that establish a user session.
+.\"
+.\" FIXME Document CLONE_NEWIPC, which is new in 2.6.18
+.\" FIXME Document CLONE_NEWUTS, which is new in 2.6.19
+.\" FIXME Document CLONE_SYSVSEM, which is new in 2.6.26
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UNSHARE 2 "20 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+unshare \- désassocier certaines parties du contexte d'exécution
+.SH SYNOPSIS
+.nf
+.\" Actually _BSD_SOURCE || _SVID_SOURCE
+.\" See http://sources.redhat.com/bugzilla/show_bug.cgi?id=4749
+\fB#define _GNU_SOURCE\fP
+\fB#include <sched.h>\fP
+.sp
+\fBint unshare(int \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBunshare\fP() permet à un processus de désassocier certaines parties de son
+contexte d'exécution qui sont actuellement partagées avec d'autres
+processus. Une partie du contexte d'exécution, comme l'espace de noms de
+montage, est implicitement partagé quand un processus est créé avec
+\fBfork\fP(2) ou \fBvfork\fP(2), alors que d'autres parties, comme la mémoire
+virtuelle, peuvent être partagées en faisant explicitement la demande lors
+de la création d'un processus avec \fBclone\fP(2).
+
+L'intérêt principal de \fBunshare\fP() est de permettre à un processus de
+contrôler son contexte d'exécution partagé sans avoir à créer un nouveau
+processus.
+
+L'argument \fIflags\fP est un masque qui indique quelles parties du contexte
+d'exécution doivent être désassociées. Cet argument est construit comme un
+OU binaire entre les constantes suivantes\ :
+.TP 
+\fBCLONE_FILES\fP
+A l'effet inverse de l'attribut \fBCLONE_FILES\fP de \fBclone\fP(2). Supprimer le
+partage de la table des descripteurs de fichier, afin que le processus
+appelant ne partage plus ses descripteurs de fichier avec d'autres
+processus.
+.TP 
+\fBCLONE_FS\fP
+Annuler l'effet de l'attribut \fBCLONE_FS\fP de \fBclone\fP(2). Départager les
+attributs de système de fichiers, afin que le processus appelant ne partage
+plus son répertoire racine, son répertoire courant et sa valeur d'umask avec
+d'autres processus. Voir \fBchroot\fP(2), \fBchdir\fP(2), \fBumask\fP(2).
+.TP 
+\fBCLONE_NEWNS\fP
+.\" These flag name are inconsistent:
+.\" CLONE_NEWNS does the same thing in clone(), but CLONE_VM,
+.\" CLONE_FS, and CLONE_FILES reverse the action of the clone()
+.\" flags of the same name.
+.\" As at 2.6.16, the following forced implications also apply,
+.\" although the relevant flags are not yet implemented.
+.\" If CLONE_THREAD is set force CLONE_VM.
+.\" If CLONE_VM is set, force CLONE_SIGHAND.
+.\" If CLONE_SIGHAND is set and signals are also being shared
+.\" (i.e., current->signal->count > 1), force CLONE_THREAD.
+.\"
+.\" FIXME . CLONE_VM is not (yet, as at 2.6.16) implemented.
+.\" .TP
+.\" .B CLONE_VM
+.\" Reverse the effect of the
+.\" .BR clone (2)
+.\" .B CLONE_VM
+.\" flag.
+.\" .RB ( CLONE_VM
+.\" is also implicitly set by
+.\" .BR vfork (2),
+.\" and can be reversed using this
+.\" .BR unshare ()
+.\" flag.)
+.\" Unshare virtual memory, so that the calling process no
+.\" longer shares its virtual address space with any other process.
+Cet attribut a le \fImême\fP effet que l'attribut \fBCLONE_NEWNS\fP de
+\fBclone\fP(2). Départager l'espace de noms de montage, afin que le processus
+appelant ait une copie privée de son espace de noms qui n'est pas partagée
+avec d'autres processus. L'utilisation de cet attribut implique \fBCLONE_FS\fP.
+.PP
+Si \fIflags\fP est nul, \fBunshare\fP() n'a aucun effet\ : le contexte d'exécution
+du processus appelant n'est pas modifié.
+.SH "VALEUR RENVOYÉE"
+S'il réussit l'appel renvoie zéro, sinon il renvoie \-1 et remplit \fIerrno\fP
+avec le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+Un attribut invalide est indiqué dans \fIflags\fP.
+.TP 
+\fBENOMEM\fP
+Impossible d'allouer suffisamment de mémoire pour copier les parties du
+contexte de l'appelant qui doivent être rendues privées.
+.TP 
+\fBEPERM\fP
+\fBCLONE_NEWNS\fP est utilisé dans \fIflags\fP, mais le processus appelant n'est
+pas privilégié (ne possède pas la capacité \fBCAP_SYS_ADMIN\fP).
+.SH VERSIONS
+L'appel système \fBunshare\fP() est apparu dans Linux 2.6.16.
+.SH CONFORMITÉ
+L'appel système \fBunshare\fP() est spécifique à Linux.
+.SH NOTES
+.\" However, we can do unshare(CLONE_SIGHAND) if CLONE_SIGHAND
+.\" was not specified when doing clone(); i.e., unsharing
+.\" signal handlers is permitted if we are not actually
+.\" sharing signal handlers.   mtk
+.\" FIXME . check future kernel versions (e.g., 2.6.17)
+.\" to see if CLONE_VM gets implemented.
+.\" However, as at 2.6.16, we can do unshare(CLONE_VM) if CLONE_VM
+.\" was not specified when doing clone(); i.e., unsharing
+.\" virtual memory is permitted if we are not actually
+.\" sharing virtual memory.   mtk
+.\"
+.\"9) Future Work
+.\"--------------
+.\"The current implementation of unshare does not allow unsharing of
+.\"signals and signal handlers. Signals are complex to begin with and
+.\"to unshare signals and/or signal handlers of a currently running
+.\"process is even more complex. If in the future there is a specific
+.\"need to allow unsharing of signals and/or signal handlers, it can
+.\"be incrementally added to unshare without affecting legacy
+.\"applications using unshare.
+.\"
+Tous les attributs de processus qui peuvent être partagés lorsqu'un
+processus est créé avec \fBclone\fP(2) ne peuvent pas être rendus privés avec
+\fBunshare\fP(). En particulier, dans le noyau 2.6.16, \fBunshare\fP()
+n'implémente pas de drapeaux ayant l'effet inverse de \fBCLONE_SIGHAND\fP,
+\fBCLONE_SYSVSEM\fP, \fBCLONE_THREAD\fP ou \fBCLONE_VM\fP. Cette fonctionnalité
+pourra être ajoutée plus tard si nécessaire.
+.SH "VOIR AUSSI"
+\fBclone\fP(2), \fBfork\fP(2), \fBvfork\fP(2), Documentation/unshare.txt
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

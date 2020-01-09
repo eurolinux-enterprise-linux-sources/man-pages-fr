@@ -1,0 +1,68 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"
+.\" Corrected, aeb, 990824
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STPNCPY 3 "25 juillet 1999" GNU "Manuel du programmeur Linux"
+.SH NOM
+stpncpy \- Copier une chaîne de taille fixe et pointer sur sa fin.
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP
+.br
+\fB#include <string.h>\fP
+.sp
+\fBchar *stpncpy(char *\fP\fIdest\fP\fB, const char *\fP\fIsrc\fP\fB, size_t \fP\fIn\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBstpncpy\fP() copie au plus \fIn\fP caractères depuis la chaîne
+pointée par \fIsrc\fP, y compris le caractère final «\ \e0\ » dans le tableau
+pointé par \fIdest\fP. \fIn\fP caractères exactement sont écrits dans \fIdest\fP. Si
+la longueur \fIstrlen(src)\fP est plus petite que \fIn\fP, les caractères restant
+dans le tableau pointé par \fIdest\fP sont mis à zéro. Si la longueur
+\fIstrlen(src)\fP est plus grande que \fIn\fP, la chaîne pointée par \fIdest\fP \fBne\fP
+sera \fBpas\fP terminée par un caractère nul final.
+.PP
+Les chaînes ne doivent pas se chevaucher.
+.PP
+Le programmeur doit s'assurer qu'il a réservé assez de mémoire pour au moins
+\fIn\fP caractères dans \fIdest\fP.
+.SH "VALEUR RENVOYÉE"
+\fBstpncpy\fP() renvoie un pointeur sur le caractère nul final dans \fIdest\fP, ou
+si \fIdest\fP n'a pas de caractère nul final, \fIdest + n\fP.
+.SH CONFORMITÉ
+Cette fonction est une extension GNU.
+.SH "VOIR AUSSI"
+\fBstrncpy\fP(3), \fBwcpncpy\fP(3), \fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

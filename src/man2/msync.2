@@ -1,0 +1,108 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) 1996 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MSYNC 2 "22 avril 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+msync \- Synchroniser un fichier et une projection en mémoire
+.SH SYNOPSIS
+\fB#include <sys/mman.h>\fP
+.sp
+\fBint msync(void *\fP\fIaddr\fP\fB, size_t \fP\fIlength\fP\fB, int \fP\fIflags\fP\fB);\fP
+.SH DESCRIPTION
+\fBmsync\fP() écrit sur le disque les modifications qui ont été effectuées sur
+la copie d'un fichier qui est projeté en mémoire par \fBmmap\fP(2). Si l'on
+n'utilise pas cette fonction, rien ne garantit que les changements soient
+écrits avant la suppression de la projection par \fBmunmap\fP(2). Pour être
+plus précis, la portion du fichier correspondant à la zone mémoire
+commençant en \fIaddr\fP et ayant une longueur de \fIlength\fP est mise à jour.
+
+L'argument \fIflags\fP comprend les bits \fBMS_ASYNC\fP, \fBMS_SYNC\fP et
+\fBMS_INVALIDATE\fP, mais \fBMS_ASYNC\fP et \fBMS_SYNC\fP ne peuvent pas être
+utilisés conjointement. \fBMS_ASYNC\fP demande une mise à jour, mais l'appel
+retourne immédiatement. \fBMS_SYNC\fP demande une mise à jour, et attend
+qu'elle se termine avant de revenir. \fBMS_INVALIDATE\fP demande l'invalidation
+de toutes les autres projections du même fichier, afin qu'elles soient
+toutes remises à jour avec les nouvelles données écrites.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEBUSY\fP
+\fBMS_INVALIDATE\fP était positionné dans \fIflags\fP, mais un verrouillage
+mémoire existe pour l'intervalle indiqué.
+.TP 
+\fBEINVAL\fP
+\fIaddr\fP n'est pas aligné sur une frontière de page (un multiple de
+PAGESIZE), ou d'autres bits que \fBMS_ASYNC\fP | \fBMS_INVALIDATE\fP | \fBMS_SYNC\fP
+sont à 1 dans \fIflags\fP. Ou bien \fBMS_SYNC\fP et \fBMS_ASYNC\fP sont tous les deux
+spécifiés dans \fIflags\fP.
+.TP 
+\fBENOMEM\fP
+La zone mémoire indiquée (ou une partie de cette zone) n'est pas une
+projection.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+
+Cet appel a été introduit dans Linux 1.3.21, et utilisait \fBEFAULT\fP au lieu
+de \fBENOMEM\fP. Dans Linux 2.4.19, ceci a été remplacé par la valeur POSIX
+\fBENOMEM\fP.
+.SH DISPONIBILITÉ
+.\" POSIX.1-2001: It shall be defined to -1 or 0 or 200112L.
+.\" -1: unavailable, 0: ask using sysconf().
+.\" glibc defines them to 1.
+Sur les systèmes conformes à la spécification POSIX sur lequel \fBmsync\fP()
+est disponible, les constantes symboliques \fB_POSIX_MAPPED_FILES\fP et
+\fB_POSIX_SYNCHRONIZED_IO\fP sont définies dans \fI<unistd.h>\fP comme
+étant des valeurs supérieures à 0. (Voir aussi \fBsysconf\fP(3).)
+.SH "VOIR AUSSI"
+\fBmmap\fP(2)
+.br
+B.O. Gallmeister, POSIX.4, O'Reilly, pp. 128\(en129 et 389\(en391.
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

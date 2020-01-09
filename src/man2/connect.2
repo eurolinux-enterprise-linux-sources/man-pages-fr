@@ -1,0 +1,227 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright 1993 Rickard E. Faith (faith@cs.unc.edu)
+.\" Portions extracted from /usr/include/sys/socket.h, which does not have
+.\" any authorship information in it.  It is probably available under the GPL.
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"
+.\" Other portions are from the 6.9 (Berkeley) 3/10/91 man page:
+.\"
+.\" Copyright (c) 1983 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"     This product includes software developed by the University of
+.\"     California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" Modified 1997-01-31 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1998, 1999 by Andi Kleen
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CONNECT 2 "3 décembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+connect \- Débuter une connexion sur une socket
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP          /* Voir NOTES */
+.br
+\fB#include <sys/socket.h>\fP
+.sp
+\fBint connect(int \fP\fIsockfd\fP\fB, const struct sockaddr *\fP\fIaddr\fP\fB,\fP
+\fB            socklen_t \fP\fIaddrlen\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+L'appel système \fBconnect\fP() connecte la socket associée au descripteur de
+fichier \fIsockfd\fP à l'adresse indiquée par \fIaddr\fP. L'argument \fIaddrlen\fP
+indique la taille de \fIaddr\fP. Le format de l'adresse \fIaddr\fP est déterminé
+par la famille de la socket \fIsockfd\fP\ ; voir \fBsocket\fP(2) pour plus de
+détails.
+
+Si la socket \fIsockfd\fP est du type \fBSOCK_DGRAM\fP, alors \fIserv_addr\fP est
+l'adresse à laquelle les datagrammes seront envoyés par défaut, et la seule
+adresse depuis laquelle ils seront reçus. Si la socket est du type
+\fBSOCK_STREAM\fP ou \fBSOCK_SEQPACKET\fP, cette fonction tente de se connecter à
+une autre socket. L'adresse de l'autre socket est indiquée par \fIserv_addr\fP,
+qui doit être une adresse (de longueur \fIaddrlen\fP) dans le même domaine que
+la socket. Chaque domaine de communication interprète le paramètre \fIaddr\fP à
+sa manière.
+.PP
+En général, les sockets des protocoles orientés connexion ne réussissent un
+appel \fBconnect\fP() qu'une seule fois, alors qu'une socket d'un protocole
+sans connexion peut appeler \fBconnect\fP() plusieurs fois pour changer son
+affectation. Une socket sans connexion peut interrompre son affectation en
+se connectant sur une adresse avec le membre \fIsa_family\fP de la structure
+\fIsockaddr\fP à la valeur \fBAF_UNSPEC\fP (géré par Linux depuis le noyau 2.2).
+.SH "VALEUR RENVOYÉE"
+\fBconnect\fP() renvoie 0 s'il réussit, ou \-1 s'il échoue, auquel cas \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+Voici une liste d'erreurs générales concernant les sockets. Il peut en
+exister d'autres spécifiques au domaine employé.
+.TP 
+\fBEACCES\fP
+Pour les sockets de domaine Unix qui sont spécifiées par un nom de chemin\ :
+la permission en écriture est refusée sur le fichier socket, ou la
+permission de parcours est refusée pour l'un des répertoires composant le
+chemin. (Voir aussi \fBpath_resolution\fP(7).)
+.TP 
+\fBEACCES\fP, \fBEPERM\fP
+L'utilisateur a tenté de se connecter à une adresse broadcast sans avoir
+activé l'attribut broadcast, ou la demande de connexion a échoué à cause des
+règles d'un pare\-feu local.
+.TP 
+\fBEADDRINUSE\fP
+L'adresse locale est déjà utilisée.
+.TP 
+\fBEAFNOSUPPORT\fP
+L'adresse transmise n'a pas la bonne valeur dans son champ \fIsa_family\fP.
+.TP 
+\fBEAGAIN\fP
+Pas de port local disponible, ou pas assez de place dans les tables de
+routage. Pour \fBAF_INET\fP, consultez la description de
+\fI/proc/sys/net/ipv4/ip_local_port_range\fP dans \fBip\fP(7) pour les
+informations indiquant comment augmenter le nombre de ports locaux.
+.TP 
+\fBEALREADY\fP
+La socket est non bloquante et une tentative de connexion précédente ne
+s'est pas encore terminée.
+.TP 
+\fBEBADF\fP
+Mauvais descripteur.
+.TP 
+\fBECONNREFUSED\fP
+La connexion est refusée par le serveur.
+.TP 
+\fBEFAULT\fP
+La structure d'adresse pointe en dehors de l'espace d'adressage.
+.TP 
+\fBEINPROGRESS\fP
+La socket est non bloquante, et la connexion ne peut pas être établie
+immédiatement. Il est alors possible d'utiliser \fBselect\fP(2) ou \fBpoll\fP(2)
+pour attendre que la socket soit disponible en écriture. Une fois que
+\fBselect\fP(2) confirme la possibilité d'écrire, utilisez \fBgetsockopt\fP(2)
+pour lire l'option \fBSO_ERROR\fP du niveau \fBSOL_SOCKET\fP et déterminer si
+\fBconnect\fP() s'est terminé avec succès (\fBSO_ERROR\fP vaut zéro) ou en échec
+(\fBSO_ERROR\fP contient l'un des codes d'erreurs listés ici, indiquant le
+problème).
+.TP 
+\fBEINTR\fP
+.\" For TCP, the connection will complete asynchronously.
+.\" See http://lkml.org/lkml/2005/7/12/254
+L'appel système a été interrompu par l'arrivée d'un signal avant qu'une
+connexion valide ne survienne\ ; voir \fBsignal\fP(7).
+.TP 
+\fBEISCONN\fP
+La socket est déjà connectée.
+.TP 
+\fBENETUNREACH\fP
+Le réseau est inaccessible.
+.TP 
+\fBENOTSOCK\fP
+Le descripteur ne correspond pas à une socket.
+.TP 
+\fBETIMEDOUT\fP
+Dépassement du délai maximum pendant la connexion. Le serveur peut être trop
+chargé pour accepter une nouvelle connexion. Remarquez que pour les sockets
+IP, le délai peut être très long si les syncookies sont activés sur le
+serveur.
+.SH CONFORMITÉ
+.\" SVr4 documents the additional
+.\" general error codes
+.\" .BR EADDRNOTAVAIL ,
+.\" .BR EINVAL ,
+.\" .BR EAFNOSUPPORT ,
+.\" .BR EALREADY ,
+.\" .BR EINTR ,
+.\" .BR EPROTOTYPE ,
+.\" and
+.\" .BR ENOSR .
+.\" It also
+.\" documents many additional error conditions not described here.
+SVr4, BSD\ 4.4 (la fonction \fBconnect\fP() est apparue dans BSD\ 4.2),
+POSIX.1\-2001.
+.SH NOTES
+POSIX.1\-2001 ne requiert pas l'inclusion de \fI<sys/types.h>\fP, et cet
+en\(hytête n'est pas nécessaire sous Linux. Cependant, il doit être inclus
+sous certaines implémentations historiques (BSD), et les applications
+portables devraient probablement l'utiliser.
+
+Le troisième argument de \fBconnect\fP() est en fait un \fIint\fP (et c'est ce
+qu'utilisent BSD\ 4.x, libc4 et libc5). Une certaine confusion POSIX a donné
+le «\ \fIsocklen_t\fP\ » actuel, également utilisé par glibc. Pour plus de
+détails voir \fBaccept\fP(2).
+.SH EXEMPLE
+\fBgetaddrinfo\fP(3) contient un exemple d'utilisation de \fBconnect\fP().
+.SH "VOIR AUSSI"
+\fBaccept\fP(2), \fBbind\fP(2), \fBgetsockname\fP(2), \fBlisten\fP(2), \fBsocket\fP(2),
+\fBpath_resolution\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

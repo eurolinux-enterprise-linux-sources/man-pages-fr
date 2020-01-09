@@ -1,0 +1,102 @@
+.\" Copyright (c) 1995 Martin Schulze <joey@infodrom.north.de>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" 1995-10-18  Martin Schulze  <joey@infodrom.north.de>
+.\"	* first released
+.\" 2002-09-22  Seth W. Klein  <sk@sethwklein.net>
+.\"     * protocol numbers are now assigned by the IANA
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PROTOCOLS 5 "23 septembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+protocols \- Fichier de définition des protocoles.
+.SH DESCRIPTION
+\fI/etc/protocols\fP est un fichier de texte ASCII, décrivant les différents
+protocoles internet DARPA qui sont disponibles avec le sous\-système
+TCP/IP. Il faut consulter ce fichier pour connaître les valeurs utilisées
+sur le système plutôt que d'utiliser les nombres donnés dans les fichiers
+d'en\-tête ARPA, ou encore pire, d'essayer de deviner les valeurs. Ces
+numéros se trouvent dans le champ protocole des en\-têtes IP.
+
+.\" .. by the DDN Network Information Center.
+Évitez de modifier ce fichier, sinon le sous\-système IP ne fonctionnerait
+plus correctement. Les valeurs et les noms des protocoles sont spécifiés par
+l'IANA (Internet Assigned Numbers Authority).
+
+Chaque ligne a le format suivant\ :
+
+.RS
+\fIprotocole numéro alias ...\fP
+.RE
+
+où les champs sont séparés par des espaces ou des tabulations. Les lignes
+vides sont ignorées. Le caractère # débute un commentaire qui se poursuit
+jusqu'à la fin de la ligne.
+
+Descriptions des champs\ :
+.TP 
+\fIprotocole\fP
+Le nom original du protocole, par exemple \fIip\fP, \fItcp\fP, ou \fIudp\fP.
+.TP 
+\fInuméro\fP
+Le numéro officiel du protocole, tel qu'il apparaîtra dans l'en\-tête IP.
+.TP 
+\fIalias\fP
+Des synonymes éventuels pour le nom du protocole.
+.LP
+Ce fichier peut être diffusé sur le réseau, en utilisant un service de noms
+valable pour l'ensemble du réseau tel que «\ Yellow Pages/NIS\ » ou
+«\ BIND/Hesiod\ ».
+.SH FICHIERS
+.TP 
+\fI/etc/protocols\fP
+Le fichier de définition des protocoles.
+.SH "VOIR AUSSI"
+\fBgetprotoent\fP(3)
+
+http://www.iana.org/assignments/protocol\-numbers
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

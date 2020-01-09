@@ -1,0 +1,154 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sun Jul 25 10:54:03 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Fixed typo, aeb, 950823
+.\" 2002-02-22, joey, mihtjel: Added strtoull()
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STRTOUL 3 "26 juillet 2007" GNU "Manuel du programmeur Linux"
+.SH NOM
+strtoul, strtoull, strtouq \- Convertir une chaîne en entier long non signé
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBunsigned long int strtoul(const char *\fP\fInptr\fP\fB, char **\fP\fIendptr\fP\fB, int \fP\fIbase\fP\fB);\fP
+.sp
+\fBunsigned long long int strtoull(const char *\fP\fInptr\fP\fB, char **\fP\fIendptr\fP\fB,\fP
+\fB                                int \fP\fIbase\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBstrtoull\fP()\ : XOPEN_SOURCE >= 600 || _BSD_SOURCE || _SVID_SOURCE ||
+_ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.ad b
+.SH DESCRIPTION
+La fonction \fBstrtoul\fP() convertit le début de la chaîne \fInptr\fP en une
+valeur de type \fIunsigned long int\fP en fonction de l'argument \fIbase\fP, qui
+doit être dans l'intervalle 2 à 36 (bornes comprises), ou avoir la valeur
+spéciale 0.
+.PP
+La chaîne peut commencer par un nombre quelconque d'espaces ou de caractères
+interprétés comme tels par \fBisspace\fP(3). Un signe éventuel «\ +\ » ou «\ \-\
+» peut suivre. Si \fIbase\fP vaut 0 ou 16, la chaîne peut inclure un préfixe «\
+0x\ » et le nombre sera interprété en base 16. Sinon, une \fIbase\fP valant
+zéro est interprétée comme 10 (décimale) sauf si le caractère suivant est «\
+0\ », auquel cas la base est 8 (octale).
+.PP
+Le reste de la chaîne est converti en une valeur de type \fIunsigned long
+int\fP, en s'arrêtant au premier caractère qui ne soit pas un chiffre
+valable. Dans les bases supérieures à 10, la lettre «\ A\ » (majuscule ou
+minuscule) représente 10, «\ B\ » représente 11, et ainsi de suite jusqu'à
+«\ Z\ » représentant 35.
+.PP
+Si \fIendptr\fP n'est pas NULL, \fBstrtoul\fP() stocke l'adresse du premier
+caractère invalide dans \fI*endptr\fP. S'il n'y avait aucun chiffre valide,
+\fBstrtoul\fP() stocke la valeur originale de \fInptr\fP dans \fI*endptr\fP (et
+renvoie 0). En particulier, si \fI*nptr\fP n'est pas \(aq\e0\(aq et si
+\fI**endptr\fP vaut \(aq\e0\(aq en retour, la chaîne entière est valide.
+.PP
+La fonction \fBstrtoull\fP() travaille comme \fBstrtoul\fP() mais renvoie une
+valeur entière de type \fIunsigned long long int\fP.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBstrtoul\fP() renvoie soit le résultat de la conversion, soit,
+s'il y avait un signe moins, l'opposé du résultat de la conversion
+représentée comme une valeur non signée, à moins que la valeur originale
+provoque un débordement, auquel cas \fBstrtoul\fP() renvoie \fBULONG_MAX\fP et
+\fIerrno\fP contient le code d'erreur \fBERANGE\fP. La même chose est vraie pour
+\fBstrtoull\fP() avec \fBULLONG_MAX\fP à la place de \fBULONG_MAX\fP.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+(pas dans C99) La \fIbase\fP indiquée n'est pas supportée.
+.TP 
+\fBERANGE\fP
+La valeur retournée est hors limites.
+.LP
+L'implémentation peut aussi mettre \fIerrno\fP à \fBEINVAL\fP si aucune conversion
+n'a été réalisée (pas de chiffres trouvés, et renvoyé zéro).
+.SH CONFORMITÉ
+\fBstrtoul\fP() est conforme à SVr4, C89, C99 et POSIX\-2001, et \fBstrtoull\fP() à
+C99 et POSIX.1\-2001.
+.SH NOTES
+Comme \fBstrtoul\fP() peut légitimement renvoyer 0 ou \fBLONG_MAX\fP (\fBLLONG_MAX\fP
+pour \fBstrtoull\fP()) à la fois en cas de succès et d'échec, le programme
+appelant doit positionner \fIerrno\fP à 0 avant l'appel, et déterminer si une
+erreur s'est produite en regardant si \fIerrno\fP a une valeur non nulle après
+l'appel.
+
+Dans des localisations autre que «\ C\ », d'autres chaînes peuvent être
+acceptées. Par exemple, un signe séparateur de milliers pour la localisation
+actuelle peut être accepté.
+.LP
+BSD a aussi
+.sp
+.in +4n
+.nf
+\fBu_quad_t strtouq(const char *\fP\fInptr\fP\fB, char **\fP\fIendptr\fP\fB, int \fP\fIbase\fP\fB);\fP
+.sp
+.in -4n
+.fi
+avec une définition exactement analogue. Suivant l'architecture, cela peut
+être équivalent à \fBstrtoull\fP() ou \fBstrtoul\fP().
+
+Des valeurs négatives sont considérées comme valides, et sont converties en
+une valeur de type \fIunsigned long int\fP équivalente sans avertissement.
+.SH EXEMPLE
+Voyez l'exemple dans la page de manuel \fBstrtol\fP(3)\ ; l'utilisation des
+fonctions décrites dans cette page de manuel est identique.
+.SH "VOIR AUSSI"
+\fBatof\fP(3), \fBatoi\fP(3), \fBatol\fP(3), \fBstrtod\fP(3), \fBstrtol\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

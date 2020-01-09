@@ -1,0 +1,85 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 19:48:17 1993 by Rik Faith (faith@cs.unc.edu)
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH DIFFTIME 3 "28 février 2002" GNU "Manuel du programmeur Linux"
+.SH NOM
+difftime \- Calculer des intervalles de temps
+.SH SYNOPSIS
+.nf
+\fB#include <time.h>\fP
+.sp
+\fBdouble difftime(time_t \fP\fItime1\fP\fB, time_t \fP\fItime0\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBdifftime\fP() renvoie le nombre de secondes écoulées entre les
+instants \fItime0\fP et \fItime1\fP au format \fIdouble\fP. Les deux paramètres de
+temps sont de type calendrier, ce qui représente le temps écoulé depuis le
+1er janvier 1970 à 00h 00m 00s, en Temps Universel (UTC).
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3, C89, C99.
+.SH NOTES
+Sur un système POSIX, \fItime_t\fP est un type arithmétique, et on peut définir
+directement
+.RS
+.nf
+
+#define difftime(t1,t0) (double)(t1 \- t0)
+
+.fi
+.RE
+si les risques de débordement ne sont pas gênants. Sur d'autres systèmes, le
+type de données \fItime_t\fP peut utiliser d'autre encodage pour lesquels la
+soustraction ne fonctionne pas directement.
+.SH "VOIR AUSSI"
+\fBdate\fP(1), \fBgettimeofday\fP(2), \fBtime\fP(2), \fBctime\fP(3), \fBgmtime\fP(3),
+\fBlocaltime\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

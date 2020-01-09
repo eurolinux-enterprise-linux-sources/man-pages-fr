@@ -1,0 +1,100 @@
+.\" Copyright (c) 2009 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LIBC 7 "13 janvier 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+libc \- Panorama des biliothèques C standard sous Linux
+.SH DESCRIPTION
+Le terme «\ libc\ » est couramment utilisé comme une abréviation pour la
+bibliothèque C standard («\ standard C library\ »), une bibliothèque de
+fonctions standard qui peuvent être utilisées par tous les programmes C (et
+parfois par des programmes dans d'autres langages). Pour des raisons
+historiques (voir ci\-dessous), l'utilisation du terme «\ libc\ » pour parler
+de la bibliothèque C standard est un peu ambigüe sur Linux.
+.SS glibc
+La bibliothèque C de loin la plus utilisée sous Linux est la bibliothèque C
+du projet GNU (\fIhttp://www.gnu.org/software/libc/\fP), souvent désignée comme
+\fIglibc\fP. Il s'agit de la bibliothèque C utilisée aujourd'hui dans toutes
+les principales distributions Linux. Il s'agit également de la bibliothèque
+C dont les détails sont documentés dans les pages pertinentes du projet
+\fIman\-pages\fP projet (principalement dans la section 3 du manuel). La
+documentation de glibc est également disponible dans la glibc manuel,
+disponible via la commande \fIinfo libc\fP. La version 1.0 de la glibc a été
+faite en Septembre 1992. (Il y avait des versions 0.x antérieures.) La
+version majeure suivante de la glibc était la 2.0, publiée au début de 1997.
+
+Le chemin \fI/lib/libc.so.6\fP (ou quelque chose de similaire) est normalement
+un lien symbolique qui pointe vers l'emplacement de la bibliothèque glibc et
+l'exécution de ce chemin permet d'afficher les diverses informations sur la
+version installée sur votre système.
+.SS "Linux libc"
+Du début jusqu'au milieu des années 1990, il y avait déjà depuis un moment
+une duplication, \fILinux libc\fP, de glibc 1.x créé par des développeurs Linux
+qui ont estimé que le développement de la glibc de l'époque n'était pas
+suffisant pour les besoins de Linux. Souvent, cette bibliothèque a été
+appelée, de manière ambigüe, la «\ libc\ ». Les versions majeures 2, 3, 4 et 5
+de Linux libc ont été publiées, ainsi que de nombreuses versions
+mineures. Pendant un certain temps, Linux libc a été la bibliothèque C
+standard dans de nombreuses distributions Linux. Cependant, malgré les
+efforts de développement de Linux libc, lorsque la bibliothèque glibc 2.0
+est sortie, elle s'est montrée nettement supérieure à Linux libc. Par
+conséquent toutes les principales distributions de Linux qui avaient utilisé
+Linux libc sont très vite revenues à la glibc. (Comme ce retournement a eu
+lieu il y a plus de dix ans, \fIman\-pages\fP ne documente plus les détails de
+Linux libc. Néanmoins, l'histoire est visible dans les vestiges de
+l'information sur Linux libc qui restent dans certaines pages de manuel, en
+particulier des références à \fIlibc4\fP et \fIlibc5\fP.
+.SS "Autres bibliothèques C"
+Il existe plusieurs bibliothèques C pour Linux qui sont moins répandues. Ces
+bibliothèques sont généralement plus petites que la glibc, en termes de
+fonctionnalités et de mémoire, et sont souvent destinées à la construction
+des petits exécutables, pour le développement des systèmes embarqués de
+Linux. Parmi ces bibliothèques\ : \fIuClibc\fP (\fIhttp://www.uclibc.org/\fP) et
+\fIdietlibc\fP (\fIhttp://www.fefe.de/dietlibc/\fP). En général, les détails de
+ces bibliothèques ne sont pas couverts par le projet \fIman\-pages\fP.
+.SH "VOIR AUSSI"
+\fBsyscalls\fP(2), \fBfeature_test_macros\fP(7), \fBman\-pages\fP(7), \fBstandards\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

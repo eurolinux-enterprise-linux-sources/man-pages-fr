@@ -1,0 +1,141 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_ATTR_SETGUARDSIZE 3 "24 octobre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_attr_setguardsize, pthread_attr_getguardsize \- Définir ou obtenir la
+taille de garde d'un objet d'attributs de thread
+.SH SYNOPSIS
+.nf
+\fB#include <pthread.h>\fP
+
+\fBint pthread_attr_setguardsize(pthread_attr_t *\fP\fIattr\fP\fB, size_t \fP\fIguardsize\fP\fB);\fP
+\fBint pthread_attr_getguardsize(pthread_attr_t *\fP\fIattr\fP\fB, size_t *\fP\fIguardsize\fP\fB);\fP
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.SH DESCRIPTION
+La fonction \fBpthread_attr_setguardsize\fP() définit l'attribut de taille de
+garde de l'objet d'attributs de thread auquel \fIthread\fP fait référence à la
+valeur indiquée par \fIguardsize\fP.
+
+Si \fIguardsize\fP est positif, alors, pour chaque thread créé avec \fIattr\fP, le
+système alloue une région supplémentaire d'au moins \fIguardsize\fP octets à la
+fin de la pile du thread afin de servir de zone de protection pour la pile
+(voir la section BOGUES).
+
+Si \fIguardsize\fP est nul, les nouveaux threads créés avec \fIattr\fP n'auront
+pas de zone de protection.
+
+La taille de garde par défaut est la taille d'une page système.
+
+Si l'adresse de la pile a été définie dans \fIattr\fP (en utilisant
+\fBpthread_attr_setstack\fP(3) ou \fBpthread_attr_setstackaddr\fP(3)), ce qui
+signifie que l'appelant alloue la pile du thread, alors l'attribut contenant
+la taille de garde est ignoré (c'est\-à\-dire, aucune zone de garde n'est
+créée par le système)\ : il est de la responsabilité de l'application de
+prendre en charge les débordements de pile (peut\-être en utilisant
+\fBmprotect\fP(2) pour définir manuellement une zone de protection à la fin de
+la pile qui a été allouée).
+
+La fonction \fBpthread_attr_getguardsize\fP() renvoie, dans le tampon pointé
+par \fIguardsize\fP, l'attribut contenant la taille de garde de l'objet
+d'attributs de thread auquel \fIattr\fP fait référence.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient 0\ ; en cas d'erreur elles
+renvoient un numéro d'erreur non nul.
+.SH ERREURS
+POSIX.1\-2001 documente une erreur \fBEINVAL\fP si \fIattr\fP ou \fIguardsize\fP n'est
+pas valable. Sous Linux, ces fonctions réussissent toujours (mais les
+applications portables et à l'épreuve du temps devraient néanmoins prendre
+en charge une possible valeur de retour).
+.SH VERSIONS
+Ces fonctions sont fournies par la glibc depuis la version\ 2.1.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Une zone de garde consiste en des pages de mémoire virtuelles qui sont
+protégées pour empêcher des accès en lecture ou écriture. Si la pile d'un
+thread déborde dans la zone de garde, alors, pour la plupart des
+architectures matérielles, il reçoit un signal \fBSIGSEGV\fP, ce qui le
+prévient du débordement. Les zones de protection démarrent sur des limites
+de pages, et la taille de garde est arrondie en interne au multiple de
+taille de pages système supérieur lors de la création d'un thread
+(cependant, \fBpthread_attr_getguardsize\fP() renvoie la taille de garde qui a
+été définie par \fBpthread_attr_setguardsize\fP()).
+
+Définir une taille de garde de 0 peut être utile pour économiser de la
+mémoire dans une application qui crée beaucoup de thread et sait qu'il n'y
+aura jamais de débordement de la pile.
+
+Choisir une taille de garde supérieure à la taille par défaut peut être
+nécessaire pour détecter des débordement de pile si un thread alloue des
+structures de données importantes sur la pile.
+.SH BOGUES
+Au moment de la glibc 2.8, l'implémentation des thread NPTL place la zone de
+protection dans la taille allouée à la pile, plutôt que d'allouer de
+l'espace supplémentaire à la fin de la pile, comme exigé par POSIX.1 (ceci
+peut causer une erreur \fBEINVAL\fP lors de \fBpthread_create\fP(3) si la taille
+de garde est trop importante, ne laissant en fait pas de place à la pile).
+
+.\" glibc includes the guardsize within the allocated stack size,
+.\" which looks pretty clearly to be in violation of POSIX.
+.\"
+.\" Filed bug, 22 Oct 2008:
+.\" http://sources.redhat.com/bugzilla/show_bug.cgi?id=6973
+.\"
+.\" Older reports:
+.\" https//bugzilla.redhat.com/show_bug.cgi?id=435337
+.\" Reportedly, LinuxThreads did the right thing, allocating
+.\" extra space at the end of the stack:
+.\" http://sourceware.org/ml/libc-alpha/2008-05/msg00086.html
+L'implémentation obsolète LinuxThreads faisait ce qu'il fallait, en allouant
+de l'espace supplémentaire à la fin de la pile pour la zone de protection.
+.SH EXEMPLE
+Voir \fBpthread_getattr_np\fP(3).
+.SH "VOIR AUSSI"
+\fBmmap\fP(2), \fBmprotect\fP(2), \fBpthread_attr_init\fP(3), \fBpthread_create\fP(3),
+\fBpthread_attr_setstack\fP(3), \fBpthread_attr_setstacksize\fP(3), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

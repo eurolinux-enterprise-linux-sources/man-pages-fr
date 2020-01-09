@@ -1,0 +1,186 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\"
+.\" Modified 1993-07-24 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 2003-11-15 by aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETGRNAM 3 "30 mars 2009" "" "Manuel du programmeur Linux"
+.SH NOM
+getgrnam, getgrnam_r, getgrgid, getgrgid_r \- Obtenir l'enregistrement d'un
+groupe.
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <grp.h>\fP
+.sp
+\fBstruct group *getgrnam(const char *\fP\fIname\fP\fB);\fP
+.sp
+\fBstruct group *getgrgid(gid_t \fP\fIgid\fP\fB);\fP
+.sp
+\fBint getgrnam_r(const char *\fP\fIname\fP\fB, struct group *\fP\fIgrp\fP\fB,\fP
+.br
+\fB          char *\fP\fIbuf\fP\fB, size_t \fP\fIbuflen\fP\fB, struct group **\fP\fIresult\fP\fB);\fP
+.sp
+\fBint getgrgid_r(gid_t \fP\fIgid\fP\fB, struct group *\fP\fIgrp\fP\fB,\fP
+.br
+\fB          char *\fP\fIbuf\fP\fB, size_t \fP\fIbuflen\fP\fB, struct group **\fP\fIresult\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.ad l
+.in
+.sp
+\fBgetgrnam_r\fP(), \fBgetgrgid_r\fP()\ : _POSIX_C_SOURCE\ >=\ 1 ||
+_XOPEN_SOURCE || _BSD_SOURCE || _SVID_SOURCE || _POSIX_SOURCE
+.ad b
+.SH DESCRIPTION
+La fonction \fBgetgrnam\fP() renvoie un pointeur vers une structure contenant
+les champs de l'enregistrement de la base de données de groupe (par exemple,
+le fichier de groupes local \fI/etc/group\fP, NIS, et LDAP) correspondant au
+nom \fIname\fP.
+.PP
+La fonction \fBgetgrgid\fP() renvoie un pointeur vers une structure contenant
+les champs de l'enregistrement de la base de données de groupe correspondant
+au GID \fIgid\fP.
+.PP
+Les fonctions \fBgetgrnam_r\fP() et \fBgetgrgid_r\fP() cherchent la même
+information mais enregistrent la structure \fIgroup\fP trouvée dans l'espace
+pointé par \fIgrp\fP. Cette structure \fIgroup\fP contient des pointeurs vers des
+chaînes de caractères et ces chaînes sont enregistrées dans le tampon \fIbuf\fP
+de taille \fIbuflen\fP. Un pointeur vers le résultat (en cas de succès) ou NULL
+(au cas où aucune entrée n'ait été trouvée ou qu'une erreur soit survenue)
+est enregistré dans \fI*result\fP.
+.PP
+La structure \fIgroup\fP est définie dans \fI<grp.h>\fP comme ceci\ :
+.sp
+.in +4n
+.nf
+struct group {
+    char   *gr_name;       /* nom du groupe */
+    char   *gr_passwd;     /* mot de passe du groupe */
+    gid_t   gr_gid;        /* ID du groupe */
+    char  **gr_mem;        /* membres du groupe */
+};
+.fi
+.in
+.PP
+La taille maximum nécessaire pour \fIbuf\fP peut être récupérée par
+\fBsysconf\fP(3) avec le paramètre \fB_SC_GETGR_R_SIZE_MAX\fP.
+.SH "VALEUR RENVOYÉE"
+Les fonctions \fBgetgrnam\fP() et \fBgetgrgid\fP() renvoient un pointeur vers une
+structure \fIgroup\fP, ou NULL s'il n'y a pas de correspondance, ou si une
+erreur se produit. Dans ce cas, \fIerrno\fP est défini en conséquence. Si on
+souhaite vérifier \fIerrno\fP après l'appel, il devrait être positionné à zéro
+avant l'appel.
+.LP
+La valeur de retour peut pointer sur une zone de mémoire statique et peut
+être écrasée par des appels successifs à \fBgetgrent\fP(3), \fBgetgrgid\fP() ou
+\fBgetgrnam\fP(). (Ne pas passer le pointeur renvoyé à \fBfree\fP(3).)
+.LP
+En cas de succès, \fBgetgrnam_r\fP() et \fBgetgrgid_r\fP() renvoient 0, et
+définissent \fI*result\fP à \fIgrp\fP. Si aucun enregistrement de groupe de
+correspondance est trouvé, ces fonctions renvoient 0 et définissent
+\fI*result\fP à NULL. En cas d'erreur, un numéro d'erreur est renvoyé et
+\fI*result\fP est défini à NULL.
+.SH ERREURS
+.TP 
+\fB0\fP ou \fBENOENT\fP ou \fBESRCH\fP ou \fBEBADF\fP ou \fBEPERM\fP ou ... 
+Le nom \fIname\fP ou l'identifiant \fIgid\fP n'ont pas été trouvés.
+.TP 
+\fBEINTR\fP
+Un signal a été intercepté.
+.TP 
+\fBEIO\fP
+Erreur d'entrée\-sortie.
+.TP 
+\fBEMFILE\fP
+Le nombre maximal (\fBOPEN_MAX\fP) de fichiers ouverts par le processus est
+atteint.
+.TP 
+\fBENFILE\fP
+Le nombre maximal de fichiers ouverts sur le système est atteint.
+.TP 
+\fBENOMEM\fP
+.\" not in POSIX
+.\" to allocate the group structure, or to allocate buffers
+Pas assez de mémoire pour allouer la structure \fIgroup\fP.
+.TP 
+\fBERANGE\fP
+L'espace tampon fourni est insuffisant.
+.SH FICHIERS
+.TP 
+\fI/etc/group\fP
+Base de données des groupes locaux
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3, POSIX.1\-2001.
+.SH NOTES
+.\" more precisely:
+.\" AIX 5.1 - gives ESRCH
+.\" OSF1 4.0g - gives EWOULDBLOCK
+.\" libc, glibc up to version 2.6, Irix 6.5 - give ENOENT
+.\" glibc since version 2.7 - give 0
+.\" FreeBSD 4.8, OpenBSD 3.2, NetBSD 1.6 - give EPERM
+.\" SunOS 5.8 - gives EBADF
+.\" Tru64 5.1b, HP-UX-11i, SunOS 5.7 - give 0
+La description «\ VALEUR RENVOYÉE\ » ci\-dessus provient de
+POSIX.1\-2001. Elle ne considère pas le cas «\ non trouvé\ » comme une erreur
+et ne spécifie pas \fIerrno\fP dans ce cas. Cela rend la détection d'erreur
+impossible. On peut dire que, d'après POSIX, \fIerrno\fP est inchangé dans le
+cas où aucune entrée n'est trouvée. Des essais sur de nombreux systèmes Unix
+ont fait apparaître différentes valeurs dans ce cas\ : 0, ENOENT, EBADF,
+ESRCH, EWOULDBLOCK, EPERM et probablement d'autres.
+.SH "VOIR AUSSI"
+\fBendgrent\fP(3), \fBfgetgrent\fP(3), \fBgetgrent\fP(3), \fBgetpwnam\fP(3),
+\fBsetgrent\fP(3), \fBgroup\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

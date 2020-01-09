@@ -1,0 +1,110 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" This manpage is Copyright (C) 1992 Drew Eckhardt;
+.\"                               1993 Michael Haardt, Ian Jackson.
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified Wed Jul 21 23:02:38 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 2001-11-17, aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH _EXIT 2 "27 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+_exit, _Exit \- Mettre fin au processus appelant
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBvoid _exit(int \fP\fIcode\fP\fB);\fP
+.sp
+\fB#include <stdlib.h>\fP
+.sp
+\fBvoid _Exit(int \fP\fIcode\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fB_Exit\fP()\ : _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE\ ; ou \fIcc\
+\-std=c99\fP
+.SH DESCRIPTION
+La fonction \fB_exit\fP() met fin «\ immédiatement\ » au processus en cours,
+les descripteurs de fichier lui appartenant sont fermés, tous ses fils
+éventuels sont hérités par le processus 1 (\fIinit\fP), et son père reçoit un
+signal \fBSIGCHLD\fP.
+.LP
+La valeur \fIcode\fP est renvoyée au processus père comme valeur de sortie et
+peut être récupérée en utilisant un appel système de la famille \fBwait\fP(2).
+.LP
+La fonction \fB_Exit\fP() est équivalente à \fB_exit\fP().
+.SH "VALEUR RENVOYÉE"
+Ces fonctions ne reviennent jamais.
+.SH CONFORMITÉ
+SVr4, POSIX.1\-2001, BSD\ 4.3. La fonction \fB_Exit\fP() est apparue dans C99.
+.SH NOTES
+Pour une discussion sur les effets de exit, la transmission de la valeur de
+retour, les processus zombie, les signaux envoyés, etc. reportez\(hyvous à
+\fBexit\fP(3).
+.LP
+L'appel système \fB_exit\fP() est identique à \fBexit\fP(3), mais n'appelle aucune
+fonction programmée par la routine \fBatexit\fP(3) ou \fBon_exit\fP(3). Le fait
+qu'il vide ou non les tampons d'entrée\-sortie, ou qu'il efface les fichiers
+temporaires créés avec \fBtmpfile\fP(3) dépend de l'implémentation. En
+revanche, \fB_exit\fP ferme les descripteurs de fichier, ce qui peut retarder
+son exécution durant le temps où des écritures se terminent. Si ce retard
+est gênant, on peut invoquer \fBtcflush\fP(3) avant d'appeler
+\fB_exit\fP(). Savoir si certaines entrées\-sorties en attente sont annulées
+lors d'un \fB_exit\fP(), et lesquelles, dépend de l'implémentation.
+
+Dans la glibc jusqu'à la version 2.3, la fonction enveloppe \fB_exit\fP()
+appelait l'appel système de même nom. Depuis la glibc 2.3, la fonction
+enveloppe appelle \fBexit_group\fP(2), afin de terminer tous les threads du
+processus.
+.SH "VOIR AUSSI"
+\fBexecve\fP(2), \fBexit_group\fP(2), \fBfork\fP(2), \fBkill\fP(2), \fBwait\fP(2),
+\fBwait4\fP(2), \fBwaitpid\fP(2), \fBatexit\fP(3), \fBexit\fP(3), \fBon_exit\fP(3),
+\fBtermios\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

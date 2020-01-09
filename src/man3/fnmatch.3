@@ -1,0 +1,104 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" License.
+.\" Modified Sat Jul 24 19:35:54 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Mon Oct 16 00:16:29 2000 following Joseph S. Myers
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FNMATCH 3 "15 octobre 2000" GNU "Manuel du programmeur Linux"
+.SH NOM
+fnmatch \- Correspondance de noms de fichiers
+.SH SYNOPSIS
+.nf
+\fB#include <fnmatch.h>\fP
+.sp
+\fBint fnmatch(const char *\fP\fIpattern\fP\fB, const char *\fP\fIstring\fP\fB, int \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBfnmatch\fP() vérifie si l'argument \fIstring\fP correspond avec le
+motif \fIpattern\fP, qui peut contenir des méta\-caractères d'un interpréteur de
+commande.
+.PP
+L'argument \fIflags\fP modifie le comportement de la fonction. C'est un \fIOU\fP
+binaire entre zéro ou plusieurs des drapeaux suivants\ :
+.TP 
+\fBFNM_NOESCAPE\fP
+Traiter la barre oblique inverse «\ \e\ » comme un caractère ordinaire, et
+non pas un caractère d'échappement.
+.TP 
+\fBFNM_PATHNAME\fP
+Ne faire correspondre une barre oblique «\ /\ » dans \fIstring\fP qu'avec une
+barre oblique dans \fIpattern\fP, et non avec les méta\-caractères «\ *\ » ou «\
+?\ », et non plus avec une expression entre crochets «\ []\ » contenant une
+barre oblique.
+.TP 
+\fBFNM_PERIOD\fP
+Un point en début de \fIstring\fP doit exactement correspondre avec un point
+dans \fIpattern\fP. Un point est considéré comme en\-tête de chaîne, s'il est le
+premier caractère de \fIstring\fP, ou si \fBFNM_PATHNAME\fP est défini, et si le
+point suit immédiatement une barre oblique.
+.TP 
+\fBFNM_FILE_NAME\fP
+Il s'agit d'un synonyme GNU de \fBFNM_PATHNAME\fP.
+.TP 
+\fBFNM_LEADING_DIR\fP
+(Extension GNU), la correspondance est considérée comme correcte si le motif
+correspond à un segment initial de la chaîne \fIstring\fP suivi d'une barre
+oblique. Ce drapeau est réservé pour un usage interne de la glibc, et n'est
+pas toujours implémenté.
+.TP 
+\fBFNM_CASEFOLD\fP
+(Extension GNU). La correspondance est insensible à la case.
+.SH "VALEUR RENVOYÉE"
+Zéro si la chaîne \fIstring\fP correspond au motif \fIpattern\fP, \fBFNM_NOMATCH\fP
+s'il n'y a pas correspondance, et une autre valeur non nulle s'il y a
+erreur.
+.SH CONFORMITÉ
+POSIX.2. Les drapeaux \fBFNM_FILE_NAME\fP, \fBFNM_LEADING_DIR\fP, et
+\fBFNM_CASEFOLD\fP sont des extensions GNU.
+.SH "VOIR AUSSI"
+\fBsh\fP(1), \fBglob\fP(3), \fBscandir\fP(3), \fBwordexp\fP(3), \fBglob\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

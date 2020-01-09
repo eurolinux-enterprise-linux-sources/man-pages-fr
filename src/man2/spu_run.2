@@ -1,0 +1,227 @@
+.\" Copyright (c) International Business Machines Corp., 2006
+.\"
+.\" This program is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+.\" the GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+.\" MA 02111-1307 USA
+.\"
+.\" HISTORY:
+.\" 2005-09-28, created by Arnd Bergmann <arndb@de.ibm.com>
+.\" 2006-06-16, revised by Eduardo M. Fleury <efleury@br.ibm.com>
+.\" 2007-07-10, some polishing by mtk
+.\" 2007-09-28, updates for newer kernels, added example
+.\"             by Jeremy Kerr <jk@ozlabs.org>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SPU_RUN 2 "25 novembre 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+spu_run \- Exécuter un contexte SPU
+.SH SYNOPSIS
+.nf
+\fB#include <sys/spu.h>\fP
+
+\fBint spu_run(int \fP\fIfd\fP\fB, unsigned int *\fP\fInpc\fP\fB, unsigned int *\fP\fIevent\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+L'appel système \fBspu_run\fP() est utilisé sur les PowerPC disposant de
+l'architecture du processeur Cell dans le but d'accéder aux SPUs
+(Synergistic Processor Units). L'argument \fIfd\fP est un descripteur de
+fichiers retourné par \fBspu_create\fP(2) qui se réfère à un contexte SPU
+spécifique. Lorsque le contexte est livré à un SPU physique, il démarre son
+exécution au pointeur d'instruction passé à \fInpc\fP.
+
+L'exécution du code SPU se fait de manière synchrone. C'est pourquoi
+\fBspu_run\fP() est bloquant tant que le SPU fonctionne. S'il est nécessaire
+d'exécuter du code SPU en parallèle avec d'autres codes, que se soit sur le
+processeur principal ou sur d'autres SPU, un nouveau thread doit d'abord
+être créé (par exemple en utilisant \fBpthread_create\fP(3)).
+
+Lorsque \fBspu_run\fP() revient, la valeur courante du pointeur d'instruction
+SPU est écrite à \fInpc\fP, donc il est possible d'appeller \fBspu_run\fP() de
+nouveau avec le même pointeur \fInpc\fP.
+
+Le paramètre \fIevent\fP fournit un tampon pour un code d'état étendu. Si le
+contexte SPU a été créé avec l'attribut \fBSPU_CREATE_EVENTS_ENABLED\fP, ce
+tampon sera rempli par le noyau Linux avant que \fBspu_run\fP() revienne.
+
+Le code d'état peut être l'une (ou plus) des constantes suivantes\ :
+.TP 
+\fBSPE_EVENT_DMA_ALIGNMENT\fP
+Une erreur d'alignement DMA s'est produite.
+.TP 
+\fBSPE_EVENT_INVALID_DMA\fP
+Une commande MFC DMA invalide a été tentée.
+.TP 
+\fBSPE_EVENT_SPE_DATA_STORAGE\fP
+Une erreur de stockage DMA s'est produite.
+.TP 
+\fBSPE_EVENT_SPE_ERROR\fP
+Une instruction illégale a été exécutée.
+.PP
+NULL est une valeur valable pour le paramètre \fIevent\fP. Dans ce cas, les
+événements ne seront pas remontés au processus appelant.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBspu_run\fP() renvoie la valeur du registre
+\fIspu_status\fP. En cas d'erreur l'appel renvoie \-1 et positionne \fIerrno\fP à
+l'un des codes d'erreur listés ci\-dessous.
+
+La valeur du registre \fIspu_status\fP est un masque de bits de code d'erreurs
+et en option d'un code de retour de 14 bits provenant de l'instruction
+\fBstop\-and\-signal\fP du SPU. Les bits des masques du code de retour sont\ :
+.TP 
+\fB0x02\fP
+Le SPU a été stoppé par une instruction \fBstop\-and\-signal\fP.
+.TP 
+\fB0x04\fP
+Le SPU a été arrêté par une instruction \fBhalt\fP.
+.TP 
+\fB0x08\fP
+Le SPU est en attente d'un canal.
+.TP 
+\fB0x10\fP
+Le SPU est en mode single\-step.
+.TP 
+\fB0x20\fP
+SPU a essayé d'exécuter une instruction non valable.
+.TP 
+\fB0x40\fP
+SPU a essayé d'accéder à un canal non valable.
+.TP 
+\fB0x3fff0000\fP
+Les bits masqués avec cette valeur contiennent le code renvoyé par une
+instruction \fBstop\-and\-signal\fP. Ces bits ne sont valables que si le bit 0x02
+est positionné.
+.PP
+Si \fBspu_run\fP() ne renvoie pas d'erreur, au moins un des huit bits de poids
+faible est toujours positionné.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBEFAULT\fP
+\fInpc\fP n'est pas un pointeur valable ou \fIevent\fP n'est ni NULL ni un
+pointeur valable.
+.TP 
+\fBEINTR\fP
+Un signal est apparu pendant la progression de \fBspu_run\fP()\ ; voir
+\fBsignal\fP(7). La valeur \fInpc\fP a été mise à jour à la nouvelle valeur du
+compteur de programme si nécessaire.
+.TP 
+\fBEINVAL\fP
+\fIfd\fP n'est pas un descripteur de fichier valable renvoyé par
+\fBspu_create\fP(2).
+.TP 
+\fBENOMEM\fP
+Il n'y a pas suffisamment de mémoire disponible pour gérer une faute de page
+résultant d'un accès direct à la mémoire d'un MFC («\ Memory Flow
+Controller\ »).
+.TP 
+\fBENOSYS\fP
+La fonctionnalité n'est par fournie par le système actuel parce que le
+matériel ne fournit pas de SPU ou parce que le module spufs n'est pas
+chargé.
+.SH VERSIONS
+L'appel système \fBspu_run\fP() est apparu dans Linux 2.6.16.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux et implémenté uniquement sur
+l'architecture PowerPC. Les programmes qui l'utilisent ne sont pas
+portables.
+.SH NOTES
+La glibc ne fournit pas de fonction pour cet appel système\ : utilisez
+\fBsyscall\fP(2) pour l'appeler. Notez cependant que \fBspu_run\fP() est conçu
+pour être appelé depuis des bibliothèques qui implémentent une interface
+plus abstraite pour les SPU, pas pour être appelé directement par les
+applications normales. Consultez
+\fIhttp://www.bsc.es/projects/deepcomputing/linuxoncell/\fP pour les
+bibliothèques recommandées.
+.SH EXEMPLE
+Vous trouverez ci\-dessous un exemple pour lancer un programme simple, d'une
+instruction SPU, utilisant l'appel système \fBspu_run\fP().
+
+.nf
+#include <stdlib.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <fcntl.h>
+
+#define handle_error(msg) \e
+    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+int main(void)
+{
+    int context, fd, spu_status;
+    uint32_t instruction, npc;
+
+    context = spu_create("/spu/example\-context", 0, 0755);
+    if (context == \-1)
+        handle_error("spu_create");
+
+    /* write a \(aqstop 0x1234\(aq instruction to the SPU\(aqs
+     * local store memory
+     */
+    instruction = 0x00001234;
+
+    fd = open("/spu/example\-context/mem", O_RDWR);
+    if (fd == \-1)
+        handle_error("open");
+    write(fd, &instruction, sizeof(instruction));
+
+    /* set npc to the starting instruction address of the
+     * SPU program. Since we wrote the instruction at the
+     * start of the mem file, the entry point will be 0x0
+     */
+    npc = 0;
+
+    spu_status = spu_run(context, &npc, NULL);
+    if (spu_status == \-1)
+        handle_error("open");
+
+    /* we should see a status code of 0x1234002:
+     *   0x00000002 (spu was stopped due to stop\-and\-signal)
+     * | 0x12340000 (the stop\-and\-signal code)
+     */
+    printf("SPU Status: 0x%08x\en", spu_status);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.\" .SH AUTHORS
+.\" Arnd Bergmann <arndb@de.ibm.com>, Jeremy Kerr <jk@ozlabs.org>
+.SH "VOIR AUSSI"
+\fBclose\fP(2), \fBspu_create\fP(2), \fBcapabilities\fP(7), \fBspufs\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

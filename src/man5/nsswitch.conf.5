@@ -1,0 +1,267 @@
+.\" Copyright (c) 1998, 1999 Thorsten Kukuk (kukuk@vt.uni-paderborn.de)
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" This manual page based on the GNU C Library info pages.
+.\" FIXME ? The use of quotes on this page is inconsistent with the
+.\" rest of man-pages.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH NSSWITCH.CONF 5 "17 janvier 1999" Linux "Manuel du programmeur Linux"
+.SH NOM
+nsswitch.conf \- Fichier de configuration des bases de données systèmes
+(«\ System Databases\ ») et du service de noms («\ Name Service Switch\ »).
+.SH DESCRIPTION
+Plusieurs fonctions de la bibliothèque C doivent être configurées pour
+fonctionner correctement dans l'environnement local. Traditionnellement,
+cette configuration était réalisée par l'intermédiaire de fichiers (par
+exemple «\ \fI/etc/passwd\fP\ »), mais d'autres services de noms, tels que
+«\ Network Information Service\ » (NIS) le «\ Domain Name Service\ » (DNS) sont
+devenus populaires, et ils ont été implémentés dans la bibliothèque C,
+habituellement avec un ordre de recherche fixe.
+.LP
+La bibliothèque libc5 de Linux implémentant NYS et la bibliothèque C GNU 2.x
+(libc.so.6) fournissent une solution plus propre à ce problème. Elle a été
+construite à partir d'une méthode de Sun Microsystems, utilisée dans la
+bibliothèque C de Solaris 2. On a conservé leur dénomination, et ce schéma
+est appelé «\ Name Service Switch\ » (NSS). Les sources des «\ bases de
+données\ », et leur ordre de recherche sont indiqués dans le fichier
+\fI/etc/nsswitch.conf\fP.
+.LP
+Les bases de données suivantes sont disponibles dans le NSS\ :
+.TP 
+\fBaliases\fP
+Alias pour le courrier électronique, utilisés par
+\fBsendmail\fP(8). Aujourd'hui ignorés.
+.TP 
+\fBethers\fP
+Numéros Ethernet.
+.TP 
+\fBgroup\fP
+Groupes d'utilisateur, utilisés par les fonctions \fBgetgrent\fP(3).
+.TP 
+\fBhosts\fP
+Noms d'hôtes et leurs adresses, utilisés par des fonctions comme
+\fBgethostbyname\fP(3) ou similaires.
+.TP 
+\fBnetgroup\fP
+Liste d'hôtes et d'utilisateurs valable pour l'ensemble du réseau, servant à
+établir les règles d'accès. Les bibliothèques C antérieures à glibc 2.1 ne
+géraient les groupes réseau qu'avec NIS.
+.TP 
+\fBnetworks\fP
+Les noms et les masques des réseaux, utilisés par les fonctions
+\fBgetnetent\fP(3).
+.TP 
+\fBpasswd\fP
+Mots de passe des utilisateurs, utilisés par les fonctions \fBgetpwent\fP(3).
+.TP 
+\fBprotocols\fP
+Protocoles réseau, utilisés par les fonctions \fBgetprotoent\fP(3).
+.TP 
+\fBpublickey\fP
+Clés publiques et privées des «\ secure_RPC\ », utilisées par NFS et NIS+.
+.TP 
+\fBrpc\fP
+Noms d'appel et numéro des procédures à distance, utilisés par les fonctions
+comme \fBgetrpcbyname\fP(3).
+.TP 
+\fBservices\fP
+Services réseau, utilisés par les fonctions \fBgetservent\fP(3).
+.TP 
+\fBshadow\fP
+Fichier des mots de passe cachés des utilisateurs, utilisé par
+\fBgetspnam\fP(3).
+.LP
+Un exemple de fichier \fI/etc/nsswitch.conf\fP pourrait être le suivant (il
+s'agit des valeurs par défaut si \fI/etc/nsswitch.conf\fP est absent)\ :
+.sp 1n
+.PD 0
+.TP  16
+passwd:
+compat
+.TP 
+group:
+compat
+.TP 
+shadow:
+compat
+.sp 1n
+.TP 
+hosts:
+dns [!UNAVAIL=return] files
+.TP 
+networks:
+nis [NOTFOUND=return] files
+.TP 
+ethers:
+nis [NOTFOUND=return] files
+.TP 
+protocols:
+nis [NOTFOUND=return] files
+.TP 
+rpc:
+nis [NOTFOUND=return] files
+.TP 
+services:
+nis [NOTFOUND=return] files
+.PD
+.LP
+La première colonne correspond à la base de données. Le reste de la ligne
+indique la méthode de recherche dans cette base. Chaque base de données peut
+avoir sa propre méthode.
+.LP
+La configuration de chaque base de données comporte deux éléments
+différents\ :
+.PD 0
+.TP 
+* Indication du service, comme «\ files\ », «\ db\ » ou «\ nis\ ».
+.TP 
+* Comportement à adopter pour la recherche, comme «\ [NOTFOUND=return]\ ».
+.PD
+.LP
+Les spécifications de service possibles pour la bibliothèque libc5 avec NYS,
+sont «\ files\ », «\ nis\ » et «\ nisplus\ ». Vous pouvez ajouter «\ dns\ » comme
+service supplémentaire pour les hôtes, «\ compat\ » pour passwd et group (mais
+pas pour shadow).
+.LP
+Avec la bibliothèque C GNU, vous aurez besoin d'un fichier appelé
+\fB/lib/libnss_SERVICE.so.\fP\fIX\fP pour chaque SERVICE utilisé. Avec une
+installation standard, vous pouvez utiliser «\ files\ », «\ db\ », «\ nis\ » et
+«\ nisplus\ ». Pour les noms d'hôtes, vous pouvez indiquer «\ dns\ » comme
+service supplémentaire, passwd, group et shadow acceptent le service
+«\ compat\ ». Ces services ne sont pas utilisés par libc5 avec NYS. Le numéro
+de version \fIX\fP est 1 pour glibc 2.0 et 2 pour glibc 2.1.
+.LP
+Le second élément de la configuration fournit un contrôle plus fin sur la
+méthode de recherche. Des actions sont indiquées, entre crochets, entre deux
+noms de services. La forme générale est la suivante\ :
+.LP
+`[' ( `!'? STATUS `=' ACTION )+ `]'
+.LP
+où
+.sp 1n
+.PD 0
+.TP 
+STATUS => success | notfound | unavail | tryagain
+.TP 
+ACTION => return | continue
+.PD
+.LP
+Il n'y a pas de distinction entre majuscule et minuscule dans les
+mots\-clés. Les valeurs de STATUS correspondent au résultat d'une fonction de
+recherche pour un service particulier. Ces mots\-clés signifient\ :
+.TP 
+\fBsuccess\fP
+Aucune erreur ne s'est produite, et la donnée recherchée a été
+trouvée. L'action par défaut est «\ return\ ».
+.TP 
+\fBnotfound\fP
+La méthode de recherche a bien fonctionné, mais la valeur désirée n'a pas
+été trouvée. L'action par défaut est «\ continue\ ».
+.TP 
+\fBunavail\fP
+Le service est indisponible de manière permanente. Ceci peut indiquer que le
+fichier nécessaire n'existe pas, ou, pour les DNS, que le serveur n'accepte
+pas les requêtes. L'action par défaut est «\ continue\ ».
+.TP 
+\fBtryagain\fP
+Le service considéré est temporairement indisponible. Ceci signifie qu'un
+fichier est verrouillé, et qu'un serveur ne peut pas actuellement accepter
+davantage de connexions. L'action par défaut est «\ continue\ ».
+.SS "Interactions avec la syntaxe +/\- (mode compat)"
+La bibliothèque libc5 de Linux sans NYS ne possède pas de NSS, mais donne
+néanmoins quelque contrôle à l'utilisateur. Dans \fI/etc/passwd\fP, il est
+possible de mettre des entrées de la forme +utilisateur ou +@groupe (pour
+inclure l'utilisateur spécifié à partir de la carte NIS passwd),
+\-utilisateur ou \-@groupe (pour exclure l'utilisateur spécifié),  et +
+(inclure tout utilisateur, sauf ceux qui sont exclus, à partir de la carte
+NIS passwd). Comme la plupart des gens placent uniquement un + à la fin de
+\fI/etc/passwd\fP pour tout inclure depuis NIS, il est possible d'utiliser une
+méthode plus rapide («\ passwd: files nis\ ») qui ne nécessite pas d'entrée +
+dans \fI/etc/passwd\fP, \fI/etc/group\fP, ni \fI/etc/shadow\fP. Si cela ne suffit
+pas, le service NSS «\ compat\ » permet d'utiliser la sémantique +/\-
+complète. Par défaut, la source est «\ nis\ », mais on peut la surcharger en
+indiquant «\ nisplus\ » comme source des pseudo bases de données
+\fBpasswd_compat\fP, \fBgroup_compat\fP et \fBshadow_compat\fP. Ces pseudo bases de
+données ne sont disponibles que dans la bibliothèque C GNU.
+.SH FICHIERS
+Un service appelé SERVICE est implémenté par une bibliothèque objet partagée
+nommée \fBlibnss_SERVICE.so.\fP\fIX\fP qui se trouve dans \fI/lib\fP.
+.TP  25
+.PD 0
+\fI/etc/nsswitch.conf\fP
+fichier de configuration
+.TP 
+\fB/lib/libnss_compat.so.\fP\fIX\fP
+implémente «\ compat\ » pour la bibliothèque glibc\ 2\ ;
+.TP 
+\fB/lib/libnss_db.so.\fP\fIX\fP
+implémente «\ db\ » pour la bibliothèque glibc\ 2\ ;
+.TP 
+\fB/lib/libnss_dns.so.\fP\fIX\fP
+implémente «\ dns\ » pour la bibliothèque glibc\ 2\ ;
+.TP 
+\fB/lib/libnss_files.so.\fP\fIX\fP
+implémente «\ files\ » pour la bibliothèque glibc\ 2\ ;
+.TP 
+\fB/lib/libnss_hesiod.so.\fP\fIX\fP
+implémente «\ hesoid\ » pour la bibliothèque glibc\ 2\ ;
+.TP 
+\fB/lib/libnss_nis.so.\fP\fIX\fP
+implémente «\ nis\ » pour la bibliothèque glibc\ 2\ ;
+.TP 
+\fI/lib/libnss_nisplus.so.2\fP
+implémente «\ nisplus\ » pour la bibliothèque glibc\ 2.
+.PD
+.SH NOTES
+Au sein de chaque processus qui utilise \fBnsswitch.conf\fP, le fichier n'est
+lu en entier qu'une seule fois. Si le fichier est modifié par la suite, le
+processus continuera à utiliser l'ancienne configuration.
+.LP
+Avec Solaris, il n'est pas possible de lier statiquement des programmes
+utilisant les services NSS. Avec Linux, cela ne pose aucun problème.
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

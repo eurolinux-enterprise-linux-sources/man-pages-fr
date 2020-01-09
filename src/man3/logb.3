@@ -1,0 +1,126 @@
+.\" Copyright 2004 Andries Brouwer <aeb@cwi.nl>.
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Inspired by a page by Walter Harms created 2002-08-10
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LOGB 3 "5 août 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+logb, logbf, logbl \- Obtenir l'exposant d'un nombre à virgule flottante
+.SH SYNOPSIS
+\fB#include <math.h>\fP
+.sp
+\fBdouble logb(double \fP\fIx\fP\fB);\fP
+.br
+\fBfloat logbf(float \fP\fIx\fP\fB);\fP
+.br
+\fBlong double logbl(long double \fP\fIx\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBlogb\fP()\: _BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.br
+\fBlogbf\fP(), \fBlogbl\fP()\ : _BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\
+>=\ 600 || _ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.ad b
+.SH DESCRIPTION
+Ces fonctions extraient l'exposant de la représentation interne en virgule
+flottante de \fIx\fP et le renvoient sous forme de nombre en virgule
+flottante. La constante entière \fBFLT_RADIX\fP, définie dans
+\fI<float.h>\fP, indique la base utilisée pour la représentation des
+nombres en virgule flottante du système. Si \fBFLT_RADIX\fP vaut 2, alors
+\fBlogb(\fP\fIx\fP\fB)\fP est équivalent à \fBfloor(log2(\fP\fIx\fP\fB))\fP et elle est
+probablement plus rapide.
+.LP
+Si \fIx\fP est sous normalisé, \fBlogb\fP() renvoie l'exposant \fIx\fP comme s'il
+était normalisé.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient l'exposant de \fIx\fP.
+
+Si \fIx\fP est un NaN, la valeur renvoyée et un NaN.
+
+Si \fIx\fP est nul, une erreur de pôle se produit et les fonctions renvoient
+\-\fBHUGE_VAL\fP, \-\fBHUGE_VALF\fP ou \-\fBHUGE_VALL\fP, respectivement.
+
+Si \fIx\fP est une valeur infinie positive ou négative, l'infini positif est
+renvoyé.
+.SH ERREURS
+Consultez \fBmath_error\fP(7) pour savoir comment déterminer qu' une erreur est
+survenue lors de l'appel de ces fonctions.
+.PP
+Les erreurs suivantes peuvent se produire\ :
+.TP 
+Erreur de pôle\ : \fIx\fP est nul
+.\" .I errno
+.\" is set to
+.\" .BR ERANGE .
+Une exception de la virgule flottante de division par zéro (\fBFE_DIVBYZERO\fP)
+est levée.
+.PP
+.\" FIXME . Is it intentional that these functions do not set errno?
+.\" log(), log2(), log10() do set errno
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6793
+.\"
+.\" .SH HISTORY
+.\" The
+.\" .BR logb ()
+.\" function occurs in 4.3BSD.
+.\" see IEEE.3 in the 4.3BSD manual
+Ces fonctions ne positionnent pas \fIerrno\fP.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001.
+.SH "VOIR AUSSI"
+\fBilogb\fP(3), \fBlog\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

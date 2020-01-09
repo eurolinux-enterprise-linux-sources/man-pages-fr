@@ -1,0 +1,156 @@
+.\" Copyright (C) 2009, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\" a few pieces remain from an earlier version
+.\" Copyright (C) 2008, Nanno Langstraat <nal@ii.nl>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ENDIAN 3 "19 janvier 2009" GNU "Manuel du programmeur Linux"
+.SH NOM
+htobe16, htole16, be16toh, le16toh, htobe32, htole32, be32toh, le32toh,
+htobe64, htole64, be64toh, le64toh \- convertir des valeurs entre l'ordre des
+octets de l'hôte et l'ordre petit et gros boutiste
+.SH SYNOPSIS
+.nf
+\fB#define _BSD_SOURCE\fP
+\fB#include <endian.h>\fP
+
+\fBuint16_t htobe16(uint16_t \fP\fIhost_16bits\fP\fB);\fP
+\fBuint16_t htole16(uint16_t \fP\fIhost_16bits\fP\fB);\fP
+\fBuint16_t be16toh(uint16_t \fP\fIbig_endian_16bits\fP\fB);\fP
+\fBuint16_t le16toh(uint16_t \fP\fIlittle_endian_16bits\fP\fB);\fP
+
+\fBuint32_t htobe32(uint32_t \fP\fIhost_32bits\fP\fB);\fP
+\fBuint32_t htole32(uint32_t \fP\fIhost_32bits\fP\fB);\fP
+\fBuint32_t be32toh(uint32_t \fP\fIbig_endian_32bits\fP\fB);\fP
+\fBuint32_t le32toh(uint32_t \fP\fIlittle_endian_32bits\fP\fB);\fP
+
+\fBuint64_t htobe64(uint64_t \fP\fIhost_64bits\fP\fB);\fP
+\fBuint64_t htole64(uint64_t \fP\fIhost_64bits\fP\fB);\fP
+\fBuint64_t be64toh(uint64_t \fP\fIbig_endian_64bits\fP\fB);\fP
+\fBuint64_t le64toh(uint64_t \fP\fIlittle_endian_64bits\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Ces fonctions convertissent l'encodage des octets de valeurs entières depuis
+l'ordre de l'hôte (l'ordre utilisé par le CPU), vers ou depuis l'ordre petit
+et gros boutiste.
+
+Le nombre, \fInn\fP, dans le nom de chaque fonction indique la taille des
+entiers gérée par la fonction, soit 16, 32 ou 64 bits.
+
+Les fonctions dont le nom est de la forme «\ htobe\fInn\fP\ » convertissent
+depuis l'ordre des octets de l'hôte vers l'ordre gros boutiste.
+
+Les fonctions dont le nom est de la forme «\ htole\fInn\fP\ » convertissent
+depuis l'ordre des octets de l'hôte vers l'ordre petit boutiste.
+
+Les fonctions dont le nom est de la forme «\ be\fInn\fPtoh\ » convertissent
+depuis l'ordre gros boutiste vers l'ordre des octets de l'hôte.
+
+Les fonctions dont le nom est de la forme «\ le\fInn\fPtoh\ » convertissent
+depuis l'ordre petit boutiste vers l'ordre des octets de l'hôte.
+.SH VERSIONS
+Cette fonction a été ajoutée dans la version 2.9 de la glibc.
+.SH CONFORMITÉ
+Ces fonctions ne sont pas standard. Des fonctions similaires sont présentes
+sur les systèmes BSD, où le fichier d'en\-têtes est \fI<sys/endian.h>\fP
+au lieu de \fI<endian.h>\fP. Cependant, NetBSD, FreeBSD et la glibc
+n'ont pas suivi le nommage original d'OpenBSD où la composante \fInn\fP est
+placée à la fin du nom de la fonction (par exemple, sous NetBSD, FreeBSD et
+la glibc, l'équivalent OpenBSD de «\ betoh32\ » est «\ be32toh\ »).
+.SH NOTES
+Ces fonctions sont similaires à la vieille famille de fonctions
+\fBbyteorder\fP(3). Par exemple, \fBbe32toh\fP() est identique à \fBntohl\fP().
+
+L'avantage des fonctions de \fBbyteorder\fP(3) est que ce sont des fonctions
+standard disponibles sur tous les systèmes Unix. D'autre part, elles ont été
+créées pour être utilisées dans un contexte TCP/IP, ce qui signifie qu'elles
+ne gèrent pas les architectures 64 bits et les variantes petit boutistes
+vues dans cette page.
+.SH EXEMPLE
+Le programme ci\-dessous affiche les résultats des conversions d'un entier
+depuis l'ordre des octets de l'hôte vers l'ordre petit et gros
+boutiste. Puisque l'ordre de l'hôte est soit petit boutiste ou soit gros
+boutiste, seule une de ces conversions a un effet. Lorsque vous exécutez ce
+programme sur un système petit boutiste comme x86\-32, vous avez\ :
+.in +4n
+.nf
+
+$ \fB./a.out\fP
+x.u32 = 0x44332211
+htole32(x.u32) = 0x44332211
+htobe32(x.u32) = 0x11223344
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <endian.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main(int argc, char *argv[])
+{
+    union {
+	uint32_t u32;
+	uint8_t arr[4];
+    } x;
+
+    x.arr[0] = 0x11;	/* octet d'adresse basse */
+    x.arr[1] = 0x22;
+    x.arr[2] = 0x33;
+    x.arr[3] = 0x44;	/* octet d'adresse haute */
+
+    printf("x.u32 = 0x%x\en", x.u32);
+    printf("htole32(x.u32) = 0x%x\en", htole32(x.u32));
+    printf("htobe32(x.u32) = 0x%x\en", htobe32(x.u32));
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBbyteorder\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

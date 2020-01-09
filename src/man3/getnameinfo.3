@@ -1,0 +1,254 @@
+.\" This page is in the public domain.
+.\" Almost all details are from RFC 2553.
+.\"
+.\" 2004-12-14, mtk, Added EAI_OVERFLOW error
+.\" 2004-12-14 Fixed description of error return
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETNAMEINFO 3 "23 février 2009" GNU "Manuel du programmeur Linux"
+.SH NOM
+getnameinfo \- Traduction d'adresse en nom de façon indépendante du protocole
+.SH SYNOPSIS
+.nf
+\fB#include <sys/socket.h>\fP
+\fB#include <netdb.h>\fP
+.sp
+\fBint getnameinfo(const struct sockaddr *\fP\fIsa\fP\fB, socklen_t \fP\fIsalen\fP\fB,\fP
+\fB                char *\fP\fIhost\fP\fB, size_t \fP\fIhostlen\fP\fB,\fP
+\fB                char *\fP\fIserv\fP\fB, size_t \fP\fIservlen\fP\fB, int \fP\fIflags\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.ad l
+.in
+.sp
+\fBgetnameinfo\fP()\ : _POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE ||
+_POSIX_SOURCE
+.ad b
+.SH DESCRIPTION
+La fonction \fBgetnameinfo\fP() est la réciproque de \fBgetaddrinfo\fP(3)\ : elle
+convertit une adresse de socket en un hôte et un service correspondants, de
+façon indépendante du protocole. Elle combine les fonctionnalités de
+\fBgethostbyaddr\fP(3) et \fBgetservbyport\fP(3) mais contrairement à ces
+fonctions, \fBgetaddrinfo\fP(3) est ré\-entrante et permet aux programmes de
+supprimer les dépendances IPv4/IPv6.
+
+Le paramètre \fIsa\fP est un pointeur vers l'adresse d'une structure de socket
+générique (de type \fIsockaddr_in\fP ou \fIsockaddr_in6\fP) de taille \fIsalen\fP qui
+contient l'adresse IP d'entrée et le numéro de port. Les paramètres \fIhost\fP
+et \fIserv\fP sont des pointeurs vers des tampons alloués par l'appelant (de
+tailles respectives \fIhostlen\fP et \fIservlen\fP) dans lesquels \fBgetnameinfo\fP()
+place des chaînes de caractères, terminées par un octet nul, contenant
+respectivement les noms d'hôte et de service.
+
+L'appelant peut préciser qu'aucun nom d'hôte (ou qu'aucun nom de service)
+n'est nécessaire en fournissant NULL comme paramètre \fIhost\fP (ou \fIserv\fP) ou
+bien en passant un paramètre \fIhostlen\fP (ou \fIservlen\fP) valant zéro. Quoi
+qu'il en soit, au moins un nom d'hôte ou un nom de service doit être
+demandé.
+
+Le paramètre \fIflags\fP modifie le comportement de \fBgetnameinfo\fP() comme
+indiqué ci\-dessous\ :
+.TP 
+\fBNI_NAMEREQD\fP
+S'il est défini, une erreur se produira si le nom de l'hôte n'a pas pu être
+déterminé.
+.TP 
+\fBNI_DGRAM\fP
+Indique que le service est plutôt basé sur des datagrammes (UDP) que sur un
+flux connecté (TCP). Ce drapeau est nécessaire pour les quelques ports
+(512\-514) qui ont des services différents selon le protocole utilisé\ : UDP
+ou TCP.
+.TP 
+\fBNI_NOFQDN\fP
+renvoie seulement la partie nom de l'hôte du FQDN (Fully\-Qualified Domain
+Name) pour les hôtes locaux.
+.TP 
+\fBNI_NUMERICHOST\fP
+.\" For example, by calling
+.\" .BR inet_ntop ()
+.\" instead of
+.\" .BR gethostbyaddr ().
+.\" POSIX.1-2003 has NI_NUMERICSCOPE, but glibc doesn't have it.
+La forme numérique du nom de l'hôte est renvoyée. (Même si ce drapeau n'est
+pas levé, cela arrivera également lorsque le nom du noeud ne pourra pas être
+déterminé.)
+.TP 
+\fBNI_NUMERICSERV\fP
+Si cet attribut est défini, la forme numérique du service est
+renvoyée. (S'il n'est pas défini, cela arrivera également si le nom du
+service n'a pas pu être déterminé.)
+.SS "Extensions de getaddrinfo() pour les noms de domaines internationalisés"
+.PP
+Depuis la glibc\ 2.3.4, \fBgetnameinfo\fP() a été modifié pour sélectivement
+permettre que les noms de domaines soient convertis vers ou depuis le format
+des noms de domaines internationalisés (IDN). Consultez la RFC\ 3490,
+\fIInternationalizing Domain Names in Applications (IDNA)\fP.Trois nouveaux
+attributs ont été ajoutés\ :
+.TP 
+\fBNI_IDN\fP
+Si cet attribut est utilisé, alors le nom trouvé lors de la résolution des
+noms est converti depuis le format IDN vers la locale du système si
+nécessaire. Les noms au format ASCII ne sont pas affectés par cette
+conversion, ce qui permet d'utiliser cet attribut dans des programmes et des
+environnements existants.
+.TP 
+\fBNI_IDN_ALLOW_UNASSIGNED\fP, \fBNI_IDN_USE_STD3_ASCII_RULES\fP
+Utiliser ces attributs permet d'activer respectivement les attributs «\
+IDNA_ALLOW_UNASSIGNED\ » (permettre des caractères Unicode non assignés) et
+«\ IDNA_USE_STD3_ASCII_RULES\ » (vérifier la sortie pour être sûr que le nom
+d'hôte est conforme à STD3) utilisés dans la gestion de l'IDNA.
+.SH "VALEUR RENVOYÉE"
+.\" FIXME glibc defines the following additional errors, some which
+.\" can probably be returned by getnameinfo(); they need to
+.\" be documented.
+.\" #ifdef __USE_GNU
+.\" #define EAI_INPROGRESS  -100  /* Processing request in progress.  */
+.\" #define EAI_CANCELED    -101  /* Request canceled.  */
+.\" #define EAI_NOTCANCELED -102  /* Request not canceled.  */
+.\" #define EAI_ALLDONE     -103  /* All requests done.  */
+.\" #define EAI_INTR        -104  /* Interrupted by a signal.  */
+.\" #define EAI_IDN_ENCODE  -105  /* IDN encoding failed.  */
+.\" #endif
+En cas de succès, 0 est renvoyé et les noms du noeud et du service, s'ils
+sont demandés, sont renseignés sous forme de chaînes terminées par un
+caractère nul, éventuellement tronquées afin de s'adapter aux tailles des
+tampons spécifiés. En cas d'erreur, un des codes d'erreur suivants est
+renvoyé\ :
+.TP 
+\fBEAI_AGAIN\fP
+Le nom ne peut être résolu à cet instant. Réessayer plus tard.
+.TP 
+\fBEAI_BADFLAGS\fP
+Le paramètre \fIflags\fP n'est pas valide.
+.TP 
+\fBEAI_FAIL\fP
+Une erreur irrécupérable est survenue.
+.TP 
+\fBEAI_FAMILY\fP
+La famille d'adresse n'a pas été reconnue, ou bien la taille de l'adresse
+était invalide pour la famille spécifiée.
+.TP 
+\fBEAI_MEMORY\fP
+Plus de mémoire disponible.
+.TP 
+\fBEAI_NONAME\fP
+Le nom ne peut être résolu avec les paramètres fournis. \fBNI_NAMEREQD\fP est
+spécifié et le nom de l'hôte ne peut être localisé, ou, on n'a demandé ni un
+nom d'hôte ni un nom de service.
+.TP 
+\fBEAI_OVERFLOW\fP
+Le tampon pointé par \fIhost\fP ou \fIserv\fP est trop petit.
+.TP 
+\fBEAI_SYSTEM\fP
+Une erreur système a eu lieu. Le code d'erreur peut être lu dans \fIerrno\fP.
+.PP
+La fonction \fBgai_strerror\fP(3) traduit ces codes d'erreur en une chaîne de
+caractères compréhensible, utilisable pour rendre compte du problème.
+.SH FICHIERS
+/etc/hosts
+.br
+/etc/nsswitch.conf
+.br
+/etc/resolv.conf
+.SH VERSIONS
+\fBgetnameinfo\fP() est fournie par la glibc depuis la version\ 2.1.
+.SH CONFORMITÉ
+RFC\ 2553, POSIX.1\-2001.
+.SH NOTES
+Afin d'aider les programmeurs à choisir des tailles raisonnables pour les
+tampons fournis, \fI<netdb.h>\fP définit les constantes
+.in +4n
+.nf
+
+#define NI_MAXHOST      1025
+#define NI_MAXSERV      32
+.fi
+.in
+.PP
+La première est la constante \fBMAXDNAME\fP présente dans les versions récentes
+du fichier d'en\-têtes \fI<arpa/nameser.h>\fP de BIND. La deuxième est
+déterminée en se basant sur les services répertoriés dans la RFC «\ Assigned
+numbers\ ».
+.SH EXEMPLE
+Le code suivant essaie d'obtenir le nom de l'hôte ainsi que le nom du
+service sous forme numérique, et ce, pour une adresse de socket
+donnée. Remarquez qu'il n'y a aucune référence à une quelconque famille
+d'adresse codée en dur.
+
+.in +4n
+.nf
+struct sockaddr *sa;    /* input */
+socklen_t len;         /* input */
+char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+
+if (getnameinfo(sa, len, hbuf, sizeof(hbuf), sbuf,
+            sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV) == 0)
+    printf("host=%s, serv=%s\en", hbuf, sbuf);
+.fi
+.in
+
+La version suivante vérifie si l'adresse de la socket peut se voir associer
+un nom.
+
+.in +4n
+.nf
+struct sockaddr *sa;    /* input */
+socklen_t len;         /* input */
+char hbuf[NI_MAXHOST];
+
+if (getnameinfo(sa, len, hbuf, sizeof(hbuf),
+            NULL, 0, NI_NAMEREQD))
+    printf("could not resolve hostname");
+else
+    printf("host=%s\en", hbuf);
+.fi
+.in
+.PP
+Un programme d'exemple utilisant \fBgetnameinfo\fP()  peut être trouvé dans
+\fBgetaddrinfo\fP(3).
+.SH "VOIR AUSSI"
+\fBaccept\fP(2), \fBgetpeername\fP(2), \fBgetsockname\fP(2), \fBrecvfrom\fP(2),
+\fBsocket\fP(2), \fBgetaddrinfo\fP(3), \fBgethostbyaddr\fP(3), \fBgetservbyname\fP(3),
+\fBgetservbyport\fP(3), \fBinet_ntop\fP(3), \fBhosts\fP(5), \fBservices\fP(5),
+\fBhostname\fP(7), \fBnamed\fP(8)
+.LP
+R. Gilligan, S. Thomson, J. Bound et W. Stevens, \fIBasic Socket Interface
+Extensions for IPv6\fP, RFC\ 2553, mars 1999.
+.LP
+Tatsuya Jinmei et Atsushi Onoe, \fIAn Extension of Format for IPv6 Scoped
+Addresses\fP, internet draft, travail en
+cours.
+ftp://ftp.ietf.org/internet\-drafts/draft\-ietf\-ipngwg\-scopedaddr\-format\-02.txt
+.LP
+Craig Metz, \fIProtocol Independence Using the Sockets API\fP, compte rendu du
+sujet freenix\ : conférence technique annuelle USENIX 2000, juin
+2000.
+http://www.usenix.org/publications/library/proceedings/usenix2000/freenix/metzprotocol.html
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

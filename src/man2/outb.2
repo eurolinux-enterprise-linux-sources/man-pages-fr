@@ -1,0 +1,86 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 1995 Paul Gortmaker
+.\" (gpg109@rsphy1.anu.edu.au)
+.\" Wed Nov 29 10:58:54 EST 1995
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH OUTB 2 "29 novembre 1995" Linux "Manuel du programmeur Linux"
+.SH NOM
+outb, outw, outl, outsb, outsw, outsl, inb, inw, inl, insb, insw, insl,
+outb_p, outw_p, outl_p, inb_p, inw_p, inl_p \- Lire/Écrire sur un port
+.SH DESCRIPTION
+Cette famille de fonctions est utilisée pour des entrées\-sorties de bas
+niveau. Les fonctions out* effectuent une écriture sur un port alors que les
+fonctions in* effectuent une lecture. Les fonctions suffixées avec «\ b\ »
+travaillent sur des octets alors que les fonctions suffixées avec «\ w\ »
+travaillent sur des mots. Les fonctions suffixées avec «\ _p\ » attendent
+que les entrées\-sorties soient achevées.
+.LP
+.\" , given the following information
+.\" in addition to that given in
+.\" .BR outb (9).
+Elles ont principalement été conçues pour un usage interne au noyau, mais
+sont quand même utilisables avec des processus utilisateurs.
+
+Compiler le programme avec les options \fB\-O\fP ou \fB\-O2\fP ou équivalent. Ces
+fonctions sont en réalité des macros développées en ligne, et ne seront pas
+substituées sans valider l'optimisation. Ceci causerait des erreurs de
+références non résolues au moment de l'édition des liens.
+
+Utiliser \fBioperm\fP(2) ou éventuellement \fBiopl\fP(2) pour demander au noyau
+d'autoriser l'application à accéder aux ports d'entrées\-sorties en
+question. Une omission de cette étape déclencherait une faute de
+segmentation.
+.SH CONFORMITÉ
+\fBoutb\fP() et les autres fonctions dépendent du matériel. Les arguments
+\fIport\fP et \fIvalue\fP sont dans l'ordre inverse de la plupart des
+implémentations équivalentes sous DOS.
+.SH "VOIR AUSSI"
+\fBioperm\fP(2), \fBiopl\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

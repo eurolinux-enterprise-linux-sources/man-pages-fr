@@ -1,0 +1,428 @@
+.\" Copyright (C) 2008 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+.\" MA  02111-1307  USA
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TIMERFD_CREATE 2 "10 mars 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+timerfd_create, timerfd_settime, timerfd_gettime \- Minuteries qui informent
+par l'intermédiaire de descripteurs de fichier
+.SH SYNOPSIS
+.nf
+\fB#include <sys/timerfd.h>\fP
+.sp
+\fBint timerfd_create(int \fP\fIclockid\fP\fB, int \fP\fIflags\fP\fB);\fP
+.sp
+\fBint timerfd_settime(int \fP\fIfd\fP\fB, int \fP\fIflags\fP\fB,\fP
+\fB                    const struct itimerspec *\fP\fInew_value\fP\fB,\fP
+\fB                    struct itimerspec *\fP\fIold_value\fP\fB);\fP
+.sp
+\fBint timerfd_gettime(int \fP\fIfd\fP\fB, struct itimerspec *\fP\fIcurr_value\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Ces appels système créent et opèrent sur une minuterie qui fournit des
+notifications d'expiration par un descripteur de fichier. Ils fournissent
+une alternative à \fBsetitimer\fP(2) ou \fBtimer_create\fP(2) avec l'avantage que
+le descripteur de fichier peut être surveillé avec \fBselect\fP(2), \fBpoll\fP(2)
+ou \fBepoll\fP(7).
+
+.\"
+L'utilisation de ces trois appels système est analogue à l'utilisation de
+\fBtimer_create\fP(2), \fBtimer_settime\fP(2) et \fBtimer_gettime\fP(2). (Il n'y a
+pas d'équivalent à \fBtimer_getoverrun\fP(2) puisque cette fonctionnalité est
+fournie par \fBread\fP(2), comme décrit ci\-dessous)
+.SS timerfd_create()
+\fBtimerfd_create\fP() crée une minuterie, et renvoie un descripteur de fichier
+qui se réfère à cette minuterie. Le paramètre \fIclockid\fP spécifie l'horloge
+qui est utilisée pour faire progresser la minuterie, et doit valoir soit
+\fBCLOCK_REALTIME\fP, soit \fBCLOCK_MONOTONIC\fP. \fBCLOCK_REALTIME\fP est une
+horloge configurable du système. \fBCLOCK_MONOTONIC\fP n'est pas configurable,
+c'est à dire qu'elle n'est pas affectée par des modifications discontinues
+de l'horloge système (par exemple, par des modifications manuelles de
+l'heure du système). L'heure de chacune de ces horloge peut être interrogée
+à l'aide de \fBclock_gettime\fP(2).
+
+À partir de Linux 2.6.27, les valeurs suivantes peuvent être incluses avec
+un OU binaire dans \fIflags\fP pour changer le comportement de
+\fBtimerfd_create\fP()\ :
+.TP  14
+\fBTFD_NONBLOCK\fP
+Placer l'attribut d'état de fichier \fBO_NONBLOCK\fP sur le nouveau descripteur
+de fichier ouvert. Utiliser cet attribut économise des appels
+supplémentaires à \fBfcntl\fP(2) pour obtenir le même résultat.
+.TP 
+\fBTFD_CLOEXEC\fP
+Placer l'attribut «\ close\-on\-exec\ » (\fBFD_CLOEXEC\fP) sur le nouveau
+descripteur de fichier. Consultez la description de l'attribut \fBO_CLOEXEC\fP
+dans \fBopen\fP(2) pour savoir pourquoi ça peut être utile.
+.PP
+Dans les versions de Linux jusqu'à la version 2.6.26 incluse, \fIflags\fP doit
+être nul.
+.SS timerfd_settime()
+\fBtimerfd_settime\fP() arme (démarre) ou désarme (stoppe) la minuterie à
+laquelle se réfère le descripteur de fichier \fIfd\fP.
+
+Le paramètre \fInew_value\fP spécifie l'expiration initiale et l'intervalle de
+la minuterie. La structure \fIitimer\fP utilisée pour ce paramètre contient
+deux champs, chacun d'entre eux étant une structure de type \fItimespec\fP\ :
+.in +4n
+.nf
+
+struct timespec {
+    time_t tv_sec;                /* Secondes */
+    long   tv_nsec;               /* Nanosecondes */
+};
+
+struct itimerspec {
+    struct timespec it_interval;  /* Intervalle pour les
+                                     minuteries périodiques */
+    struct timespec it_value;     /* Expiration initiale */
+};
+.fi
+.in
+.PP
+\fInew_value.it_value\fP spécifie l'expiration initiale de la minuterie, en
+secondes et nanosecondes. Une valeur non nulle dans un des champs de
+\fInew_value.it_value\fP arme la minuterie. La minuterie est désarmée si les
+deux champs de \fInew_value.it_value\fP sont mis à zéro.
+
+Une valeur non nulle dans un des champs de \fInew_value.it_interval\fP
+configure la période, en secondes et nanosecondes, pour une expiration
+répétitive après l'expiration initiale. Si les deux champs de
+\fInew_value.it_interval\fP sont nuls, la minuterie expirera qu'une seule fois,
+dont l'heure est spécifiée dans \fInew_value.it_value\fP.
+
+Le paramètre \fIflags\fP est soit nul, pour démarrer une minuterie «\ relative\ »
+(\fInew_value.it_interval\fP spécifie un temps relatif à la valeur actuelle de
+l'horloge spécifiée par \fIclockid\fP), ou \fBTFD_TIMER_ABSTIME\fP, pour démarrer
+une minuterie «\ absolue\ » (\fInew_value.it_value\fP spécifie un temps absolu
+pour l'horloge spécifiée par \fIclockid\fP\ ; c'est\-à\-dire que la minuterie
+expirera quand la valeur de l'horloge atteindra la valeur spécifiée par
+\fInew_value.it_value\fP).
+
+.\"
+Le paramètre \fIold_value\fP renvoie une structure contenant la configuration
+de la minuterie au moment de l'appel\ ; consultez la description de
+\fBtimerfd_gettime\fP() ci\-dessous.
+.SS timerfd_gettime()
+\fBtimerfd_gettime\fP() renvoie, dans \fIcurr_value\fP, une structure
+\fIitimerspec\fP qui contient les paramètres actuels de la minuterie auquel le
+descripteur de fichier \fIfd\fP fait référence.
+
+Le champ \fIit_value\fP renvoie la durée jusqu'à la prochaine expiration. Si
+les deux champs de cette structure sont nuls, alors la minuterie est
+actuellement désactivée. Ce champ contient toujours une valeur relative,
+sans tenir compte d'un attribut \fBTFD_TIMER_ABSTIME\fP qui aurait été spécifié
+quand la minuterie a été configurée.
+
+Le champ \fIit_interval\fP renvoie la période de la minuterie. Si les deux
+champs de cette structure sont nuls, alors la minuteries est configurée pour
+n'expirer qu'une seule fois, à l'heure spécifiée par \fIcurr_value.it_value\fP.
+.SS "Opérations sur un descripteur de fichier de minuterie"
+Le descripteur de fichier renvoyé par \fBtimerfd_create\fP() gère les
+opérations suivante\ :
+.TP 
+\fBread\fP(2)
+Si la minuterie a déjà expirée une fois ou plus depuis que sa configuration
+a été modifiée la dernière fois à l'aide de \fBtimerfd_settime\fP() ou depuis
+la dernière lecture avec \fBread\fP(2) qui a réussi, alors le tampon fourni à
+\fBread\fP(2) renvoie un entier non signé sur 8 octets (\fIuint64_t\fP) qui
+contient le nombre d'expirations qui se sont produites. (La valeur renvoyée
+utilise l'ordre des octets de l'hôte, c'est\-à\-dire l'ordre des octets natif
+pour les entiers sur la machine hôte)
+.IP
+Si aucune expiration ne s'est produite au moment de l'appel à \fBread\fP(2),
+l'appel bloquera jusqu'à la prochaine expiration ou échouera avec l'erreur
+\fBEAGAIN\fP si le descripteur de fichier est en mode non bloquant (l'opération
+\fBfcntl\fP(2) \fBF_SETFL\fP a été utilisée avec un attribut \fBO_NONBLOCK\fP).
+.IP
+Un \fBread\fP(2) échouera avec l'erreur \fBEINVAL\fP si la taille du tampon fourni
+est de moins de 8 octets.
+.TP 
+\fBpoll\fP(2), \fBselect\fP(2) (et similaires)
+Le descripteur de fichier est lisible (le paramètre \fIreadfds\fP de
+\fBselect\fP(2)\ ; l'attribut \fBPOLLIN\fP de \fBpoll\fP(2)) si une expiration (ou
+plus) de la minuterie s'est produite.
+.IP
+Le descripteur de fichier prend également en charge les autres interfaces de
+multiplexage de descripteurs de fichier\ : \fBpselect\fP(2), \fBppoll\fP(2) et
+\fBepoll\fP(7).
+.TP 
+\fBclose\fP(2)
+.\"
+Quand le descripteur de fichier n'est plus nécessaire il doit être
+fermé. Quand tous les descripteurs de fichier associés au même objet
+minuterie ont été fermés, les ressources pour cet objet sont libérées par le
+noyau.
+.SS "Sémantique de fork(2)"
+.\"
+Après un \fBfork\fP(2), le fils hérite d'une copie du descripteur de fichier
+créé par \fBtimerfd_create\fP(). Le descripteur de fichier se réfère à la même
+minuterie sous\-jacente que le descripteur de fichier correspondant du père,
+et un \fBread\fP(2) du fils renverra les informations sur la minuterie.
+.SS "Sémantique de execve(2)"
+Un descripteur de fichier créé par \fBtimerfd_create\fP() est conservé au
+travers d'un \fBexecve\fP(2), et continue à générer des expirations de
+minuterie si la minuterie a été armée.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBtimerfd_create\fP() renvoie un nouveau descripteur de
+fichier. En cas d'erreur, il renvoie \-1 et \fIerrno\fP contient le code
+d'erreur.
+
+En cas de réussite, \fBtimerfd_settime\fP() et \fBtimerfd_gettime\fP() renvoient
+0. Sinon ils renvoient \-1 et \fBerrno\fP contient le code d'erreur.
+.SH ERREURS
+\fBtimerfd_create\fP() peut échouer avec les erreurs suivantes\ :
+.TP 
+\fBEINVAL\fP
+Le paramètre \fIclockid\fP n'est ni \fBCLOCK_MONOTONIC\fP ni \fBCLOCK_REALTIME\fP;
+.TP 
+\fBEINVAL\fP
+\fIflags\fP n'est pas correct\ ; ou, pour les versions de Linux 2.6.26 ou
+ultérieures, \fIflags\fP n'est pas nul.
+.TP 
+\fBEMFILE\fP
+La limite du nombre total de descripteurs de fichier ouverts par processus a
+été atteinte.
+.TP 
+\fBENFILE\fP
+La limite du nombre total de fichiers ouverts sur le système a été atteinte.
+.TP 
+\fBENODEV\fP
+Impossible de monter (en interne) le périphérique anonyme d'inoeud.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire noyau pour créer la minuterie.
+.PP
+\fBtimerfd_settime\fP() et \fBtimerfd_gettime\fP() peuvent échouer avec les
+erreurs suivantes\ :
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBEFAULT\fP
+\fInew_value\fP, \fIold_value\fP ou \fIcurr_value\fP n'est pas un pointeur valable.
+.TP 
+\fBEINVAL\fP
+\fIfd\fP n'est pas un descripteur de fichier de minuterie valable.
+.PP
+\fBtimerfd_settime\fP() peut aussi échouer avec les erreurs suivantes\ :
+.TP 
+\fBEINVAL\fP
+\fInew_value\fP n'est pas initialisé correctement (un des champs \fItv_nsec\fP est
+en dehors de l'intervalle allant de 0 à 999 999 999).
+.TP 
+\fBEINVAL\fP
+.\" This case only checked since 2.6.29, and 2.2.2[78].some-stable-version.
+.\" In older kernel versions, no check was made for invalid flags.
+\fIflags\fP n'est pas correct.
+.SH VERSIONS
+Ces appels système sont disponibles sous Linux depuis le noyau 2.6.25. La
+glibc les gère depuis la version 2.8.
+.SH CONFORMITÉ
+Ces appels système sont spécifiques à Linux.
+.SH EXEMPLE
+Le programme suivant crée une minuterie puis surveille sa progression. Le
+programme accepte jusqu'à trois paramètres en ligne de commande. Le premier
+paramètre spécifie le nombre de secondes pour l'expiration initiale de la
+minuterie. Le deuxième paramètre spécifie la période de la minuterie, en
+secondes. Le troisième paramètre spécifie le nombre de fois que le programme
+doit permettre à la minuterie d'expirer avant de quitter. Le deuxième et le
+troisième paramètre sont optionnels.
+
+La session interactive suivante montre l'utilisation de ce programme\ :
+.in +4n
+.nf
+
+$\fB a.out 3 1 100\fP
+0.000: timer started
+3.000: read: 1; total=1
+4.000: read: 1; total=2
+\fB^Z \fP                 # type control\-Z to suspend the program
+[1]+  Stopped                 ./timerfd3_demo 3 1 100
+$ \fBfg\fP                # Resume execution after a few seconds
+a.out 3 1 100
+9.660: read: 5; total=7
+10.000: read: 1; total=8
+11.000: read: 1; total=9
+\fB^C \fP                 # type control\-C to suspend the program
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+.\" The commented out code here is what we currently need until
+.\" the required stuff is in glibc
+.\"
+.\"
+.\"/* Link with -lrt */
+.\"#define _GNU_SOURCE
+.\"#include <sys/syscall.h>
+.\"#include <unistd.h>
+.\"#include <time.h>
+.\"#if defined(__i386__)
+.\"#define __NR_timerfd_create 322
+.\"#define __NR_timerfd_settime 325
+.\"#define __NR_timerfd_gettime 326
+.\"#endif
+.\"
+.\"static int
+.\"timerfd_create(int clockid, int flags)
+.\"{
+.\"    return syscall(__NR_timerfd_create, clockid, flags);
+.\"}
+.\"
+.\"static int
+.\"timerfd_settime(int fd, int flags, struct itimerspec *new_value,
+.\"        struct itimerspec *curr_value)
+.\"{
+.\"    return syscall(__NR_timerfd_settime, fd, flags, new_value,
+.\"                   curr_value);
+.\"}
+.\"
+.\"static int
+.\"timerfd_gettime(int fd, struct itimerspec *curr_value)
+.\"{
+.\"    return syscall(__NR_timerfd_gettime, fd, curr_value);
+.\"}
+.\"
+.\"#define TFD_TIMER_ABSTIME (1 << 0)
+.\"
+.\"////////////////////////////////////////////////////////////
+#include <sys/timerfd.h>
+#include <time.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>        /* Définition de uint64_t */
+
+#define handle_error(msg) \e
+        do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+static void
+print_elapsed_time(void)
+{
+    static struct timespec start;
+    struct timespec curr;
+    static int first_call = 1;
+    int secs, nsecs;
+
+    if (first_call) {
+        first_call = 0;
+        if (clock_gettime(CLOCK_MONOTONIC, &start) == \-1)
+            handle_error("clock_gettime");
+    }
+
+    if (clock_gettime(CLOCK_MONOTONIC, &curr) == \-1)
+        handle_error("clock_gettime");
+
+    secs = curr.tv_sec \- start.tv_sec;
+    nsecs = curr.tv_nsec \- start.tv_nsec;
+    if (nsecs < 0) {
+        secs\-\-;
+        nsecs += 1000000000;
+    }
+    printf("%d.%03d: ", secs, (nsecs + 500000) / 1000000);
+}
+
+int
+main(int argc, char *argv[])
+{
+    struct itimerspec new_value;
+    int max_exp, fd;
+    struct timespec now;
+    uint64_t exp, tot_exp;
+    ssize_t s;
+
+    if ((argc != 2) && (argc != 4)) {
+        fprintf(stderr, "%s init\-secs [interval\-secs max\-exp]\en",
+                argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    if (clock_gettime(CLOCK_REALTIME, &now) == \-1)
+        handle_error("clock_gettime");
+
+    /* Create a CLOCK_REALTIME absolute timer with initial
+       expiration and interval as specified in command line */
+
+    new_value.it_value.tv_sec = now.tv_sec + atoi(argv[1]);
+    new_value.it_value.tv_nsec = now.tv_nsec;
+    if (argc == 2) {
+        new_value.it_interval.tv_sec = 0;
+        max_exp = 1;
+    } else {
+        new_value.it_interval.tv_sec = atoi(argv[2]);
+        max_exp = atoi(argv[3]);
+    }
+    new_value.it_interval.tv_nsec = 0;
+
+    fd = timerfd_create(CLOCK_REALTIME, 0);
+    if (fd == \-1)
+        handle_error("timerfd_create");
+
+    if (timerfd_settime(fd, TFD_TIMER_ABSTIME, &new_value, NULL) == \-1)
+        handle_error("timerfd_settime");
+
+    print_elapsed_time();
+    printf("timer started\en");
+
+    for (tot_exp = 0; tot_exp < max_exp;) {
+        s = read(fd, &exp, sizeof(uint64_t));
+        if (s != sizeof(uint64_t))
+            handle_error("read");
+
+        tot_exp += exp;
+        print_elapsed_time();
+        printf("read: %llu; total=%llu\en",
+                (unsigned long long) exp,
+                (unsigned long long) tot_exp);
+    }
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH BOGUES
+.\" 2.6.29
+Actuellement, \fBtimerfd_create\fP() prend en charge moins de type
+d'identifiants d'horloges que \fBtimer_create\fP(2).
+.SH "VOIR AUSSI"
+\fBeventfd\fP(2), \fBpoll\fP(2), \fBread\fP(2), \fBselect\fP(2), \fBsetitimer\fP(2),
+\fBsignalfd\fP(2), \fBtimer_create\fP(2), \fBtimer_gettime\fP(2),
+\fBtimer_settime\fP(2), \fBepoll\fP(7), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

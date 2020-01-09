@@ -1,0 +1,173 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" License.
+.\" Modified Wed Jul 21 22:35:42 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 18 Mar 1996 by Martin Schulze (joey@infodrom.north.de):
+.\"   Corrected description of getwd().
+.\" Modified Sat Aug 21 12:32:12 MET 1999 by aeb - applied fix by aj
+.\" Modified Mon Dec 11 13:32:51 MET 2000 by aeb
+.\" Modified Thu Apr 22 03:49:15 CEST 2002 by Roger Luethi <rl@hellgate.ch>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETCWD 3 "31 mars 2009" GNU "Manuel du programmeur Linux"
+.SH NOM
+getcwd, getwd, get_current_dir_name \- Obtenir le répertoire courant de
+travail
+.SH SYNOPSIS
+.nf
+\fB#include <unistd.h>\fP
+.sp
+\fBchar *getcwd(char *\fP\fIbuf\fP\fB, size_t \fP\fIsize\fP\fB);\fP
+.sp
+\fBchar *getwd(char *\fP\fIbuf\fP\fB);\fP
+.sp
+\fBchar *get_current_dir_name(void);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBgetcwd\fP()\ : _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500
+.br
+\fBget_current_dir_name\fP()\ : _GNU_SOURCE
+.SH DESCRIPTION
+Ces fonctions renvoient une chaîne terminée par une octet nul contenant un
+chemin absolu correspondant au répertoire de travail actuel du processus
+appelant. Le chemin est renvoyé comme résultat de la fonction et par le
+paramètre \fIbuf\fP, s'il est présent.
+
+La fonction \fBgetcwd\fP() copie le chemin d'accès absolu du répertoire de
+travail courant dans la chaîne pointée par \fIbuf\fP, qui est de longueur
+\fIsize\fP.
+.PP
+Si la taille du chemin absolu du répertoire de travail en cours, caractère
+nul de fin compris, dépasse \fIsize\fP octets, la fonction renvoie NULL et
+\fIerrno\fP contient le code d'erreur \fBERANGE\fP. Une application doit détecter
+cette erreur et allouer un tampon plus grand si besoin est.
+.PP
+Comme une extension du standard POSIX.1\-2001, la version  Linux (libc4,
+libc5, glibc) de \fBgetcwd\fP() alloue le tampon dynamiquement avec
+\fBmalloc\fP(3), si \fIbuf\fP est NULL. Dans ce cas, le tampon alloué a la
+longueur \fIsize\fP à moins que \fIsize\fP soit égal à zéro, auquel cas \fIbuf\fP est
+alloué avec la taille nécessaire. L'appelant doit libérer avec \fBfree\fP(3) le
+tampon renvoyé.
+
+\fBget_current_dir_name\fP() allouera avec \fBmalloc\fP(3) une chaîne suffisamment
+grande pour contenir le nom du chemin absolu du répertoire de travail
+courant. Si la variable d'environnement \fBPWD\fP est configurée, et correcte,
+cette valeur sera renvoyée. L'appelant doit libérer avec \fBfree\fP(3) le
+tampon renvoyé.
+
+\fBgetwd\fP() n'allouera aucune mémoire (avec \fBmalloc\fP(3)). Le paramètre
+\fIbuf\fP doit être un pointeur sur une chaîne comportant au moins \fBPATH_MAX\fP
+octets. Si la longueur du chemin absolu du répertoire de travail actuel,
+caractère nul de fin compris, dépasse \fBPATH_MAX\fP octets, NULL est renvoyé
+et \fIerrno\fP prend la valeur \fBENAMETOOLONG\fP. Notez que sur certains système,
+\fBPATH_MAX\fP peut ne pas être une constante connue à la compilation\ ; de
+plus, sa valeur peut dépendre du système de fichiers, voire être illimitée,
+voir \fBpathconf\fP(3). Pour des raisons de portabilité et de sécurité,
+l'utilisation de \fBgetwd\fP() est déconseillée.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, ces fonctions renvoient un pointeur vers une chaîne
+contenant le chemin du répertoire de travail en courant. Dans le cas de
+\fBgetcwd\fP() et \fBgetwd\fP() il s'agit de la même valeur que \fIbuf\fP.
+
+En cas d'échec, ces fonctions renvoient NULL, et remplissent \fIerrno\fP avec
+le code d'erreur. Le contenu de la chaîne pointée par \fIbuf\fP est indéfini en
+cas d'erreur.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+Impossible de lire ou de parcourir un composant du chemin d'accès.
+.TP 
+\fBEFAULT\fP
+\fIbuf\fP pointe sur une adresse illégale.
+.TP 
+\fBEINVAL\fP
+L'argument \fIsize\fP vaut zéro et \fIbuf\fP n'est pas un pointeur NULL.
+.TP 
+EINVAL
+\fBgetwd\fP()\ : \fIbuf\fP est NULL.
+.TP 
+ENAMETOOLONG
+\fBgetwd\fP()\ : La taille de la chaîne, terminée par un octet nul, du chemin
+absolu dépasse \fBPATH_MAX\fP octets.
+.TP 
+\fBENOENT\fP
+Le répertoire en cours a été supprimé.
+.TP 
+\fBERANGE\fP
+Le paramètre \fIsize\fP est inférieur à la longueur du nom du chemin absolu du
+répertoire de travail, caractère nul de fin compris. Allouez un tampon plus
+grand et ré\-essayez.
+.SH CONFORMITÉ
+\fBgetcwd\fP() se conforme à POSIX.1\-2001. Notez cependant que POSIX.1\-2001
+laisse le comportement de \fBgetcwd\fP() non spécifié si \fIbuf\fP est NULL.
+
+\fBgetwd\fP() est présent dans POSIX.1\-2001, mais marquée
+«\ LEGACY\ ». POSIX.1\-2008 supprime la spécification de \fBgetwd\fP() et
+POSIX.1\-2001 ne définit aucune erreur pour \fBgetwd\fP(). Utilisez \fBgetcwd\fP()
+à la place.
+
+\fBget_current_dir_name\fP() est une extension GNU.
+.SH NOTES
+Sous Linux, la fonction \fBgetcwd\fP() est un appel système (depuis le
+2.1.92). Sur des systèmes plus anciens, elle interrogerait
+\fI/proc/self/cwd\fP. Si l'appel système et le système de fichiers proc sont
+absents, une implémentation générique est utilisée. Dans ce cas seulement la
+fonction peut renvoyer \fBEACCES\fP sous Linux.
+.LP
+Ces fonctions sont souvent utilisées pour sauver le répertoire de travail
+afin d'y revenir plus tard. Ouvrir le répertoire courant («\ .\ ») et
+appeler \fBfchdir\fP(2) pour y revenir est habituellement une alternative plus
+rapide et plus fiable (surtout sur d'autres systèmes que Linux) si l'on
+dispose de suffisamment de descripteurs de fichier.
+.SH "VOIR AUSSI"
+\fBchdir\fP(2), \fBfchdir\fP(2), \fBopen\fP(2), \fBunlink\fP(2), \fBfree\fP(3),
+\fBmalloc\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,254 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) Markus Kuhn, 1995, 2001
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" 1995-11-26  Markus Kuhn <mskuhn@cip.informatik.uni-erlangen.de>
+.\"      First version written
+.\" 2001-05-11  Markus Kuhn <mgk25@cl.cam.ac.uk>
+.\"      Update
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UNICODE 7 "11 mai 2001" GNU "Manuel du programmeur Linux"
+.SH NOM
+Unicode \- Jeu de caractères universel.
+.SH DESCRIPTION
+Le standard international \fBISO 10646\fP définit le \fBjeu de caractères
+universel (UCS)\fP. UCS contient tous les caractères de tous les autres jeux
+de caractères standards. Il garantit également une \fBcompatibilité
+circulaire\fP, ce qui signifie que les tables de conversions peuvent être
+construites de manière à ne perdre aucune information quand une chaîne de
+caractères est convertie dans un autre codage, puis reconvertie en sens
+inverse.
+
+UCS contient les caractères nécessaires pour représenter presque tous les
+langages connus. Il inclut non seulement les alphabets latin, grec,
+cyrillique, hébreu, arabe, arménien et géorgien, mais également les
+idéogrammes chinois, japonais, sino\-coréens et les écritures hiragana,
+katakana, hangûl, devanâgarî, bengalî, gurmukhî, gujarâtî, oriya, tamoul,
+télougou, kannada, malayâlam, thaï, laotien, khmer, bopomofo, tibétain,
+runique, éthiopienne, canadienne syllabique, cherokee, mongol, ogam,
+birmane, cingalais, thâna, yi, et d'autres. Pour les écritures qui n'ont pas
+encore été intégrées, des recherches sont en cours pour optimiser le codage
+et elles seront probablement ajoutées. Ceci inclut non seulement des
+hiéroglyphes et des langues indo\-européennes historiques, mais aussi des
+écritures artistiques comme les tengwar de Fëanor, les cirth, ou le
+klingon. UCS contient également un grand nombre de symboles graphiques,
+typographiques, mathématiques et scientifiques comme ceux fournis par TeX,
+Postscript, APL, MS\-DOS, MS\-Windows, Macintosh, OCR, et de nombreux
+traitements de texte et systèmes d'édition, et de plus en plus sont ajoutés.
+
+Le standard UCS (ISO 10646) décrit un \fIjeu de caractères sur 31 bits\fP,
+constitué de 128 \fIgroupes\fP sur 24 bits, chacun d'eux divisés en 256
+\fIplans\fP sur 16 bits, composés de 256 \fIrangées\fP de 8 bits, avec 256
+positions en \fIcolonne\fP contenant chacune un caractère. La première partie
+du standard (\fBISO 10646\-1\fP) définit les 65\ 534 premiers codes (0x0000 à
+0xFFFD) qui forme le \fIBasic Multilingual Plane (BMP)\fP, c'est\-à\-dire le plan
+0 du groupe 0. La partie 2 du standard (\fBISO 10646\-2\fP) ajoute des
+caractères au groupe 0 en dehors du BMP, dans plusieurs \fIplans
+supplémentaires\fP dans l'espace 0x10000 à 0x10ffff. On ne prévoit pas
+d'ajouter au standard des caractères au\-delà de 0x10ffff. Ainsi sur
+l'ensemble de l'espace disponible, une faible fraction du groupe 0 ne sera
+effectivement utilisée dans un futur proche. Le BMP contient tous les
+caractères des jeux habituels. Les plans supplémentaires ajoutés par ISO
+10646\-2 ne contiennent que des caractères exotiques pour des notations
+scientifiques spéciales, des dictionnaires d'impression, l'industrie de
+l'impression, des protocoles de haut\-niveau, et les besoins de quelques
+enthousiastes.
+.PP
+La représentation des caractères UCS sur des mots de 2\ octets est appelée
+\fBUCS\-2\fP (seulement pour les caractères du BMP), alors que \fBUCS\-4\fP est la
+représentation des caractères par un mot de 4 octets. De plus, il existe
+deux formes de codage\ : \fBUTF\-8\fP pour la rétrocompatibilité avec les
+logiciels traitant l'ASCII et \fBUTF\-16\fP pour les traitement des caractères
+non BMP jusqu'à 0x10ffff par des logiciels UCS\-2.
+.PP
+Les caractères UCS 0x0000 à 0x007f sont identiques à ceux du jeu classique
+\fBUS\-ASCII\fP, et ceux de l'intervalle 0x0000 à 0x00ff sont identiques à ceux
+du jeu de caractères \fBISO 8859\-1 Latin\-1\fP.
+.SS "Caractères composés"
+Quelques codes de l'\fBUCS\fP ont été assignés à des \fBcaractères
+composés\fP. Ils sont semblables aux touches d'accents sans avance sur les
+machines à écrire. Un caractère composé ajoute simplement un accent sur le
+caractère précédent. Les caractères accentués les plus importants ont leur
+propre code dans l'UCS. Cependant, le mécanisme des caractères composés
+permet d'ajouter des accents ou des signes diacritiques sur n'importe quel
+caractère de base. Les caractères composés suivent toujours le caractère
+qu'ils modifient. Par exemple, le caractère allemand «\ Umlaut\-A\ » (A
+majuscule avec un tréma) peut être représenté soit par le code UCS
+précomposé 0x00C4, soit par la combinaison d'un A majuscule normal, suivi
+d'un «\ tréma composé\ », 0x0041 0x0308.
+.PP
+Les caractères composés sont essentiels par exemple pour le codage de
+l'écriture Thaï ou pour les notations mathématiques et l'alphabet phonétique
+international.
+.SS "Niveaux d'implémentation"
+Comme tous les systèmes ne sont pas censés gérer les mécanismes avancés
+comme les caractères composés, ISO 10646\-1 spécifie les trois \fIniveaux
+d'implémentation\fP suivants pour l'UCS\ :
+.TP  0.9i
+Niveau 1
+Les caractères composés et les caractères \fBHangul Jamo\fP (un codage spécial
+de l'écriture coréenne, où les syllabes Hangûl sont codées par 2 ou 3 codes
+de voyelle ou consonne) ne sont pas gérés.
+.TP 
+Niveau 2
+Outre le niveau 1, les caractères composés sont maintenant permis pour
+certaines langues où ils sont essentiels (par exemple, le thaï, le laotien,
+l'hébreu, l'arabe, le devanâgarî, le malayâlam, etc.).
+.TP 
+Niveau 3
+Tous les caractères \fBUCS\fP sont gérés.
+.PP
+Le \fBstandard Unicode 3.0\fP publié par le \fBUnicode Consortium\fP contient
+exactement le \fBBasic Multilingual Plane UCS\fP au niveau d'implémentation 3,
+comme décrit dans la norme ISO 10646\-1:2000. \fBUnicode 3.1\fP ajoute les plans
+supplémentaires de l'ISO 10646\-2. Le standard Unicode et les rapports
+techniques publiés par le Unicode Consortium fournissent beaucoup
+d'informations supplémentaires sur la sémantique et les recommandations
+d'usage de différents caractères. Ils fournissent des guides et des
+algorithmes pour éditer, trier, comparer, normaliser, convertir et afficher
+des chaînes Unicode.
+.SS "Unicode sous Linux"
+Sous GNU/Linux, le type C \fIwchar_t\fP est un entier 32 bits signé, et sa
+valeur est toujours interprétée par la bibliothèque C comme un code \fBUCS\fP
+(dans toutes les locales), une convention signalée par la bibliothèque C GNU
+pour les applications en définissant la constante \fB__STDC_ISO_10646__\fP
+comme indiquée dans le standard ISO C99.
+
+L'UCS/Unicode peut être employé comme l'ASCII dans les flux d'entrée\-sortie,
+les communications avec les terminaux, les fichiers texte, les noms de
+fichier et les variables d'environnement dans un encodage multioctet
+\fBUTF\-8\fP compatible ASCII. Pour signaler l'utilisation de l'UTF\-8 comme
+encodage pour toutes les applications, une \fIlocale\fP correcte doit être
+configurée dans les variables d'environnement (par exemple, «\
+LANG=fr_FR.UTF\-8\ »).
+.PP
+La fonction \fBnl_langinfo(CODESET)\fP renvoie le nom du codage
+sélectionné. Les fonctions de bibliothèque comme \fBwctomb\fP(3) et
+\fBmbsrtowcs\fP(3) peuvent être utilisées pour transformer les caractères
+internes \fIwchar_t\fP et les chaînes dans le jeu de caractères du système et
+inversement. La fonction \fBwcwidth\fP(3) indique de combien de positions
+(0\(en2) le curseur a été avancé en affichant un caractère.
+.PP
+Sous Linux, en général, seule une implémentation BMP de niveau 1 devrait
+être utilisée pour le moment. Pour certaines écritures (en particulier le
+thaï), certains émulateurs de terminaux UTF\-8 gèrent jusqu'à deux caractères
+combinés avec une fonte ISO 10646 (niveau 2), mais il vaut mieux préférer
+les caractères précomposés s'ils sont disponibles (Unicode appelle cela une
+\fBforme de normalisation C\fP).
+.SS "Zone privée"
+L'intervalle entre 0xe000 et 0xf8ff du \fBBMP\fP ne sera jamais assigné a aucun
+caractère par le standard, et est réservé pour un usage privé. Pour la
+communauté Linux, cette zone privée a été divisée en deux. L'intervalle
+entre 0xe000 et 0xefff peut être utilisé individuellement par n'importe quel
+utilisateur final. L'intervalle s'étendant de 0xf000 à 0xf8ff est réservé à
+Linux, et les extensions y sont coordonnées entre les divers utilisateurs de
+Linux. L'enregistrement des caractères assignés à la zone Linux est
+actuellement maintenu par H. Peter Anvin <Peter.Anvin@linux.org>.
+.SS Littérature
+.TP  0.2i
+*
+Information technology \(em Universal Multiple\-Octet Coded Character Set
+(UCS) \(em Part 1: Architecture and Basic Multilingual Plane. International
+Standard ISO/IEC 10646\-1, International Organization for Standardization,
+Geneva, 2000.
+
+Il s'agit des spécifications officielles de l'\fBUCS\fP. Disponible en fichier
+PDF sur CD\-ROM sur http://www.iso.ch/.
+.TP 
+*
+The Unicode Standard, Version 3.0. The Unicode Consortium, Addison\-Wesley,
+Reading, MA, 2000, ISBN 0\-201\-61633\-5.
+.TP 
+*
+S. Harbison, G. Steele. C \- A Reference Manual. Fourth edition, Prentice
+Hall, Englewood Cliffs, 1995, ISBN 0\-13\-326224\-3.
+
+Un bon livre de référence sur langage de programmation C. La quatrième
+édition couvre maintenant l'amendement 1 de 1994 au standard ISO C90, qui
+ajoute un grand nombre de fonctions de bibliothèque C pour manipuler les
+jeux de caractères larges et multioctets, mais ne couvre pas encore l'ISO
+C99, qui améliore encore plus la gestion des caractères larges et
+multioctets.
+.TP 
+*
+Unicode Technical Reports.
+.RS
+http://www.unicode.org/unicode/reports/
+.RE
+.TP 
+*
+Markus Kuhn\ : UTF\-8 and Unicode FAQ for Unix/Linux.
+.RS
+http://www.cl.cam.ac.uk/~mgk25/unicode.html
+
+Fournit les informations sur la liste de diffusion \fIlinux\-utf8\fP, le
+meilleur endroit pour trouver des conseils sur l'utilisation de l'Unicode
+sous Linux.
+.RE
+.TP 
+*
+Bruno Haible\ : Unicode HOWTO.
+.RS
+ftp://ftp.ilog.fr/pub/Users/haible/utf8/Unicode\-HOWTO.html
+.RE
+.SH BOGUES
+.\" .SH AUTHOR
+.\" Markus Kuhn <mgk25@cl.cam.ac.uk>
+Au moment de la rédaction de cette page, la gestion par la bibliothèque C
+GNU pour les locales \fBUTF\-8\fP était mûre, et la gestion par XFree86 était
+avancée, mais le travail nécessaire pour rendre les applications
+(principalement les éditeurs) compatibles avec l'UTF\-8 était en cours. La
+gestion générale actuelle de \fBUCS\fP sous Linux fournit les caractères
+double\-largeur CJK, et parfois les surcharges simples des caractères
+combinés, mais ne permet pas l'écriture de droite à gauche ou les ligatures
+nécessaires en hébreu, arabe ou indien. Ces écritures ne sont pour le moment
+gérées que par certaines applications graphiques (visualisateurs HTML,
+traitements de texte) avec des moteurs d'affichage perfectionnés.
+.SH "VOIR AUSSI"
+\fBsetlocale\fP(3), \fBcharsets\fP(7), \fButf\-8\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

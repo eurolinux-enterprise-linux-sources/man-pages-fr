@@ -1,0 +1,152 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" Distributed under GPL
+.\" Based on glibc infopages
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\" Modified 2004-11-15, fixed error noted by Fabian Kreutz
+.\"	 <kreutz@dbs.uni-hannover.de>
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TGAMMA 3 "11 août 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+tgamma, tgammaf, tgammal \- Véritables fonctions Gamma
+.SH SYNOPSIS
+\fB#include <math.h>\fP
+.sp
+\fBdouble tgamma(double \fP\fIx\fP\fB);\fP
+.br
+\fBfloat tgammaf(float \fP\fIx\fP\fB);\fP
+.br
+\fBlong double tgammal(long double \fP\fIx\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBtgamma\fP(), \fBtgammaf\fP(), \fBtgammal\fP()\ : _XOPEN_SOURCE\ >=\ 600 ||
+_ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.ad b
+.SH DESCRIPTION
+La fonction Gamma est définie ainsi\ :
+.sp
+    Gamma(x) = intégrale de 0 à l'infini de t^(x\-1) e^\-t dt
+.sp
+Elle est définie pour tout réel sauf les entiers négatifs ou nuls. Pour un
+entier positif \fIm\fP, on a
+.sp
+    Gamma(m+1) = m!
+.sp
+et, plus généralement pour tout \fIx\fP\ :
+.sp
+    Gamma(x+1) = x * Gamma(x)
+.sp
+De plus, la relation ci\-dessous est valable pour toute valeur de \fIx\fP en
+dehors des pôles\ :
+.sp
+    Gamma(x) * Gamma(1 \- x) = PI / sin(PI * x)
+.PP
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient Gamma(x).
+
+Si \fIx\fP est un NaN, la valeur renvoyée et un NaN.
+
+Si \fIx\fP est une valeur infinie positive, une valeur positive infinie est
+renvoyée.
+
+Si \fIx\fP est un entier négatif ou l'infini négatif, une erreur de domaine est
+produite et un NaN est renvoyé.
+
+En cas de dépassement pour le résultat, une erreur d'intervalle se produit
+et les fonctions renvoient \fBHUGE_VAL\fP, \fBHUGE_VALF\fP ou \fBHUGE_VALL\fP,
+respectivement, avec le bon signe mathématique.
+
+En cas de souspassement («\ underflow\ ») pour le résultat, une erreur
+d'intervalle se produit et les fonctions renvoient 0, avec le bon signe
+mathématique.
+
+Si \fIx\fP vaut \-0 ou +0, une erreur de pôle se produit et les fonctions
+renvoient \fBHUGE_VAL\fP, \fBHUGE_VALF\fP ou \fBHUGE_VALL\fP, respectivement, avec le
+même signe que le 0.
+.SH ERREURS
+Consultez \fBmath_error\fP(7) pour savoir comment déterminer qi une erreur est
+survenue lors de l'appel de ces fonctions.
+.PP
+Les erreurs suivantes peuvent se produire\ :
+.TP 
+Erreur de domaine\ : \fIx\fP est un entier négatif ou l'infini négatif
+.\" FIXME . errno is not set to EDOM for x == -inf
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6809
+\fIerrno\fP prend la valeur \fBEDOM\fP. Une exception de virgule flottante
+incorrecte (\fBFE_INVALID\fP) est levée (mais consultez la section BOGUES).
+.TP 
+Erreur de pôle\ : \fIx\fP vaut +0 ou \-0
+\fIerrno\fP prend la valeur \fBERANGE\fP. Une exception de virgule flottante
+divide\-by\-zero ((\fBFE_DIVBYZERO\fP) est levée.
+.TP 
+Erreur d'intervalle\ : dépassement pour le résultat
+\fIerrno\fP est configurée à \fBERANGE\fP. Une exception de dépassement en virgule
+flottante (\fBFE_OVERFLOW\fP) est levée.
+.PP
+La glibc donne également l'erreur suivante qui n'est pas spécifiée dans C99
+ou POSIX.1\-2001.
+.TP 
+Erreur d'intervalle\ : souspassement («\ underflow\ ») du résultat
+.\" e.g., tgamma(-172.5) on glibc 2.8/x86-32
+.\" .I errno
+.\" is set to
+.\" .BR ERANGE .
+Une exception en virgule flottante de souspassement (\fBFE_UNDERFLOW\fP) est
+levée.
+.IP
+.\" FIXME . Is it intentional that errno is not set:
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6810
+.\"
+.\" glibc (as at 2.8) also supports and an inexact
+.\" exception for various cases.
+\fIerrno\fP n'est pas modifiée dans ce cas.
+.SH VERSIONS
+Ces fonctions ont été introduites dans la glibc dans sa version\ 2.1.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001.
+.SH NOTES
+Cette fonction a été appelée «\ true gamma function\ » («\ véritable fonction
+Gamma\ ») car il existe déjà une fonction \fBgamma\fP(3) qui retourne un autre
+résultat (voir \fBgamma\fP(3) pour des détails).
+.SH BOGUES
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6809
+Si \fIx\fP est l'infini négatif, \fIerrno\fP n'est pas touchée (elle devrait
+prendre la valeur \fBEDOM\fP).
+
+Dans la glibc version 2.3.3 et antérieures, un paramètre +0 ou \-0 produit à
+tord une erreur de domaine (\fIerrno\fP prend la valeur \fBEDOM\fP et une
+exception \fBFE_INVALID\fP est levée), au lieu d'une erreur de pôle.
+.SH "VOIR AUSSI"
+\fBgamma\fP(3), \fBlgamma\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

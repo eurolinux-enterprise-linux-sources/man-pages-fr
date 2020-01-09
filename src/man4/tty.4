@@ -1,0 +1,81 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de),
+.\"     Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified 1993-07-24 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 2003-04-07 by Michael Kerrisk
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TTY 4 "7 avril 2003" Linux "Manuel du programmeur Linux"
+.SH NOM
+tty \- Terminal de contrôle.
+.SH DESCRIPTION
+Le fichier \fI/dev/tty\fP est un fichier spécial en mode caractères, avec un
+numéro majeur 5 et un numéro mineur 0. Il possède habituellement le mode
+d'accès 0666 et appartient à root et au groupe tty. Il s'agit d'un
+équivalent au terminal de contrôle d'un processus, s'il en a un.
+.LP
+En plus des requêtes \fBioctl\fP(2) supportées par les périphériques \fBtty\fP, la
+requête \fBioctl\fP(2) \fBTIOCNOTTY\fP est disponible.
+.SS TIOCNOTTY
+Détacher le processus appelant de son terminal de contrôle.
+.sp
+Si le processus est un leader de session, alors \fBSIGHUP\fP et \fBSIGCONT\fP
+seront envoyés au groupe de processus au premier plan, et tous les processus
+de la session perdent leur terminal de contrôle.
+.sp
+Cet \fBioctl\fP(2) fonctionne uniquement avec les descripteurs de fichiers
+connectés à \fI/dev/tty\fP. Il est utilisé par les démons quand ils sont
+invoqués par un utilisateur depuis un terminal. Le processus tente d'ouvrir
+\fI/dev/tty\fP. S'il réussit il se détache alors du terminal avec
+\fBTIOCNOTTY\fP. Si l'ouverture échoue, il n'est évidemment pas attaché à un
+terminal et n'a pas besoin de se détacher.
+.SH FICHIERS
+/dev/tty
+.SH "VOIR AUSSI"
+\fBchown\fP(1), \fBmknod\fP(1), \fBioctl\fP(2), \fBtermios\fP(3), \fBconsole\fP(4),
+\fBtty_ioctl\fP(4), \fBttyS\fP(4), \fBagetty\fP(8), \fBmingetty\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Simon Paillard et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

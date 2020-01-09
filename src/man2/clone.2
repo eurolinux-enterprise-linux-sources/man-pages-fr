@@ -1,0 +1,652 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 1992 Drew Eckhardt <drew@cs.colorado.edu>, March 28, 1992
+.\" and Copyright (c) Michael Kerrisk, 2001, 2002, 2005
+.\" May be distributed under the GNU General Public License.
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified 24 Jul 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 21 Aug 1994 by Michael Chastain <mec@shell.portal.com>:
+.\"   New man page (copied from 'fork.2').
+.\" Modified 10 June 1995 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 25 April 1998 by Xavier Leroy <Xavier.Leroy@inria.fr>
+.\" Modified 26 Jun 2001 by Michael Kerrisk
+.\"     Mostly upgraded to 2.4.x
+.\"     Added prototype for sys_clone() plus description
+.\"	Added CLONE_THREAD with a brief description of thread groups
+.\"	Added CLONE_PARENT and revised entire page remove ambiguity
+.\"		between "calling process" and "parent process"
+.\"	Added CLONE_PTRACE and CLONE_VFORK
+.\"	Added EPERM and EINVAL error codes
+.\"	Renamed "__clone" to "clone" (which is the prototype in <sched.h>)
+.\"	various other minor tidy ups and clarifications.
+.\" Modified 26 Jun 2001 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Updated notes for 2.4.7+ behavior of CLONE_THREAD
+.\" Modified 15 Oct 2002 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Added description for CLONE_NEWNS, which was added in 2.4.19
+.\" Slightly rephrased, aeb.
+.\" Modified 1 Feb 2003 - added CLONE_SIGHAND restriction, aeb.
+.\" Modified 1 Jan 2004 - various updates, aeb
+.\" Modified 2004-09-10 - added CLONE_PARENT_SETTID etc. - aeb.
+.\" 2005-04-12, mtk, noted the PID caching behavior of NPTL's getpid()
+.\"	wrapper under BUGS.
+.\" 2005-05-10, mtk, added CLONE_SYSVSEM, CLONE_UNTRACED, CLONE_STOPPED.
+.\" 2005-05-17, mtk, Substantially enhanced discussion of CLONE_THREAD.
+.\" 2008-11-18, mtk, order CLONE_* flags  alphabetically
+.\" 2008-11-18, mtk, document CLONE_NEWPID
+.\" 2008-11-19, mtk, document CLONE_NEWUTS
+.\" 2008-11-19, mtk, document CLONE_NEWIPC
+.\" 2008-11-19, Jens Axboe, mtk, document CLONE_IO
+.\"
+.\" FIXME Document CLONE_NEWUSER, which is new in 2.6.23
+.\"       (also supported for unshare()?)
+.\" FIXME . 2.6.25 marks the unused CLONE_STOPPED as obsolete, and it will
+.\"       probably be removed in the future.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CLONE 2 "18 juillet 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+clone, __clone2 \- Créer un processus fils (child)
+.SH SYNOPSIS
+.nf
+.\" Actually _BSD_SOURCE || _SVID_SOURCE
+.\" See http://sources.redhat.com/bugzilla/show_bug.cgi?id=4749
+\fB#define _GNU_SOURCE\fP
+\fB#include <sched.h>\fP
+
+\fBint clone(int (*\fP\fIfn\fP\fB)(void *), void *\fP\fIchild_stack\fP\fB,\fP
+\fB          int \fP\fIflags\fP\fB, void *\fP\fIarg\fP\fB, ... \fP
+\fB          /* pid_t *\fP\fIptid\fP\fB, struct user_desc *\fP\fItls\fP\fB, pid_t *\fP\fIctid\fP\fB */ );\fP
+.fi
+.SH DESCRIPTION
+\fBclone\fP() crée un nouveau processus, exactement comme le fait
+\fBfork\fP(2). \fBclone\fP() est en fait une fonction de bibliothèque s'appuyant
+sur l'appel système \fBclone\fP() sous\(hyjacent, mentionné comme \fBsys_clone\fP
+ci\(hydessous. Une description de \fBsys_clone\fP se trouve plus bas sur cette
+page.
+
+Contrairement à \fBfork\fP(2), cette routine permet le partage d'une partie du
+contexte d'exécution entre le processus fils et le processus appelant. Le
+partage peut s'appliquer sur l'espace mémoire, sur la table des descripteurs
+de fichiers ou la table des gestionnaires de signaux. (Notez que sur cette
+page de manuel, le «\ processus appelant\ » correspond normalement au «\
+processus père\ », mais voyez quand même la description de \fBCLONE_PARENT\fP
+plus bas).
+
+L'appel système \fBclone\fP() est principalement utilisé pour permettre
+l'implémentation des threads\ : un programme est scindé en plusieurs lignes
+de contrôle, s'exécutant simultanément dans un espace mémoire partagée.
+
+Quand le processus fils est créé, avec \fBclone\fP(), il exécute la fonction
+\fIfn\fP(\fIarg\fP) de l'application. Ceci est différent de \fBfork\fP(2) avec lequel
+l'exécution continue dans le fils au point de l'appel \fBfork\fP(2). L'argument
+\fIfn\fP est un pointeur sur la fonction appelée par le processus fils lors de
+son démarrage. L'argument \fIarg\fP est transmis à la fonction \fIfn\fP lors de
+son invocation.
+
+Quand la fonction \fIfn\fP(\fIarg\fP) revient, le processus fils se termine. La
+valeur entière renvoyée par \fIfn\fP est utilisée comme code de retour du
+processus fils. Ce dernier peut également se terminer de manière explicite
+en invoquant la fonction \fBexit\fP(2) ou après la réception d'un signal fatal.
+
+L'argument \fIchild_stack\fP indique l'emplacement de la pile utilisée par le
+processus fils. Comme les processus fils et appelant peuvent partager de la
+mémoire, il n'est généralement pas possible pour le fils d'utiliser la même
+pile que son père. Le processus appelant doit donc préparer un espace
+mémoire pour stocker la pile de son fils, et transmettre à \fBclone\fP un
+pointeur sur cet emplacement. Les piles croissent vers le bas sur tous les
+processeurs implémentant Linux (sauf le HP PA), donc \fIchild_stack\fP doit
+pointer sur la plus haute adresse de l'espace mémoire prévu pour la pile du
+processus fils.
+
+L'octet de poids faible de \fIflags\fP contient le numéro du signal qui sera
+envoyé au père lorsque le processus fils se terminera. Si ce signal est
+différent de \fBSIGCHLD\fP, le processus parent doit également spécifier les
+options \fB__WALL\fP ou \fB__WCLONE\fP lorsqu'il attend la fin du fils avec
+\fBwait\fP(2). Si aucun signal n'est indiqué, le processus parent ne sera pas
+notifié de la terminaison du fils.
+
+\fIflags\fP permet également de préciser ce qui sera partagé entre le père et
+le fils, en effectuant un OU binaire entre une ou plusieurs des constantes
+suivantes\ :
+.TP 
+\fBCLONE_CHILD_CLEARTID\fP (depuis Linux 2.5.49)
+Effacer l'ID du thread enfant à \fIctid\fP dans la mémoire du fils lorsqu'il se
+termine, et réveiller le futex à cette adresse. L'adresse concernée peut
+être modifiée par l'appel système \fBset_tid_address\fP(2). Cela est utilisé
+dans les bibliothèques de gestion de threads.
+.TP 
+\fBCLONE_CHILD_SETTID\fP (depuis Linux 2.5.49)
+Enregistrer l'ID du thread enfant à \fIctid\fP dans la mémoire du fils.
+.TP 
+\fBCLONE_FILES\fP
+Si l'attribut \fBCLONE_FILES\fP est positionné, le processus appelant et le
+processus fils partagent la même table des descripteurs de fichier. Tout
+descripteur créé par un processus est également valide pour l'autre
+processus. De même si un processus ferme un descripteur, ou modifie ses
+attributs (en utilisant l'opération \fBfcntl\fP(2) \fBF_SETFD\fP), l'autre
+processus en est aussi affecté.
+
+Si \fBCLONE_FILES\fP n'est pas positionné, le processus fils hérite d'une copie
+des descripteurs de fichier ouverts par l'appelant au moment de l'appel
+\fBclone\fP(). (Les copies des descripteurs de fichier dans le fils sont
+associées aux mêmes descriptions de fichiers ouverts (voir \fBopen\fP(2)) que
+les descripteurs de fichier correspondants dans le processus appelant.) Les
+opérations effectuées ensuite sur un descripteur par un des processus
+n'affectent pas l'autre processus.
+.TP 
+\fBCLONE_FS\fP
+Si l'attribut \fBCLONE_FS\fP est positionné, le processus appelant et le
+processus fils partagent les mêmes informations concernant le système de
+fichiers. Ceci inclut la racine du système de fichiers, le répertoire de
+travail, et l'umask. Tout appel à \fBchroot\fP(2), \fBchdir\fP(2) ou \fBumask\fP(2)
+effectué par un processus aura également influence sur l'autre processus.
+
+Si \fBCLONE_FS\fP n'est pas choisi, le processus travaille sur une copie des
+informations de l'appelant concernant le système de fichiers. Cette copie
+est effectuée lors de l'invocation de \fBclone\fP(). Les appels à \fBchroot\fP(2),
+\fBchdir\fP(2), \fBumask\fP(2) effectués par un processus n'affectent pas l'autre
+processus.
+.TP 
+\fBCLONE_IO\fP (depuis Linux 2.6.25)
+Si \fBCLONE_IO\fP est défini, alors le nouveau processus partage un contexte
+d'entrées\-sorties avec le processus appelant. Si cet attribut n'est pas
+défini, alors (comme pour \fBfork\fP(2)) le nouveau processus a son propre
+contexte d'entrées\-sorties.
+
+.\" The following based on text from Jens Axboe
+.\" the anticipatory and CFQ scheduler
+.\" with CFQ and AS.
+Le contexte d'entrées\-sorties correspond à la visibilité que l'ordonnanceur
+de disques a des entrées\-sorties (c'est\-à\-dire, ce que l'ordonnanceur
+d'entrée\-sorties utilise pour modéliser l'ordonnancement des entrées\-sorties
+d'un processus). Si des processus partagent le même contexte
+d'entrées\-sorties, ils sont traités comme un seul par l'ordonnanceur
+d'entrées\-sorties. Par conséquent, ils partagent le même temps d'accès aux
+disques. Pour certains ordonnanceurs d'entrées\-sorties, si deux processus
+partagent un contexte d'entrées\-sorties, ils seront autorisés à intercaler
+leurs accès disque. Si plusieurs threads utilisent des entrées\-sorties pour
+le même processus (\fBaio_read\fP(3), par exemple), ils devraient utiliser
+\fBCLONE_IO\fP pour obtenir de meilleurs performances d'entrées\-sorties.
+
+Si le noyau n'a pas été configuré avec l'option \fBCONFIG_BLOCK\fP, cet
+attribut n'a aucun effet.
+.TP 
+\fBCLONE_NEWIPC\fP (depuis Linux 2.6.19)
+Si \fBCLONE_NEWIPC\fP est défini, alors créer le processus dans un nouvel
+espace de noms IPC. Si cet attribut n'est pas défini, alors (comme pour
+\fBfork\fP(2)) le processus est créé dans le même espace de noms IPC que le
+processus appelant. Cet attribut est sensé être utilisé pour
+l'implémentation de conteneurs.
+
+Un espace de noms IPC consiste en un jeu d'identifiants pour des objets IPC
+System\ V (ces objets sont créés en utilisant \fBmsgctl\fP(2), \fBsemctl\fP(2) et
+\fBshmctl\fP(2)). Les objets créés dans un espace de noms IPC sont visibles de
+tous les autres membres de cet espace de noms, mais ne sont pas visibles des
+processus des autres espaces de noms.
+
+Quand un espace de noms est détruit (c'est\-à\-dire, quand le dernier
+processus membre de cet espace de noms se termine), tous les objets IPC de
+cet espace de noms sont automatiquement détruits.
+
+Utiliser cet attribut nécessite\ : un noyau configuré avec les options
+\fBCONFIG_SYSVIPC\fP et \fBCONFIG_IPC_NS\fP et que le processus soit privilégié
+(\fBCAP_SYS_ADMIN\fP). Cet attribut ne peut pas être utilisé en même temps que
+\fBCLONE_SYSVSEM\fP.
+.TP 
+\fBCLONE_NEWNET\fP (depuis Linux 2.6.24)
+(L'implémentation de cet attribut n'est toujours pas complète, mais le sera
+sûrement aux environs de Linux 2.6.28.)
+
+Si \fBCLONE_NEWNET\fP est défini, alors créer le processus dans un nouvel
+espace de noms réseau. SI cet attribut n'est pas défini, alors (comme pour
+\fBfork\fP(2)) le processus est créé dans le même espace de noms réseau que le
+processus appelant. Cet attribut est sensé être utilisé pour
+l'implémentation de conteneurs.
+
+Un espace de noms réseau fournit une vue isolée de la pile réseau
+(interfaces des périphériques réseau, piles des protocoles IPv4 et IPv6,
+tables de routage, règles de pare\-feu, les arbres de répertoire \fI/proc/net\fP
+et \fI/sys/class/net\fP, les sockets, etc.). Un périphérique réseau physique ne
+peut être que dans un seul espace de noms réseau. Une paire d'interface
+réseau virtuelle («\ veth\ ») fournit une abstraction similaire à pipe qui
+peut être utilisé pour créer un pont vers une interface réseau physique d'un
+autre espace de noms réseau.
+
+Quand un espace de noms réseau est libéré (c'est\-à\-dire, quand le dernier
+processus de l'espace de noms se termine), ses périphériques réseau
+physiques sont remis dans l'espace de noms réseau initial (pas celui du
+processus père).
+
+Utiliser cet attribut nécessite\ : un noyau configuré avec l'option
+\fBCONFIG_NET_NS\fP et que le processus soit privilégié (\fBCAP_SYS_ADMIN\fP).
+.TP 
+\fBCLONE_NEWNS\fP (depuis Linux 2.4.19)
+Démarrer le processus dans un nouvel espace de noms de montage.
+
+Chaque processus se trouve dans un espace de noms de montage. Cet \fIespace
+de noms\fP du processus regroupe les données décrivant la hiérarchie des
+fichiers vus par le processus (l'ensemble des montages). Après un \fBfork\fP(2)
+ou \fBclone\fP() sans l'attribut \fBCLONE_NEWNS\fP le fils se déroule dans le même
+espace de noms de montage que son père. Les appels système \fBmount\fP(2) et
+\fBumount\fP(2) modifient l'espace de noms de montage du processus appelant, et
+affectent ainsi tous les processus se déroulant dans le même espace de noms,
+sans affecter les processus se trouvant dans d'autres espaces de noms de
+montage.
+
+Après un \fBclone\fP() avec l'attribut \fBCLONE_NEWNS\fP le fils cloné démarre
+dans un nouvel espace de noms de montage, initialisé avec une copie de
+l'espace de noms du père.
+
+Seul un processus privilégié (un processus ayant la capacité
+\fBCAP_SYS_ADMIN\fP) peut spécifier l'attribut \fBCLONE_NEWNS\fP. Il n'est pas
+possible de spécifier à la fois \fBCLONE_NEWNS\fP et \fBCLONE_FS\fP pour le même
+appel \fBclone\fP().
+.TP 
+\fBCLONE_NEWPID\fP (depuis Linux 2.6.24)
+.\" This explanation draws a lot of details from
+.\" http://lwn.net/Articles/259217/
+.\" Authors: Pavel Emelyanov <xemul@openvz.org>
+.\" and Kir Kolyshkin <kir@openvz.org>
+.\"
+.\" The primary kernel commit is 30e49c263e36341b60b735cbef5ca37912549264
+.\" Author: Pavel Emelyanov <xemul@openvz.org>
+Si \fBCLONE_NEWPID\fP est défini, alors créer le processus dans un nouvel
+espace de noms de PID. Si cet attribut n'est pas défini, alors (comme pour
+\fBfork\fP(2)) le processus est créé dans le même espace de noms de PID que le
+processus appelant. Cet attribut est sensé être utilisé pour
+l'implémentation de conteneurs.
+
+Un espace de noms de PID fournit un environnement isolés pour les PID\ : les
+PID d'un nouvel espace de noms de PID commence à 1, comme pour un système
+seul, et les appels à \fBfork\fP(2), \fBvfork\fP(2) et \fBclone\fP(2) produiront des
+processus avec des PID uniques dans l'espace de noms.
+
+Le premier processus créé dans un nouvel espace de noms (c'est\-à\-dire, le
+processus créé en utilisant l'attribut \fBCLONE_NEWPID\fP) a un PID de 1 et est
+le processus «\ init\ » pour l'espace de noms. Les fils qui deviennent
+orphelins dans cet espace de noms seront adoptés par ce processus plutôt que
+par \fBinit\fP(8). Contrairement à l'\fBinit\fP traditionnel, le processus
+«\ init\ » d'un espace de noms de PID peut se terminer et, s'il le fait, tous
+les processus dans l'espace de noms sont alors terminés.
+
+Les espaces de noms de PID forment une hiérarchie. Quand un espace de noms
+de PID est créé, les processus de cet espace de noms sont visibles depuis
+l'espace de noms de PID du processus qui a créé le nouvel espace de noms\ ;
+de la même façon, si l'espace de noms parent est lui\-même le fils d'un autre
+espace de noms de PID, alors les processus du fils et du père seront tous
+visibles de l'espace de noms grand\-père. À l'inverse, les processus de
+l'espace de noms de PID fils ne voient pas les processus de l'espace de noms
+parent. L'existence d'une hiérarchie d'espaces de noms signifie que chaque
+processus peut désormais avoir plusieurs PID\ : un par espace de noms dans
+lequel il est visible\ ; chacun de ces PID est unique dans les espaces de
+noms correspondants. (Un appel à \fBgetpid\fP(2) renvoie toujours le PID
+associé à l'espace de noms dans lequel le processus se trouve.)
+
+.\" mount -t proc proc /proc
+Après avoir créé un nouvel espace de noms, il est utile pour le fils de
+changer son répertoire racine et monter une nouvelle instance de procfs dans
+\fI/proc\fP de telle sorte que des outils comme \fBps\fP(1) fonctionnent
+correctement. (Si \fBCLONE_NEWNS\fP est également présent dans \fIflags\fP, alors
+il n'est pas nécessaire de changer de répertorie racine\ : une nouvelle
+instance de procfs peut être monté directement dans \fI/proc\fP.)
+
+L'utilisation de cet attribut nécessite\ : un noyau configuré avec l'option
+\fBCONFIG_PID_NS\fP et que le processus soit privilégié (\fBCAP_SYS_ADMIN\fP). Cet
+attribut ne peut pas être utilisé en même temps que \fBCLONE_THREAD\fP.
+.TP 
+\fBCLONE_NEWUTS\fP (depuis Linux 2.6.19)
+Si \fBCLONE_NEWUTS\fP est défini, alors créer le processus dans un nouvel
+espace de noms de UTS, dont les identifiants sont initialisé en duplicant
+les identifiants de l'espace de noms UTS du processus appelant. Si cet
+attribut n'est pas défini, alors (comme pour \fBfork\fP(2)) le processus est
+créé dans le même espace de noms UTS que le processus appelant. Cet attribut
+est sensé être utilisé pour l'implémentation de conteneurs.
+
+Un espace de noms UTS est l'ensemble des identifiants renvoyés par
+\fBuname\fP(2)\ ; parmi lesquels le nom de domaine et le nom d'hôte peuvent être
+modifiés respectivement à l'aide de \fBsetdomainname\fP(2) et
+\fBsethostname\fP(2). Les modifications apportés à ces identifiants dans un
+espace de noms UTS sont visibles par tous les processus du même espace de
+noms, mais ne sont pas visibles des processus des autres espaces de noms
+UTS.
+
+L'utilisation de cet attribut nécessite\ : un noyau configuré avec l'option
+\fBCONFIG_UTS_NS\fP et que le processus soit privilégié (\fBCAP_SYS_ADMIN\fP).
+.TP 
+\fBCLONE_PARENT\fP (depuis Linux 2.3.12)
+Si \fBCLONE_PARENT\fP est présent, le père du nouveau fils (comme il est
+indiqué par \fBgetppid\fP(2)) sera le même que celui du processus appelant.
+
+Si \fBCLONE_PARENT\fP n'est pas fourni, alors (comme pour \fBfork\fP(2)) le père
+du processus fils sera le processus appelant.
+
+Remarquez que c'est le processus père, tel qu'indiqué par \fBgetppid\fP(2), qui
+est notifié lors de la fin du fils. Ainsi, si \fBCLONE_PARENT\fP est présent,
+alors c'est le père du processus appelant, et non ce dernier, qui sera
+notifié.
+.TP 
+\fBCLONE_PARENT_SETTID\fP (depuis Linux 2.5.49)
+Enregistrer l'ID du thread enfant à \fIptid\fP dans la mémoire du père et du
+fils. (Dans Linux 2.5.32\-2.5.48 il y a un attribut \fBCLONE_SETTID\fP qui fait
+cela.)
+.TP 
+\fBCLONE_PID\fP (obsolète)
+Si l'attribut \fBCLONE_PID\fP est positionné, les processus appelant et fils
+ont le même numéro de processus. C'est bien pour hacker le système, mais
+autrement il n'est plus utilisé. Depuis 2.3.21, cet attribut ne peut être
+utilisé que par le processus de démarrage du système (PID 0). Il a disparu
+dans Linux 2.5.16.
+.TP 
+\fBCLONE_PTRACE\fP
+Si l'attribut \fBCLONE_PTRACE\fP est positionné et si l'appelant est suivi par
+un débogueur, alors le fils sera également suivi (voir \fBptrace\fP(2)).
+.TP 
+\fBCLONE_SETTLS\fP (depuis Linux 2.5.32)
+Le paramètre \fInewtls\fP est le nouveau descripteur TLS (Thread Local
+Storage). (Voir \fBset_thread_area\fP(2).)
+.TP 
+\fBCLONE_SIGHAND\fP
+Si l'attribut \fBCLONE_SIGHAND\fP est positionné, le processus appelant et le
+processus fils partagent la même table des gestionnaires de signaux. Si
+l'appelant, ou le fils, appelle \fBsigaction\fP(2) pour modifier le
+comportement associé à un signal, ce comportement est également changé pour
+l'autre processus. Néanmoins, l'appelant et le fils ont toujours des masques
+de signaux distincts, et leurs ensembles de signaux bloqués sont
+indépendants. L'un des processus peut donc bloquer un signal en utilisant
+\fBsigprocmask\fP(2) sans affecter l'autre processus.
+
+Si \fBCLONE_SIGHAND\fP n'est pas utilisé, le processus fils hérite d'une copie
+des gestionnaires de signaux de l'appelant lors de l'invocation de
+\fBclone\fP(). Les appels à \fBsigaction\fP(2) effectués ensuite depuis un
+processus n'ont pas d'effets sur l'autre processus.
+
+Depuis Linux 2.6.0\-test6, l'attribut \fBCLONE_VM\fP doit également être
+spécifié dans \fIflags\fP si \fBCLONE_SIGHAND\fP l'est.
+.TP 
+\fBCLONE_STOPPED\fP (depuis Linux 2.6.0\-test2)
+Si l'attribut \fBCLONE_STOPPED\fP est positionné, le fils est initialement
+stoppé (comme s'il avait reçu le signal \fBSIGSTOP\fP), et doit être relancé en
+lui envoyant le signal \fBSIGCONT\fP.
+
+.\" glibc 2.8 removed this defn from bits/sched.h
+\fIDepuis Linux\ 2.6.25 cet attribut est déconseillé.\fP Vous n'avez
+probablement jamais voulu l'utiliser\ ; vous ne devriez certainement pas
+l'utiliser\ ; et il sera bientôt supprimé.
+.TP 
+\fBCLONE_SYSVSEM\fP (depuis Linux 2.5.10)
+Si \fBCLONE_SYSVSEM\fP est positionné, le fils et le processus appelant
+partagent la même liste de compteurs «\ undo\ » pour les sémaphores System\
+V (voir \fBsemop\fP(2)). Si cet attribut n'est pas utilisé, le fils a une liste
+«\ undo\ » séparée, initialement vide.
+.TP 
+\fBCLONE_THREAD\fP (depuis Linux 2.4.0\-test8)
+Si \fBCLONE_THREAD\fP est présent, le fils est placé dans le même groupe de
+threads que le processus appelant. Afin de rendre l'explication de
+\fBCLONE_THREAD\fP plus lisible, le terme «\ thread\ » est utilisé pour parler
+des processus dans un même groupe de threads.
+
+Les groupes de threads sont une fonctionnalité ajoutées dans Linux 2.4 pour
+supporter la notion POSIX d'ensemble de threads partageant un même PID. En
+interne, ce PID partagé est appelé identifiant de groupe de threads
+(TGID).Depuis Linux 2.4, l'appel \fBgetpid\fP(2) renvoie l'identifiant du
+groupe de thread de l'appelant.
+
+Les threads dans un groupe peuvent être distingués par leur identifiant de
+thread (TID, unique sur le système). Le TID d'un nouveau thread est renvoyé
+par \fBclone\fP() au processus appelant, et un thread peut obtenir son propre
+TID en utilisant \fBgettid\fP(2).
+
+Quand \fBclone\fP() est appelé sans positionner \fBCLONE_THREAD\fP, le nouveau
+thread est placé dans un nouveau groupe de thread dont le TGID est identique
+au TID du nouveau thread. Ce thread est le \fIleader\fP du nouveau groupe.
+
+Un nouveau thread créé en utilisant \fBCLONE_THREAD\fP a le même processus père
+que l'appelant de \fBclone\fP() (de même qu'avec \fBCLONE_PARENT\fP), ainsi les
+appels à \fBgetppid\fP(2) renvoient la même valeur à tous les threads dans un
+même groupe. Lorsqu'un thread créé avec \fBCLONE_THREAD\fP termine, le thread
+qui a appelé \fBclone\fP() pour le créer ne reçoit pas le signal \fBSIGCHLD\fP (ou
+autre notification de terminaison)\ ; de même, l'état d'un tel thread ne
+peut être obtenu par \fBwait\fP(2). Le thread est dit \fIdétaché\fP.
+
+Lorsque tous les threads d'un groupe de threads terminent, le processus
+parent du groupe reçoit un signal \fBSIGCHLD\fP (ou autre indicateur de
+terminaison).
+
+Si l'un des threads dans un groupe de threads appelle \fBexecve\fP(2), tous les
+threads sauf le leader sont tués, et le nouveau programme est exécuté dans
+le leader du groupe de threads.
+
+Si l'un des threads dans un groupe crée un fils avec \fBfork\fP(2), n'importe
+lequel des threads du groupe peut utiliser \fBwait\fP(2) sur ce fils.
+
+Depuis Linux 2.5.35, l'attribut \fBCLONE_SIGHAND\fP de \fIflags\fP doit être
+positionné si \fBCLONE_THREAD\fP l'est.
+
+Un signal peut être envoyé à un groupe de threads dans son ensemble
+(c'est\(hyà\(hydire à un TGID) avec \fBkill\fP(2), ou bien à un thread en
+particulier (à un TID) avec \fBtgkill\fP(2).
+
+Les gestions de signaux sont définies au niveau des processus\ : si un
+signal sans gestionnaire est reçu par un thread, il affectera (tuera,
+stoppera, relancera, ou sera ignoré par) tous les membres du groupe de
+threads.
+
+Chaque thread a son propre masque de signaux, défini par \fBsigprocmask\fP(2),
+mais les signaux peuvent être en attente soit pour le processus dans son
+ensemble (donc peut être reçu par n'importe lequel des threads du groupe),
+quand ils sont envoyés avec \fBkill\fP(2), soit pour un thread particulier,
+lorsqu'ils sont envoyés par \fBtgkill\fP(2). Un appel à \fBsigpending\fP(2)
+renvoie un ensemble de signaux qui est l'union des processus en attente pour
+le processus et ceux en attente pour le thread appelant.
+
+Si \fBkill\fP(2) est utilisé pour envoyer un signal à un groupe de threads, et
+si le groupe a installé un gestionnaire pour ce signal, alors le
+gestionnaire sera exécuté dans exactement un des membres du groupe de
+threads, choisi de façon arbitraire parmi ceux qui n'ont pas bloqué ce
+signal. Si plusieurs threads dans un groupe attendent le même signal en
+utilisant \fBsigwaitinfo\fP(2), le noyau choisira arbitrairement l'un d'entre
+eux pour délivrer le signal envoyé par \fBkill\fP(2).
+.TP 
+\fBCLONE_UNTRACED\fP (depuis Linux 2.5.46)
+Si l'attribut \fBCLONE_UNTRACED\fP est positionné, alors un processus traçant
+le père ne peut pas forcer \fBCLONE_PTRACE\fP pour ce fils.
+.TP 
+\fBCLONE_VFORK\fP
+Si le bit \fBCLONE_VFORK\fP est actif, l'exécution du processus appelant est
+suspendue jusqu'à ce que le fils libère ses ressources de mémoire virtuelle
+par un appel \fBexecve\fP(2) ou \fB_exit\fP(2) (comme avec \fBvfork\fP(2)).
+
+Si \fBCLONE_VFORK\fP n'est pas indiqué, alors les deux processus sont
+ordonnancés à partir de la fin de l'appel, et l'application ne doit pas
+considérer que l'ordre d'exécution soit déterminé.
+.TP 
+\fBCLONE_VM\fP
+Si le bit \fBCLONE_VM\fP est actif, le processus appelant et le processus fils
+s'exécutent dans le même espace mémoire. En particulier, les écritures en
+mémoire effectuées par l'un des processus sont visibles par l'autre. De même
+toute projection en mémoire, ou toute suppression de projection, effectuées
+avec \fBmmap\fP(2) ou \fBmunmap\fP(2) par l'un des processus affectera également
+l'autre processus.
+
+Si \fBCLONE_VM\fP n'est pas actif, le processus fils utilisera une copie
+distincte de l'espace mémoire de l'appelant. Le cliché est réalisé lors de
+l'invocation de \fBclone\fP(). Les écritures ou les projections de fichiers en
+mémoire effectuées par un processus n'affectent pas l'autre processus, comme
+cela se passe avec \fBfork\fP(2).
+.SS sys_clone
+L'appel système \fBsys_clone\fP ressemble plus à \fBfork\fP(2), en ceci que
+l'exécution dans le processus fils continue à partir du point d'appel. Ainsi
+\fBsys_clone\fP ne nécessite que les arguments \fIflags\fP et \fIchild_stack\fP qui
+ont la même signification que pour \fBclone\fP(). (Notez que l'ordre de ces
+arguments est différent de celui dans \fBclone\fP().)
+
+Une autre différence\ : pour \fBsys_clone\fP, l'argument \fIchild_stack\fP peut
+être nul, puisque la sémantique de copie\-en\-écriture assure que le fils
+recevra une copie indépendante des pages de la pile dès qu'un des deux
+processus la modifiera. Pour que cela fonctionne, il faut naturellement que
+\fBCLONE_VM\fP ne soit pas présent.
+
+Sous Linux\ 2.4 et plus anciens, \fBclone\fP() ne prend pas les arguments
+\fIptid\fP, \fItls\fP et \fIctid\fP.
+.SH "VALEUR RENVOYÉE"
+.\" gettid(2) returns current->pid;
+.\" getpid(2) returns current->tgid;
+En cas de réussite, le TID du processus fils est renvoyé dans le thread
+d'exécution de l'appelant. En cas d'échec, \-1 est renvoyé dans le contexte
+de l'appelant, aucun fils n'est créé, et \fIerrno\fP contiendra le code
+d'erreur.
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+Trop de processus en cours d'exécution.
+.TP 
+\fBEINVAL\fP
+\fBCLONE_SIGHAND\fP a été spécifié mais pas \fBCLONE_VM\fP (depuis Linux
+2.6.0\-test6).
+.TP 
+\fBEINVAL\fP
+.\" .TP
+.\" .B EINVAL
+.\" Precisely one of
+.\" .B CLONE_DETACHED
+.\" and
+.\" .B CLONE_THREAD
+.\" was specified.
+.\" (Since Linux 2.6.0-test6.)
+\fBCLONE_THREAD\fP a été spécifié mais pas \fBCLONE_SIGHAND\fP  (depuis Linux
+2.5.35).
+.TP 
+\fBEINVAL\fP
+Les attributs \fBCLONE_NEWNS\fP et \fBCLONE_FS\fP ont été indiqués simultanément
+dans \fIflags\fP.
+.TP 
+\fBEINVAL\fP
+Les attributs \fBCLONE_NEWIPC\fP et \fBCLONE_SYSVSEM\fP ont été indiqués
+simultanément dans \fIflags\fP.
+.TP 
+\fBEINVAL\fP
+Les attributs \fBCLONE_NEWPID\fP et \fBCLONE_THREAD\fP ont été indiqués
+simultanément dans \fIflags\fP.
+.TP 
+\fBEINVAL\fP
+Renvoyée par \fBclone\fP() quand une valeur nulle a été indiquée pour le
+paramètre \fIchild_stack\fP.
+.TP 
+\fBEINVAL\fP
+\fBCLONE_NEWIPC\fP a été indiqué dans \fIflags\fP, mais le noyau n'a pas été
+configuré avec les options \fBCONFIG_SYSVIPC\fP et \fBCONFIG_IPC_NS\fP.
+.TP 
+\fBEINVAL\fP
+\fBCLONE_NEWNET\fP a été indiqué dans \fIflags\fP, mais le noyau n'a pas été
+configuré avec l'option \fBCONFIG_NET_NS\fP.
+.TP 
+\fBEINVAL\fP
+\fBCLONE_NEWPID\fP a été indiqué dans \fIflags\fP, mais le noyau n'a pas été
+configuré avec l'option \fBCONFIG_PID_NS\fP.
+.TP 
+\fBEINVAL\fP
+\fBCLONE_NEWUTS\fP a été indiqué dans \fIflags\fP, mais le noyau n'a pas été
+configuré avec l'option \fBCONFIG_UTS\fP.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour copier les parties du contexte du processus
+appelant qui doivent être dupliquées, ou pour allouer une structure de tâche
+pour le processus fils.
+.TP 
+\fBEPERM\fP
+\fBCLONE_NEWIPC\fP, \fBCLONE_NEWNET\fP, \fBCLONE_NEWNS\fP, \fBCLONE_NEWPID\fP, ou
+\fBCLONE_NEWUTS\fP a été spécifié par un processus non root (processus sans
+\fBCAP_SYS_ADMIN\fP).
+.TP 
+\fBEPERM\fP
+\fBCLONE_PID\fP a été réclamé par un processus autre que le processus 0.
+.SH VERSIONS
+Il n'y a pas de définition pour \fBclone\fP() dans la libc5. glibc2 fournit une
+définition de \fBclone\fP() comme décrit ici.
+.SH CONFORMITÉ
+Les appels système \fBclone\fP() et \fBsys_clone\fP sont spécifiques à Linux et ne
+doivent pas être employés dans des programmes portables.
+.SH NOTES
+Dans les noyaux 2.4.x, \fBCLONE_THREAD\fP ne rend pas en général le processus
+père de l'appelant père du nouveau thread. Cependant, pour les versions
+2.4.7 à 2.4.18 du noyau, l'attribut \fBCLONE_THREAD\fP impliquait
+\fBCLONE_PARENT\fP (de même qu'avec les noyaux 2.6).
+
+\fBCLONE_DETACHED\fP a existé pendant un moment (introduit dans 2.5.32): le
+père ne veut pas de signal à la mort du fils. Dans 2.6.2, la nécessité
+d'utiliser ce paramètre avec \fBCLONE_THREAD\fP a été supprimée. Cet attribut
+est toujours défini, mais n'a plus aucun effet.
+
+Sur i386, \fBclone\fP() ne devrait pas être appelé via vsyscall, mais
+directement en utilisant \fIint $0x80\fP.
+
+Sur IA\-64, un appel système différent est utilisé\ :
+.nf
+
+\fBint __clone2(int (*\fP\fIfn\fP\fB)(void *), \fP
+\fB             void *\fP\fIchild_stack_base\fP\fB, size_t \fP\fIstack_size\fP\fB,\fP
+\fB             int \fP\fIflags\fP\fB, void *\fP\fIarg\fP\fB, ... \fP
+\fB          /* pid_t *\fP\fIptid\fP\fB, struct user_desc *\fP\fItls\fP\fB, pid_t *\fP\fIctid\fP\fB */ );\fP
+.fi
+.PP
+L'appel système \fB__clone2\fP() fonctionne comme \fBclone\fP(), sauf que
+\fIchild_stack_base\fP pointe sur la plus petite adresse de la pile du fils, et
+\fIstack_size\fP indique la taille de la pile sur laquelle pointe
+\fIchild_stack_base\fP.
+.SH BOGUES
+Les versions de la bibliothèque C GNU qui gèrent la bibliothèque de gestion
+des threads NPTL contiennent une fonction enveloppe pour \fBgetpid\fP(2) qui
+effectue un cache des PID. Ce cache nécessite une prise en charge par
+l'enveloppe de \fBclone\fP() de la glibc, mais telle qu'il est actuellement
+implémenté, le cache peut ne pas être à jour sous certaines
+circonstances. En particulier, si un signal est distribué à un fils juste
+après l'appel à \fBclone\fP(), alors un appel à \fBgetpid\fP() dans le
+gestionnaire de signaux du signal peut renvoyer le PID du processus appelant
+(le père), si l'enveloppe de clone n'a toujours pas eu le temps de mettre le
+cache de PID à jour pour le fils. (Cette discussion ignore le cas où le fils
+a été créé en utilisant \fBCLONE_THREAD\fP, quand \fBgetpid\fP() \fIdoit\fP renvoyer
+la même valeur pour le fils et pour le processus qui a appelé \fBclone\fP(),
+puisque l'appelant et le fils se trouvent dans le même groupe de threads. Ce
+problème de cache n'apparaît pas non plus si le paramètre \fIflags\fP contient
+\fBCLONE_VM\fP.) Pour obtenir la véritable valeur, il peut être nécessaire
+d'utiliser quelque chose comme ceci\ :
+.nf
+
+    #include <syscall.h>
+
+    pid_t mypid;
+
+    mypid = syscall(SYS_getpid);
+.fi
+.\" See also the following bug reports
+.\" https://bugzilla.redhat.com/show_bug.cgi?id=417521
+.\" http://sourceware.org/bugzilla/show_bug.cgi?id=6910
+.SH "VOIR AUSSI"
+\fBfork\fP(2), \fBfutex\fP(2), \fBgetpid\fP(2), \fBgettid\fP(2), \fBset_thread_area\fP(2),
+\fBset_tid_address\fP(2), \fBtkill\fP(2), \fBunshare\fP(2), \fBwait\fP(2),
+\fBcapabilities\fP(7), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

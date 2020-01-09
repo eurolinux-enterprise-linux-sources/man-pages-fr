@@ -1,0 +1,100 @@
+.\"  Copyright 2002 walter harms (walter.harms@informatik.uni-oldenburg.de)
+.\"  Distributed under GPL
+.\"  based on glibc infopages
+.\" polished - aeb
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SETNETGRENT 3 "26 juillet 2007" GNU "Manuel du programmeur Linux"
+.SH NOM
+setnetgrent, endnetgrent, getnetgrent, getnetgrent_r, innetgr \- Gérer les
+entrées du groupe réseau
+.SH SYNOPSIS
+.nf
+\fB#include <netdb.h>\fP
+
+\fBint setnetgrent(const char *\fP\fInetgroup\fP\fB);\fP
+
+\fBvoid endnetgrent(void);\fP
+
+\fBint getnetgrent(char **\fP\fIhost\fP\fB, char **\fP\fIuser\fP\fB, char **\fP\fIdomain\fP\fB);\fP
+
+\fBint getnetgrent_r(char **\fP\fIhost\fP\fB, char **\fP\fIuser\fP\fB,\fP
+\fB                  char **\fP\fIdomain\fP\fB, char *\fP\fIbuf\fP\fB, int \fP\fIbuflen\fP\fB);\fP
+
+\fBint innetgr(const char *\fP\fInetgroup\fP\fB, const char *\fP\fIhost\fP\fB,\fP
+\fB            const char *\fP\fIuser\fP\fB, const char *\fP\fIdomain\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBsetnetgrent\fP(), \fBendnetgrent\fP(), \fBgetnetgrent\fP(), \fBgetnetgrent_r\fP(),
+\fBinnetgr\fP()\ : _BSD_SOURCE || _SVID_SOURCE
+.ad b
+.SH DESCRIPTION
+Le \fIgroupe_réseau\fP est une invention SunOS. Une base de données «\
+groupe_réseau\ » est une liste de triplets de chaînes (\fInom_hôte\fP,
+\fInom_utilisateur\fP, \fInom_domaine\fP) ou d'autres noms «\ groupe_réseau\
+». Chacun des éléments dans un triplet peut être vide, ce qui signifie que
+tout correspond. Les fonctions décrites ici permettent d'accéder aux bases
+de données «\ groupe_réseau\ ». Le fichier \fI/etc/nsswitch.conf\fP contient la
+base dans laquelle on effectue les recherches.
+.PP
+L'appel \fBsetnetgrent\fP() définit le «\ groupe_réseau\ » dans lequel on
+cherchera par un appel \fBgetnetgrent\fP() ultérieur. La fonction
+\fBgetnetgrent\fP() trouve l'entrée «\ groupe_réseau\ » suivante et renvoie des
+pointeurs sur \fIhôte\fP, \fIutilisateur\fP, \fIdomaine\fP. Un pointeur nul signifie
+que l'entrée correspondante ne concorde avec aucune chaîne. Les pointeurs
+sont valides tant qu'il n'y a pas d'appel à d'autres fonctions relatives au
+«\ groupe_réseau\ ». Pour éviter ce problème, vous pouvez utiliser la
+fonction GNU \fBgetnetgrent_r\fP() qui enregistre les chaînes dans le tampon
+fourni. Pour libérer tous les tampons alloués, utilisez \fBendnetgrent\fP().
+.PP
+Dans la plupart des cas, vous voudrez seulement vérifier si le triplet
+\fI(nom_hôte\fP, \fInom_utilisateur\fP, \fInom_domaine)\fP est membre d'un groupe
+réseau. La fonction \fBinnetgr\fP() peut être utilisée pour faire cela sans
+faire appel aux trois fonctions précédentes. De nouveau, un pointeur nul est
+un joker (Ndt\ : wildcard) et correspond à n'importe quelle chaîne. La
+fonction est sûre du point de vue des threads.
+.SH "VALEUR RENVOYÉE"
+Ces fonctions renvoient 1 si elles réussissent et 0 si elles échouent.
+.SH FICHIERS
+\fI/etc/netgroup\fP
+.br
+\fI/etc/nsswitch.conf\fP
+.SH CONFORMITÉ
+.\" getnetgrent_r() is on Solaris 8 and AIX 5.1, but not the BSDs.
+Ces fonctions ne sont pas dans POSIX.1\-2001, mais \fBsetnetgrent\fP(),
+\fBendnetgrent\fP(), \fBgetnetgrent\fP() et \fBinnetgr\fP() sont disponibles sur la
+plupart des systèmes Unix. \fBgetnetgrent_r\fP() n'est pas très répandu sur les
+autres systèmes.
+.SH NOTES
+Dans l'implémentation BSD, \fBsetnetgrent\fP() renvoie void.
+.SH "VOIR AUSSI"
+\fBsethostent\fP(3), \fBsetprotoent\fP(3), \fBsetservent\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

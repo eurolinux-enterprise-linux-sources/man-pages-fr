@@ -1,0 +1,86 @@
+.\" Copyright (C), 1995, Graeme W. Wilford. (Wilf.)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Wed Jun 14 16:10:28 BST 1995 Wilf. (G.Wilford@@ee.surrey.ac.uk)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RE_COMP 3 "14 juillet 1995" GNU "Manuel du programmeur Linux"
+.SH NOM
+re_comp, re_exec \- Fonction BSD pour les expressions rationnelles
+(«\ regex\ »)
+.SH SYNOPSIS
+\fB#define _REGEX_RE_COMP\fP
+.br
+\fB#include <sys/types.h>\fP
+.br
+\fB#include <regex.h>\fP
+.sp
+\fBchar *re_comp(char *\fP\fIregex\fP\fB);\fP
+.sp
+\fBint re_exec(char *\fP\fIstring\fP\fB);\fP
+.SH DESCRIPTION
+La fonction \fBre_comp\fP() permet de compiler une expression rationnelle,
+terminée par un caractère nul, et pointée par \fIregex\fP. Le motif compilé
+occupe une zone de mémoire statique, le tampon de motif, qui sera écrasée
+par un autre appel à \fBre_comp\fP(). Si \fIregex\fP vaut NULL, rien n'est
+effectué, et le contenu du tampon de motif n'est pas altéré.
+
+\fBre_exec\fP() est utilisé pour vérifier si la chaîne terminée par un
+caractère nul, pointée par \fIstring\fP correspond au motif précédemment
+compilé par \fIregex\fP.
+.SH "VALEUR RENVOYÉE"
+\fBre_comp\fP() renvoie NULL s'il peut compiler correctement \fIregex\fP, sinon,
+il renvoie un pointeur sur le message d'erreur approprié.
+
+\fBre_exec\fP() renvoie 1 si la correspondance est exacte, zéro si elle échoue.
+.SH CONFORMITÉ
+BSD\ 4.3.
+.SH NOTES
+Ces fonctions sont obsolètes. L'utilisation de \fBregcomp\fP(3) est recommandée
+à la place de ces fonctions.
+.SH "VOIR AUSSI"
+\fBregcomp\fP(3), \fBregex\fP(7), Manuel GNU pour les expressions rationnelles
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

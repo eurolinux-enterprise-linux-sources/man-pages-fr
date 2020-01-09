@@ -1,0 +1,126 @@
+.\" Copyright (c) 2007 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" 2007-07-31, mtk, Created
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TIMERADD 3 "26 février 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+timeradd, timersub, timercmp, timerclear, timerisset \- Opération timeval
+.SH SYNOPSIS
+.nf
+\fB#include <sys/time.h>\fP
+
+\fBvoid timeradd(struct timeval *\fP\fIa\fP\fB, struct timeval *\fP\fIb\fP\fB,\fP
+\fB              struct timeval *\fP\fIres\fP\fB);\fP
+
+\fBvoid timersub(struct timeval *\fP\fIa\fP\fB, struct timeval *\fP\fIb\fP\fB,\fP
+\fB              struct timeval *\fP\fIres\fP\fB);\fP
+
+\fBvoid timerclear(struct timeval *\fP\fItvp\fP\fB);\fP
+
+\fBint timerisset(struct timeval *\fP\fItvp\fP\fB);\fP
+
+\fBint timercmp(struct timeval *\fP\fIa\fP\fB, struct timeval *\fP\fIb\fP\fB, \fP\fICMP\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+Toutes les fonctions ci\-dessus\ : _BSD_SOURCE
+.SH DESCRIPTION
+Les macros sont fournies pour agir sur des structures \fItimeval\fP, définie
+dans \fI<sys/time.h>\fP par\ :
+.sp
+.in +4n
+.nf
+struct timeval {
+    time_t      tv_sec;     /* secondes */
+    suseconds_t tv_usec;    /* microsecondes */
+};
+.fi
+.in
+.PP
+\fBtimeradd\fP() ajoute les valeurs des temps \fIa\fP et \fIb\fP et place le résultat
+dans la structure \fItimeval\fP pointé par \fIres\fP. Le résultat est normalisé de
+telle sorte que \fIres\->tv_usec\fP ait une valeur comprise entre 0 et
+999\ 999.
+
+\fBtimersub\fP() soustrait la valeur du temps \fIb\fP de la valeur du temps \fIa\fP
+et place  le résultat dans la structure \fItimeval\fP pointée par \fIres\fP. Le
+résultat est normalisé de telle sorte que \fIres\->tv_usec\fP ait une valeur
+comprise entre 0 et 999\ 999.
+
+\fBtimerclear\fP() met à zéro la structure \fItimeval\fP pointée par \fItvp\fP de
+telle sorte qu'elle représente le temps à minuit le matin du 1er janvier
+1970 (appelé Epoch).
+
+\fBtimerisset\fP() renvoie vrai (non nul) si un des champs de la structure
+\fItimeval\fP pointée par \fItvp\fP contient une valeur non nulle.
+
+.\" HP-UX, Tru64, Irix have a definition like:
+.\"#define timercmp(tvp, uvp, cmp) \
+.\"    ((tvp)->tv_sec cmp (uvp)->tv_sec || \
+.\"    (tvp)->tv_sec == (uvp)->tv_sec && (tvp)->tv_usec cmp (uvp)->tv_usec)
+\fBtimercmp\fP() compare les valeurs de timer de \fIa\fP et \fIb\fP en utilisant
+l'opérateur de comparaison \fICMP\fP et renvoie vrai (non nul) ou faux (0) en
+fonction du résultat de la comparaison. Certains systèmes (mais pas Linux
+avec la glibc), ont une mauvaise implémentation de \fBtimercmp\fP(), avec
+laquelle les valeurs \fI>=\fP, \fI<=\fP et \fI==\fP de \fICMP\fP ne marchent
+pas\ ; les applications portables peuvent utiliser à la place\ :
+
+    !timercmp(..., <)
+    !timercmp(..., >)
+    !timercmp(..., !=)
+.SH "VALEUR RENVOYÉE"
+\fBtimerisset\fP() et \fBtimercmp\fP() renvoie vrai (non nul) ou faux (0).
+.SH ERREURS
+Aucune erreur n'est définie.
+.SH CONFORMITÉ
+Pas dans POSIX.1\-2001. Présentes dans la plupart des dérivées de BSD.
+.SH "VOIR AUSSI"
+\fBgettimeofday\fP(2), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

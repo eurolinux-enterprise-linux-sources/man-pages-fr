@@ -1,0 +1,125 @@
+.\" t
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) 2008, Linux Foundation, written by Michael Kerrisk
+.\" <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SHM_OVERVIEW 7 "25 juin 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+shm_overview \- Panorama de la mémoire partagée POSIX
+.SH DESCRIPTION
+L'API de mémoire partagée POSIX permet aux processus de communiquer entre
+eux en partageant une région de la mémoire.
+
+Les interfaces utilisées dans l'API sont\ :
+.TP  15
+\fBshm_open\fP(3)
+Créer et ouvrir un nouvel objet, ou ouvrir un objet existant. Elle est
+analogue à \fBopen\fP(2). La fonction renvoie un descripteur de fichiers qui
+pourra être utilisé par les interfaces décrites ci\-dessous.
+.TP 
+\fBftruncate\fP(2)
+Définir la taille de l'objet en mémoire partagée. (Un objet nouvellement
+créé en mémoire partagée a une taille nulle.)
+.TP 
+\fBmmap\fP(2)
+Projeter l'objet en mémoire partagée dans l'espace d'adresses virtuel du
+processus appelant.
+.TP 
+\fBmunmap\fP(2)
+Déprojeter l'objet en mémoire partagée de l'espace d'adresses virtuel du
+processus appelant.
+.TP 
+\fBshm_unlink\fP(3)
+Supprimer le nom d'un objet en mémoire partagée.
+.TP 
+\fBclose\fP(2)
+Fermer le descripteur de fichier alloué avec \fBshm_open\fP(3) lorsqu'on en a
+plus besoin.
+.TP 
+\fBfstat\fP(2)
+Obtenir une structure \fIstat\fP décrivant l'objet en mémoire partagée. Parmi
+les informations renvoyées par cet appel, on trouve la taille de l'objet
+(\fIst_size\fP), ses permissions (\fIst_mode\fP), son propriétaire (\fIst_uid\fP) et
+le groupe (\fIst_gid\fP) auquel il appartient.
+.TP 
+\fBfchown\fP(2)
+Pour modifier l'appartenance d'un objet en mémoire partagée.
+.TP 
+\fBfchmod\fP(2)
+Pour modifier les permissions d'accès d'un objet en mémoire partagée.
+.SS Versions
+La mémoire partagée POSIX est gérée depuis Linux\ 2.4 et la glibc\ 2.2.
+.SS Persistance
+Les objets en mémoire partagée POSIX ont la persistance du noyau\ : un objet
+en mémoire partagée existera jusqu'à ce que le système soit éteint, ou bien
+jusqu'à ce que tous les processus aient déprojetés l'objet et que celui\-ci
+ait été supprimé avec \fBshm_unlink\fP(3).
+.SS "Édition des liens"
+Les programmes utilisant l'API de mémoire partagée POSIX doit être compilé
+avec \fIcc \-lrt\fP pour le lier à la bibliothèque temps réel \fIlibrt\fP.
+.SS "Accéder aux objets en mémoire partagée par le système de fichiers"
+Sous linux, les objets en mémoire partagée sont créés sur un système de
+fichiers virtuel (\fItmpfs\fP), généralement monté sur \fI/dev/shm\fP. Depuis le
+noyau\ 2.6.19, Linux gère l'utilisation des listes de contrôle d'accès (ACL)
+pour contrôler les permissions d'accès aux objets du système de fichiers
+virtuel.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Typiquement, les processus doivent synchroniser leur accès à un objet en
+mémoire partagée en utilisant, par exemple, les sémaphores POSIX.
+
+La mémoire partagée System\ V (\fBshmget\fP(2), \fBshmop\fP(2), etc.) est une
+ancienne API de sémaphores. La mémoire partagée POSIX offre une interface
+plus simple et mieux conçue\ ; d'un autre coté, la mémoire partagée POSIX est
+moins largement disponible (particulièrement sur d'anciens systèmes) que la
+mémoire partagée System\ V.
+.SH "VOIR AUSSI"
+\fBfchmod\fP(2), \fBfchown\fP(2), \fBfstat\fP(2), \fBftruncate\fP(2), \fBmmap\fP(2),
+\fBmprotect\fP(2), \fBmunmap\fP(2), \fBshmget\fP(2), \fBshmop\fP(2), \fBshm_open\fP(3),
+\fBshm_unlink\fP(3), \fBsem_overview\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

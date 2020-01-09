@@ -1,0 +1,109 @@
+.\" peter memishian -- meem@gnu.ai.mit.edu
+.\" $Id: insque.3,v 1.2 1996/10/30 21:03:39 meem Exp meem $
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"   Linux libc source code (5.4.7)
+.\"   Solaris 2.x, OSF/1, and HP-UX manpages
+.\"   Curry's "UNIX Systems Programming for SVR4" (O'Reilly & Associates 1996)
+.\"
+.\" Changed to POSIX, 2003-08-11, aeb+wh
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH INSQUE 3 "11 juillet 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+insque, remque \- Ajouter ou supprimer un élément d'une file
+.SH SYNOPSIS
+.nf
+\fB#include <search.h>\fP
+.sp
+\fBvoid insque(void *\fP\fIelem\fP\fB, void *\fP\fIprev\fP\fB);\fP
+
+\fBvoid remque(void *\fP\fIelem\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBinsque\fP(), \fBremque\fP()\ : _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500
+.SH DESCRIPTION
+Les fonctions \fBinsque\fP() et \fBremque\fP() permettent de manipuler une file
+constituée d'une liste doublement chaînée. Chaque élément de cette liste est
+une structure dont les deux premiers éléments sont des pointeurs avant et
+arrière.
+
+\fBinsque\fP() insère l'élément pointé par \fIelem\fP immédiatement après
+l'élément pointé par \fIprev\fP, qui ne doit pas être NULL.
+
+\fBremque\fP() supprime l'élément pointé par \fIelem\fP de la liste doublement
+chaînée.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Traditionnellement (par exemple, SunOS, Linux libc\ 4 et libc\ 5), les
+paramètres de ces fonctions sont du type \fIstruct qelem *\fP, définie comme
+ceci\ :
+
+.in +4n
+.nf
+struct qelem {
+    struct    qelem *q_forw;
+    struct    qelem *q_back;
+    char      q_data[1];
+};
+.fi
+.in
+
+C'est ce que vous obtiendrez si \fB_GNU_SOURCE\fP est définie avant l'inclusion
+de \fI<search.h>\fP.
+
+L'emplacement des prototypes de ces fonctions varie suivant les différentes
+versions d'Unix. Celui précisé ci\-dessus correspond à la version
+POSIX. Certains systèmes les placent dans \fI<string.h>\fP. Sous Linux,
+libc4 et libc5 ils sont renseignés dans \fI<stdlib.h>\fP.
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

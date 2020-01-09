@@ -1,0 +1,144 @@
+.\"
+.\" Extended attributes system calls manual pages
+.\"
+.\" Copyright (C) Andreas Gruenbacher, February 2001
+.\" Copyright (C) Silicon Graphics Inc, September 2001
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LISTXATTR 2 "1er décembre 2001" Linux "Manuel du programmeur Linux"
+.SH NOM
+listxattr, llistxattr, flistxattr \- Lister les noms des attributs étendus
+.SH SYNOPSIS
+.fam C
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <attr/xattr.h>\fP
+.sp
+\fBssize_t listxattr (const char\ *\fP\fIchemin\fP\fB, char\ *\fP\fIliste\fP\fB, size_t \fP\fItaille\fP\fB);\fP
+\fBssize_t llistxattr (const char\ *\fP\fIchemin\fP\fB, char\ *\fP\fIliste\fP\fB, size_t \fP\fItaille\fP\fB);\fP
+\fBssize_t flistxattr (int \fP\fIdescripteur\fP\fB, char\ *\fP\fIliste\fP\fB, size_t \fP\fItaille\fP\fB);\fP
+.fi
+.fam T
+.SH DESCRIPTION
+Les attributs étendus sont des paires \fInom\fP:\fIvaleur\fP associées aux inœuds
+(fichiers, répertoires, liens symboliques, etc). Ce sont des extensions des
+attributs normaux qui sont associés avec tous les inœuds du système (les
+informations renvoyées par \fBstat\fP(2)). Une description complète des
+concepts d'attributs étendus est disponible dans \fBattr\fP(5).
+.PP
+\fBlistxattr\fP()  récupère la \fIliste\fP des attributs étendus associé avec le
+\fIchemin\fP indiqué du système de fichier. La liste est l'ensemble des noms
+(terminés par NULL), l'un après l'autre. Les noms des attributs étendus
+auxquels le processus appelant n'a pas accès peuvent être omis dans la
+liste. La longueur de la \fIliste\fP de noms d'attributs est renvoyée.
+.PP
+\fBllistxattr\fP()  est identique à \fBlistxattr\fP(), sauf dans le cas d'un lien
+symbolique, où il renvoie la liste des noms des attributs associés au lien
+lui\-même et non au fichier auquel il se réfère.
+.PP
+\fBflistxattr\fP()  est identique à \fBlistxattr\fP(), sauf que le fichier ouvert
+associé au \fIdescripteur\fP (fourni par \fBopen\fP(2))  est interrogé à la place
+du \fIchemin\fP.
+.PP
+Le \fInom\fP d'un attribut étendu est une simple chaîne terminée par un octet
+nul. Le nom inclut un préfixe d'espace de noms \- il peut y avoir plusieurs
+espaces de noms disjoints associés avec un inœud donné.
+.PP
+Un tampon vide, de \fItaille\fP nulle, peut être transmis à ses appels, pour
+qu'ils renvoient la taille actuelle de la liste des noms d'attributs
+étendus, pour estimer la taille de tampon nécessaire pour contenir la liste
+des noms.
+.SS Exemple
+La \fIliste\fP est noms est renvoyée sous forme de table de chaînes de
+caractères terminées par un octet nul, sans ordre particuler, les noms des
+attributs étant séparés par un caractère nul, ainsi\ :
+.fam C
+.RS
+.nf
+
+user.name1\e0system.name1\e0user.name2\e0
+.fi
+.RE
+.fam T
+.P
+Les systèmes comme ext2, ext3, et XFS qui implémentent les ACLs POSIX en
+utilisant les attributs étendus peuvent renvoyer une \fIliste\fP comme
+celle\-ci\ :
+.fam C
+.RS
+.nf
+
+system.posix_acl_access\e0system.posix_acl_default\e0
+.fi
+.RE
+.fam T
+.SH "VALEUR RENVOYÉE"
+S'ils réussissent, ces appels renvoient un nombre positif correspondant à la
+taille de la liste de noms d'attributs. En cas d'échec, ils renvoient \-1 et
+remplissent \fIerrno\fP avec un code d'erreur.
+.PP
+Si la \fItaille\fP du tampon pour la \fIliste\fP est trop petite pour contenir le
+résultat, \fIerrno\fP sera remplie avec \fBERANGE\fP.
+.PP
+Si les attributs étendus ne sont pas supportés par le système de fichiers ou
+le noyau, \fIerrno\fP contient \fBENOTSUP\fP.
+.PP
+Les erreurs documentées pour l'appel système \fBstat\fP(2)  sont également
+applicables ici.
+.SH VERSIONS
+Ces appels système sont disponibles sous Linux depuis le noyau\ 2.4\ ; la
+glibc les prend en charge depuis la version\ 2.3.
+.SH CONFORMITÉ
+.\" .SH AUTHORS
+.\" Andreas Gruenbacher,
+.\" .RI < a.gruenbacher@computer.org >
+.\" and the SGI XFS development team,
+.\" .RI < linux-xfs@oss.sgi.com >.
+.\" Please send any bug reports or comments to these addresses.
+Ces appels système sont spécifiques à Linux.
+.SH "VOIR AUSSI"
+\fBgetfattr\fP(1), \fBsetfattr\fP(1), \fBgetxattr\fP(2), \fBopen\fP(2),
+\fBremovexattr\fP(2), \fBsetxattr\fP(2), \fBstat\fP(2), \fBattr\fP(5), \fBsymlink\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (2003-2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

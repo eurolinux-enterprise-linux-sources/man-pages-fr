@@ -1,0 +1,110 @@
+.\" Copyright (C) 2003 Free Software Foundation, Inc.
+.\" This file is distributed according to the GNU General Public License.
+.\" See the file COPYING in the top level source directory for details.
+.\"
+.\" .de Sh \" Subsection
+.\" .br
+.\" .if t .Sp
+.\" .ne 5
+.\" .PP
+.\" \fB\$1\fP
+.\" .PP
+.\" ..
+.\" .de Sp \" Vertical space (when we can't use .PP)
+.\" .if t .sp .5v
+.\" .if n .sp
+.\" ..
+.\" .de Ip \" List item
+.\" .br
+.\" .ie \n(.$>=3 .ne \$3
+.\" .el .ne 3
+.\" .IP "\$1" \$2
+.\" ..
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH IO_DESTROY 2 "18 juin 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+io_destroy \- Détruire un contexte d'entrées\-sorties asynchrones
+.SH SYNOPSIS
+.nf
+.\" .ad l
+.\" .hy 0
+.\" #include <linux/aio.h>
+\fB#include <libaio.h>\fP
+.sp
+.\" .HP 17
+.\" .ad
+.\" .hy
+\fBint io_destroy(aio_context_t \fP\fIctx\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-laio\fP.
+.fi
+.SH DESCRIPTION
+.PP
+\fBio_destroy\fP() supprime le contexte d'E/S asynchrone de la liste des
+contextes et le détruit. \fBio_destroy\fP() peut aussi annuler toute action
+d'E/S asynchrone sur \fIctx\fP et bloquer jusqu'à terminaison.
+.SH "VALEUR RENVOYÉE"
+\fBio_destroy\fP() renvoie zéro s'il réussit. Pour les valeurs de retour en cas
+d'échec, voir la section NOTES.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+Le contexte pointé est invalide.
+.TP 
+\fBEINVAL\fP
+Le contexte spécifié par \fIctx\fP est invalide.
+.TP 
+\fBENOSYS\fP
+\fBio_destroy\fP() n'est pas implémenté sur ce noyau.
+.SH VERSIONS
+.PP
+Les appels système d'entrées\-sorties asynchrones sont apparus dans Linux 2.5
+en août 2002.
+.SH CONFORMITÉ
+.PP
+\fBio_destroy\fP() est spécifique à Linux et ne doit pas être utilisé dans des
+programmes destinés à être portables.
+.SH NOTES
+La glibc ne fournit pas de fonction autour de cet appel système.
+
+La fonction de la bibliothèque \fIlibaio\fP autour de l'appel système
+\fBio_destroy\fP() ne suit pas les conventions classiques de la bibliothèque C
+concernant l'indication des erreurs\ : en cas d'erreur, la fonction renvoie
+un nombre négatif (la valeur négative de l'une des valeurs indiquées dans la
+section ERREURS). Si l'appel système est invoqué avec \fBsyscall\fP(2), la
+valeur de retour suit les conventions classiques pour indiquer l'erreur\ : \-1
+avec \fIerrno\fP contenant le code (positif) de l'erreur.
+.SH "VOIR AUSSI"
+.\" .SH "NOTES"
+.\"
+.\" .PP
+.\" The asynchronous I/O system calls were written by Benjamin LaHaise.
+.\"
+.\" .SH AUTHOR
+.\" Kent Yoder.
+\fBio_cancel\fP(2), \fBio_getevents\fP(2), \fBio_setup\fP(2), \fBio_submit\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

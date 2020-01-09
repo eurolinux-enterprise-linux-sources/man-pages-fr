@@ -1,0 +1,400 @@
+.\" Copyright (c) 1993
+.\"     The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"     This product includes software developed by the University of
+.\"     California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)queue.3     8.2 (Berkeley) 1/24/94
+.\"
+.\" hch, 2002-03-25
+.\" 2007-12-08, mtk, Converted from mdoc to man macros
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH QUEUE 3 "28 décembre 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+LIST_ENTRY, LIST_HEAD, LIST_INIT, LIST_INSERT_AFTER, LIST_INSERT_HEAD,
+LIST_REMOVE, TAILQ_ENTRY, TAILQ_HEAD, TAILQ_INIT, TAILQ_INSERT_AFTER,
+TAILQ_INSERT_HEAD, TAILQ_INSERT_TAIL, TAILQ_REMOVE, CIRCLEQ_ENTRY,
+CIRCLEQ_HEAD, CIRCLEQ_INIT, CIRCLEQ_INSERT_AFTER, CIRCLEQ_INSERT_BEFORE,
+CIRCLEQ_INSERT_HEAD, CIRCLEQ_INSERT_TAIL, CIRCLEQ_REMOVE \- Implementations
+des listes, listes doubles et circulaires
+.SH SYNOPSIS
+.nf
+\fB#include <sys/queue.h>\fP
+
+\fBLIST_ENTRY(\fP\fITYPE\fP\fB);\fP
+\fBLIST_HEAD(\fP\fIHEADNAME\fP\fB, \fP\fITYPE\fP\fB);\fP
+\fBLIST_INIT(LIST_HEAD *\fP\fIhead\fP\fB);\fP
+\fBLIST_INSERT_AFTER(LIST_ENTRY *\fP\fIlistelm\fP\fB, \fP
+\fB                TYPE *\fP\fIelm\fP\fB, LIST_ENTRY \fP\fINAME\fP\fB);\fP
+\fBLIST_INSERT_HEAD(LIST_HEAD *\fP\fIhead\fP\fB, \fP
+\fB                TYPE *\fP\fIelm\fP\fB, LIST_ENTRY \fP\fINAME\fP\fB);\fP
+\fBLIST_REMOVE(TYPE *\fP\fIelm\fP\fB, LIST_ENTRY \fP\fINAME\fP\fB);\fP
+
+\fBTAILQ_ENTRY(\fP\fITYPE\fP\fB);\fP
+\fBTAILQ_HEAD(\fP\fIHEADNAME\fP\fB, \fP\fITYPE\fP\fB);\fP
+\fBTAILQ_INIT(TAILQ_HEAD *\fP\fIhead\fP\fB);\fP
+\fBTAILQ_INSERT_AFTER(TAILQ_HEAD *\fP\fIhead\fP\fB, TYPE *\fP\fIlistelm\fP\fB, \fP
+\fB                TYPE *\fP\fIelm\fP\fB, TAILQ_ENTRY \fP\fINAME\fP\fB);\fP
+\fBTAILQ_INSERT_HEAD(TAILQ_HEAD *\fP\fIhead\fP\fB, \fP
+\fB                TYPE *\fP\fIelm\fP\fB, TAILQ_ENTRY \fP\fINAME\fP\fB);\fP
+\fBTAILQ_INSERT_TAIL(TAILQ_HEAD *\fP\fIhead\fP\fB, \fP
+\fB                TYPE *\fP\fIelm\fP\fB, TAILQ_ENTRY \fP\fINAME\fP\fB);\fP
+\fBTAILQ_REMOVE(TAILQ_HEAD *\fP\fIhead\fP\fB, TYPE *\fP\fIelm\fP\fB, TAILQ_ENTRY \fP\fINAME\fP\fB);\fP
+
+\fBCIRCLEQ_ENTRY(\fP\fITYPE\fP\fB);\fP
+\fBCIRCLEQ_HEAD(\fP\fIHEADNAME\fP\fB, \fP\fITYPE\fP\fB);\fP
+\fBCIRCLEQ_INIT(CIRCLEQ_HEAD *\fP\fIhead\fP\fB);\fP
+\fBCIRCLEQ_INSERT_AFTER(CIRCLEQ_HEAD *\fP\fIhead\fP\fB, TYPE *\fP\fIlistelm\fP\fB, \fP
+\fB                TYPE *\fP\fIelm\fP\fB, CIRCLEQ_ENTRY \fP\fINAME\fP\fB);\fP
+\fBCIRCLEQ_INSERT_BEFORE(CIRCLEQ_HEAD *\fP\fIhead\fP\fB, TYPE *\fP\fIlistelm\fP\fB, \fP
+\fB                TYPE *\fP\fIelm\fP\fB, CIRCLEQ_ENTRY \fP\fINAME\fP\fB);\fP
+\fBCIRCLEQ_INSERT_HEAD(CIRCLEQ_HEAD *\fP\fIhead\fP\fB, \fP
+\fB                TYPE *\fP\fIelm\fP\fB, CIRCLEQ_ENTRY \fP\fINAME\fP\fB);\fP
+\fBCIRCLEQ_INSERT_TAIL(CIRCLEQ_HEAD *\fP\fIhead\fP\fB, \fP
+\fB                TYPE *\fP\fIelm\fP\fB, CIRCLEQ_ENTRY \fP\fINAME\fP\fB);\fP
+\fBCIRCLEQ_REMOVE(CIRCLEQ_HEAD *\fP\fIhead\fP\fB, \fP
+\fB                TYPE *\fP\fIelm\fP\fB, CIRCLEQ_ENTRY \fP\fINAME\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Ces macros définissent et manipulent trois types de structures de données\ :
+les listes simples, les listes doubles et les listes circulaires. Ces trois
+structures supportent les fonctionnalités suivantes\ :
+.sp
+.RS 4
+.PD 0
+.IP * 4
+Insertion d'un élément en tête de liste\ ;
+.IP *
+Insertion d'un élément après n'importe quel élément existant\ ;
+.IP *
+Suppression de n'importe quel élément\ ;
+.IP *
+Traversée séquentielle de la liste.
+.PD
+.RE
+.PP
+Les listes sont les plus simples de ces trois structures de données et ne
+supportent que les fonctionnalités ci\-dessus.
+
+Les listes doubles ajoutent la fonctionnalité suivante\ :
+.RS 4
+.IP * 4
+Un élément peut être ajouté en fin de liste.
+.RE
+.PP
+Cependant\ :
+.sp
+.RS 4
+.PD 0
+.IP 1. 4
+Toutes les insertions et suppressions doivent mentionner la tête de la
+liste\ ;
+.IP 2.
+L'élément de tête nécessite deux pointeurs au lieu d'un seul\ ;
+.IP 3.
+La taille du code est environ 15% plus grande, et l'exécution environ 20%
+plus lente que les listes.
+.PD
+.RE
+.PP
+Les listes circulaires ajoutent les fonctionnalités suivantes\ :
+.sp
+.RS 4
+.PD 0
+.IP * 4
+Un élément peut être ajouté en fin de liste.
+.IP *
+Des entrées peuvent être ajoutées avant chaque entrée\ ;
+.IP *
+Elles peuvent être traversées à l'envers, de la queue à la tête\ ;
+.PD
+.RE
+.PP
+Cependant\ :
+.sp
+.RS 4
+.PD 0
+.IP 1. 4
+Toutes les insertions et suppressions doivent mentionner la tête de la
+liste\ ;
+.IP 2.
+L'élément de tête nécessite deux pointeurs au lieu d'un seul\ ;
+.IP 3.
+La condition de terminaison pour la traversée est plus compliquée\ ;
+.IP 4.
+La taille du code est environ 40% plus grande, et l'exécution environ 45%
+plus lente que les listes.
+.PD
+.RE
+.PP
+Dans les définitions de macros, \fITYPE\fP est le nom d'une structure définie
+par l'utilisateur, qui doit contenir un champ de type \fBLIST_ENTRY\fP,
+\fBTAILQ_ENTRY\fP ou \fBCIRCLEQ_ENTRY\fP, appelé \fINAME\fP. L'argument \fIHEADNAME\fP
+est le nom d'une structure définie par l'utilisateur qui doit être déclarée
+en utilisant les macros \fBLIST_HEAD\fP, \fBTAILQ_HEAD\fP ou \fBCIRCLEQ_HEAD\fP. Voir
+les exemples plus bas pour une explication sur l'utilisation de ces macros.
+.SS Listes
+Une liste débute par une structure définie par la macro \fBLIST_HEAD\fP. Cette
+structure contient un pointeur simple sur le premier élément de la
+liste. Les éléments sont doublement chaînés afin qu'un élément puisse être
+supprimé sans parcourir toute la liste. Des éléments peuvent être ajoutés
+après un élément existant ou en tête de liste. Une structure \fBLIST_HEAD\fP
+est déclarée ainsi\ :
+.in +4n
+.nf
+
+LIST_HEAD(HEADNAME, TYPE) head;
+.fi
+.in
+.PP
+où \fIHEADNAME\fP est le nom de la structure à définir, et \fITYPE\fP le type
+d'élément à lier dans la liste. Un pointeur sur la tête de la liste peut
+ensuite être déclaré ainsi\ :
+.in +4n
+.nf
+
+struct HEADNAME *headp;
+.fi
+.in
+.PP
+(les noms \fIhead\fP et \fIheadp\fP sont choisis par l'utilisateur)
+.PP
+La macro \fBLIST_ENTRY\fP déclare une structure qui connecte les éléments dans
+la liste.
+.PP
+La macro \fBLIST_INIT\fP initialise la liste référencée par \fIhead\fP.
+.PP
+La macro \fBLIST_INSERT_HEAD\fP insère le nouvel élément \fIelm\fP à la tête de la
+liste.
+.PP
+La macro \fBLIST_INSERT_AFTER\fP insère le nouvel élément \fIelm\fP après
+l'élément \fIlistelm\fP.
+.PP
+La macro \fBLIST_REMOVE\fP supprime l'élément \fIelm\fP de la liste.
+.SS "Exemple de liste"
+.nf
+LIST_HEAD(listhead, entry) head;
+struct listhead *headp;                 /* Tête de la liste */
+struct entry {
+    ...
+    LIST_ENTRY(entry) entries;          /* Liste */
+    ...
+} *n1, *n2, *np;
+
+LIST_INIT(&head);                       /* Initialisation de liste */
+
+n1 = malloc(sizeof(struct entry));      /* Insertion en tête */
+LIST_INSERT_HEAD(&head, n1, entries);
+
+n2 = malloc(sizeof(struct entry));      /* Insertion après */
+LIST_INSERT_AFTER(n1, n2, entries);
+                                        /* Parcours en avant */
+for (np = head.lh_first; np != NULL; np = np\->entries.le_next)
+    np\-> ...
+
+while (head.lh_first != NULL)           /* Suppression */
+    LIST_REMOVE(head.lh_first, entries);
+.fi
+.SS "Listes doubles"
+La tête d'une liste double est désignée par une structure définie par la
+macro \fBTAILQ_HEAD\fP. Cette structure contient deux pointeurs, l'un sur le
+premier élément et l'autre sur le dernier élément. Les éléments sont
+doublement chaînés, ainsi un élément quelconque peut être supprimé sans
+reparcourir toute la liste. Les nouveaux éléments peuvent être ajoutés après
+un élément existant, en tête ou en queue de liste. Une structure
+\fBTAILQ_HEAD\fP est déclarée ainsi\ :
+.in +4n
+.nf
+
+TAILQ_HEAD(HEADNAME, TYPE) head;
+.fi
+.in
+.PP
+où \fIHEADNAME\fP est le nom de la structure à définir, et \fITYPE\fP représente
+le type des éléments à lier dans la liste. Un pointeur sur la tête de la
+liste peut être déclaré ainsi\ :
+.in +4n
+.nf
+
+struct HEADNAME *headp;
+.fi
+.in
+.PP
+(les noms \fIhead\fP et \fIheadp\fP sont choisis par l'utilisateur)
+.PP
+La macro \fBTAILQ_ENTRY\fP déclare une structure qui connecte les éléments dans
+la liste double.
+.PP
+La macro \fBTAILQ_INIT\fP initialise la liste double référencée par \fIhead\fP.
+.PP
+La macro \fBTAILQ_INSERT_HEAD\fP insère le nouvel élément \fIelm\fP à la fin de la
+liste double.
+.PP
+La macro \fBTAILQ_INSERT_TAIL\fP insère le nouvel élément \fIelm\fP à la fin de la
+liste double.
+.PP
+La macro \fBTAILQ_INSERT_AFTER\fP insère le nouvel élément \fIelm\fP après
+l'élément \fIlistelm\fP.
+.PP
+La macro \fBTAILQ_REMOVE\fP supprime l'élément \fIelm\fP de la liste double.
+.SS "Exemple de liste double"
+.nf
+TAILQ_HEAD(tailhead, entry) head;
+struct tailhead *headp;                 /* Tête de liste double */
+struct entry {
+    ...
+    TAILQ_ENTRY(entry) entries;         /* Liste double */
+    ...
+} *n1, *n2, *np;
+
+TAILQ_INIT(&head);                      /* Initialisation de liste */
+
+n1 = malloc(sizeof(struct entry));      /* Insertion au début */
+TAILQ_INSERT_HEAD(&head, n1, entries);
+
+n1 = malloc(sizeof(struct entry));      /* Insertion à la fin */
+TAILQ_INSERT_TAIL(&head, n1, entries);
+
+n2 = malloc(sizeof(struct entry));      /* Insertion après */
+TAILQ_INSERT_AFTER(&head, n1, n2, entries);
+                                        /* Parcours en avant */
+for (np = head.tqh_first; np != NULL; np = np\->entries.tqe_next)
+    np\-> ...
+                                        /* Suppression */
+while (head.tqh_first != NULL)
+    TAILQ_REMOVE(&head, head.tqh_first, entries);
+.fi
+.SS "Listes circulaires"
+La tête d'une liste circulaire est désignée par une structure définie par la
+macro \fBCIRCLEQ_HEAD\fP. Cette structure contient une paire de pointeurs, l'un
+sur le premier élément de la liste circulaire et l'autre sur le dernier
+élément. Les éléments sont doublement chaînés, afin de pouvoir supprimer un
+élément quelconque sans reparcourir toute la liste. De nouveaux éléments
+peuvent être ajoutés avant ou après un élément existant, au début ou à la
+fin de la liste. Une structure \fBCIRCLEQ_HEAD\fP est déclarée ainsi\ :
+.in +4n
+.nf
+
+CIRCLEQ_HEAD(HEADNAME, TYPE) head;
+.fi
+.in
+.PP
+où \fIHEADNAME\fP est le nom de la structure à définir, et \fITYPE\fP est le type
+de l'élément à lier dans la liste circulaire. Un pointeur sur la tête de la
+liste circulaire peut être déclaré ainsi\ :
+.in +4n
+.nf
+
+struct HEADNAME *headp;
+.fi
+.in
+.PP
+(les noms \fIhead\fP et \fIheadp\fP sont choisis par l'utilisateur)
+.PP
+La macro \fBCIRCLEQ_ENTRY\fP déclare une structure qui connecte les éléments
+dans la liste circulaire.
+.PP
+La macro \fBCIRCLEQ_INIT\fP initialise la liste circulaire référencée par
+\fIhead\fP.
+.PP
+La macro \fBCIRCLEQ_INSERT_HEAD\fP insère le nouvel élément \fIelm\fP au début de
+la liste circulaire.
+.PP
+La macro \fBCIRCLEQ_INSERT_TAIL\fP insère le nouvel élément \fIelm\fP à la fin de
+la liste circulaire.
+.PP
+La macro \fBCIRCLEQ_INSERT_AFTER\fP insère le nouvel élément \fIelm\fP après
+l'élément \fIlistelm\fP.
+.PP
+La macro \fBCIRCLEQ_INSERT_BEFORE\fP insère le nouvel élément \fIelm\fP avant
+l'élément \fIlistelm\fP.
+.PP
+La macro \fBCIRCLEQ_REMOVE\fP supprime l'élément \fIelm\fP de la liste circulaire.
+.SS "Exemple de liste circulaire"
+.nf
+CIRCLEQ_HEAD(circleq, entry) head;
+struct circleq *headp;              /* Tête de liste circulaire */
+struct entry {
+    ...
+    CIRCLEQ_ENTRY(entry) entries;   /* Liste circulaire */
+    ...
+} *n1, *n2, *np;
+
+CIRCLEQ_INIT(&head);                /* Initialisation */
+
+n1 = malloc(sizeof(struct entry));  /* Insertion au début */
+CIRCLEQ_INSERT_HEAD(&head, n1, entries);
+
+n1 = malloc(sizeof(struct entry));  /* Insertion à la fin */
+CIRCLEQ_INSERT_TAIL(&head, n1, entries);
+
+n2 = malloc(sizeof(struct entry));  /* Insertion après */
+CIRCLEQ_INSERT_AFTER(&head, n1, n2, entries);
+
+n2 = malloc(sizeof(struct entry));  /* Insertion avant */
+CIRCLEQ_INSERT_BEFORE(&head, n1, n2, entries);
+                                    /* Parcours en avant */
+for (np = head.cqh_first; np != (void *)&head;
+        np = np\->entries.cqe_next)
+    np\-> ...
+                                    /* Parcours en arrière */
+for (np = head.cqh_last; np != (void *)&head; np = np\->entries.cqe_prev)
+    np\-> ...
+                                    /* Suppression */
+while (head.cqh_first != (void *)&head)
+    CIRCLEQ_REMOVE(&head, head.cqh_first, entries);
+.fi
+.SH CONFORMITÉ
+Pas dans POSIX.1\-2001. Présentes sur les BSD. Les fonctions de liste queue
+sont apparues dans BSD\ 4.4.
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,281 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright 1993 Rickard E. Faith (faith@cs.unc.edu)
+.\" Portions extracted from /usr/include/sys/socket.h, which does not have
+.\" any authorship information in it.  It is probably available under the GPL.
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"
+.\" Other portions are from the 6.9 (Berkeley) 3/10/91 man page:
+.\"
+.\" Copyright (c) 1983 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"     This product includes software developed by the University of
+.\"     California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" Modified Mon Oct 21 23:05:29 EDT 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1998 by Andi Kleen
+.\" $Id: bind.2,v 1.3 1999/04/23 19:56:07 freitag Exp $
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH BIND 2 "28 décembre 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+bind \- Fournir un nom à une socket
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP          /* Voir NOTES */
+\fB#include <sys/socket.h>\fP
+.sp
+\fBint bind(int \fP\fIsockfd\fP\fB, const struct sockaddr *\fP\fIaddr\fP\fB,\fP
+\fB         socklen_t \fP\fIaddrlen\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Quand une socket est créée avec l'appel système \fBsocket\fP(2), elle existe
+dans l'espace des noms mais n'a pas de nom assigné). \fBbind\fP() affecte
+l'adresse spécifiée dans \fIaddr\fP à la socket référencée par le descripteur
+de fichier \fIsockfd\fP. \fIaddrlen\fP indique la taille, en octets, de la
+structure d'adresse pointée par \fIaddr\fP. Traditionnellement cette opération
+est appelée «\ affectation d'un nom à une socket\ ».
+.PP
+Il est normalement nécessaire d'affecter une adresse locale avec \fBbind\fP()
+avant qu'une socket \fBSOCK_STREAM\fP puisse recevoir des connexions (voir
+\fBaccept\fP(2)).
+
+Les règles d'affectation de nom varient suivant le domaine de
+communication. Consultez les pages de manuel de la section 7 pour de plus
+amples informations. Pour \fBAF_INET\fP voir \fBip\fP(7), pour \fBAF_INET6\fP voir
+\fBipv6\fP(7), pour \fBAF_UNIX\fP voir \fBunix\fP(7), pour \fBAF_APPLETALK\fP voir
+\fBddp\fP(7), pour \fBAF_PACKET\fP voir \fBpacket\fP(7), pour \fBAF_X25\fP voir
+\fBx25\fP(7) et pour \fBAF_NETLINK\fP voir \fBnetlink\fP(7).
+
+La structure réellement passée dans le paramètre \fIaddr\fP dépend du domaine
+de communication. La structure \fIsockaddr\fP est définie comme\ :
+.in +4n
+.nf
+
+struct sockaddr {
+    sa_family_t sa_family;
+    char        sa_data[14];
+}
+
+.fi
+.in
+Le seul objet de cette structure est de transtyper le pointeur passé dans
+\fIaddr\fP pour éviter les avertissements du compilateur. Voir l'exemple donné
+ci\(hydessous.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+.\" e.g., privileged port in AF_INET domain
+L'adresse est protégée et l'utilisateur n'est pas le superutilisateur.
+.TP 
+\fBEADDRINUSE\fP
+L'adresse est déjà utilisée.
+.TP 
+\fBEBADF\fP
+\fIsockfd\fP n'est pas un descripteur valable.
+.TP 
+\fBEINVAL\fP
+.\" This may change in the future: see
+.\" .I linux/unix/sock.c for details.
+La socket est déjà connectée.
+.TP 
+\fBENOTSOCK\fP
+\fIsockfd\fP est un descripteur de fichier, pas une socket.
+.PP
+Les erreurs suivantes sont spécifiques aux sockets du domaine Unix
+(\fBAF_UNIX\fP)\ :
+.TP 
+\fBEACCES\fP
+L'accès à un élément du chemin est interdit. (Voir aussi
+\fBpath_resolution\fP(7).)
+.TP 
+\fBEADDRNOTAVAIL\fP
+Une interface inexistante est demandée, ou bien l'adresse demandée n'est pas
+locale.
+.TP 
+\fBEFAULT\fP
+\fIaddr\fP pointe en dehors de l'espace d'adresse accessible.
+.TP 
+\fBEINVAL\fP
+La longueur \fIaddrlen\fP est fausse, ou la socket n'est pas de la famille
+\fBAF_UNIX\fP.
+.TP 
+\fBELOOP\fP
+\fIaddr\fP contient des références circulaires (à travers un lien symbolique).
+.TP 
+\fBENAMETOOLONG\fP
+\fIaddr\fP est trop long.
+.TP 
+\fBENOENT\fP
+Le fichier n'existe pas.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.TP 
+\fBENOTDIR\fP
+Un élément du chemin d'accès n'est pas un répertoire.
+.TP 
+\fBEROFS\fP
+L'in\(oeud se trouverait dans un système de fichiers en lecture seule.
+.SH CONFORMITÉ
+.\" SVr4 documents an additional
+.\" .B ENOSR
+.\" general error condition, and
+.\" additional
+.\" .B EIO
+.\" and
+.\" .B EISDIR
+.\" Unix-domain error conditions.
+SVr4, BSD\ 4.4, POSIX.1\-2001 (\fBbind\fP() est apparue dans BSD\ 4.2).
+.SH NOTES
+POSIX.1\-2001 ne requiert pas l'inclusion de \fI<sys/types.h>\fP, et cet
+en\(hytête n'est pas nécessaire sous Linux. Cependant, il doit être inclus
+sous certaines implémentations historiques (BSD), et les applications
+portables devraient probablement l'utiliser.
+
+Le troisième argument de \fBbind\fP() est en fait un \fIint\fP (et c'est ce
+qu'utilisent BSD\ 4.x, libc4 et libc5). Une certaine confusion POSIX a donné
+le \fIsocklen_t\fP actuel, également utilisé dans la glibc. Voir \fBaccept\fP(2).
+.SH BOGUES
+.\" FIXME What *are* transparent proxy options?
+Les options de proxy transparent ne sont pas décrites.
+.SH EXEMPLE
+Un exemple d'utilisation de \fBbind\fP() avec des sockets Internet se trouve
+dans \fBgetaddrinfo\fP(3).
+
+.\" listen.7 refers to this example.
+.\" accept.7 refers to this example.
+.\" unix.7 refers to this example.
+L'exemple suivant montre comment affecter un nom à une socket du domaine
+Unix (\fBAF_UNIX\fP), et accepter les connexions\ :
+
+.nf
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#define MY_SOCK_PATH "/somepath"
+#define LISTEN_BACKLOG 50
+
+#define handle_error(msg) \e
+    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+int
+main(int argc, char *argv[])
+{
+    int sfd, cfd;
+    struct sockaddr_un my_addr, peer_addr;
+    socklen_t peer_addr_size;
+
+    sfd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (sfd == \-1)
+        handle_error("socket");
+
+    memset(&my_addr, 0, sizeof(struct sockaddr_un));
+                        /* Efface la structure */
+    my_addr.sun_family = AF_UNIX;
+    strncpy(my_addr.sun_path, MY_SOCK_PATH,
+            sizeof(my_addr.sun_path) \- 1);
+
+    if (bind(sfd, (struct sockaddr *) &my_addr,
+            sizeof(struct sockaddr_un)) == \-1)
+        handle_error("bind");
+
+    if (listen(sfd, LISTEN_BACKLOG) == \-1)
+        handle_error("listen");
+
+    /* Nous pouvons maintenant accepter une connexion
+       entrante à la fois grâce à accept(2) */
+
+    peer_addr_size = sizeof(struct sockaddr_un);
+    cfd = accept(sfd, (struct sockaddr *) &peer_addr,
+                 &peer_addr_size);
+    if (cfd == \-1)
+        handle_error("accept");
+
+    /* Code gérant les connexions entrantes... */
+
+    /* Lorsqu'il n'est plus nécessaire, le fichier de la socket,
+       MY_SOCK_PATH, doit être supprimé avec unlink(2) ou remove(3) */
+.fi
+.SH "VOIR AUSSI"
+\fBaccept\fP(2), \fBconnect\fP(2), \fBgetsockname\fP(2), \fBlisten\fP(2), \fBsocket\fP(2),
+\fBgetaddrinfo\fP(3), \fBgetifaddrs\fP(3), \fBip\fP(7), \fBipv6\fP(7),
+\fBpath_resolution\fP(7), \fBsocket\fP(7), \fBunix\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,75 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\" This page is in the public domain. - aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GRANTPT 3 "14 juin 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+grantpt \- Donner accès à un pseudo\-terminal esclave
+.SH SYNOPSIS
+.nf
+\fB#define _XOPEN_SOURCE\fP
+.br
+\fB#include <stdlib.h>\fP
+.sp
+\fBint grantpt(int \fP\fIfd\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBgrantpt\fP() modifie le mode et l'appartenant du pseudo\-terminal
+esclave correspondant au pseudo\-terminal maître référencé par \fIfd\fP. L'UID
+de l'esclave est rempli avec l'UID réel du processus appelant. Le GID est
+rempli avec une valeur non spécifiée (par ex\ : \fItty\fP). Le mode de
+l'esclave est mis à 0620 (crw\-\-w\-\-\-\-).
+.PP
+Le comportement de \fBgrantpt\fP() est indéterminé si un gestionnaire de signal
+est installé pour capturer \fBSIGCHLD\fP.
+.SH "VALEUR RENVOYÉE"
+Lorsqu'elle réussit, la fonction \fBgrantpt\fP() renvoie 0. Sinon, elle renvoie
+\-1 et \fIerrno\fP est positionnée en conséquence.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+Le pseudo\-terminal esclave n'est pas accessible.
+.TP 
+\fBEBADF\fP
+L'argument \fIfd\fP n'est pas un descripteur valable.
+.TP 
+\fBEINVAL\fP
+L'argument \fIfd\fP est un descripteur mais pas associé avec un pseudo\-terminal
+maître.
+.SH VERSIONS
+\fBgrantpt\fP() est fournie par la glibc depuis la version\ 2.1.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Il s'agit d'une partie de la gestion des «\ pty\ » d'Unix98, voyez
+\fBpts\fP(4). De nombreux systèmes implémentent cette fonction avec un
+assistant binaire Set\-UID appelé «\ pt_chown\ ». Avec le mécanisme «\
+devpts\ » de Linux, aucun assistant n'est nécessaire.
+.SH "VOIR AUSSI"
+\fBopen\fP(2), \fBposix_openpt\fP(3), \fBptsname\fP(3), \fBunlockpt\fP(3), \fBpts\fP(4),
+\fBfeature_test_macros\fP(7), \fBpty\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,279 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_CLEANUP_PUSH 3 "24 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_cleanup_push, pthread_cleanup_pop \- Empiler et dépiler des
+gestionnaires de nettoyage de threads
+.SH SYNOPSIS
+.nf
+\fB#include <pthread.h>\fP
+
+\fBvoid pthread_cleanup_push(void (*\fP\fIroutine\fP\fB)(void *),\fP
+\fB                          void *\fP\fIarg\fP\fB);\fP
+\fBvoid pthread_cleanup_pop(int \fP\fIexecute\fP\fB);\fP
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.SH DESCRIPTION
+Ces fonctions manipulent la pile de gestionnaires de nettoyage du thread
+appelant. Un gestionnaire de nettoyage est une fonction qui est
+automatiquement exécutée quand un thread est annulé (ou dans d'autres
+circonstances, décrites ci\-dessous). Il peut, par exemple, déverrouiller un
+mutex pour le rendre disponible aux autres threads du processus.
+
+La fonction \fBpthread_cleanup_push\fP() empile \fIroutine\fP au sommet de la pile
+des gestionnaires de nettoyage. Quand \fIroutine\fP sera appelée
+ultérieurement, \fIarg\fP sera passé en argument.
+
+La fonction \fBpthread_cleanup_pop\fP() dépile la routine au sommet de la pile
+des gestionnaires de nettoyage, et éventuellement l'exécute si l'argumeent
+\fIexecute\fP est non nul.
+
+Un gestionnaire de nettoyage est dépilé et exécuté dans les circonstances
+suivantes\ :
+.IP 1. 3
+Quand un thread est annulé, tous les gestionnaires de nettoyage empilés sont
+dépilés et exécutés dans l'ordre inverse dans lequel ils ont été empilés.
+.IP 2.
+Quand un thread se termine en appelant \fBpthread_exit\fP(3), tous les
+gestionnaires de nettoyage sont exécutés comme décrit dans le point
+précédent. Il faut noter que les gestionnaires de nettoyage ne sont \fIpas\fP
+appelés si le thread se termine par un \fIreturn\fP depuis la fonction de
+démarrage du thread.
+.IP 3.
+Quand un thread appelle \fBpthread_cleanup_pop\fP() avec un argument \fIexecute\fP
+non nul, le gestionnaire de nettoyage au sommet de la pile est dépilé et
+exécuté.
+.PP
+POSIX.1 autorise \fBpthread_cleanup_push\fP()  et \fBpthread_cleanup_pop\fP()  à
+être implémentées comme des macros qui sont développées en du texte
+contenant «\ \fB{\fP\ » et «\ \fB}\fP\ » respectivement. Pour cette raison,
+l'appelant doit s'assurer que les appels à ces fonctions sont appariés à
+l'intérieur d'une même fonction, et au même niveau d'imbriquement
+lexical. En d'autres termes, un gestionnaire de nettoyage n'est établi que
+pendant l'exécution d'une partie spécifique de code.
+
+Un appel à \fBlongjmp\fP(3)  (resp. \fBsiglongjmp\fP(3))  produit des résultats
+indéfinis si un appel à \fBpthread_cleanup_push\fP()  ou
+\fBpthread_cleanup_pop\fP()  a été réalisé sans l'appel correspondant de la
+paire si le tampon de saut a été rempli par \fBsetjmp\fP(3)
+(resp. \fBsigsetjmp\fP(3)). De la même manière, un appel à \fBlongjmp\fP(3)
+(resp. \fBsiglongjmp\fP(3))  depuis un gestionnaire de nettoyage entraine des
+résultats indéfinis, sauf si le tampon de saut a lui aussi été rempli dans
+\fBsetjmp\fP(3)  (resp. \fBsigsetjmp\fP(3))  à l'intérieur du gestionnaire.
+.SH "VALEUR RENVOYÉE"
+Ces fonctions ne renvoient pas de valeur.
+.SH ERREURS
+.\" SH VERSIONS
+.\" Available since glibc 2.0
+Il n'y a pas d'erreur.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Sous Linux, les fonctions \fBpthread_cleanup_push\fP()  et
+\fBpthread_cleanup_pop\fP()  \fIsont\fP implémentées comme des macros qui sont
+développées en du texte contenant «\ \fB{\fP\ » et «\ \fB}\fP\ »
+respectivement. Cela signifie que les variables déclarées entre les appels
+appariés à ces fonctions ne seront visible qu'à l'intérieur de cet
+intervalle.
+
+.\" The text was actually added in the 2004 TC2
+POSIX.1 indique qu'utiliser \fIreturn\fP, \fIbreak\fP, \fIcontinue\fP, ou \fIgoto\fP
+pour quitter prématurément un bloc compris entre \fBpthread_cleanup_push\fP()
+et \fBpthread_cleanup_pop\fP()  entraine un comportement indéfini. Les
+applications portables doivent l'éviter.
+.SH EXEMPLE
+Le programme ci\-dessous fournit un exemple simple de l'utilisation des
+fonctions décrites dans cette page. Le programme crée un thread qui exécute
+une boucle comprise entre des appels à \fBpthread_cleanup_push\fP()  et
+\fBpthread_cleanup_pop\fP(). Cette boucle incrémente une variable globale,
+\fIcnt\fP, à chaque seconde. En fonction des arguments fournis sur la ligne de
+commande,, le thread principal envoie une requête d'annulation à l'autre
+thread, ou définit une variable globale qui fait que l'autre thread quitte
+sa boucle et se termine normalement (avec un \fIreturn\fP).
+
+Dans la session d'interpréteur de commande ci\-dessous, le thread principal
+envoie une requête d'annulation à l'autre thread\ :
+
+.in +4n
+.nf
+$ \fB./a.out\fP
+New thread started
+cnt = 0
+cnt = 1
+Canceling thread
+Called clean\-up handler
+Thread was canceled; cnt = 0
+.fi
+.in
+
+Dans la sortie, nous voyons que le thread a été annulé, et que le
+gestionnaire de nettoyage a été appelé et a remis la valeur de la variable
+globale \fIcnt\fP à 0.
+
+Lors de l'exécution suivante, le programme principal définit une variable
+globale qui fait que l'autre thread se termine normalement\ :
+
+.in +4n
+.nf
+$ \fB./a.out x\fP
+New thread started
+cnt = 0
+cnt = 1
+Thread terminated normally; cnt = 2
+.fi
+.in
+
+Dans la sortie, nous voyons que le gestionnaire de nettoyage n'a pas été
+appelé (car \fIcleanup_pop_arg\fP vaut 0), et la variable \fIcnt\fP n'a pas été
+réinitialisée.
+
+Lors de l'exécution suivante, le programme principal définit une variable
+globale qui fait que l'autre thread se termine normalement, et fournit une
+valeur non\-nulle à \fIcleanup_pop_arg\fP\ :
+
+.in +4n
+.nf
+$ \fB./a.out x 1\fP
+New thread started
+cnt = 0
+cnt = 1
+Called clean\-up handler
+Thread terminated normally; cnt = 0
+.fi
+.in
+
+Dans la sortie, nous voyons que bien que le thread n'ait pas été annulé, le
+gestionnaire de nettoyage a été appelé, car l'argument fourni à
+\fBpthread_cleanup_pop\fP n'était pas nul.
+.SS "Source du programme"
+\&
+.nf
+#include <pthread.h>
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+
+#define handle_error_en(en, msg) \e
+        do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
+
+static int done = 0;
+static int cleanup_pop_arg = 0;
+static int cnt = 0;
+
+static void
+cleanup_handler(void *arg)
+{
+    printf("Called clean\-up handler\en");
+    cnt = 0;
+}
+
+static void *
+thread_start(void *arg)
+{
+    time_t start, curr;
+
+    printf("New thread started\en");
+
+    pthread_cleanup_push(cleanup_handler, NULL);
+
+    curr = start = time(NULL);
+
+    while (!done) {
+        pthread_testcancel();           /* A cancellation point */
+        if (curr < time(NULL)) {
+            curr = time(NULL);
+            printf("cnt = %d\en", cnt);  /* A cancellation point */
+            cnt++;
+        }
+    }
+
+    pthread_cleanup_pop(cleanup_pop_arg);
+    return NULL;
+}
+
+int
+main(int argc, char *argv[])
+{
+    pthread_t thr;
+    int s;
+    void *res;
+
+    s = pthread_create(&thread, NULL, thread_start, NULL);
+    if (s != 0)
+        handle_error_en(s, "pthread_create");
+
+    sleep(2);           /* Allow new thread to run a while */
+
+    if (argc > 1) {
+        if (argc > 2)
+            cleanup_pop_arg = atoi(argv[2]);
+        done = 1;
+
+    } else {
+        printf("Canceling thread\en");
+        s = pthread_cancel(thr);
+        if (s != 0)
+            handle_error_en(s, "pthread_cancel");
+    }
+
+    s = pthread_join(thr, &res);
+    if (s != 0)
+        handle_error_en(s, "pthread_join");
+
+    if (res == PTHREAD_CANCELED)
+        printf("Thread was canceled; cnt = %d\en", cnt);
+    else
+        printf("Thread terminated normally; cnt = %d\en", cnt);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBpthread_cancel\fP(3), \fBpthread_cleanup_push_defer_np\fP(3),
+\fBpthread_setcancelstate\fP(3), \fBpthread_testcancel\fP(3), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Denis Barbier (2010).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

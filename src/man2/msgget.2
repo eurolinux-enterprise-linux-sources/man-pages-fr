@@ -1,0 +1,160 @@
+.\" Copyright 1993 Giorgio Ciucci <giorgio@crcc.it>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provflags the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Added correction due to Nick Duffek <nsd@bbc.com>, aeb, 960426
+.\" Modified Wed Nov  6 04:00:31 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified, 8 Jan 2003, Michael Kerrisk, <mtk.manpages@gmail.com>
+.\"	Removed EIDRM from errors - that can't happen...
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\" Modified, 11 Nov 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Language and formatting clean-ups
+.\"	Added notes on /proc files
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MSGGET 2 "27 mai 2004" Linux "Manuel du programmeur Linux"
+.SH NOM
+msgget \- Obtenir un identifiant de file de messages
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <sys/ipc.h>\fP
+\fB#include <sys/msg.h>\fP
+
+\fBint msgget(key_t \fP\fIkey\fP\fB, int \fP\fImsgflg\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+L'appel système \fBmsgget\fP() renvoie l'identifiant de la file de messages
+associée à la clé \fIkey\fP. Une nouvelle file de messages est créée si \fIkey\fP
+a la valeur \fBIPC_PRIVATE\fP ou bien si \fIkey\fP n'est pas \fBIPC_PRIVATE\fP,
+aucune file de messages n'est associée à \fIkey\fP, et \fBIPC_CREAT\fP a été
+introduit dans \fImsgflg\fP.
+.PP
+Si \fImsgflg\fP indique à la fois \fBIPC_CREAT\fP et \fBIPC_EXCL\fP et une file de
+messages est déjà associée à \fIkey\fP, \fBmsgget\fP() échoue en positionnant
+\fIerrno\fP à \fBEEXIST\fP. Ceci est similaire au comportement de \fBopen\fP(2) avec
+la combinaison \fBO_CREAT | O_EXCL\fP.
+.PP
+Lors de la création, les bits de poids faibles de l'argument \fImsgflg\fP
+définissent les permissions d'accès à la file de message (pour le
+propriétaire, le groupe, et les autres) avec le même format et la même
+signification que les permissions d'accès (\fImode\fP) dans les appels
+\fBopen\fP(2). (Les permissions d'exécution ne sont pas utilisées).
+.PP
+Pendant la création, l'appel système initialise la structure système
+\fImsqid_ds\fP (voir \fBmsgctl\fP(2)) de la file de messages comme suit\ :
+.IP
+\fImsg_perm.cuid\fP et \fImsg_perm.uid\fP sont remplis avec l'UID effectif du
+processus appelant.
+.IP
+\fImsg_perm.cgid\fP et \fImsg_perm.gid\fP sont remplis avec le GID effectif du
+processus appelant.
+.IP
+Les 9 bits de poids faibles de \fImsgflg\fP sont copiés dans les 9 bits de
+poids faibles de \fBmsg_perm.mode\fP.
+.IP
+\fImsg_qnum\fP, \fImsg_lspid\fP, \fImsg_lrpid\fP, \fImsg_stime\fP et \fImsg_rtime\fP sont
+fixés à 0.
+.IP
+\fImsg_ctime\fP est rempli avec l'heure actuelle.
+.IP
+\fImsg_qbytes\fP est rempli avec la limite système \fBMSGMNB\fP.
+.PP
+Si la file de message existe déjà, les permissions d'accès sont contrôlées,
+et une vérification est faite pour voir si la file est prête à être
+détruite.
+.SH "VALEUR RENVOYÉE"
+\fBmsgget\fP() renvoie l'identifiant de la file de messages (un entier
+positif), s'il réussit. En cas d'échec \-1 est renvoyé et \fIerrno\fP contient
+le code d'erreur.
+.SH ERREURS
+En cas d'échec, \fIerrno\fP prend l'une des valeurs suivantes\ :
+.TP 
+\fBEACCES\fP
+Une file de messages existe associée à la clé \fIkey\fP, mais le processus
+appelant n'a pas de permissions pour accéder à cette file et n'a pas la
+capacité \fBCAP_IPC_OWNER\fP.
+.TP 
+\fBEEXIST\fP
+Une file de messages existe associée à la clé \fIkey\fP et \fImsgflg\fP réclame à
+la fois \fBIPC_CREAT\fP et \fBIPC_EXCL\fP.
+.TP 
+\fBENOENT\fP
+Aucune file de messages n'existe associée à la clé \fIkey\fP et \fImsgflg\fP ne
+contient pas \fBIPC_CREAT\fP.
+.TP 
+\fBENOMEM\fP
+Le système doit créer une file de messages, mais n'a pas assez de mémoire
+pour les nouvelles structures de données.
+.TP 
+\fBENOSPC\fP
+Le nombre maximum de files de messages sur le système (\fBMSGMNI\fP) est
+atteint.
+.SH CONFORMITÉ
+SVr4, POSIX.1\-2001.
+.SH NOTES
+\fBIPC_PRIVATE\fP n'est pas destiné au champ \fImsgflg\fP mais est du type
+\fIkey_t\fP. Si cette valeur spéciale est fournie à la place de \fIkey\fP, l'appel
+système ignorera tout sauf les 9 bits de poids faibles de \fImsgflg\fP et
+créera une nouvelle file de messages.
+.PP
+La limite système concernant les files de messages et affectant \fBmsgget\fP()
+est
+.TP 
+\fBMSGMNI\fP
+Nombre maximum de files de messages sur le système (sous Linux, cette limite
+peut être consultée et modifiée grâce au fichier
+\fI/proc/sys/kernel/msgmni\fP).
+.SS "Notes sur Linux"
+Jusqu'à la version 2.3.20, Linux renvoyait \fBEIDRM\fP pour un \fBmsgget\fP() sur
+une file de messages prête à être supprimée.
+.SH BOGUES
+Le choix du nom \fBIPC_PRIVATE\fP est malheureux, \fBIPC_NEW\fP aurait mieux
+décrit sa fonction.
+.SH "VOIR AUSSI"
+\fBmsgctl\fP(2), \fBmsgrcv\fP(2), \fBmsgsnd\fP(2), \fBftok\fP(3), \fBcapabilities\fP(7),
+\fBmq_overview\fP(7), \fBsvipc\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

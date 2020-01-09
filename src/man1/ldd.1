@@ -1,0 +1,84 @@
+.\" Copyright 1995-2000 David Engel (david@ods.com)
+.\" Copyright 1995 Rickard E. Faith (faith@cs.unc.edu)
+.\" Copyright 2000 Ben Collins (bcollins@debian.org)
+.\"    Redone for GLibc 2.2
+.\" Copyright 2000 Jakub Jelinek (jakub@redhat.com)
+.\"    Corrected.
+.\" Most of this was copied from the README file.
+.\" Do not restrict distribution.
+.\" May be distributed under the GNU General Public License
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LDD 1 "30 octobre 2000" "" "Manuel de l'utilisateur Linux"
+.SH NOM
+ldd \- Affiche les bibliothèques partagées nécessaires
+.SH SYNOPSIS
+\fBldd\fP [OPTION]... FICHIER...
+.SH DESCRIPTION
+\fBldd\fP affiche la liste des bibliothèques partagées nécessaires pour chaque
+programme ou bibliothèque passés sur la ligne de commande.
+.SH OPTIONS
+.TP 
+\fB\-\-version\fP
+Afficher le numéro de version de \fBldd\fP.
+.TP 
+\fB\-v\ \-\-verbose\fP
+Afficher toutes les informations, y compris les versions des symboles.
+.TP 
+\fB\-u\ \-\-unused\fP
+Afficher les dépendances directes inutilisées.  (Depuis la glibc\ 2.3.4.)
+.TP 
+\fB\-d\ \-\-data\-relocs\fP
+Réaliser les déplacements et indiquer les objets manquants (ELF seulement).
+.TP 
+\fB\-r\ \-\-function\-relocs\fP
+Réaliser les déplacements pour les objets donnés et les fonctions, et
+indiquer les objets ou fonctions manquants (ELF seulement).
+.TP 
+\fB\-\-help\fP
+Aide.
+.SH NOTES
+La version standard de \fBldd\fP est livrée avec la glibc2. La libc5
+fournissait une ancienne version, toujours présente sur certains
+systèmes. Les options longues ne sont pas supportées par la version de la
+libc5. En revanche, celle de la glibc2 ne supporte pas \fB\-V\fP et a seulement
+l'équivalent \fB\-\-version\fP.
+.LP
+La version libc5 utilise le nom de la bibliothèque donnée sur la ligne de
+commande tel quel s'il contient un «\ /\ »\ ; sinon elle cherche la
+bibliothèque aux emplacements standard.  Pour l'utiliser sur une
+bibliothèque dans le répertoire courant, préfixez son nom avec «\ ./\ ».
+.SH BOGUES
+\fBldd\fP ne fonctionne pas avec les bibliothèques partagées a.out.
+.PP
+.\" .SH AUTHOR
+.\" David Engel.
+.\" Roland McGrath and Ulrich Drepper.
+\fBldd\fP ne fonctionne pas avec certains programmes a.out très anciens qui ont
+été compilés avant que le support de \fBldd\fP ne soit ajouté dans le
+compilateur.  Si vous utilisez \fBldd\fP sur l'un de ces programmes, il sera
+lancé avec \fIargc\fP = 0 et les résultats seront imprévisibles.
+.SH "VOIR AUSSI"
+\fBld.so\fP(8), \fBldconfig\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (2003-2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

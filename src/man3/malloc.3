@@ -1,0 +1,178 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" License.
+.\" Modified Sat Jul 24 19:00:59 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Clarification concerning realloc, iwj10@cus.cam.ac.uk (Ian Jackson), 950701
+.\" Documented MALLOC_CHECK_, Wolfram Gloger (wmglo@dent.med.uni-muenchen.de)
+.\" 2007-09-15 mtk: added notes on malloc()'s use of sbrk() and mmap().
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MALLOC 3 "13 janvier 2009" GNU "Manuel du programmeur Linux"
+.SH NOM
+malloc, calloc, free, realloc \- Allocation et libération dynamiques de
+mémoire
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBvoid *calloc(size_t \fP\fInmemb\fP\fB, size_t \fP\fIsize\fP\fB);\fP
+.br
+\fBvoid *malloc(size_t \fP\fIsize\fP\fB);\fP
+.br
+\fBvoid free(void \fP\fI*ptr\fP\fB);\fP
+.br
+\fBvoid *realloc(void \fP\fI*ptr\fP\fB, size_t \fP\fIsize\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+.\" glibc does this:
+\fBcalloc\fP() alloue la mémoire nécessaire pour un tableau de \fInmemb\fP
+éléments de \fIsize\fP octets, et renvoie un pointeur vers la mémoire
+allouée. Cette zone est remplie avec des zéros. Si \fInmemb\fP ou si \fIsize\fP
+est nulle, \fBcalloc\fP renvoie soit NULL ou un unique pointeur qui pourra être
+passé ultérieurement à \fBfree\fP() avec succès.
+.PP
+.\" glibc does this:
+\fBmalloc\fP() alloue \fIsize\fP octets, et renvoie un pointeur sur la mémoire
+allouée. Le contenu de la zone de mémoire n'est pas initialisé. Si \fIsize\fP
+est nulle, \fBmalloc\fP renvoie soit NULL ou un unique pointeur qui pourra être
+passé ultérieurement à \fBfree\fP() avec succès.
+.PP
+\fBfree\fP() libère l'espace mémoire pointé par \fIptr\fP, qui a été obtenu lors
+d'un appel antérieur à \fBmalloc\fP(), \fBcalloc\fP() ou \fBrealloc\fP(). Si le
+pointeur \fIptr\fP n'a pas été obtenu par l'un de ces appels, ou s'il a déjà
+été libéré avec \fIfree(ptr)\fP, le comportement est indéterminé. Si \fIptr\fP est
+NULL, aucune opération n'est effectuée.
+.PP
+\fBrealloc\fP() modifie la taille du bloc de mémoire pointé par \fIptr\fP pour
+l'amener à une taille de \fIsize\fP octets. \fBrealloc\fP() conserve le contenu de
+la zone mémoire minimum entre la nouvelle et l'ancienne taille. Le contenu
+de la zone de mémoire nouvellement allouée n'est pas initialisé. Si \fIptr\fP
+est NULL, l'appel de \fBrealloc\fP() est équivalent à \fImalloc(size)\fP, pour
+toute valeur de \fIsize\fP. Si \fIsize\fP vaut zéro, l'appel est équivalent à
+\fIfree(ptr)\fP. Si \fIptr\fP n'est pas NULL, il doit avoir été obtenu par un
+appel antérieur à \fBmalloc\fP(), \fBcalloc\fP() ou \fBrealloc\fP(). Si la zone
+pointée était déplacée, un \fIfree(ptr)\fP est effectué.
+.SH "VALEUR RENVOYÉE"
+Pour \fBcalloc\fP() et \fBmalloc\fP(), renvoyer un pointeur de la mémoire allouée,
+qui est correctement alignée pour n'importe quel type de variable. Si elles
+échouent, elles renvoient NULL. NULL peut également être renvoyé par un
+appel réussi à \fBmalloc\fP() avec un paramètre \fIsize\fP égal à zéro, ou par un
+appel réussi de \fBcalloc\fP() avec \fInmemb\fP ou \fIsize\fP égal à zéro.
+.PP
+\fBfree\fP() ne renvoie pas de valeur.
+.PP
+\fBrealloc\fP() renvoie un pointeur sur la mémoire nouvellement allouée, qui
+est correctement alignée pour n'importe quel type de variable, et qui peut
+être différent de \fIptr\fP, ou \fBNULL\fP si la demande échoue. Si \fIsize\fP vaut
+zéro, realloc renvoie NULL ou un pointeur acceptable pour \fBfree\fP(). Si
+\fBrealloc\fP() échoue, le bloc mémoire original reste intact, il n'est ni
+libéré ni déplacé.
+.SH CONFORMITÉ
+C89, C99.
+.SH NOTES
+.\" FIXME . there is no mallopt(3) man page yet.
+En général, \fBmalloc\fP() alloue la mémoire depuis le tas, et ajuste la taille
+du tas en conséquence avec \fBsbrk\fP(2). Lorsque les bloques de mémoire
+alloués sont plus larges que \fBMMAP_THRESHOLD\fP octets, l'implémentation de
+la glibc de \fBmalloc\fP alloue la mémoire selon un projection anonyme privée
+avec \fBmmap\fP(2). \fBMMAP_THRESHOLD\fP vaut 128\ Ko par défaut et il est
+ajustable avec \fBmallopt\fP(3). Les allocations réalisées avec \fBmmap\fP(2) ne
+sont pas affectées par la limitation de ressource \fBRLIMIT_DATA\fP (consultez
+\fBgetrlimit\fP(2)).
+
+Le standard Unix98 nécessite que \fBmalloc\fP(), \fBcalloc\fP() et \fBrealloc\fP()
+positionnent \fIerrno\fP à \fBENOMEM\fP en cas d'échec. La glibc suppose qu'il en
+est ainsi (et les versions glibc de ces routines le font). Si vous utilisez
+une implémentation personnelle de malloc qui ne positionne pas \fIerrno\fP,
+certaines routines de bibliothèques peuvent échouer sans donner de raison
+dans \fIerrno\fP.
+.LP
+Lorsqu'un programme échoue durant un appel à \fBmalloc\fP(), \fBcalloc\fP(),
+\fBrealloc\fP() ou \fBfree\fP(), ceci est presque toujours le signe d'une
+corruption du tas. Ceci survient généralement en cas de débordement d'un
+bloc mémoire alloué, ou en libérant deux fois le même pointeur.
+.PP
+Les versions récentes de la bibliothèque libc de Linux (postérieures à
+5.4.23) et de la bibliothèque glibc\ 2.x incluent une implémentation de
+\fBmalloc\fP() dont on peut configurer le comportement à l'aide de variables
+d'environnement. Quand la variable \fBMALLOC_CHECK_\fP existe, les appels à
+\fBmalloc\fP() emploient une implémentation spéciale (moins efficace) mais plus
+tolérante à l'encontre des bogues simples, comme le double appel à \fBfree\fP()
+avec le même argument, ou lors d'un débordement de tampon d'un seul octet
+(bogues de surpassement d'une unité, ou oubli d'un caractère nul final d'une
+chaîne). Il n'est toutefois pas possible de se protéger contre toutes les
+erreurs de ce type, et l'on risque de voir des fuites de mémoire se
+produire. Si la variable \fBMALLOC_CHECK_\fP vaut zéro, toutes les corruptions
+du tas détectées sont ignorées silencieusement. Si elle vaut 1, un message
+de diagnostic est affiché sur \fIstderr\fP. Si elle vaut 2, la fonction
+\fBabort\fP(3) est appelée immédiatement. Si elle vaut 3, un message de
+diagnostic est affiché sur \fIstderr\fP et le programme est
+arrêté. L'utilisation des valeurs non nulle de \fBMALLOC_CHECK_\fP peut être
+utile car un crash pourrait se produire ultérieurement, et il serait très
+difficile de trouver la cause du problème.
+.SH BOGUES
+Par défaut, Linux suit une stratégie d'allocation optimiste. Ceci signifie
+que lorsque \fBmalloc\fP() renvoie une valeur non NULL, il n'y a aucune
+garantie que la mémoire soit véritablement disponible. C'est vraiment un
+bogue ennuyeux. Dans le cas où le système manque de mémoire, un ou plusieurs
+processus seront tués par l'infâme «\ OOM killer\ » (gestionnaire de
+mémoire) . Si Linux est utilisé dans des circonstances où il n'est pas
+souhaitable de perdre soudainement des processus lancés aléatoirement, et si
+de plus la version du noyau est suffisamment récente, il est possible de
+désactiver ce comportement avec une commande comme\ :
+.in +4n
+.nf
+
+#\fB echo 2 > /proc/sys/vm/overcommit_memory\fP
+
+.fi
+.in
+Voir également les fichiers \fIvm/overcommit\-accounting\fP et \fIsysctl/vm.txt\fP
+dans le répertoire de la documentation du noyau.
+.SH "VOIR AUSSI"
+.\" .BR mallopt (3),
+\fBbrk\fP(2), \fBmmap\fP(2), \fBalloca\fP(3), \fBposix_memalign\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

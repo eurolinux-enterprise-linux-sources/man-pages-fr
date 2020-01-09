@@ -1,0 +1,109 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_EXIT 3 "30 mars 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_exit \- Terminer le thread appelant
+.SH SYNOPSIS
+.nf
+\fB#include <pthread.h>\fP
+
+\fBvoid pthread_exit(void *\fP\fIretval\fP\fB);\fP
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.SH DESCRIPTION
+La fonction \fBpthread_exit\fP() termine le thread appelant et renvoie une
+valeur à travers \fIretval\fP qui, si le thread est joignable, est rendue
+disponible à un autre thread dans le même processus s'il apppelle
+\fBpthread_join\fP(3).
+
+Tous les gestionnaires de nettoyage ajoutés par \fBpthread_cleanup_push\fP(3)
+\em qui n'ont pas encore été dépilés \em  sont dépilés (dans l'ordre inverse
+dans lequel ils ont été empilés) et exécutés. Si le thread contient des
+données spécifiques au thread, alors les destructeurs de ces données sont
+appelées, dans un ordre indéfini, une fois que tous les gestionnaires de
+nettoyage ont été exécutés.
+
+Quand un thread se termine, les ressources partagées au niveau du processus
+(comme les verrous mutuellement exclusifs, des variables de condition, des
+sémaphores et des descripteurs de fichiers) ne sont pas libérées, et les
+fonctions enregistrées avec \fBatexit\fP(3)  ne sont pas appelées.
+
+Quand le dernier thread d'un processus se termine, le processus s'arrête en
+appelant \fBexit\fP(3) avec une valeur de sortie de zéro. Ainsi, les ressources
+partagées au niveau du processus sont libérées, et les fonctions
+enregistrées avec \fBatexit\fP(3)  sont appelées.
+.SH "VALEUR RENVOYÉE"
+Cette fonction ne retourne jamais vers l'appelant.
+.SH ERREURS
+Cette fonction réussit toujours.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Tout thread autre que le thread principal qui sort de la fonction initiale
+entraîne un appel implicite à \fBpthread_exit\fP(), en utilisant la valeur de
+retour de la fonction comme état de sortie du thread.
+
+Afin de permettre aux autres threads de continuer l'exécution, le thread
+principal devrait se terminer en appelant \fBpthread_exit\fP()  plutôt que
+\fBexit\fP(3).
+
+La valeur pointée par \fIretval\fP ne devrait pas être placée sur la pile du
+thread appelant, puisque le contenu de cette pile devient indéfini quand le
+thread se termine.
+.SH BOGUES
+.\" Linux 2.6.27
+.\" FIXME . review a later kernel to see if this gets fixed
+.\" http://thread.gmane.org/gmane.linux.kernel/611611
+.\" http://marc.info/?l=linux-kernel&m=122525468300823&w=2
+Il y a actuellement des limitations dans la logique d'implémentation du
+noyau si on attend (avec \fBwait\fP(2)) un groupe de thread dont le chef de
+groupe a terminé. Cela peut entraîner des problèmes comme un terminal bloqué
+si le signal d'arrêt est envoyé à un processus en avant\-plan dont le thread
+chef de groupe a déjà appelé \fBpthread_exit\fP(3).
+.SH "VOIR AUSSI"
+\fBpthread_create\fP(3), \fBpthread_join\fP(3), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Denis Barbier (2010).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

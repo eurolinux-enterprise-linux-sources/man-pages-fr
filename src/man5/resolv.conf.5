@@ -1,0 +1,232 @@
+.\" Copyright (c) 1986 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms are permitted
+.\" provided that the above copyright notice and this paragraph are
+.\" duplicated in all such forms and that any documentation,
+.\" advertising materials, and other materials related to such
+.\" distribution and use acknowledge that the software was developed
+.\" by the University of California, Berkeley.  The name of the
+.\" University may not be used to endorse or promote products derived
+.\" from this software without specific prior written permission.
+.\" THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+.\" IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+.\" WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+.\"
+.\"	@(#)resolver.5	5.9 (Berkeley) 12/14/89
+.\"	$Id: resolver.5,v 8.6 1999/05/21 00:01:02 vixie Exp $
+.\"
+.\" Added ndots remark by Bernhard R. Link - debian bug #182886
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RESOLV.CONF 5 "1er mars 2009" "" "Manuel du programmeur Linux"
+.UC 4
+.SH NOM
+resolv.conf \- Fichier de configuration de la résolution de noms.
+.SH SYNOPSIS
+\fB/etc/resolv.conf\fP
+.SH DESCRIPTION
+La bibliothèque \fIresolver\fP est un ensemble de routines de la bibliothèque C
+qui fournit un accès au système DNS Internet. Le fichier de configuration de
+la résolution de noms contient des informations qui sont lues par les
+routines de résolution la première fois qu'elles sont invoquées par un
+processus. Le fichier est prévu pour être lisible par des humains et
+contient une liste de mots\-clés avec des valeurs.
+.LP
+Sur un système normalement configuré, ce fichier ne devrait pas être
+nécessaire. Le seul serveur de noms interrogé sera celui résidant sur la
+machine locale, le nom de domaine est déterminé à partir du nom d'hôte, et
+le chemin de recherche du domaine est construit à partir du nom de domaine.
+.LP
+Les différentes options de configuration sont\ :
+.TP 
+\fBnameserver\fP Serveur de nom d'adresse IP
+Adresse Internet (en notation pointée) du serveur de noms que la
+bibliothèque \fIresolver\fP interrogera. Jusqu'à \fBMAXNS\fP (actuellement 3, voir
+\fI<resolv.h>\fP) serveurs de noms peuvent être mentionnés sur des
+lignes indépendantes. S'il y a des serveurs multiples, la bibliothèque de
+résolution les interrogera dans l'ordre indiqué. Si aucune entrée
+\fBnameserver\fP n'est présente, le fonctionnement par défaut est d'utiliser le
+serveur de noms se trouvant sur la machine. (L'algorithme consiste à
+interroger un serveur de noms, et si la requête dépasse le temps maximum, à
+essayer le suivant, jusqu'à la fin de la liste, et à recommencer jusqu'à un
+nombre maximal de tentatives).
+.TP 
+\fBdomain\fP Nom du domaine local.
+La plupart des requêtes au sein de ce domaine peuvent être réduites à des
+raccourcis relatifs au domaine local. Si aucune entrée \fBdomain\fP n'est
+présente, le domaine local est déterminé à partir du nom local de l'hôte
+renvoyé par \fBgethostname\fP(2)\ ; la partie domaine est extraite en
+considérant tout ce qui se trouve après le premier «\ .\ ». Finalement, si
+le nom d'hôte ne contient pas de portion de domaine, on suppose être dans le
+domaine racine.
+.TP 
+\fBsearch\fP Liste de recherche pour les noms d'hôte.
+.\" When having a resolv.conv with a line
+.\"  search subdomain.domain.tld domain.tld
+.\" and doing a hostlookup, for example by
+.\"  ping host.anothersubdomain
+.\" it sends dns-requests for
+.\"  host.anothersubdomain.
+.\"  host.anothersubdomain.subdomain.domain.tld.
+.\"  host.anothersubdomain.domain.tld.
+.\" thus not only causing unnecessary traffic for the root-dns-servers
+.\" but broadcasting information to the outside and making man-in-the-middle
+.\" attacks possible.
+La liste de recherche est normalement déterminée à partir du nom de domaine
+local. Par défaut, elle ne contient que le nom du domaine local. Ceci peut
+être modifié en listant les chemins de recherche des domaines désirés,
+séparés par des espaces ou des tabulations, à la suite du mot\-clé
+\fIsearch\fP. La plupart des recherches seront menées en essayant chaque
+élément du chemin de recherche l'un après l'autre jusqu'à obtenir une
+correspondance. Pour les environnements comprenant de nombreux
+sous\-domaines, veuillez consulter \fBoptions ndots\ :\fP\fIn\fP ci\-dessous pour
+éviter des attaques de type man\-in\-the\-middle et du trafic superflu pour le
+serveur dns «\ root\-dns\-server\ ». Veuillez noter que ce processus peut être
+lent et engendrer un trafic réseau très important si les serveurs pour les
+domaines listés ne sont pas locaux, et que les requêtes dépassent le délai
+alloué lorsqu'aucun serveur n'est disponible pour l'un de ces domaines.
+.IP
+La liste de recherche est actuellement limitée à six domaines, avec un
+maximum de 256 caractères.
+.TP 
+\fBsortlist\fP
+Cette option permet aux adresses renvoyées par \fBgethostbyname\fP(3) d'être
+ordonnées. Une liste de tri est indiquée par des paires d'adresses IP et de
+masques réseau. Le masque réseau est optionnel et prend par défaut la valeur
+du masque naturel du réseau. L'adresse IP et le masque réseau optionnel sont
+séparés par des slashes. Jusqu'à 10 paires peuvent être mentionnées. Voici
+un exemple\ :
+
+.in +4n
+sortlist 130.155.160.0/255.255.240.0 130.155.0.0
+.in
+.br
+.TP 
+\fBoptions\fP
+Les options permettent de modifier certaines variables internes de la
+bibliothèque \fIresolver\fP. La syntaxe est
+.RS
+.IP
+\fBoptions\fP \fIopt\fP \fI...\fP
+.LP
+où \fIopt\fP est une des options suivantes\ :
+.TP 
+\fBdebug\fP
+.\" Since glibc 2.2?
+écrit \fBRES_DEBUG\fP dans \fI_res.options\fP.
+.TP 
+\fBndots:\fP\fIn\fP
+.\" Since glibc 2.2
+fixe un seuil pour le nombre de points qui doivent apparaître dans un nom
+fourni à \fBres_query\fP(3) (voir \fBresolver\fP(3)) avant qu'une \fIrequête
+absolue initiale\fP soit entreprise. La valeur par défaut pour \fIn\fP est 1, ce
+qui signifie que dès qu'un point apparaît dans le nom, il sera d'abord
+essayé en tant que nom absolu avant d'ajouter tout élément de la liste de
+recherche \fIsearch\fP. La valeur de cette option est tronquée à 15 sans
+produire d'erreur.
+.TP 
+\fBtimeout:\fP\fIn\fP
+.\" Since glibc 2.2
+définit le temps que la bibliothèque de résolution doive attendre la réponse
+d'un serveur de noms distant avant de ressayer une requête sur un serveur de
+noms différent. Exprimée en secondes, la valeur par défaut est
+\fBRES_TIMEOUT\fP (actuellement 5, voir \fI<resolv.h>\fP). La valeur de
+cette option est tronquée à 30 sans produire d'erreur.
+.TP 
+\fBattempts:\fP\fIn\fP
+définit le nombre de fois que la bibliothèque de résolution enverra une
+requête à ses serveurs de noms avant d'abandonner et renvoyer une erreur à
+l'application appelante. La valeur par défaut est \fBRES_DFLRETRY\fP
+(actuellement 2, voir \fI<resolv.h>\fP). La valeur de cette option est
+tronquée à 5 sans produire d'erreur.
+.TP 
+\fBrotate\fP
+.\" Since glibc 2.2
+configure \fBRES_ROTATE\fP dans \fI_res.options\fP, qui provoquera une sélection
+«\ round robin\ » (Ndt\ : en rotation, séquentiellement) des serveurs de
+noms parmi ceux qui sont listés. Cela a pour effet de diffuser la requête
+vers tous les serveurs listés plutôt que tous les clients essayent le
+premier serveur listé chaque fois.
+.TP 
+\fBno\-check\-names\fP
+.\" since glibc 2.2
+configure \fBRES_NOCHECKNAME\fP dans \fI_res.options\fP, qui désactive la
+vérification BIND moderne des noms d'hôtes et de courriers entrants pour les
+caractères invalides comme le caractère souligné «\ _\ », les caractères non
+ASCII ou les caractères de contrôle.
+.TP 
+\fBinet6\fP
+.\" Since glibc 2.2
+configure \fBRES_USE_INET6\fP dans \fI_res.options\fP. Cela a pour effet d'essayer
+une requête AAAA avant une requête A dans la fonction \fBgethostbyname\fP(3),
+et le mappage des réponses IPv4 dans la «\ forme tunnellisée\ » de IPv6 si
+aucun enregistrement AAAA n'est trouvé mais qu'un enregistrement A existe.
+.TP 
+\fBip6\-bytestring\fP (depuis la glibc 2.3.4)
+active \fBRES_USE_BSTRING\fP dans \fI_res.options\fP. Ceci implique que les
+recherche arrières IPv6 sont effectuées avec le format des étiquettes
+binaires décrit dans la RFC\ 2673\ ; si cette option n'est pas activée, le
+format nibble est utilisé.
+.TP 
+\fBip6\-dotint\fP/\fBno\-ip6\-dotint\fP (depuis la glibc 2.3.4)
+active ou désactive \fBRES_NOIP6DOTINT\fP dans \fI_res.options\fP. Quand cette
+option est désactivée (\fBip6\-dotint\fP), les recherches arrières IPv6 sont
+effectuées dans la zone (obsolète) \fIip6.int\fP\ ; quand cette option est
+activée ((\fBno\-ip6\-dotint\fP), les recherches arrières IPv6 sont effectuées
+par défaut dans la zone \fIip6.arpa\fP. Cette option est activée par défaut.
+.TP 
+\fBedns0\fP (depuis la glibc 2.6)
+active \fBRES_USE_EDNSO\fP dans \fI_res.options\fP. Ceci active la prise en charge
+des extensions DNS décrites dans la RFC\ 2671.
+.RE
+.LP
+Les mots\-clés \fIdomain\fP et \fIsearch\fP sont mutuellement exclusifs. Si les
+deux apparaissent dans le fichier, le dernier gagne.
+.LP
+Le mot\-clé \fIsearch\fP du fichier \fIresolv.conf\fP du système peut être
+surchargé indépendamment pour chaque processus en remplissant la variable
+d'environnement \fBLOCALDOMAIN\fP avec une liste de domaines de recherche
+séparés par des espaces.
+.LP
+Le mot\-clé \fIoptions\fP du fichier \fIresolv.conf\fP du système peut être
+surchargé indépendamment pour chaque processus en remplissant la variable
+d'environnement \fBRES_OPTIONS\fP en une liste d'options de la bibliothèque
+\fIresolver\fP (séparées par des espaces), comme indiqué à la rubrique
+\fBoptions\fP plus haut.
+.LP
+Le mot\-clé et la valeur doivent apparaître sur une ligne isolée, le mot\-clé
+(ex: \fBnameserver\fP) doit apparaître en début de ligne et il doit être séparé
+de la valeur par des espaces.
+.SH FICHIERS
+\fI/etc/resolv.conf\fP, \fI<resolv.h>\fP
+.SH "VOIR AUSSI"
+\fBgethostbyname\fP(3), \fBresolver\fP(3), \fBhostname\fP(7), \fBnamed\fP(8)
+.br
+Name Server Operations Guide for BIND
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

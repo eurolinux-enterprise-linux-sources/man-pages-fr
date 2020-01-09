@@ -1,0 +1,121 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright 1993 Rickard E. Faith (faith@cs.unc.edu)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified 1997-08-25 by Nicolás Lichtmaier <nick@debian.org>
+.\" Modified 2004-06-17 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2008-11-27 by mtk
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETDOMAINNAME 2 "27 septembre 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+getdomainname, setdomainname \- Lire ou fixer le nom de domaine
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBint getdomainname(char *\fP\fIname\fP\fB, size_t \fP\fIlen\fP\fB);\fP
+.br
+\fBint setdomainname(const char *\fP\fIname\fP\fB, size_t \fP\fIlen\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBgetdomainname\fP(), \fBsetdomainname\fP()\ : _BSD_SOURCE || (_XOPEN_SOURCE &&
+_XOPEN_SOURCE\ <\ 500)
+.ad b
+.SH DESCRIPTION
+Ces fonctions sont utilisées pour obtenir ou changer le nom de domaine de
+l'hôte système.
+
+\fBsetdomainname\fP() fice le nom de domaine à la valeur fournie dans le
+tableau de caractères \fIname\fP. Le paramètre \fIlen\fP indique le nombre
+d'octets de \fIname\fP (\fIname\fP n'a donc pas à se terminer par un caractère
+nul).
+
+Ces deux fonctions servent à lire ou à changer le nom de domaine de l'hôte
+concerné. Si le nom de domaine, suivi d'un caractère nul, nécessite plus de
+\fIlen\fP octets pour être stocké, \fBgetdomainname\fP() renvoie les \fIlen\fP
+premiers octets (glibc), ou produit une erreur (libc).
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+\fBsetdomainname\fP() peut échouer avec les erreurs suivantes\ :
+.TP 
+\fBEFAULT\fP
+\fIname\fP pointe en\(hydehors de l'espace d'adressage utilisateur.
+.TP 
+\fBEINVAL\fP
+\fIlen\fP est négatif ou trop large.
+.TP 
+\fBEPERM\fP
+l'appelant n'est pas privilégié (Linux\ : n'a pas la capacité
+\fBCAP_SYS_ADMIN\fP).
+.PP
+\fBgetdomainname\fP() peut échouer avec les erreurs suivantes\ :
+.TP 
+\fBEINVAL\fP
+Avec \fBgetdomainname\fP() et la Libc\ : \fIname\fP est NULL ou \fIname\fP est plus
+long que \fIlen\fP.
+.SH CONFORMITÉ
+.\" But they appear on most systems...
+Ces fonctions ne sont pas spécifiées par POSIX.
+.SH NOTES
+Depuis Linux 1.0, la limite sur la taille d'un nom de domaine, octet nul de
+fin compris, est de 64 octets. Dans les noyaux plus anciens, elle était de 8
+octets.
+
+Sur la plupart des architectures Linux (x86 inclue), il n'y a pas d'appel
+système \fBgetdomainname\fP()\ ; à la place, la glibc implémente
+\fBgetdomainname\fP() comme une fonction de bibliothèque qui renvoie une copie
+du champ \fIdomainname\fP renvoyé par un appel à \fBuname\fP(2).
+.SH "VOIR AUSSI"
+\fBgethostname\fP(2), \fBsethostname\fP(2), \fBuname\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

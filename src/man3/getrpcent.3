@@ -1,0 +1,106 @@
+.\" This page was taken from the 4.4BSD-Lite CDROM (BSD license)
+.\"
+.\" @(#)getrpcent.3n	2.2 88/08/02 4.0 RPCSRC; from 1.11 88/03/14 SMI
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETRPCENT 3 "19 août 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+getrpcent, getrpcbyname, getrpcbynumber, setrpcent, endrpcent \- Lire une
+entrée RPC.
+.SH SYNOPSIS
+.nf
+\fB#include <netdb.h>\fP
+
+\fBstruct rpcent *getrpcent(void);\fP
+
+\fBstruct rpcent *getrpcbyname(char *\fP\fIname\fP\fB);\fP
+
+\fBstruct rpcent *getrpcbynumber(int \fP\fInumber\fP\fB);\fP
+
+\fBvoid setrpcent(int \fP\fIstayopen\fP\fB);\fP
+
+\fBvoid endrpcent(void);\fP
+.fi
+.SH DESCRIPTION
+.LP
+\fBgetrpcent\fP(), \fBgetrpcbyname\fP() et \fBgetrpcbynumber\fP() renvoient chacune
+un pointeur sur un objet ayant la structure suivante et contenant les champs
+d'une entrée de la base de données d'un programme RPC.
+.in +4n
+.nf
+
+struct rpcent {
+    char  *r_name;     /* nom du serveur pour ce programme RPC */
+    char **r_aliases;  /* liste d'alias */
+    long   r_number;   /* numéro de programme RPC */
+};
+.fi
+.in
+.LP
+Les membres de cette structure sont\ :
+.RS 4
+.TP  12
+\fIr_name\fP
+The name of the server for this RPC program.
+.TP 
+\fIr_aliases\fP
+Une liste, terminée par NULL, d'alternatives pour le programme RPC.
+.TP 
+\fIr_number\fP
+Le numéro de programme RPC pour ce service.
+.RE
+.LP
+\fBgetrpcent\fP() lit l'entrée suivante de la base. Une connexion est créée si
+nécessaire.
+.LP
+La fonction \fBsetrpcent\fP() ouvre une connexion à une base de données et
+définit l'entrée suivante avec la première entrée. Si \fIstayopen\fP est non
+nul, alors la connexion à la base n'est pas fermée entre deux appels aux
+fonctions \fBgetrpc*\fP().
+.LP
+\fBendrpcent\fP() ferme la connexion à la base..
+.LP
+\fBgetrpcbyname\fP() et \fBgetrpcbynumber\fP() recherchent séquentiellement depuis
+le début du fichier un nom ou un numéro de programme RPC correspondant
+jusqu'à la fin du fichier.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBgetrpcent\fP(), \fBgetrpcbyname\fP() et \fBgetrpcbynumber\fP()
+renvoient un pointeur vers une structure statiquement allouée \fIrpcent\fP. Un
+pointeur NULL est renvoyé si une erreur se produit ou si la fin de fichier
+est atteinte.
+.SH FICHIERS
+.TP 
+\fI/etc/rpc\fP
+Base de données des numéros de programme RPC.
+.SH CONFORMITÉ
+Absent de POSIX.1\-2001. Présent sur les systèmes BSD, Solaris et beaucoup
+d'autres.
+.SH BOGUES
+Toutes les informations sont stockées dans une zone statique et doivent donc
+être copiées si on désire les conserver.
+.SH "VOIR AUSSI"
+\fBgetrpcent_r\fP(3), \fBrpc\fP(5), \fBrpcinfo\fP(8), \fBypserv\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,835 @@
+.\" t
+.\" Copyright (c) 2005 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREADS 7 "18 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthreads \- Threads POSIX
+.SH DESCRIPTION
+POSIX.1 décrit une série d'interfaces (fonctions et fichiers d'en\(hytêtes)
+pour la programmation multithread, couramment appelée threads POSIX, ou
+pthreads. Un unique processus peut contenir plusieurs threads, qui exécutent
+tous le même programme. Ces threads partagent la même mémoire globale
+(segments de données et tas), mais chaque thread a sa propre pile (variables
+automatiques).
+
+POSIX.1 requiert aussi que les threads partagent une série d'autres
+attributs (ces attributs sont par processus, plutôt que par thread)\ :
+.IP \- 3
+identifiant de processus (PID)
+.IP \- 3
+identifiant de processus père (PPID)
+.IP \- 3
+identifiant de groupe de processus (PGID) et identifiant de session (SID)
+.IP \- 3
+terminal de contrôle
+.IP \- 3
+identifiants d'utilisateur et de groupe
+.IP \- 3
+descripteurs de fichier ouverts
+.IP \- 3
+verrouillages d'enregistrements (voir \fBfcntl\fP(2))
+.IP \- 3
+gestion de signaux
+.IP \- 3
+masque de création de fichier (\fBumask\fP(2))
+.IP \- 3
+répertoire de travail (\fBchdir\fP(2)) et répertoire racine (\fBchroot\fP(2))
+.IP \- 3
+temporisations d'intervalle (\fBsetitimer\fP(2)) et temporisations POSIX
+(\fBtimer_create\fP(2))
+.IP \- 3
+valeur de politesse (\fBsetpriority\fP(2))
+.IP \- 3
+limites de ressources (\fBsetrlimit\fP(2))
+.IP \- 3
+mesures de consommation de temps CPU (\fBtimes\fP(2)) et de ressources
+(\fBgetrusage\fP(2))
+.PP
+En plus de la pile, POSIX.1 indique que plusieurs autres attributs sont
+distincts pour chaque thread, dont les suivants\ :
+.IP \- 3
+identifiant de thread (le type de donnée \fIpthread_t\fP)
+.IP \- 3
+masque de signaux (\fBpthread_sigmask\fP(3))
+.IP \- 3
+la variable \fIerrno\fP
+.IP \- 3
+pile spécifique de signal (\fBsigaltstack\fP(2))
+.IP \- 3
+politique et priorité d'ordonnancement temps réel (\fBsched_setscheduler\fP(2)
+et \fBsched_setparam\fP(2))
+.PP
+Les caractéristiques spécifiques Linux suivantes sont également distinctes
+pour chaque thread\ :
+.IP \- 3
+capacités (voir \fBcapabilities\fP(7))
+.IP \- 3
+affinité CPU (\fBsched_setaffinity\fP(2))
+.SS "Valeurs de retour des fonctions pthreads"
+La plupart des fonctions pthreads renvoient 0 en cas de succès et un numéro
+d'erreur en cas d'échec. Notez que les fonctions pthreads ne positionnent
+pas \fIerrno\fP. Pour chacune des fonctions pthreads qui peuvent produire une
+erreur, POSIX.1\-2001 spécifie que la fonction ne peut pas échouer avec
+l'erreur \fBEINTR\fP.
+.SS "Identifiants de thread"
+Chacun des threads d'un processus a un unique identifiant de thread (stocké
+dans le type \fIpthread_t\fP). Cet identifiant est renvoyé à l'appelant de
+\fBpthread_create\fP(3) et un thread peut obtenir son propre identifiant de
+thread en utilisant \fBpthread_self\fP(3). Les identifiants de thread n'ont la
+garantie d'être uniques qu'à l'intérieur d'un processus. Un identifiant de
+thread peut être réutilisé après qu'un thread qui s'est terminé a été
+rejoint ou qu'un thread détaché se soit terminé. Pour toutes les fonctions
+qui acceptent un identifiant de thread en paramètre, cet identifiant de
+thread se réfère par définition à un thread du même processus que
+l'appelant.
+.SS "Fonctions sûres du point de vue des threads"
+Une fonction sûre du point de vue des threads est une fonction qui peut être
+appelée en toute sûreté (c'est\-à\-dire qu'elle renverra le même résultat d'où
+qu'elle soit appelée) par plusieurs threads en même temps.
+
+POSIX.1\-2001 et POSIX.1\-2008 exigent que toutes les fonctions indiquées dans
+la norme soient sûres du point de vue des threads, excepté les fonctions
+suivantes\ :
+.in +4n
+.nf
+
+asctime()
+basename()
+catgets()
+crypt()
+ctermid() avec un paramètre non NULL
+ctime()
+dbm_clearerr()
+dbm_close()
+dbm_delete()
+dbm_error()
+dbm_fetch()
+dbm_firstkey()
+dbm_nextkey()
+dbm_open()
+dbm_store()
+dirname()
+dlerror()
+drand48()
+ecvt() [POSIX.1\-2001 uniquement (fonction supprimée dans POSIX.1\-2008)]
+encrypt()
+endgrent()
+endpwent()
+endutxent()
+fcvt() [POSIX.1\-2001 uniquement (fonction supprimée dans POSIX.1\-2008)]
+ftw()
+gcvt() [POSIX.1\-2001 uniquement (fonction supprimée dans POSIX.1\-2008)]
+getc_unlocked()
+getchar_unlocked()
+getdate()
+getenv()
+getgrent()
+getgrgid()
+getgrnam()
+gethostbyaddr() [POSIX.1\-2001 uniquement (fonction supprimée dans POSIX.1\-2008)]
+gethostbyname() [POSIX.1\-2001 uniquement (fonction supprimée dans POSIX.1\-2008)]
+gethostent()
+getlogin()
+getnetbyaddr()
+getnetbyname()
+getnetent()
+getopt()
+getprotobyname()
+getprotobynumber()
+getprotoent()
+getpwent()
+getpwnam()
+getpwuid()
+getservbyname()
+getservbyport()
+getservent()
+getutxent()
+getutxid()
+getutxline()
+gmtime()
+hcreate()
+hdestroy()
+hsearch()
+inet_ntoa()
+l64a()
+lgamma()
+lgammaf()
+lgammal()
+localeconv()
+localtime()
+lrand48()
+mrand48()
+nftw()
+nl_langinfo()
+ptsname()
+putc_unlocked()
+putchar_unlocked()
+putenv()
+pututxline()
+rand()
+readdir()
+setenv()
+setgrent()
+setkey()
+setpwent()
+setutxent()
+strerror()
+strsignal() [Ajoutée dans POSIX.1\-2008]
+strtok()
+system() [Ajoutée dans POSIX.1\-2008]
+tmpnam() avec un paramètre non NULL
+ttyname()
+unsetenv()
+wcrtomb() si son dernier paramètre est NULL
+wcsrtombs() si son dernier paramètre est NULL
+wcstombs()
+wctomb()
+.fi
+.in
+.SS "Points d'annulation"
+POSIX.1 spécifie que certaines fonctions doivent, et certaines autres
+fonctions peuvent, être des points d'annulation. Si un thread est annulable,
+que son type d'annulation est retardé («\ deferred\ ») et qu'une demande
+d'annulation est en cours pour ce thread, alors le thread est annulé quand
+il appelle une fonction qui est un point d'annulation.
+
+POSIX.1\-2001 et/ou POSIX.1\-2008 exigent que les fonctions suivantes soient
+des points d'annulation\ :
+
+.\" FIXME
+.\" Document the list of all functions that are cancellation points in glibc
+.in +4n
+.nf
+accept()
+aio_suspend()
+clock_nanosleep()
+close()
+connect()
+creat()
+fcntl() F_SETLKW
+fdatasync()
+fsync()
+getmsg()
+getpmsg()
+lockf() F_LOCK
+mq_receive()
+mq_send()
+mq_timedreceive()
+mq_timedsend()
+msgrcv()
+msgsnd()
+msync()
+nanosleep()
+open()
+openat() [Ajoutée dans POSIX.1\-2008]
+pause()
+poll()
+pread()
+pselect()
+pthread_cond_timedwait()
+pthread_cond_wait()
+pthread_join()
+pthread_testcancel()
+putmsg()
+putpmsg()
+pwrite()
+read()
+readv()
+recv()
+recvfrom()
+recvmsg()
+select()
+sem_timedwait()
+sem_wait()
+send()
+sendmsg()
+sendto()
+sigpause() [POSIX.1\-2001 uniquement (dans la liste des fonction pouvant être un point d'annulation dans POSIX.1\-2008)]
+sigsuspend()
+sigtimedwait()
+sigwait()
+sigwaitinfo()
+sleep()
+system()
+tcdrain()
+usleep() [POSIX.1\-2001 uniquement (fonction supprimée dans POSIX.1\-2008)]
+wait()
+waitid()
+waitpid()
+write()
+writev()
+.fi
+.in
+
+POSIX.1\-2001 et/ou POSIX.1\-2008 indiquent que les fonctions suivantes
+peuvent être des points d'annulation\ :
+
+.in +4n
+.nf
+access()
+asctime()
+asctime_r()
+catclose()
+catgets()
+catopen()
+chmod() [Ajoutée dans POSIX.1\-2008]
+chown() [Ajoutée dans POSIX.1\-2008]
+closedir()
+closelog()
+ctermid()
+ctime()
+ctime_r()
+dbm_close()
+dbm_delete()
+dbm_fetch()
+dbm_nextkey()
+dbm_open()
+dbm_store()
+dlclose()
+dlopen()
+dprintf() [Ajoutée dans POSIX.1\-2008]
+endgrent()
+endhostent()
+endnetent()
+endprotoent()
+endpwent()
+endservent()
+endutxent()
+faccessat() [Ajoutée dans POSIX.1\-2008]
+fchmod() [Ajoutée dans POSIX.1\-2008]
+fchmodat() [Ajoutée dans POSIX.1\-2008]
+fchown() [Ajoutée dans POSIX.1\-2008]
+fchownat() [Ajoutée dans POSIX.1\-2008]
+fclose()
+fcntl() (pour toute valeur de l'argument cmd)
+fflush()
+fgetc()
+fgetpos()
+fgets()
+fgetwc()
+fgetws()
+fmtmsg()
+fopen()
+fpathconf()
+fprintf()
+fputc()
+fputs()
+fputwc()
+fputws()
+fread()
+freopen()
+fscanf()
+fseek()
+fseeko()
+fsetpos()
+fstat()
+fstatat() [Ajoutée dans POSIX.1\-2008]
+ftell()
+ftello()
+ftw()
+futimens() [Ajoutée dans POSIX.1\-2008]
+fwprintf()
+fwrite()
+fwscanf()
+getaddrinfo()
+getc()
+getc_unlocked()
+getchar()
+getchar_unlocked()
+getcwd()
+getdate()
+getdelim() [Ajoutée dans POSIX.1\-2008]
+getgrent()
+getgrgid()
+getgrgid_r()
+getgrnam()
+getgrnam_r()
+gethostbyaddr() [SUSv3 uniquement (fonction supprimée dans POSIX.1\-2008)]
+gethostbyname() [SUSv3 uniquement (fonction supprimée dans POSIX.1\-2008)]
+gethostent()
+gethostid()
+gethostname()
+getline() [Ajoutée dans POSIX.1\-2008]
+getlogin()
+getlogin_r()
+getnameinfo()
+getnetbyaddr()
+getnetbyname()
+getnetent()
+getopt() (si opterr est non nul)
+getprotobyname()
+getprotobynumber()
+getprotoent()
+getpwent()
+getpwnam()
+getpwnam_r()
+getpwuid()
+getpwuid_r()
+gets()
+getservbyname()
+getservbyport()
+getservent()
+getutxent()
+getutxid()
+getutxline()
+getwc()
+getwchar()
+getwd() [SUSv3 uniquement (fonction supprimée dans POSIX.1\-2008)]
+glob()
+iconv_close()
+iconv_open()
+ioctl()
+link()
+linkat() [Ajoutée dans POSIX.1\-2008]
+lio_listio() [Ajoutée dans POSIX.1\-2008]
+localtime()
+localtime_r()
+lockf() [Ajoutée dans POSIX.1\-2008]
+lseek()
+lstat()
+mkdir() [Ajoutée dans POSIX.1\-2008]
+mkdirat() [Ajoutée dans POSIX.1\-2008]
+mkdtemp() [Ajoutée dans POSIX.1\-2008]
+mkfifo() [Ajoutée dans POSIX.1\-2008]
+mkfifoat() [Ajoutée dans POSIX.1\-2008]
+mknod() [Ajoutée dans POSIX.1\-2008]
+mknodat() [Ajoutée dans POSIX.1\-2008]
+mkstemp()
+mktime()
+nftw()
+opendir()
+openlog()
+pathconf()
+pclose()
+perror()
+popen()
+posix_fadvise()
+posix_fallocate()
+posix_madvise()
+posix_openpt()
+posix_spawn()
+posix_spawnp()
+posix_trace_clear()
+posix_trace_close()
+posix_trace_create()
+posix_trace_create_withlog()
+posix_trace_eventtypelist_getnext_id()
+posix_trace_eventtypelist_rewind()
+posix_trace_flush()
+posix_trace_get_attr()
+posix_trace_get_filter()
+posix_trace_get_status()
+posix_trace_getnext_event()
+posix_trace_open()
+posix_trace_rewind()
+posix_trace_set_filter()
+posix_trace_shutdown()
+posix_trace_timedgetnext_event()
+posix_typed_mem_open()
+printf()
+psiginfo() [Ajoutée dans POSIX.1\-2008]
+psignal() [Ajoutée dans POSIX.1\-2008]
+pthread_rwlock_rdlock()
+pthread_rwlock_timedrdlock()
+pthread_rwlock_timedwrlock()
+pthread_rwlock_wrlock()
+putc()
+putc_unlocked()
+putchar()
+putchar_unlocked()
+puts()
+pututxline()
+putwc()
+putwchar()
+readdir()
+readdir_r()
+readlink() [Ajoutée dans POSIX.1\-2008]
+readlinkat() [Ajoutée dans POSIX.1\-2008]
+remove()
+rename()
+renameat() [Ajoutée dans POSIX.1\-2008]
+rewind()
+rewinddir()
+scandir() [Ajoutée dans POSIX.1\-2008]
+scanf()
+seekdir()
+semop()
+setgrent()
+sethostent()
+setnetent()
+setprotoent()
+setpwent()
+setservent()
+setutxent()
+sigpause() [Ajoutée dans POSIX.1\-2008]
+stat()
+strerror()
+strerror_r()
+strftime()
+symlink()
+symlinkat() [Ajoutée dans POSIX.1\-2008]
+sync()
+syslog()
+tmpfile()
+tmpnam()
+ttyname()
+ttyname_r()
+tzset()
+ungetc()
+ungetwc()
+unlink()
+unlinkat() [Ajoutée dans POSIX.1\-2008]
+utime() [Ajoutée dans POSIX.1\-2008]
+utimensat() [Ajoutée dans POSIX.1\-2008]
+utimes() [Ajoutée dans POSIX.1\-2008]
+vdprintf() [Ajoutée dans POSIX.1\-2008]
+vfprintf()
+vfwprintf()
+vprintf()
+vwprintf()
+wcsftime()
+wordexp()
+wprintf()
+wscanf()
+.fi
+.in
+
+.\" So, scanning "cancellation point" comments in the glibc 2.8 header
+.\" files, it looks as though at least the following non-standard
+.\" functions are cancellation points:
+.\" endnetgrent
+.\" endspent
+.\" epoll_pwait
+.\" epoll_wait
+.\" fcloseall
+.\" fdopendir
+.\" fflush_unlocked
+.\" fgetc_unlocked
+.\" fgetgrent
+.\" fgetgrent_r
+.\" fgetpwent
+.\" fgetpwent_r
+.\" fgets_unlocked
+.\" fgetspent
+.\" fgetspent_r
+.\" fgetwc_unlocked
+.\" fgetws_unlocked
+.\" fputc_unlocked
+.\" fputs_unlocked
+.\" fputwc_unlocked
+.\" fputws_unlocked
+.\" fread_unlocked
+.\" fwrite_unlocked
+.\" gai_suspend
+.\" getaddrinfo_a
+.\" getdate_r
+.\" getgrent_r
+.\" getgrouplist
+.\" gethostbyaddr_r
+.\" gethostbyname2
+.\" gethostbyname2_r
+.\" gethostbyname_r
+.\" gethostent_r
+.\" getnetbyaddr_r
+.\" getnetbyname_r
+.\" getnetent_r
+.\" getnetgrent
+.\" getnetgrent_r
+.\" getprotobyname_r
+.\" getprotobynumber_r
+.\" getprotoent_r
+.\" getpw
+.\" getpwent_r
+.\" getservbyname_r
+.\" getservbyport_r
+.\" getservent_r
+.\" getspent
+.\" getspent_r
+.\" getspnam
+.\" getspnam_r
+.\" getutmp
+.\" getutmpx
+.\" getw
+.\" getwc_unlocked
+.\" getwchar_unlocked
+.\" initgroups
+.\" innetgr
+.\" mkostemp
+.\" mkostemp64
+.\" mkstemp64
+.\" ppoll
+.\" pthread_timedjoin_np
+.\" putgrent
+.\" putpwent
+.\" putspent
+.\" putw
+.\" putwc_unlocked
+.\" putwchar_unlocked
+.\" rcmd
+.\" rcmd_af
+.\" rexec
+.\" rexec_af
+.\" rresvport
+.\" rresvport_af
+.\" ruserok
+.\" ruserok_af
+.\" setnetgrent
+.\" setspent
+.\" sgetspent
+.\" sgetspent_r
+.\" updwtmpx
+.\" utmpxname
+.\" vfscanf
+.\" vfwscanf
+.\" vscanf
+.\" vsyslog
+.\" vwscanf
+Une implémentation peut également indiquer d'autres fonctions non spécifiées
+dans la norme comme étant des points d'annulation. En particulier, une
+implémentation marquera probablement toute fonction non standard qui peut
+bloquer comme étant un point d'annulation (ceci inclus la plupart des
+fonctions qui peuvent toucher des fichiers).
+.SS "Compiler sous Linux"
+Sous Linux, les programmes utilisant l'API pthreads doivent être compilés
+avec \fIcc \-pthread\fP.
+.SS "Implémentations des threads POSIX sous Linux"
+Deux implémentations différentes des threads ont été fournies par la
+bibliothèque C de GNU sous Linux\ :
+.TP 
+\fBLinuxThreads\fP
+Il s'agit de l'implémentation des Pthreads originelle. Depuis la glibc\ 2.4,
+cette implémentation n'est plus prise en charge.
+.TP 
+\fBNPTL\fP (Native POSIX Threads Library)
+Il s'agit de l'implémentation moderne des Pthreads. Par rapport à
+LinuxThreads, NPTL se conforme mieux aux exigences de la norme POSIX.1, et
+une meilleure performance lors de la création d'un grand nombre de
+threads. NPTL est disponible depuis la glibc\ 2.3.2, et nécessite des
+fonctionnalités présentes dans le noyau Linux\ 2.6.
+.PP
+Ces deux implémentation sont dit de type 1:1, ce qui veut dire que chaque
+thread correspond à une entité d'ordonnancement du noyau. Les deux
+implémentations utilisent l'appel système \fBclone\fP(2) de Linux. Dans NPTL,
+les primitives de synchronisation de threads (mutexes, jonction de thread,
+etc.) sont implémentées avec l'appel système \fBfutex\fP(2) de Linux.
+.SS LinuxThreads
+Les fonctionnalités importantes de cette implémentation sont les suivantes\
+:
+.IP \- 3
+En plus du thread principal (initial) et des threads créés par le programme
+avec \fBpthread_create\fP(3), l'implémentation crée un thread de gestion. Ce
+thread s'occupe de la création et de la terminaison des threads. Des
+problèmes peuvent survenir si ce thread est tué de façon imprévue.
+.IP \- 3
+Les signaux sont utilisés en interne par l'implémentation. Sous Linux 2.2 et
+suivants, les trois premiers signaux temps\-réel sont utilisés (voir aussi
+\fBsignal\fP(7)). Sous les noyaux plus anciens, LinuxThreads utilise \fBSIGUSR1\fP
+et \fBSIGUSR2\fP. Les applications doivent éviter d'utiliser les signaux
+utilisés par l'implémentation.
+.IP \- 3
+Les threads ne partagent pas leur identifiant de processus. (En fait, les
+threads LinuxThreads sont implémentés comme des processus partageant plus
+d'informations qu'à l'habitude, mais pas leur identifiant de processus.) Les
+threads LinuxThreads (y compris le thread de gestion) sont visibles comme
+des processus différents avec \fBps\fP(1).
+.PP
+L'implémentation LinuxThreads s'écarte de la spécification POSIX.1 par
+plusieurs aspects, dont les suivants\ :
+.IP \- 3
+Les appels à \fBgetpid\fP(2) renvoient une valeur distincte dans chaque thread.
+.IP \- 3
+Les appels à \fBgetppid\fP(2) dans les threads autres que le thread principal
+renvoient l'identifiant de processus du thread de gestion\ ; \fBgetppid\fP(2)
+dans ces threads devrait renvoyer la même valeur que dans le thread
+principal.
+.IP \- 3
+Lorsqu'un thread crée un nouveau processus fils avec \fBfork\fP(2), n'importe
+quel thread devrait pouvoir utiliser \fBwait\fP(2) pour attendre la terminaison
+de ce fils. Cependant, l'implémentation ne permet qu'au thread ayant créé le
+fils d'appeler \fBwait\fP(2) pour l'attendre.
+.IP \- 3
+Lorsqu'un thread appelle \fBexecve\fP(2), tous les autres threads sont terminés
+(comme le prescrit POSIX.1). Cependant, le processus résultant a le même PID
+que le thread ayant appelé \fBexecve\fP(2)\ : il devrait avoir le même PID que
+le thread principal.
+.IP \- 3
+Les threads ne partagent pas leurs identifiants d'utilisateur et de
+groupe. Ceci peut causer des complications pour les programmes setuid et
+provoquer des erreurs dans les fonctions pthreads si une application change
+d'identifiant avec \fBseteuid\fP(2) et consorts.
+.IP \- 3
+Les threads ne partagent pas l'identifiant de session et de groupe de
+processus.
+.IP \- 3
+Les threads ne partagent pas les verrouillages d'enregistrements créés avec
+\fBfcntl\fP(2).
+.IP \- 3
+L'information renvoyée par \fBtimes\fP(2) et \fBgetrusage\fP(2) est par thread au
+lieu d'être par processus.
+.IP \- 3
+Les threads ne partagent pas les valeurs «\ undo\ » de sémaphores (voir
+\fBsemop\fP(2)).
+.IP \- 3
+Les threads ne partagent pas les temporisations d'intervalles.
+.IP \- 3
+Les threads ne partagent pas leur valeur de politesse.
+.IP \- 3
+POSIX.1 distingue les notions de signal envoyé au processus dans son
+ensemble, et de signal envoyé à un thread individuellement. Selon POSIX.1,
+un signal envoyé au processus (par exemple avec \fBkill\fP(2)) sera géré par un
+thread choisi arbitrairement au sein du processus. LinuxThreads ne permet
+pas d'envoyer un signal au processus, mais seulement à un thread spécifique.
+.IP \- 3
+Les threads ont des paramètres de pile spécifique de signal
+distincts. Cependant, les paramètres de pile spécifique d'un nouveau thread
+sont copiés à partir du thread qui l'a créé, ce qui veut dire que les
+threads partagent initialement une même pile spécifique de signaux. (Un
+nouveau thread devrait démarrer sans pile spécifique de signaux. Si deux
+threads gèrent un signal sur leur pile spécifique au même moment, des échecs
+imprévisibles du programme risquent de se produire.)
+.SS NPTL
+Avec NPTL, tous les threads d'un processus sont placés dans le même groupe
+de threads. Tous les membres d'un groupe de threads partagent le même
+PID. NPTL n'utilise pas de thread de gestion. NPTL utilise en interne les
+deux premiers signaux temps\(hyréel (voir aussi \fBsignal\fP(7))\ ; ces signaux
+ne peuvent pas être utilisés dans les applications.
+
+NPTL a encore au moins une non conformité à POSIX.1\ :
+.IP \- 3
+.\" FIXME . bug report filed for NPTL nice non-conformance
+.\" http://bugzilla.kernel.org/show_bug.cgi?id=6258
+.\" Sep 08: there is a patch by Denys Vlasenko to address this
+.\" "make setpriority POSIX compliant; introduce PRIO_THREAD extension"
+.\" Monitor this to see if it makes it into mainline.
+Les threads ne partagent pas leur valeur de politesse.
+.PP
+Certaines non conformités n'apparaissent qu'avec des noyaux plus anciens\ :
+.IP \- 3
+L'information renvoyée par \fBtimes\fP(2) et \fBgetrusage\fP(2) est par thread au
+lieu d'être globale au processus (corrigé dans le noyau 2.6.9).
+.IP \- 3
+Les threads ne partagent pas les limites de ressources (corrigé dans le
+noyau 2.6.10).
+.IP \- 3
+Les threads ne partagent pas les temporisations d'intervalles (corrigé dans
+le noyau 2.6.12).
+.IP \- 3
+Seul le thread principal est autorisé à démarrer une nouvelle session avec
+\fBsetsid\fP(2) (corrigé dans le noyau 2.6.16).
+.IP \- 3
+Seul le thread principal est autorisé à rendre le processus leader de son
+groupe de processus avec \fBsetpgid\fP(2) (corrigé dans le noyau 2.6.16).
+.IP \- 3
+Les threads ont des paramètres de pile spécifique de signaux
+distincts. Cependant, les paramètres de pile spécifique d'un nouveau thread
+sont copiés sur ceux du thread qui l'a créé, et les threads partagent donc
+initialement leur pile spécifique de signaux (corrigé dans le noyau 2.6.16).
+.PP
+Veuillez noter les points suivants à propos de l'implémentation NPTL\ :
+.IP \- 3
+Si la limite souple de taille de pile (voir dans \fBsetrlimit\fP(2) la
+description de \fBRLIMIT_STACK\fP) est différente de \fIunlimited\fP, cette valeur
+détermine la taille de pile par défaut pour les nouveaux threads. Pour avoir
+un effet, cette limite doit être fixée avant le démarrage du programme, par
+exemple en utilisant la commande \fIulimit \-s\fP du shell (\fIlimit stacksize\fP
+dans csh).
+.SS "Déterminer l'implémentation des threads utilisée"
+Depuis glibc 2.3.2, la commande \fBgetconf\fP(1) peut être utilisée pour
+déterminer l'implémentation de threads du système, par exemple\ :
+.nf
+.in +4n
+
+bash$ getconf GNU_LIBPTHREAD_VERSION
+NPTL 2.3.4
+.in
+.fi
+.PP
+Avec des versions plus anciennes de la glibc, une commande comme la suivante
+devrait être suffisante pour déterminer l'implémentation de threads par
+défaut\ :
+.nf
+.in +4n
+
+bash$ $( ldd /bin/ls | grep libc.so | awk \(aq{print $3}\(aq ) | \e
+                egrep \-i \(aqthreads|nptl\(aq
+        Native POSIX Threads Library by Ulrich Drepper et al
+.in
+.fi
+.SS "Choisir l'implémentation des threads\ : LD_ASSUME_KERNEL"
+Sur les systèmes avec une glibc fournissant à la fois LinuxThreads et NPTL
+(i.e. glibc\ 2.3.\fIx\fP), la variable d'environnement \fBLD_ASSUME_KERNEL\fP peut
+être utilisée pour écraser le choix par défaut d'implémentation de threads
+fait par l'éditeur de liens dynamique. Cette variable indique à l'éditeur de
+liens dynamique qu'il doit faire comme s'il était exécuté avec une version
+particulière du noyau. En indiquant une version du noyau ne fournissant pas
+les fonctionnalités nécessitées par NPTL, on peut forcer l'utilisation de
+LinuxThreads. (La raison la plus probable pour cela est d'exécuter une
+application (boguée) qui dépend d'un comportement de LinuxThreads non
+conforme à la spécification.) Par exemple\ :
+.nf
+.in +4n
+
+bash$ $( LD_ASSUME_KERNEL=2.2.5 ldd /bin/ls | grep libc.so | \e
+                awk \(aq{print $3}\(aq ) | egrep \-i \(aqthreads|ntpl\(aq
+        linuxthreads\-0.10 by Xavier Leroy
+.in
+.fi
+.SH "VOIR AUSSI"
+\fBclone\fP(2), \fBfutex\fP(2), \fBgettid\fP(2), \fBproc\fP(5), \fBfutex\fP(7),
+\fBsignal\fP(7),
+.br
+et diverses pages de manuel Pthreads, par exemple\ :
+\fBpthread_attr_init\fP(3), \fBpthread_atfork\fP(3), \fBpthread_cancel\fP(3),
+\fBpthread_cleanup_push\fP(3), \fBpthread_cond_signal\fP(3),
+\fBpthread_cond_wait\fP(3), \fBpthread_create\fP(3), \fBpthread_detach\fP(3),
+\fBpthread_equal\fP(3), \fBpthread_exit\fP(3), \fBpthread_key_create\fP(3),
+\fBpthread_kill\fP(3), \fBpthread_mutex_lock\fP(3), \fBpthread_mutex_unlock\fP(3),
+\fBpthread_once\fP(3), \fBpthread_setcancelstate\fP(3),
+\fBpthread_setcanceltype\fP(3), \fBpthread_setspecific\fP(3),
+\fBpthread_sigmask\fP(3) et \fBpthread_testcancel\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

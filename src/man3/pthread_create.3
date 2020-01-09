@@ -1,0 +1,332 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_CREATE 3 "11 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_create \- Créer un nouveau thread
+.SH SYNOPSIS
+.nf
+\fB#include <pthread.h>\fP
+
+\fBint pthread_create(pthread_t *\fP\fIthread\fP\fB, const pthread_attr_t *\fP\fIattr\fP\fB,\fP
+\fB                   void *(*\fP\fIstart_routine\fP\fB) (void *), void *\fP\fIarg\fP\fB);\fP
+.fi
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.SH DESCRIPTION
+La fonction \fBpthread_create\fP()  démarre un nouveau thread dans le processus
+appelant. Le nouveau thread commence par appeler \fIstart_routine\fP()\ ;
+\fIarg\fP est passé comme unique argument de \fIstart_routine\fP().
+
+Le nouveau thread se termine d'une des manières suivantes\ :
+.IP * 2
+Il appelle \fBpthread_exit\fP(3), en indiquant une valeur de sortie qui sera
+disponible pour pour un autre thread du même processus qui appelle
+\fBpthread_join\fP(3).
+.IP *
+Il sort de la routine \fIstart_routine\fP(). C'est équivalent à appeler
+\fBpthread_exit\fP(3)  avec la valeur fournie à l'instruction \fIreturn\fP.
+.IP *
+Il est annulé (voir  \fBpthread_cancel\fP(3)).
+.IP *
+Un des threads du processus appelle \fBexit\fP(3), ou le thread principal sort
+de la routine \fImain\fP(). Cela entraine l'arrêt de tous les threads du
+processus.
+.PP
+L'argument \fIattr\fP pointe sur une structure \fIpthread_attr_t\fP dont le
+contenu est utilisé pendant la création des threads pour déterminer les
+attributs du nouveau thread. Cette structure est initialisée avec
+\fBpthread_attr_init\fP(3) et les fonctions similaires. Si \fIattr\fP est NULL,
+alors le thread est créé avec les attributs par défaut.
+
+Avant de revenir, un appel réussi à \fBpthread_create\fP()  stocke
+l'identifiant du nouveau thread dans le tampon pointé par \fIthread\fP. Cet
+identifiant est utilisé pour se référer à ce thread dans les appels
+ultérieurs aux autres fonctions de pthreads.
+
+Le nouveau thread hérite d'une copie du masque de signal du thread créateur
+(\fBpthread_sigmask\fP(3)). L'ensemble des signaux en attente pour le nouveau
+thread est vide (\fBsigpending\fP(2)). Le nouveau thread n'hérite pas de la
+pile spécifique de signaux (\fBsigaltstack\fP(2)) du thread appelant.
+
+Le nouveau thread hérite de l'environnement en virgule flottante
+(\fBfenv\fP(3)) du thread appelant.
+
+.\" CLOCK_THREAD_CPUTIME_ID in clock_gettime(2)
+La valeur initiale de l'horloge CPU du nouveau thread est 0 (voir
+\fBpthread_getcpuclockid\fP(3)).
+.SS "Détails spécifiques à Linux"
+Le nouveau thread hérite de copies des ensembles des capacités (voir
+\fBcapabilities\fP(7))  et des masques d'affinité CPU (voir
+\fBsched_setaffinity\fP(2)).
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, \fBpthread_create\fP() renvoie 0\ ; en cas d'erreur, elle
+renvoie un numéro d'erreur, et le contenu de \fI*thread\fP est indéfini.
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+Ressources insuffisantes pour créer un nouveau thread, ou une limite sur le
+nombre de threads imposée par le système a été atteinte. Ce dernier cas peut
+arriver de deux façons\ : la limite souple \fBRLIMIT_NPROC\fP (changée par
+\fBsetrlimit\fP(2)), qui limite le nombre de processus pour un identifiant
+d'utilisateur réel, a été atteinte\ ; ou alors la limite imposée par le
+noyau sur le nombre total de threads, \fI/proc/sys/kernel/threads\-max\fP, a été
+atteinte.
+.TP 
+\fBEINVAL\fP
+Paramètres invalides dans \fIattr\fP.
+.TP 
+.\" FIXME . Test the following
+\fBEPERM\fP
+Permissions insuffisantes pour définir la politique d'ordonnancement et les
+paramètres spécifiés dans \fIattr\fP.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Voir \fBpthread_self\fP(3)  pour des informations plus détaillées sur
+l'identifiant de thread renvoyé dans \fI*thread\fP par
+\fBpthread_create\fP(). Sauf si une politique d'ordonnancement temps\-réel est
+employée, après un appel à \fBpthread_create\fP(), on ne sait pas quel thread
+\(em l'appelant ou le nouveau thread \(em sera exécuté ensuite.
+
+Un thread peut être dans un état soit joignable (\fIjoinable\fP), soit détaché
+(\fIdetached\fP). Si un thread est joignable, un autre thread peut appeler
+\fBpthread_join\fP(3)  pour attendre que ce thread se termine, et récupérer sa
+valeur de sortie. Ce n'est que quand un thread terminé et joignable a été
+joint que ses ressources sont rendues au système. Quand un thread détaché se
+termine, ses ressources sont automatiquement rendues au système\ ; il n'est
+pas possible de joindre un tel thread afin d'en obtenir la valeur de
+sortie. Mettre un thread dans l'état détaché est pratique pour certains
+types de démons qui ne se préoccupent pas de la valeur de sortie de ses
+threads. Par défaut, un nouveau thread est créé dans l'état joignable, à
+moins qu'\fIattr\fP n'ait été modifié (avec \fBpthread_attr_setdetachstate\fP(3))
+pour créer le thread dans un état détaché.
+
+.\" FIXME . Perhaps some of the following detail should be in
+.\" a future pthread_attr_setstacksize(3) page.
+Sous Linux/x86\-32, la taille de la pile par défaut pour un nouveau thread
+est de 2 mégaoctets. Avec l'implémentation NPTL, si la limite souple
+\fBRLIMIT_STACK\fP a une valeur autre qu'«\ unlimited\ » \fIau moment où le
+programme a démarré\fP, alors elle détermine la taille de la pile par défaut
+pour les nouveaux threads. Afin d'obtenir une taille de pile différente de
+la valeur par défaut, il faut appeler \fBpthread_attr_setstacksize\fP(3) avec
+la valeur souhaitée sur l'argument \fIattr\fP utilisé pour créer un thread.
+.SH EXEMPLE
+Le programme ci\-dessous montre l'utilisation de \fBpthread_create\fP(), ainsi
+qu'un certain nombre d'autres fonctions de l'API pthreads.
+
+Lors de l'exécution suivante, sur un système avec l'implémentation NPTL, la
+taille de la pile vaut par défaut la valeur renvoyée par la limite de la
+ressource «\ stack size\ » (taille de la pile)\ :
+
+.in +4n
+.nf
+$\fB ulimit \-s\fP
+8192            # The stack size limit is 8 MB (0x80000 bytes)
+$\fB ./a.out hola salut servus\fP
+Thread 1: top of stack near 0xb7dd03b8; argv_string=hola
+Thread 2: top of stack near 0xb75cf3b8; argv_string=salut
+Thread 3: top of stack near 0xb6dce3b8; argv_string=servus
+Joined with thread 1; returned value was HOLA
+Joined with thread 2; returned value was SALUT
+Joined with thread 3; returned value was SERVUS
+.fi
+.in
+
+Lors de l'exécution suivante, le programme définit explicitement une taille
+de pile de 1\ Mo (avec \fBpthread_attr_setstacksize\fP(3))  pour les threads
+créés\ :
+
+.in +4n
+.nf
+$\fB ./a.out \-s 0x100000 hola salut servus\fP
+Thread 1: top of stack near 0xb7d723b8; argv_string=hola
+Thread 2: top of stack near 0xb7c713b8; argv_string=salut
+Thread 3: top of stack near 0xb7b703b8; argv_string=servus
+Joined with thread 1; returned value was HOLA
+Joined with thread 2; returned value was SALUT
+Joined with thread 3; returned value was SERVUS
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <pthread.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <ctype.h>
+
+#define handle_error_en(en, msg) \e
+        do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
+
+#define handle_error(msg) \e
+        do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+struct thread_info {    /* Used as argument to thread_start() */
+    pthread_t thread_id;        /* ID returned by pthread_create() */
+    int       thread_num;       /* Application\-defined thread # */
+    char     *argv_string;      /* From command\-line argument */
+};
+
+/* Thread start function: display address near top of our stack,
+   and return upper\-cased copy of argv_string */
+
+static void *
+thread_start(void *arg)
+{
+    struct thread_info *tinfo = (struct thread_info *) arg;
+    char *uargv, *p;
+
+    printf("Thread %d: top of stack near %p; argv_string=%s\en",
+            tinfo\->thread_num, &p, tinfo\->argv_string);
+
+    uargv = strdup(tinfo\->argv_string);
+    if (uargv == NULL)
+        handle_error("strdup");
+
+    for (p = uargv; *p != \(aq\e0\(aq; p++)
+        *p = toupper(*p);
+
+    return uargv;
+}
+
+int
+main(int argc, char *argv[])
+{
+    int s, tnum, opt, num_threads;
+    struct thread_info *tinfo;
+    pthread_attr_t attr;
+    int stack_size;
+    void *res;
+
+    /* The "\-s" option specifies a stack size for our threads */
+
+    stack_size = \-1;
+    while ((opt = getopt(argc, argv, "s:")) != \-1) {
+        switch (opt) {
+        case \(aqs\(aq:
+            stack_size = strtoul(optarg, NULL, 0);
+            break;
+
+        default:
+            fprintf(stderr, "Usage: %s [\-s stack\-size] arg...\en",
+                    argv[0]);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    num_threads = argc \- optind;
+
+    /* Initialize thread creation attributes */
+
+    s = pthread_attr_init(&attr);
+    if (s != 0)
+        handle_error_en(s, "pthread_attr_init");
+
+    if (stack_size > 0) {
+        s = pthread_attr_setstacksize(&attr, stack_size);
+        if (s != 0)
+            handle_error_en(s, "pthread_attr_setstacksize");
+    }
+
+    /* Allocate memory for pthread_create() arguments */
+
+    tinfo = calloc(num_threads, sizeof(struct thread_info));
+    if (tinfo == NULL)
+        handle_error("calloc");
+
+    /* Create one thread for each command\-line argument */
+
+    for (tnum = 0; tnum < num_threads; tnum++) {
+        tinfo[tnum].thread_num = tnum + 1;
+        tinfo[tnum].argv_string = argv[optind + tnum];
+
+        /* The pthread_create() call stores the thread ID into
+           corresponding element of tinfo[] */
+
+        s = pthread_create(&tinfo[tnum].thread_id, &attr,
+                           &thread_start, &tinfo[tnum]);
+        if (s != 0)
+            handle_error_en(s, "pthread_create");
+    }
+
+    /* Destroy the thread attributes object, since it is no
+       longer needed */
+
+    s = pthread_attr_destroy(&attr);
+    if (s != 0)
+        handle_error_en(s, "pthread_attr_destroy");
+
+    /* Now join with each thread, and display its returned value */
+
+    for (tnum = 0; tnum < num_threads; tnum++) {
+        s = pthread_join(tinfo[tnum].thread_id, &res);
+        if (s != 0)
+            handle_error_en(s, "pthread_join");
+
+        printf("Joined with thread %d; returned value was %s\en",
+                tinfo[tnum].thread_num, (char *) res);
+        free(res);      /* Free memory allocated by thread */
+    }
+
+    free(tinfo);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH BOGUES
+Dans l'implémentation obsolète LinuxThreads, chacun des threads dans un
+processus a un identifiant de processus différent. Ceci est en violation des
+spécifications POSIX sur les threads, et est la cause de beaucoup de non
+conformité au standard. Voir \fBpthreads\fP(7).
+.SH "VOIR AUSSI"
+\fBgetrlimit\fP(2), \fBpthread_attr_init\fP(3), \fBpthread_cancel\fP(3),
+\fBpthread_detach\fP(3), \fBpthread_equal\fP(3), \fBpthread_exit\fP(3),
+\fBpthread_getattr_np\fP(3), \fBpthread_join\fP(3), \fBpthread_self\fP(3),
+\fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Denis Barbier (2010).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

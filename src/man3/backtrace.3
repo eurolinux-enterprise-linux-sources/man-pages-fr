@@ -1,0 +1,207 @@
+.\" Copyright (C) 2007 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" drawing on material by Justin Pryzby <pryzbyj@justinpryzby.com>
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+.\" CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+.\" TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+.\" SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" References:
+.\"   glibc manual and source
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH BACKTRACE 3 "14 juin 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+backtrace, backtrace_symbols, backtrace_symbols_fd \- Outils d'auto\-débogage
+d'applications
+.SH SYNOPSIS
+\fB#include <execinfo.h>\fP
+
+\fBint backtrace(void\fP \fB**\fP\fIbuffer\fP\fB,\fP \fBint\fP \fIsize\fP\fB);\fP
+
+\fBchar **backtrace_symbols(void *const\fP \fB*\fP\fIbuffer\fP\fB,\fP \fBint\fP
+\fIsize\fP\fB);\fP
+
+\fBvoid backtrace_symbols_fd(void *const\fP \fB*\fP\fIbuffer\fP\fB,\fP \fBint\fP
+\fIsize\fP\fB,\fP \fBint\fP \fIfd\fP\fB);\fP
+.SH DESCRIPTION
+\fBbacktrace\fP() renvoie une trace des appels du programme dans un tableau
+pointé par \fIbuffer\fP. Une trace est une série d'appels de fonction
+actuellement actif d'un programme. Chaque élément du tableau pointé par
+\fIbuffer\fP est de type \fIvoid *\fP, et correspond à l'adresse de retour de la
+«\ stack frame\ » correspondante. Le paramètre \fIsize\fP spécifie le nombre
+maximum d'adresses qui peut être enregistré dans \fIbuffer\fP. Si la trace est
+plus grande que \fIsize\fP, alors les adresses correspondant aux \fIsize\fP plus
+récents appels de fonction sont retournées. Pour obtenir une trace complète,
+soyez sûre que \fIbuffer\fP et \fIsize\fP sont assez grand.
+
+À partir des adresses renvoyées par \fBbacktrace\fP() dans le \fIbuffer\fP,
+\fBbacktrace_symbols\fP() traduit les adresses en un tableau de chaînes qui
+donne les symboles associés à ces adresses. Le paramètre \fIsize\fP indique le
+nombre d'adresses dans le \fIbuffer\fP. La représentation symbolique de chaque
+adresse consiste en un nom de fonction (s'il peut être déterminé), un
+décalage hexadécimal à l'intérieur de la fonction, et l'adresse
+(hexadécimale) de retour. L'adresse du tableau de chaînes est renvoyé comme
+résultat de la fonction \fBbacktrace_symbols\fP(). Ce tableau est alloué avec
+\fBmalloc\fP(3) par \fBbacktrace_symbols\fP() et doit être libéré par
+l'appelant. Les chaînes pointées par le tableau de pointeurs n'ont pas et ne
+devraient pas être libérées.
+
+\fBbacktrace_symbols_fd\fP() prend les mêmes paramètres \fIbuffer\fP et \fIsize\fP
+que \fBbacktrace_symbols\fP() mais au lieu de renvoyer un tableau de chaînes à
+l'appelant, elle écrit les chaînes ligne par ligne dans le descripteur de
+fichier \fIfd\fP. \fBbacktrace_symbols_fd\fP() n'appelle pas \fBmalloc\fP(3) et peut
+donc être utilisée dans des conditions où cette dernière fonction risque
+d'échouer.
+.SH "VALEUR RENVOYÉE"
+\fBbacktrace\fP() fournit le nombre d'adresses renvoyées dans le \fIbuffer\fP, qui
+ne sera pas supérieur à \fIsize\fP. Si la valeur de retour est inférieure à
+\fIsize\fP, alors toute la trace a pu être sauvée\ ; si elle est égale à
+\fIsize\fP, alors il se peut qu'elle ait été tronquée et les adresses des
+trames les plus anciennes sur la pile ne sont pas renvoyées.
+
+En cas de succès, \fBbacktrace_symbols\fP() renvoie un pointeur vers le tableau
+alloué avec \fBmalloc\fP(3). En cas d'erreur NULL est renvoyé.
+.SH VERSIONS
+\fBbacktrace\fP(), \fBbacktrace_symbols\fP() et \fBbacktrace_symbols_fd\fP() sont
+fournies par la glibc depuis la version\ 2.1.
+.SH CONFORMITÉ
+Ces fonctions sont des extensions GNU.
+.SH NOTES
+Ces fonctions font des suppositions sur la façon dont l'adresse de retour
+d'une fonction est sauvegardée dans la pile. Prenez note des points
+suivants\ :
+.IP * 3
+L'omission du pointeur de trame (comme le fait \fBgcc\fP(1) avec les niveaux
+d'optimisation différents de zéro) peut être incompatible avec ces
+suppositions.
+.IP *
+Les fonctions en lignes («\ inline\ ») n'apparaissent pas sur la pile.
+.IP *
+Avec les optimisations de type Tail\-call une trame sur la pile peut être
+remplacée par une autre.
+.PP
+Le nom des symboles peut ne pas être disponible si certaines options de
+l'éditeur de liens n'ont pas été utilisées. Pour les systèmes qui utilisent
+l'éditeur de liens GNU, il faut utiliser l'option \fI\-rdynamic\fP. Notez que
+les noms des fonctions statiques (avec le mot clef «\ static\ ») ne sont pas
+exposés, et ne seront pas disponibles pour la trace.
+.SH EXEMPLE
+Le programme ci\-dessous explique l'utilisation de \fBbacktrace\fP() et
+\fBbacktrace_symbols\fP(). Les sessions d'interpréteur de commandes montrent ce
+que produira l'exécution du programme\ :
+.nf
+.in +4n
+
+$\fB cc \-rdynamic prog.c \-o prog\fP
+$\fB ./prog 3\fP
+backtrace() returned 8 addresses
+\&./prog(myfunc3+0x5c) [0x80487f0]
+\&./prog [0x8048871]
+\&./prog(myfunc+0x21) [0x8048894]
+\&./prog(myfunc+0x1a) [0x804888d]
+\&./prog(myfunc+0x1a) [0x804888d]
+\&./prog(main+0x65) [0x80488fb]
+\&/lib/libc.so.6(__libc_start_main+0xdc) [0xb7e38f9c]
+\&./prog [0x8048711]
+.in
+.fi
+.SS "Source du programme"
+\&
+.nf
+#include <execinfo.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+void
+myfunc3(void)
+{
+    int j, nptrs;
+#define SIZE 100
+    void *buffer[100];
+    char **strings;
+
+    nptrs = backtrace(buffer, SIZE);
+    printf("backtrace() returned %d addresses\en", nptrs);
+
+    /* The call backtrace_symbols_fd(buffer, nptrs, STDOUT_FILENO)
+       would produce similar output to the following: */
+
+    strings = backtrace_symbols(buffer, nptrs);
+    if (strings == NULL) {
+        perror("backtrace_symbols");
+        exit(EXIT_FAILURE);
+    }
+
+    for (j = 0; j < nptrs; j++)
+        printf("%s\en", strings[j]);
+
+    free(strings);
+}
+
+static void   /* "static" means don\(aqt export the symbol... */
+myfunc2(void)
+{
+    myfunc3();
+}
+
+void
+myfunc(int ncalls)
+{
+    if (ncalls > 1)
+        myfunc(ncalls \- 1);
+    else
+        myfunc2();
+}
+
+int
+main(int argc, char *argv[])
+{
+    if (argc != 2) {
+        fprintf(stderr, "%s num\-calls\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    myfunc(atoi(argv[1]));
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBgcc\fP(1), \fBld\fP(1), \fBdlopen\fP(3), \fBmalloc\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

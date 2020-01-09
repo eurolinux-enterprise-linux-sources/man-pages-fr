@@ -1,0 +1,122 @@
+.\" Copyright (c) 2007 Silicon Graphics, Inc. All Rights Reserved
+.\" Written by Dave Chinner <dgc@sgi.com>
+.\" May be distributed as per GNU General Public License version 2.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FALLOCATE 2 "13 mars 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+fallocate \- Manipuler un espace de fichier
+.SH SYNOPSIS
+.nf
+#define _GNU_SOURCE
+\fB#include <fcntl.h>\fP
+
+\fBint fallocate(int \fP\fIfd\fP\fB, int \fP\fImode\fP\fB, off_t \fP\fIoffset\fP\fB, off_t \fP\fIlen\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+C'est un appel système spécifique à Linux et non portable. Pour la méthode
+portable, spécifiée par POSIX.1, pour assurer que de l'espace est alloué
+pour un fichier, consultez \fBposix_fallocate\fP().
+
+\fBfallocate\fP() permet à l'appelant de manipuler directement l'espace disque
+alloué pour le fichier référencé par \fIfd\fP pour la plage d'octets débutant à
+\fIoffset\fP et de longueur \fIlen\fP octets.
+
+Le paramètre \fImode\fP définit l'opération à effectuer sur la plage
+donnée. Actuellement, un seul attribut est pris en charge pour \fImode\fP\ :
+.TP 
+\fBFALLOC_FL_KEEP_SIZE\fP
+.\"
+.\" Note from Amit Arora:
+.\" There were few more flags which were discussed, but none of
+.\" them have been finalized upon. Here are these flags:
+.\" FA_FL_DEALLOC, FA_FL_DEL_DATA, FA_FL_ERR_FREE, FA_FL_NO_MTIME,
+.\" FA_FL_NO_CTIME
+.\" All of the above flags were debated upon and we can not say
+.\" if any/which one of these flags will make it to the later kernels.
+Cet attribut alloue et initialise à zéro l'espace disque de la plage définie
+par \fIoffset\fP et \fIlen\fP. Après un appel réussi, les écritures dans cette
+place sont assurées de ne pas échouer à cause d'un manque de place sur le
+disque. La préallocation de blocs initialisés à zéro au\-delà de la fin de
+fichier est utile pour l'optimisation de la charge de travail pour
+d'ajout. La préallocation ne modifie pas la taille du fichier (comme indiqué
+par \fBstat\fP(2)) même si elle est inférieure à \fIoffset\fP+\fIlen\fP.
+.PP
+Si l'attribut \fBFALLOC_FL_KEEP_SIZE\fP n'est pas spécifié dans \fImode\fP, le
+comportement par défaut est pratiquement le même que quand l'attribut est
+spécifié. La seule différence est qu'en cas de réussite, la taille du
+fichier sera modifiée si \fIoffset + len\fP est supérieur à la taille du
+fichier. Ce comportement par défaut ressemble de près au comportement de la
+fonction de bibliothèque \fBposix_fallocate\fP(3), et est conçu comme une
+méthode d'optimisation de l'implémentation de cette fonction.
+.PP
+Parce que l'allocation est effectuée en fragments de taille de blocs,
+\fBfallocate\fP() peut allouer un espace plus grand que celui qui a été
+spécifié.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBfallocate\fP() renvoie zéro en cas de réussite et \-1 en cas
+d'échec.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier valable ou n'est pas ouvert en
+écriture.
+.TP 
+\fBEFBIG\fP
+\fIoffset\fP+\fIlen\fP excède la taille maximum de fichier.
+.TP 
+\fBEINTR\fP
+Un signal a été capturé pendant l'exécution.
+.TP 
+\fBEINVAL\fP
+\fIoffset\fP était inférieur à 0, ou \fIlen\fP était inférieur ou égal à 0.
+.TP 
+\fBEIO\fP
+Une erreur d'entrée\-sortie s'est produite durant la lecture ou l'écriture
+sur un système de fichiers.
+.TP 
+\fBENODEV\fP
+\fIfd\fP ne fait pas référence à un fichier régulier ou un répertoire. (Si
+\fIfd\fP est un tube ou une FIFO, une erreur différente en résultera)
+.TP 
+\fBENOSPC\fP
+Il n'y a pas suffisamment d'espace disponible sur le périphérique où se
+trouve le fichier référencé par \fIfd\fP.
+.TP 
+\fBENOSYS\fP
+Le système de fichiers contenant le fichier référencé par \fIfd\fP ne gère pas
+cette opération.
+.TP 
+\fBEOPNOTSUPP\fP
+Le \fImode\fP n'est pas pris en charge par le système de fichiers contenant le
+fichier référencé par \fIfd\fP.
+.SH VERSIONS
+\fBfallocate\fP() est disponible dans Linux depuis le noyau 2.6.23. Le glibc le
+prend en charge depuis la version 2.10.
+.SH CONFORMITÉ
+\fBfallocate\fP() est spécifique à Linux.
+.SH "VOIR AUSSI"
+\fBftruncate\fP(2), \fBposix_fadvise\fP(3), \fBposix_fallocate\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

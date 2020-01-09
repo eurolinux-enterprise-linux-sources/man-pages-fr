@@ -1,0 +1,124 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified 1993-07-24 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 1995-08-14 by Arnt Gulbrandsen <agulbra@troll.no>
+.\" Modified 2002-07-27 by Walter Harms
+.\" 	(walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LOG 3 "10 août 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+log, logf, logl \- Fonction logarithme népérien
+.SH SYNOPSIS
+.nf
+\fB#include <math.h>\fP
+.sp
+\fBdouble log(double \fP\fIx\fP\fB);\fP
+.br
+\fBfloat logf(float \fP\fIx\fP\fB);\fP
+.br
+\fBlong double logl(long double \fP\fIx\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBlogf\fP(), \fBlogl\fP()\ : _BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\
+>=\ 600 || _ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.ad b
+.SH DESCRIPTION
+La fonction \fBlog\fP() renvoie le logarithme népérien (ou logarithme naturel)
+de \fIx\fP, noté traditionnellement \fBln\fP en français.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient le logarithme népérien (ou
+logarithme naturel) de \fIx\fP.
+
+Si \fIx\fP est un NaN, la valeur renvoyée et un NaN.
+
+Si \fIx\fP vaut 1, le résultat est +0.
+
+Si \fIx\fP est une valeur infinie positive, une valeur positive infinie est
+renvoyée.
+
+Si \fIx\fP est nul, une erreur de pôle se produit et les fonctions renvoient
+\-\fBHUGE_VAL\fP, \-\fBHUGE_VALF\fP ou \-\fBHUGE_VALL\fP, respectivement.
+
+Si \fIx\fP est négatif (l'infini négatif compris), alors une erreur de domaine
+se produit et un NaN («\ Not a Number\ »\ : pas un nombre) est renvoyé.
+.SH ERREURS
+Consultez \fBmath_error\fP(7) pour savoir comment déterminer qu' une erreur est
+survenue lors de l'appel de ces fonctions.
+.PP
+Les erreurs suivantes peuvent se produire\ :
+.TP 
+Erreur de domaine\ : \fIx\fP est négatif
+\fIerrno\fP prend la valeur \fBEDOM\fP. Une exception indiquant une virgule
+flottante incorrecte (\fBFE_INVALID\fP) est levée.
+.TP 
+Erreur de pôle\ : \fIx\fP est nul
+\fIerrno\fP prend la valeur \fBERANGE\fP. Une exception de la virgule flottante de
+division par zéro (\fBFE_DIVBYZERO\fP) est levée.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001. La variante renvoyant un \fIdouble\fP est également conforme
+à SVr4, BSD\ 4.3 et C89.
+.SH BOGUES
+Dans la glibc 2.5 et les version antérieure, \fBlog\fP() produisait à tord pour
+un NaN une exception du type virgule flottante incorrecte (\fBFE_INVALID\fP).
+.SH "VOIR AUSSI"
+\fBcbrt\fP(3), \fBclog\fP(3), \fBlog1p\fP(3), \fBsqrt\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

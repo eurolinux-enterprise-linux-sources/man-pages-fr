@@ -1,0 +1,93 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single Unix specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FWIDE 3 "26 juillet 2007" GNU "Manuel du programmeur Linux"
+.SH NOM
+fwide \- Fixer et déterminer les orientations d'un flux FILE
+.SH SYNOPSIS
+.nf
+\fB#include <wchar.h>\fP
+.sp
+\fBint fwide(FILE *\fP\fIstream\fP\fB, int \fP\fImode\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBfwide\fP()\ : _XOPEN_SOURCE\ >=\ 500 || _ISOC99_SOURCE\ ; ou \fIcc\
+\-std=c99\fP
+.SH DESCRIPTION
+Lorsque \fImode\fP vaut zéro, la fonction \fBfwide\fP() détermine l'orientation du
+flux \fIstream\fP. Elle renvoie une valeur positive si \fIstream\fP est orienté
+caractères larges, c'est\-à\-dire si les entrées\-sorties par caractères larges
+sont autorisées, mais pas celles par octet. Elle renvoie une valeur négative
+si \fIstream\fP est orienté octets, c'est\-à\-dire si les entrées\-sorties par
+octet sont autorisées, mais pas celles par caractères larges. Elle renvoie
+zéro si \fIstream\fP n'a pas encore d'orientation. Dans ce cas, l'opération
+d'entrée\-sortie suivante peut changer son orientation (octet s'il s'agit
+d'une opération normale, caractères larges si c'est une opération avec des
+caractères larges).
+.PP
+une fois qu'un flux a une orientation, elle ne peut pas être changée, et
+persistera jusqu'à sa fermeture.
+.PP
+Quand le \fImode\fP est non nul, la fonction \fBfwide\fP() essaye d'abord de fixer
+l'orientation correspondante du flux \fIstream\fP (caractères larges si le
+\fImode\fP est supérieur à 0, octets s'il est négatif). Puis elle renvoie une
+valeur correspondant à l'orientation réelle, comme précédemment.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBfwide\fP() renvoie l'orientation du flux, après l'avoir
+éventuellement modifiée. Une valeur de retour positive représente une
+orientation caractères larges, une valeur de retour négative représente une
+orientation octets, et une valeur de retour nulle représente une orientation
+non définie.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001.
+.SH NOTES
+Une sortie en caractères larges dans un flux orienté octets peut être
+réalisée avec la fonction \fBfprintf\fP(3) en utilisant les directives \fB%lc\fP
+et \fB%ls\fP.
+.PP
+Les sorties orientées caractères dans un flux orienté caractères larges sont
+possibles en utilisant les directives \fB%c\fP et \fB%s\fP de la fonction
+\fBfwprintf\fP(3).
+.SH "VOIR AUSSI"
+\fBfprintf\fP(3), \fBfwprintf\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

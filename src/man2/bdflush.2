@@ -1,0 +1,107 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 1995 Michael Chastain (mec@shell.portal.com), 15 April 1995.
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified 1997-01-31 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 2004-06-17 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH BDFLUSH 2 "17 juin 2004" Linux "Manuel du programmeur Linux"
+.SH NOM
+bdflush \- Démarrer, vider, ajuster le démon buffer\-dirty\-flush
+.SH SYNOPSIS
+.nf
+\fB#include <sys/kdaemon.h>\fP
+
+\fBint bdflush(int \fP\fIfunc\fP\fB, long *\fP\fIaddress\fP\fB);\fP
+\fBint bdflush(int \fP\fIfunc\fP\fB, long \fP\fIdata\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBbdflush\fP() démarre, vide ou ajuste le démon bdflush
+(buffer\-dirty\-flush). Seul un processus privilégié (c'est\(hyà\(hydire qui
+possède la capacité \fBCAP_SYS_ADMIN\fP) peut appeler \fBbdflush\fP().
+.PP
+Si \fIfunc\fP est négatif ou nulle, et si aucun démon n'a démarré, alors
+\fBbdflush\fP() bascule en fonctionnement démon, et ne revient pas.
+.PP
+Si \fIfunc\fP vaut 1, les tampons remplis sont écrits sur le disque.
+.PP
+Si \fIfunc\fP vaut 2 ou plus et est paire (bit poids faible à 0), alors
+\fIaddress\fP correspond à l'adresse d'un mot long et le paramètre numéro
+(\fIfunc\fP\-2)/2 est renvoyé à cette adresse.
+.PP
+Si \fIfunc\fP vaut 3 ou plus et est impair (bit poids faible à 1), alors
+\fIdata\fP est un mot long et le noyau écrit cette valeur dans le paramètre
+numéro (\fIfunc\fP\-3)/2.
+.PP
+Le jeu de paramètres, leurs valeurs, et leurs intervalles de validité sont
+définis dans les sources du noyau, dans le fichier \fIfs/buffer.c\fP.
+.SH "VALEUR RENVOYÉE"
+Si \fIfunc\fP est négative ou nulle, et si le démon démarre correctement,
+\fBbdflush\fP ne revient pas. Autrement, la valeur renvoyée vaut 0 en réussite
+et \-1 en échec auquel cas \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEBUSY\fP
+On tente d'exécuter le code du démon après qu'un autre processus l'ait déjà
+démarré.
+.TP 
+\fBEFAULT\fP
+\fIaddress\fP pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEINVAL\fP
+Numéro de paramètre invalide, ou écriture d'une valeur invalide dans le
+paramètre.
+.TP 
+\fBEPERM\fP
+L'appelant n'a pas la capacité \fBCAP_SYS_ADMIN\fP.
+.SH CONFORMITÉ
+\fBbdflush\fP() est spécifique à Linux et ne doit pas être employé dans des
+programmes destinés à être portables.
+.SH "VOIR AUSSI"
+\fBfsync\fP(2), \fBsync\fP(2), \fBsync\fP(8), \fBupdate\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

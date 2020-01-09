@@ -1,0 +1,88 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single Unix specification
+.\"      http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.\" Modified Tue Oct 16 23:18:40 BST 2001 by John Levon <moz@compsoc.man.ac.uk>
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FGETWC 3 "25 juillet 1999" GNU "Manuel du programmeur Linux"
+.SH NOM
+fgetwc, getwc \- Lire une chaîne de caractères larges dans un flux FILE
+.SH SYNOPSIS
+.nf
+\fB#include <stdio.h>\fP
+.br
+\fB#include <wchar.h>\fP
+.sp
+\fBwint_t fgetwc(FILE *\fP\fIstream\fP\fB);\fP
+\fBwint_t getwc(FILE *\fP\fIstream\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBfgetwc\fP() est l'équivalent pour les caractères larges de la
+fonction \fBfgetc\fP(3). Elle lit un caractère large depuis \fIstream\fP et le
+renvoie. Si la fin du fichier est rencontrée, ou si \fIferror(stream)\fP
+devient vrai, elle retourne \fBWEOF\fP. Si une erreur de conversion de
+caractère large se produit, \fIerrno\fP est défini à \fBEILSEQ\fP et \fBWEOF\fP est
+retourné.
+.PP
+La fonction ou la macro \fBgetwc\fP() fonctionne de manière identique à
+\fBfgetwc\fP(). Elle peut être implémentée sous forme de macro, et peut évaluer
+ses arguments plus d'une fois. Il n'y a aucune raison de ne pas l'utiliser.
+.PP
+Pour des versions de ces fonctions ignorant les verrouillages, voir
+\fBunlocked_stdio\fP(3).
+.SH "VALEUR RENVOYÉE"
+La fonction \fBfgetwc\fP() renvoie le caractère large suivant du flux ou
+\fBWEOF\fP.
+.SH ERREURS
+En plus des erreurs habituelles, il y a\ :
+.TP 
+\fBEILSEQ\fP
+Les données lues depuis le flux d'entrée ne forment pas des caractères
+corrects.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001.
+.SH NOTES
+Le comportement de \fBfgetwc\fP() dépend de la catégorie \fBLC_CTYPE\fP de la
+localisation courante.
+.PP
+En l'absence d'informations supplémentaires passées à l'appel \fBfopen\fP(3),
+il est normal de présumer que \fBfgetwc\fP() va lire en réalité une séquence
+multi\-octets depuis le flux puis la convertir en une chaîne de caractères
+larges.
+.SH "VOIR AUSSI"
+\fBfgetws\fP(3), \fBfputwc\fP(3), \fBungetwc\fP(3), \fBunlocked_stdio\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

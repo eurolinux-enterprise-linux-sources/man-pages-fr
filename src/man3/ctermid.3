@@ -1,0 +1,86 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" License.
+.\" Modified Sat Jul 24 19:51:06 1993 by Rik Faith (faith@cs.unc.edu)
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CTERMID 3 "26 juillet 2007" GNU "Manuel du programmeur Linux"
+.SH NOM
+ctermid \- Obtenir le nom du terminal de contrôle
+.SH SYNOPSIS
+.nf
+\fB#include <stdio.h>\fP
+.sp
+\fBchar *ctermid(char *\fP\fIs\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.\" From <unistd.h>: _XOPEN_SOURCE
+\fBctermid\fP()\ : _POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE || _POSIX_SOURCE
+.SH DESCRIPTION
+La fonction \fBctermid\fP() renvoie une chaîne de caractères correspondant au
+chemin d'accès du terminal contrôlant le processus en cours. Si \fIs\fP vaut
+NULL, un tampon statique est utilisé pour renvoyer la chaîne, sinon \fIs\fP
+doit pointer sur le tampon à remplir avec le nom du terminal. La constante
+symbolique \fBL_ctermid\fP représente le nombre maximum de caractères dans le
+nom renvoyé.
+.SH "VALEUR RENVOYÉE"
+Un pointeur sur le nom du terminal.
+.SH CONFORMITÉ
+Svr4, POSIX.1\-2001.
+.SH BOGUES
+Le chemin renvoyé n'identifie pas obligatoirement le terminal de contrôle de
+manière unique. Ce peut être, par exemple, \fI/dev/tty\fP.
+.PP
+.\" in glibc 2.3.x, x >= 4, the glibc headers threw an error
+.\" if ctermid() was given an argument; fixed in 2.4.
+Il n'est pas garanti que le programme puisse ouvrir le terminal.
+.SH "VOIR AUSSI"
+\fBttyname\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,144 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\"
+.\" Modified 1993-03-29, David Metcalfe
+.\" Modified 1993-04-28, Lars Wirzenius
+.\" Modified 1993-07-24, Rik Faith (faith@cs.unc.edu)
+.\" Modified 1995-05-18, Rik Faith (faith@cs.unc.edu) to add
+.\"          better discussion of problems with rand on other systems.
+.\"          (Thanks to Esa Hyyti{ (ehyytia@snakemail.hut.fi).)
+.\" Modified 1998-04-10, Nicolás Lichtmaier <nick@debian.org>
+.\"          with contribution from Francesco Potorti <F.Potorti@cnuce.cnr.it>
+.\" Modified 2003-11-15, aeb, added rand_r
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RAND 3 "29 août 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+rand, rand_r, srand \- Générateur de nombres pseudo\-aléatoires.
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBint rand(void);\fP
+.sp
+\fBint rand_r(unsigned int *\fP\fIseedp\fP\fB);\fP
+.sp
+\fBvoid srand(unsigned int \fP\fIseed\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBrand_r\fP()\ : _POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE || _POSIX_SOURCE
+.SH DESCRIPTION
+La fonction \fBrand\fP() renvoie un entier pseudo\-aléatoire dans l'intervalle
+[0,\ \fBRAND_MAX\fP].
+.PP
+La fonction \fBsrand\fP() utilise son argument comme «\ graine\ » pour la
+génération d'une nouvelle séquence de nombres pseudo\-aléatoires, qui seront
+fournis par \fBrand\fP(). Ces séquences sont reproductibles en appelant
+\fBsrand\fP() avec la même valeur de graine.
+.PP
+Si aucune graine originale n'est fournie, la fonction \fBrand\fP() commence en
+utilisant la valeur 1.
+.PP
+La fonction \fBrand\fP() n'est ni réentrante ni sûre en contexte multithread,
+car elle utilise un état interne modifié à chaque appel. Il peut s'agir
+simplement de la valeur de graine aléatoire pour l'appel suivant, ou il peut
+s'agir de quelque chose de plus compliqué. Afin d'obtenir un comportement
+reproductible dans une application multithread, cet état doit être stocké
+dans une variable fournie explicitement. La fonction \fBrand_r\fP() est appelée
+avec un pointeur vers un \fIunsigned int\fP qui servira d'état d'interne. Il
+s'agit d'une donnée très petite pour stocker la valeur d'état, cette
+fonction sera donc un générateur pseudo\-aléatoire faible. Essayez donc
+\fBdrand48_r\fP(3) à sa place.
+.SH "VALEUR RENVOYÉE"
+Les fonctions \fBrand\fP() et \fBrand_r\fP() renvoient un nombre entier entre 0 et
+\fBRAND_MAX\fP. La fonction \fBsrand\fP() ne renvoie aucune valeur.
+.SH CONFORMITÉ
+Les fonctions \fBrand\fP() et \fBsrand\fP() sont conformes à SVr4, BSD\ 4.3, C89,
+C99, POSIX.1\-2001. La fonction \fBrand_r\fP() vient de
+POSIX.1\-2001. POSIX.1\-2008 marque \fBrand_r\fP() comme étant obsolète.
+.SH NOTES
+Les versions de \fBrand\fP() et \fBsrand\fP() de la bibliothèque C de Linux
+utilisent le même générateur de nombres aléatoires que \fBrandom\fP(3) et
+\fBsrandom\fP(3), ainsi les bits de poids faibles sont tout aussi imprévisibles
+que les bits de poids forts. Ceci n'est pas le cas avec les anciennes
+implémentations de \fBrand\fP() ou d'actuelles implémentations sur des systèmes
+différents, où les bits de poids faibles n'étaient pas «\ aussi aléatoires\
+» que ceux de poids forts. N'utilisez pas cette fonction dans des
+applications conçues pour être portables et lorsqu'un bon caractère
+aléatoire est nécessaire. (Utilisez plutôt \fBrandom\fP(3))
+.SH EXEMPLE
+POSIX.1\-2001 fournit l'exemple suivant d'une implémentation de \fBrand\fP() et
+\fBsrand\fP(), potentiellement utile lorsqu'on a besoin de la même séquence sur
+deux machines différentes.
+.sp
+.in +4n
+.nf
+static unsigned long suivant = 1;
+
+/* RAND_MAX supposé être égal à 32767 */
+int mon_rand(void) {
+    suivant = suivant * 1103515245 + 12345;
+    return((unsigned)(suivant/65536) % 32768);
+}
+
+void mon_srand(unsigned graine) {
+    suivant = graine;
+}
+.fi
+.in
+.SH "VOIR AUSSI"
+\fBdrand48\fP(3), \fBrandom\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

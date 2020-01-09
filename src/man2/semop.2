@@ -1,0 +1,322 @@
+.\" Copyright 1993 Giorgio Ciucci (giorgio@crcc.it)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified 1996-10-22, Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 2002-01-08, Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2003-04-28, Ernie Petrides <petrides@redhat.com>
+.\" Modified 2004-05-27, Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified, 11 Nov 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Language and formatting clean-ups
+.\"	Added notes on /proc files
+.\" 2005-04-08, mtk, Noted kernel version numbers for semtimedop()
+.\" 2007-07-09, mtk, Added an EXAMPLE code segment.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SEMOP 2 "4 octobre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+semop, semtimedop \- Opérations sur les sémaphores
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <sys/ipc.h>\fP
+\fB#include <sys/sem.h>\fP
+.sp
+\fBint semop(int \fP\fIsemid\fP\fB, struct sembuf *\fP\fIsops\fP\fB, unsigned \fP\fInsops\fP\fB);\fP
+.sp
+\fBint semtimedop(int \fP\fIsemid\fP\fB, struct sembuf *\fP\fIsops\fP\fB, unsigned \fP\fInsops\fP\fB,\fP
+\fB               struct timespec *\fP\fItimeout\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBsemtimedop\fP()\ : _GNU_SOURCE
+.SH DESCRIPTION
+Chaque sémaphore dans un ensemble de sémaphores se voit associer les valeurs
+suivantes\ :
+.sp
+.in +4n
+.nf
+unsigned short  semval;   /* valeur du sémaphore   */
+unsigned short  semzcnt;  /* # Attente pour zéro   */
+unsigned short  semncnt;  /* # Attente d'incrément */
+pid_t           sempid;   /* dernier processus agissant */
+.sp
+.in -4n
+.fi
+La fonction \fBsemop\fP() effectue des opérations sur les membres de l'ensemble
+de sémaphores identifié par \fIsemid\fP. Chacun des \fInsops\fP éléments dans le
+tableau pointé par \fIsops\fP indique une opération à effectuer sur un
+sémaphore en utilisant une structure \fIstruct sembuf\fP contenant les membres
+suivants\ :
+.sp
+.in +4n
+.nf
+unsigned short sem_num;  /* Numéro du sémaphore        */
+short          sem_op;   /* Opération sur le sémaphore */
+short          sem_flg;  /* Options pour l'opération   */
+.sp
+.in -4n
+.fi
+Les options possibles pour \fIsem_flg\fP sont \fBIPC_NOWAIT\fP et \fBSEM_UNDO\fP. Si
+une opération indique l'option \fBSEM_UNDO\fP, elle sera annulée lorsque le
+processus se terminera.
+.PP
+L'ensemble des opérations contenues dans \fIsops\fP est effectué \fIdans
+l'ordre\fP et \fIatomiquement\fP. Les opérations sont toutes réalisées en même
+temps, et seulement si elle peuvent toutes être effectuées. Le comportement
+de l'appel système si toutes les opérations ne sont pas réalisables dépend
+de la présence de l'attribut \fBIPC_NOWAIT\fP dans les champs \fIsem_flg\fP
+décrits plus bas.
+
+Chaque opération est effectuée sur le \fIsem_num\fP\-ième sémaphore de
+l'ensemble. Le premier sémaphore est le numéro 0. Pour chaque sémaphore,
+l'opération est l'une des trois décrites ci\-dessous.
+.PP
+Si l'argument \fIsem_op\fP est un entier positif, la fonction ajoute cette
+valeur à \fIsemval\fP. De plus si \fBSEM_UNDO\fP est demandé, le système met à
+jour le compteur «\ undo\ » du sémaphore (\fIsemadj\fP). Cette opération n'est
+jamais bloquante. Le processus appelant doit avoir l'autorisation de
+modification sur le jeu de sémaphores.
+.PP
+Si \fIsem_op\fP vaut zéro le processus doit avoir l'autorisation de lecture sur
+l'ensemble de sémaphores. Le processus attend que \fIsemval\fP soit nul\ : si
+\fIsemval\fP vaut zéro, l'appel système continue immédiatement. Sinon, si l'on
+a réclamé \fBIPC_NOWAIT\fP dans \fIsem_flg\fP, l'appel système \fBsemop\fP() échoue
+et \fIerrno\fP contient le code d'erreur \fBEAGAIN\fP (et aucune des opérations de
+\fIsops\fP n'est réalisée). Autrement \fIsemzcnt\fP est incrémenté de 1 et le
+processus s'endort jusqu'à ce que l'un des événements suivants se produise\
+:
+.IP \(bu 3
+\fIsemval\fP devient égal à 0, alors \fIsemzcnt\fP est décrémenté.
+.IP \(bu
+Le jeu de sémaphores est supprimé. L'appel système échoue et \fIerrno\fP
+contient le code d'erreur \fBEIDRM\fP.
+.IP \(bu
+Le processus reçoit un signal à intercepter, la valeur de \fIsemzcnt\fP est
+décrémentée et l'appel système échoue avec \fIerrno\fP contenant le code
+d'erreur \fBEINTR\fP.
+.IP \(bu
+La limite temporelle indiqué par \fItimeout\fP dans un \fBsemtimedop\fP() a
+expiré\ : l'appel système échoue avec \fIerrno\fP contenant \fBEAGAIN\fP.
+.PP
+Si \fIsem_op\fP est inférieur à zéro, le processus appelant doit avoir
+l'autorisation de modification sur le jeu de sémaphores. Si \fIsemval\fP est
+supérieur ou égal à la valeur absolue de \fIsem_op\fP, la valeur absolue de
+\fIsem_op\fP est soustraite de \fIsemval\fP, et si \fBSEM_UNDO\fP est indiqué, le
+système met à jour le compteur «\ undo\ » du sémaphore (\fIsemadj\fP). Puis
+l'appel système continue. Si la valeur absolue de \fIsem_op\fP est plus grande
+que \fIsemval\fP, et si l'on a réclamé \fBIPC_NOWAIT\fP dans \fIsem_flg\fP, l'appel
+système échoue et \fIerrno\fP contient le code d'erreur \fBEAGAIN\fP (et aucune
+des opérations de \fIsops\fP n'est réalisée). Sinon \fIsemncnt\fP est incrémenté
+de un et le processus s'endort jusqu'à ce que l'un des événements suivants
+se produise\ :
+.IP \(bu 3
+\fIsemval\fP devient supérieur ou égal à la valeur absolue de \fIsem_op\fP, alors
+la valeur \fIsemncnt\fP est décrémentée, la valeur absolue de \fIsem_op\fP est
+soustraite de \fIsemval\fP et si \fBSEM_UNDO\fP est demandé le système met à jour
+le compteur «\ undo\ » (\fIsemadj\fP) du sémaphore.
+.IP \(bu
+Le jeu de sémaphores est supprimé. L'appel système échoue et \fIerrno\fP
+contient le code d'erreur \fBEIDRM\fP.
+.IP \(bu
+Le processus reçoit un signal à intercepter, la valeur de \fIsemncnt\fP est
+décrémentée et l'appel système échoue avec \fIerrno\fP contenant le code
+d'erreur \fBEINTR\fP.
+.IP \(bu
+La limite temporelle indiqué par \fItimeout\fP dans un \fBsemtimedop\fP() a
+expiré\ : l'appel système échoue avec \fIerrno\fP contenant \fBEAGAIN\fP.
+.PP
+.\" and
+.\" .I sem_ctime
+En cas de succès, le membre \fIsempid\fP de chacun des sémaphores indiqués dans
+le tableau pointé par \fIsops\fP est rempli avec le PID du processus
+appelant. Enfin \fIsem_otime\fP est fixé à l'heure actuelle.
+.PP
+La fonction \fBsemtimedop\fP() se comporte comme \fBsemop\fP() sauf que dans le
+cas où le processus doit dormir, la durée maximale du sommeil est limitée
+par la valeur spécifiée dans la structure \fItimespec\fP dont l'adresse est
+transmise dans le paramètre \fItimeout\fP. Si la limite indiquée a été
+atteinte, l'appel système échoue avec \fIerrno\fP contenant \fBEAGAIN\fP (et
+aucune opération de \fIsops\fP n'est réalisée). Si le paramètre \fItimeout\fP est
+NULL, alors \fBsemtimedop\fP() se comporte exactement comme \fBsemop\fP().
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, \fBsemop\fP() et \fBsemtimedop\fP() renvoient 0. Sinon ils
+renvoient \-1 et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+En cas d'erreur, \fIerrno\fP prend l'une des valeurs suivantes\ :
+.TP 
+\fBE2BIG\fP
+l'argument \fInsops\fP est supérieur à \fBSEMOPM\fP, le nombre maximal
+d'opérations par appel système.
+.TP 
+\fBEACCES\fP
+Le processus appelant n'a pas les permissions nécessaires pour effectuer les
+opérations sur les sémaphores spécifiés et n'a pas la capacité
+\fBCAP_IPC_OWNER\fP.
+.TP 
+\fBEAGAIN\fP
+Une opération ne pouvait pas être effectuée immédiatement et \fBIPC_NOWAIT\fP a
+été indiqué dans l'argument \fIsem_flg\fP, ou la durée limite indiquée dans
+\fItimeout\fP a expiré.
+.TP 
+\fBEFAULT\fP
+\fIsops\fP ou \fItimeout\fP pointent en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEFBIG\fP
+La valeur de \fIsem_num\fP est inférieure à 0 ou supérieure ou égale au nombre
+de sémaphores dans l'ensemble.
+.TP 
+\fBEIDRM\fP
+Le jeu de sémaphores a été supprimé.
+.TP 
+\fBEINTR\fP
+Un signal a été reçu pendant l'attente\ ; voir \fBsignal\fP(7).
+.TP 
+\fBEINVAL\fP
+L'ensemble de sémaphores n'existe pas ou \fIsemid\fP est inférieur à zéro, ou
+\fInsops\fP n'est pas strictement positive.
+.TP 
+\fBENOMEM\fP
+L'argument \fIsem_flg\fP de certaines opérations demande \fBSEM_UNDO\fP et le
+système n'a pas assez de mémoire pour allouer les structures nécessaires.
+.TP 
+\fBERANGE\fP
+\fIsem_op+semval\fP est supérieur à \fBSEMVMX\fP (la valeur maximale de \fIsemval\fP
+autorisée par l'implémentation) pour l'une des opérations.
+.SH VERSIONS
+\fBsemtimedop\fP() est apparu pour la première fois dans Linux 2.5.52, puis a
+été rétroporté au noyau 2.4.22. La gestion de \fBsemtimedop\fP() dans la glibc
+date de la version 2.3.3.
+.SH CONFORMITÉ
+.\" SVr4 documents additional error conditions EINVAL, EFBIG, ENOSPC.
+SVr4, POSIX.1\-2001.
+.SH NOTES
+Les structures \fIsem_undo\fP d'un processus ne sont pas héritées par ses
+enfants lors d'un \fBfork\fP(2), mais elles le sont lors d'un appel système
+\fBexecve\fP(2).
+.PP
+\fBsemop\fP() n'est jamais relancé automatiquement après avoir été interrompu
+par un gestionnaire de signal quelque soit l'attribut \fBSA_RESTART\fP durant
+l'installation du gestionnaire.
+.PP
+\fIsemadj\fP est un entier pour le processus qui représente simplement le
+compte (négatif) des opérations sur le sémaphore réalisées par l'attribut
+\fBSEM_UNDO\fP. Quand la valeur d'un sémaphore est fixée directement par une
+requête \fBSETVAL\fP ou \fBSETALL\fP de \fBsemctl\fP(2), la valeur \fIsemadj\fP
+correspondante est effacée dans tous les processus.
+.PP
+Les valeurs \fIsemval\fP, \fIsempid\fP, \fIsemzcnt\fP, et \fIsemnct\fP pour un sémaphore
+peuvent être retrouvées avec des appels \fBsemctl\fP(2) spécifiques.
+.PP
+Les limites système suivantes concernent \fBsemop\fP()\ :
+.TP 
+\fBSEMOPM\fP
+.\" This /proc file is not available in Linux 2.2 and earlier -- MTK
+Nombre maximal d'opérations pour une appel à \fBsemop\fP() (32). Sous Linux,
+cette limite peut être lue et modifiée via le troisième champ du fichier
+\fI/proc/sys/kernel/sem\fP.
+.TP 
+\fBSEMVMX\fP
+Valeur maximale pour \fIsemval\fP\ : dépendante de l'implémentation (32767).
+.PP
+L'implémentation n'a pas de limites intrinsèques pour la valeur maximale
+d'effacement en sortie (\fBSEMAEM\fP), le nombre de structure d'annulation sur
+le système (\fBSEMMNU\fP), et le nombre maximal de structures d'annulation pour
+un processus.
+.SH BOGUES
+Quand un processus se termine, l'ensemble des structures \fIsemadj\fP qui lui
+sont associées servent à annuler les effets de toutes les opérations sur les
+sémaphores réalisées avec l'attribut \fBSEM_UNDO\fP. Ceci pose un problème\ :
+si l'une (ou plusieurs) des modifications sur les sémaphores demande une
+descente du compteur d'un sémaphore au\-dessous de zéro, que doit faire
+l'implémentation\ ? Une approche possible consiste à bloquer jusqu'à ce que
+la modification du sémaphore soit possible. C'est néanmoins peu désirable
+car la terminaison du processus peut alors bloquer pendant une période
+arbitrairement longue. Une autre possibilité est d'ignorer la modification
+du sémaphore (comme un échec lorsque \fBIPC_NOWAIT\fP est spécifié durant une
+opération). Linux adopte une troisième approche\ : décroître la valeur du
+sémaphore autant que possible (jusqu'à zéro) et permettre au processus de se
+terminer immédiatement.
+
+.\" The bug report:
+.\" http://marc.theaimsgroup.com/?l=linux-kernel&m=110260821123863&w=2
+.\" the fix:
+.\" http://marc.theaimsgroup.com/?l=linux-kernel&m=110261701025794&w=2
+Dans les noyaux 2.6.x (x <= 10) un bogue peut, dans certaines
+circonstances, empêcher un processus attendant que la valeur d'un sémaphore
+s'annule d'être réveillé quand cette valeur atteint 0. Ce bogue est corrigé
+dans le noyau 2.6.11.
+.SH EXEMPLE
+Le bout de code suivant utilise \fBsemop\fP() pour attendre de façon atomique
+que la valeur du sémaphore 0 vaille zéro, puis incrémente la valeur du
+sémaphore de un.
+.nf
+
+    struct sembuf sops[2];
+    int semid;
+
+    /* Le code pour configurer \fIsemid\fP est omis */
+
+    sops[0].sem_num = 0;        /* Agir sur le semaphore 0 */
+    sops[0].sem_op = 0;         /* Attendre que la valeur soit égal à 0 */
+    sops[0].sem_flg = 0;
+
+    sops[1].sem_num = 0;        /* Agir sur le semaphore 0 */
+    sops[1].sem_op = 1;         /* Incrémenter la valeur de un */
+    sops[1].sem_flg = 0;
+
+    if (semop(semid, sops, 2) == \-1) {
+        perror("semop");
+        exit(EXIT_FAILURE);
+    }
+.fi
+.SH "VOIR AUSSI"
+\fBsemctl\fP(2), \fBsemget\fP(2), \fBsigaction\fP(2), \fBcapabilities\fP(7),
+\fBsem_overview\fP(7), \fBsvipc\fP(7), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

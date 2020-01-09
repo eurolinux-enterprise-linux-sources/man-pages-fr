@@ -1,0 +1,101 @@
+.\" Copyright 1993 Giorgio Ciucci (giorgio@crcc.it)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified 2001-11-28, by Michael Kerrisk, <mtk.manpages@gmail.com>
+.\"	Changed data type of proj_id; minor fixes
+.\"	aeb: further fixes; added notes.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FTOK 3 "28 novembre 2001" GNU "Manuel du programmeur Linux"
+.SH NOM
+ftok \- Convertir un nom de fichier et un identificateur de projet en clé IPC
+System\ V
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <sys/ipc.h>\fP
+.fi
+.sp
+\fBkey_t ftok(const char *\fP\fIpathname\fP\fB, int \fP\fIproj_id\fP\fB);\fP
+.SH DESCRIPTION
+La fonction \fBftok\fP() utilise l'identité du fichier indiqué par \fIpathname\fP
+(qui doit exister et être accessible), et les huit bits de poids faible de
+\fIproj_id\fP (qui doit être non nul) pour créer une clé IPC System\ V de type
+\fIkey_t\fP, utilisable avec \fBmsgget\fP(2), \fBsemget\fP(2) ou \fBshmget\fP(2).
+.LP
+La valeur résultante est la même pour tous les chemins d'accès identifiant
+le même fichier, en utilisant une valeur identique pour \fIproj_id\fP. La
+valeur devrait être différente lorsque des fichiers différents (existants
+simultanément), ou des identificateurs de projet différents sont employés.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, la clé générée \fIkey_t\fP est renvoyée. Sinon elle renvoie
+\-1, et \fIerrno\fP indique l'erreur de la même façon que l'appel système
+\fBstat\fP(2).
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Avec les bibliothèques libc4 et libc5 (et également sous SunOS\ 4.x), le
+prototype était
+.sp
+.RS
+\fBkey_t ftok(char *\fP\fIpathname\fP\fB, char \fP\fIproj_id\fP\fB);\fP
+.RE
+.PP
+De nos jours \fIproj_id\fP est un \fIint\fP, mais seuls huit bits sont
+utilisés. L'habitude veut que l'on utilise un caractère ASCII comme
+identifiant de \fIproj_id\fP, ce qui explique pourquoi le comportement est
+indéfini lorsque \fIproj_id\fP vaut zéro.
+.LP
+Naturellement, aucune garantie ne peut être donné sur le fait que la clé
+\fIkey_t\fP résultante soit unique. En général, la meilleure méthode est de
+combiner l'octet de \fIproj_id\fP, les seize bits de poids faibles du numéro
+d'inode, et les huit bits de poids faibles du numéro de périphérique pour
+obtenir un entier sur 32\ bits. Des collisions peuvent se produire
+facilement, par exemple entre les fichiers se trouvant sur \fI/dev/hda1\fP et
+ceux sur \fI/dev/sda1\fP.
+.SH "VOIR AUSSI"
+\fBmsgget\fP(2), \fBsemget\fP(2), \fBshmget\fP(2), \fBstat\fP(2), \fBsvipc\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

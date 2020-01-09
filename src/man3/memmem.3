@@ -1,0 +1,87 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 18:50:48 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Interchanged 'needle' and 'haystack'; added history, aeb, 980113.
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MEMMEM 3 "5 décembre 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+memmem \- Rechercher une sous\-chaîne.
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP
+\fB#include <string.h>\fP
+.sp
+\fBvoid *memmem(const void *\fP\fIhaystack\fP\fB, size_t \fP\fIhaystacklen\fP\fB,\fP
+\fB             const void *\fP\fIneedle\fP\fB, size_t \fP\fIneedlelen\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBmemmem\fP() recherche le début de la première occurrence de la
+sous\-chaîne \fIneedle\fP (NdT\ : aiguille) de longueur \fIneedlelen\fP au sein de
+la zone de mémoire \fIhaystack\fP (NdT\ : meule de foin) de longueur
+\fIhaystacklen\fP.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBmemmem\fP() renvoie un pointeur sur le début de la sous\-chaîne,
+ou NULL si aucune sous\-chaîne n'est trouvée.
+.SH CONFORMITÉ
+Cette fonction est une extension GNU.
+.SH BOGUES
+Cette fonction ne fonctionnait pas avec les bibliothèques Linux jusqu'à
+libc\ 5.0.9 incluse, car les arguments \fIneedle\fP et \fIhaystack\fP étaient
+inversés. De plus, la fonction renvoyait un pointeur sur la fin de la
+première occurrence de \fIneedle\fP renvoyée.
+
+Un bogue supplémentaire existe dans toutes les bibliothèques libc\ : si
+\fIneedle\fP est vide, la fonction renvoie \fIhaystack\-1\fP (au lieu de
+\fIhaystack\fP). La bibliothèque glibc\ 2.0 était encore pire, puisqu'elle
+renvoyait un pointeur sur le dernier octet de \fIhaystack\fP. Ceci a été fixé
+dans la glib\ 2.1
+.SH "VOIR AUSSI"
+\fBstrstr\fP(3), \fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

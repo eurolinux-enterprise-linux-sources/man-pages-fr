@@ -1,0 +1,96 @@
+.\" Copyright (c) 1983, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     $Id: shutdown.2,v 1.1.1.1 1999/03/21 22:52:23 freitag Exp $
+.\"
+.\" Modified Sat Jul 24 09:57:55 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Tue Oct 22 22:04:51 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1998 by Andi Kleen
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SHUTDOWN 2 "3 décembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+shutdown \- Terminer une communication en full\-duplex
+.SH SYNOPSIS
+\fB#include <sys/socket.h>\fP
+.sp
+\fBint shutdown(int \fP\fIsockfd\fP\fB, int \fP\fIhow\fP\fB);\fP
+.SH DESCRIPTION
+La fonction \fBshutdown\fP() termine tout ou partie d'une connexion full\-duplex
+sur la socket \fIsockfd\fP. Si \fIhow\fP vaut \fBSHUT_RD\fP, la réception est
+désactivée. Si \fIhow\fP vaut \fBSHUT_WR\fP, l'émission est désactivée. Si \fIhow\fP
+vaut \fBSHUT_RDWR\fP, l'émission et la réception sont désactivées.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIsockfd\fP n'est pas un descripteur valable.
+.TP 
+\fBENOTCONN\fP
+La socket indiquée n'est pas connectée.
+.TP 
+\fBENOTSOCK\fP
+\fIsockfd\fP est un fichier, pas une socket.
+.SH CONFORMITÉ
+POSIX.1\-2001, BSD\ 4.4. La fonction \fBshutdown\fP() est apparue dans BSD\ 4.2.
+.SH NOTES
+Les constantes \fBSHUT_RD\fP, \fBSHUT_WR\fP, \fBSHUT_RDWR\fP ont pour valeur 0, 1, et
+2 respectivement, et sont définies dans \fI<sys/socket.h>\fP depuis la
+glibc\-2.1.91.
+.SH "VOIR AUSSI"
+\fBconnect\fP(2), \fBsocket\fP(2), \fBsocket\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

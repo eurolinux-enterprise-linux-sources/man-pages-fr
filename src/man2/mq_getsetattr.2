@@ -1,0 +1,74 @@
+.\" t
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MQ_GETSETATTR 2 "1er juin 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+mq_getsetattr \- Obtenir/configurer les attributs de files de messages.
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <mqueue.h>\fP
+.sp
+\fBmqd_t mq_getsetattr(mqd_t \fP\fImqdes\fP\fB, struct mq_attr *\fP\fInewattr\fP\fB,\fP
+\fB                 struct mq_attr *\fP\fIoldattr\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+N'utilisez pas cet appel système.
+
+C'est un appel système bas niveau utilisé pour implémenter \fBmq_getattr\fP(3)
+et \fBmq_setattr\fP(3). Pour une explication sur la façon dont cet appel
+système fonctionne, voir la description de \fBmq_setattr\fP(3).
+.SH CONFORMITÉ
+Cette interface n'est pas standard, évitez de l'utiliser.
+.SH NOTES
+La glibc ne fournit pas de fonction autour de cet appel système\ ; vous
+devez utiliser \fBsyscall\fP(2) pour l'appeler. (En fait, ne l'appelez jamais
+si vous n'écrivez pas une bibliothèque C\ !)
+.SH "VOIR AUSSI"
+\fBmq_getattr\fP(3), \fBmq_overview\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

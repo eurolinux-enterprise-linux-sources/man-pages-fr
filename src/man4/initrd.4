@@ -1,0 +1,338 @@
+.\" -*- nroff -*-
+.\" This man-page is Copyright (C) 1997 John S. Kallal
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and author(s) of this work.
+.\"
+.\" If the you wish to distribute versions of this work under other
+.\" conditions than the above, please contact the author(s) at the following
+.\" for permission:
+.\"
+.\"  John S. Kallal -
+.\"	email: <kallal@voicenet.com>
+.\"	mail: 518 Kerfoot Farm RD, Wilmington, DE 19803-2444, USA
+.\"	phone: (302)654-5478
+.\"
+.\" $Id: initrd.4,v 0.9 1997/11/07 05:05:32 kallal Exp kallal $
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH INITRD 4 "4 avril 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+initrd \- Disque RAM initialisé au démarrage du système.
+.SH CONFIGURATION
+\fI/dev/initrd\fP est un périphérique bloc en lecture\-seule, dont le numéro
+majeur est 1, et le mineur 250. Typiquement, \fI/dev/initrd\fP appartient à
+\fIroot.disk\fP et dispose du mode 0400 (lecture uniquement par le
+superutilisateur). Si votre système Linux n'a pas encore de fichier
+\fI/dev/initrd\fP, vous pouvez le créer en utilisant les commandes suivantes\ :
+.nf
+\fB
+        mknod \-m 400 /dev/initrd b 1 250
+        chown root:disk /dev/initrd\fP
+
+.fi
+.PP
+.\"
+.\"
+.\"
+Les options «\ disque RAM\ » et «\ Disque RAM initial\ » (par exemple
+\fBCONFIG_BLK_DEV_RAM=y\fP et \fBCONFIG_BLK_DEV_INITRD=y\fP ) doivent être
+compilées directement dans le noyau Linux pour pouvoir utiliser
+\fI/dev/initrd\fP. Lors de l'utilisation de \fI/dev/initrd\fP, le pilote de disque
+RAM ne peut pas être chargé en tant que module.
+.SH DESCRIPTION
+Le fichier spécial \fI/dev/initrd\fP est un périphérique bloc en lecture
+seule. Ce périphérique est un disque RAM qui est initialisé par le chargeur
+du système avant le démarrage du noyau. Ainsi, le noyau peut utiliser le
+contenu de \fI/dev/initrd\fP pour un démarrage en deux phases.
+.PP
+.\"
+.\"
+.\"
+Durant la première phase, le noyau démarre et monte la racine du système de
+fichiers depuis le contenu de \fI/dev/initrd\fP (par exemple un disque RAM
+initialisé par le chargeur). Durant la seconde phase, les pilotes de
+périphériques supplémentaires et les autres modules sont chargés depuis le
+périphérique racine initial. Après le chargement de ces modules
+supplémentaires, une nouvelle racine du système de fichiers est montée à
+partir d'un périphérique différent.
+.SS "Démarrage du système"
+Quand il démarre en utilisant \fBinitrd\fP, le système procède comme suit\ :
+.IP 1. 3
+Le chargeur place une copie du noyau en mémoire, ainsi que le contenu de
+\fI/dev/initrd\fP.
+.IP 2.
+Au démarrage du noyau, celui\-ci décompresse et recopie le contenu du
+périphérique \fI/dev/initrd\fP sur le disque virtuel \fI/dev/ram0\fP puis libère
+la mémoire utilisée par \fI/dev/initrd\fP.
+.IP 3.
+Le noyau monte en lecture\-écriture le périphérique \fI/dev/ram0\fP comme racine
+initiale du système de fichiers.
+.IP 4.
+Si la racine désirée pour le système de fichiers est également celle que
+l'on vient de monter (par exemple \fI/dev/ram0\fP), le noyau passe directement
+à la dernière étape du démarrage.
+.IP 5.
+Si un fichier exécutable \fI/linuxrc\fP est présent sur le système de fichiers
+racine initial, ce fichier est exécuté avec l'uid 0. (Le fichier \fI/linuxrc\fP
+doit avoir la permission d'exécution. Ce peut être n'importe quel
+exécutable, y compris un shell\-script.)
+.IP 6.
+Si \fI/linuxrc\fP n'est pas exécuté ou lorsqu'il se termine, la racine normale
+du système de fichiers est montée. (Si \fI/linuxrc\fP se termine en ayant monté
+d'autres systèmes de fichiers sur la racine initiale, alors le comportement
+du noyau est \fBINDÉTERMINÉ\fP. Voir le paragraphe NOTES pour le comportement
+effectif.)
+.IP 7.
+Si le système de fichiers racine normal dispose d'un répertoire \fI/initrd\fP,
+le périphérique \fI/dev/ram0\fP est déplacé depuis \fI/\fP vers \fI/initrd\fP. Sinon,
+si le répertoire \fI/initrd\fP n'existe pas, le périphérique \fI/dev/ram0\fP est
+démonté. (Lors du déplacement de \fI/\fP vers \fI/initrd\fP, \fI/dev/ram0\fP n'est
+pas démonté, aussi des processus peuvent continuer à s'exécuter depuis ce
+périphérique. Si le répertoire \fI/initrd\fP n'existe pas sur le système de
+fichiers normal, et si des processus continuent à s'exécuter depuis
+\fI/dev/ram0\fP lorsque \fI/linuxrc\fP se termine, le comportement du noyau est
+\fBINDÉTERMINÉ\fP. Voir le paragraphe NOTES pour le comportement effectif.)
+.IP 8.
+.\"
+.\"
+.\"
+La séquence de démarrage habituelle (par exemple, invocation de
+\fI/sbin/init\fP) est alors effectuée depuis le système de fichiers normal.
+.SS Options
+Lorsque l'on utilise \fBinitrd\fP, les options suivantes du chargeur affectent
+les opérations de démarrage du noyau\ :
+.TP 
+\fBinitrd=\fP\fInom_de_fichier\fP
+Indique le fichier à charger comme contenu de \fI/dev/initrd\fP. Pour
+\fBLOADLIN\fP, il s'agit d'une option en ligne de commande. Pour \fBLILO\fP il
+faut utiliser cette commande dans le fichier de configuration
+\fI/etc/lilo.config\fP. Le fichier mentionné avec cette option sera typiquement
+une image compressée par \fBgzip\fP(1), du système de fichiers.
+.TP 
+\fInoinitrd\fP
+Cette option de démarrage désactive le démarrage en deux étapes. Le noyau se
+comporte comme si \fI/dev/initrd\fP n'était pas initialisé. Avec cette option,
+le contenu de \fI/dev/initrd\fP, une fois chargé en mémoire sera préservé. Ce
+contenu peut alors être n'importe quelle donnée, et pas uniquement une image
+d'un système de fichiers. Néanmoins, le périphérique \fI/dev/initrd\fP est en
+lecture seule, et ne peut être lu qu'une seule fois après le démarrage du
+système.
+.TP 
+\fBroot=\fP\fInom_de_périphérique\fP
+.\"
+.\"
+.\"
+Indique le nom du périphérique à utiliser comme racine normale du système de
+fichiers. Pour \fBLOADLIN\fP, il s'agit d'une option en ligne de commande. Pour
+\fBLILO\fP il faut utiliser cette commande dans le fichier de configuration
+\fI/etc/lilo.config\fP. Le périphérique indiqué ici doit être montable et
+contenir un système de fichiers convenable.
+.SS "Modification de la racine du système de fichiers"
+Par défaut, les paramètres du noyau (par exemple, ceux configurés avec
+\fBrdev\fP(8) ou compilés dans le noyau) ou les options du chargeur de
+démarrage sont utilisés pour les systèmes de fichiers racines normaux. Pour
+accéder à un système de fichiers racine monté par NFS, il faut utiliser les
+options de démarrage \fBnfs_root_name\fP et \fBnfs_root_addrs\fP pour la
+configuration NFS. Pour plus d'informations sur les racines de systèmes de
+fichiers montées par NFS, consultez le fichier
+\fBDocumentation/filesystems/nfsroot.txt\fP de la documentation du noyau. Pour
+plus d'informations sur la configuration de la racine du système de
+fichiers, consultez également les documentations de \fBLILO\fP et LOADLIN.
+.PP
+On peut aussi faire effectuer la modification de la racine normale par
+l'exécutable \fI/linuxrc\fP. Pour cela, le système \fI/proc\fP doit être
+monté. Après avoir monté \fI/proc\fP, \fI/linuxrc\fP modifie le périphérique
+racine en écrivant directement dans les fichiers
+\fI/proc/sys/kernel/real\-root\-dev\fP, \fI/proc/sys/kernel/nfs\-root\-name\fP et
+\fI/proc/sys/kernel/nfs\-root\-addrs\fP. Pour un périphérique physique monté à la
+racine, le changement s'effectue en écrivant le numéro de périphérique du
+nouveau système de fichiers dans \fI/proc/sys/kernel/real\-root\-dev\fP. Pour un
+système monté par NFS, la modification s'effectue en écrivant la
+configuration NFS dans les fichiers \fI/proc/sys/kernel/nfs\-root\-name\fP et
+\fI/proc/sys/kernel/nfs\-root\-addrs\fP puis en inscrivant 0xff (par exemple, le
+numéro de pseudo\-périphérique NFS) dans le fichier
+\fI/proc/sys/kernel/real\-root\-dev\fP. Par exemple, la ligne de commande
+suivante basculerait le périphérique racine normal sur \fI/dev/hdb1\fP:
+.nf
+
+    echo 0x365 >/proc/sys/kernel/real\-root\-dev
+
+.fi
+La ligne suivante modifierait le système racine normal vers un répertoire
+NFS \fI/var/nfsroot\fP d'un serveur local ayant l'adresse IP 193.8.232.7, ceci
+sur un système nommé «\ idefix\ », se trouvant à l'adresse 193.8.232.7\ :
+.nf
+
+    echo /var/nfsroot >/proc/sys/kernel/nfs\-root\-name
+    echo 193.8.232.2:193.8.232.7::255.255.255.0:idefix \e
+        >/proc/sys/kernel/nfs\-root\-addrs
+    echo 255 >/proc/sys/kernel/real\-root\-dev
+.fi
+
+.\" FIXME the manual page should describe the pivot_root mechanism.
+.\"
+.\"
+.\"
+\fBNote\fP\ : l'utilisation de \fI/proc/sys/kernel/real\-root\-dev\fP pour modifier
+le système de fichiers racine est obsolète. Voir le fichier
+\fIDocumentation/initrd.txt\fP du noyau ainsi que \fBpivot_root\fP(2) et
+\fBpivot_root\fP(8) pour des informations sur les méthodes actuelles pour
+changer de système de fichiers racine.
+.SS Utilisation
+L'intérêt principal d'implémenter \fBinitrd\fP était de permettre une
+configuration modulaire du noyau lors de l'installation du système.
+.PP
+Un scénario possible d'installation est le suivant\ :
+.IP 1. 3
+Le programme de chargement démarre depuis une disquette ou un autre support
+avec un noyau minimal (par exemple, les supports pour \fI/dev/ram\fP,
+\fI/dev/initrd\fP et le système de fichiers ext2), puis il charge
+\fI/dev/initrd\fP depuis une version compressée avec gzip d'un système de
+fichiers initial.
+.IP 2.
+L'exécutable \fI/linuxrc\fP détermine ce qui est nécessaire pour (1) monter le
+système de fichiers normal (pilotes de périphériques, systèmes de fichiers)
+et (2) utiliser le support fourni pour la distribution (par exemple, CD\-ROM,
+réseau, bande magnétique, ...). Cette étape peut être effectuée en
+interrogeant l'utilisateur, en effectuant des tests de détection automatique
+ou en utilisant une approche hybride entre les deux.
+.IP 3.
+L'exécutable \fI/linuxrc\fP charge les modules nécessaires depuis le système de
+fichiers initial.
+.IP 4.
+L'exécutable \fI/linuxrc\fP crée et remplit le système de fichiers racine. (À
+cet instant, le système de fichiers racine n'est pas nécessairement
+complet).
+.IP 5.
+L'exécutable \fI/linuxrc\fP configure \fI/proc/sys/kernel/real\-root\-dev\fP,
+démonte \fI/proc\fP, le système de fichiers normal, et tout autre système de
+fichiers qu'il a éventuellement monté, et se termine.
+.IP 6.
+Le noyau monte alors le système de fichiers racine normal.
+.IP 7.
+Maintenant que le système de fichiers est accessible, le chargeur peut être
+installé.
+.IP 8.
+Le chargeur est configuré pour installer dans \fI/dev/initrd\fP un système de
+fichiers disposant de l'ensemble des modules qui ont été utilisés pour
+démarrer le système. (par exemple, un périphérique comme \fI/dev/ram0\fP peut
+être modifié, puis démonté, et finalement l'image est recopiée depuis
+\fI/dev/ram0\fP vers un fichier.)
+.IP 9.
+Le système est maintenant prêt à redémarrer, et les tâches supplémentaires
+d'installation peuvent être effectuées.
+.PP
+Le principal avantage offert par \fI/dev/initrd\fP dans ce scénario est de
+permettre de réutiliser les données de configuration lors du fonctionnement
+normal du noyau, sans nécessiter de choisir un noyau initial, d'utiliser un
+gros noyau générique ou de recompiler le noyau après l'installation.
+.PP
+Un second scénario sert à l'installation de Linux sur un réseau constitué de
+machines différentes. Dans ce cas, il peut être préférable de n'utiliser
+qu'un nombre minimal de noyaux (voire un seul dans le meilleur des cas) et
+de garder la quantité d'informations spécifiques à un système la plus faible
+possible. Ainsi, on crée un fichier commun contenant tous les modules
+nécessaires, et seul le fichier \fI/linuxrc\fP ou les fichiers qu'il lance
+changent suivant les machines.
+.PP
+Un troisième scénario permet de disposer de disques de secours plus
+commodes. Les informations comme l'emplacement du système de fichiers racine
+ne sont pas indispensables lors du démarrage. Le système chargé depuis
+\fI/dev/initrd\fP peut ainsi être interactif et/ou effectuer une détection
+automatique suivie d'une vérification de cohérence du système.
+.PP
+.\"
+.\"
+.\"
+Le dernier usage mais non le moindre concerne l'utilisation de \fBinitrd\fP
+pour faciliter l'installation de distribution Linux par CD\-ROM. La
+distribution peut utiliser directement \fBLOADLIN\fP pour charger
+\fI/dev/initrd\fP depuis le CD\-ROM sans avoir besoin de créer de disquettes. La
+distribution peut également utiliser une disquette de démarrage avec \fBLILO\fP
+puis charger un disque ram par l'intermédiaire de \fI/dev/initrd\fP depuis le
+CD\-ROM.
+.SH FICHIERS
+\fI/dev/initrd\fP
+.br
+\fI/dev/ram0\fP
+.br
+\fI/linuxrc\fP
+.br
+.\"
+.\"
+.\"
+\fI/initrd\fP
+.SH NOTES
+.IP 1. 3
+Avec le noyau actuel, tout système de fichiers reste monté lors du
+déplacement de \fI/dev/ram0\fP depuis \fI/\fP vers \fI/initrd\fP, et continue à être
+accessible. Néanmoins, les entrées de \fI/proc/mounts\fP ne sont pas mises à
+jour.
+.IP 2.
+Avec le noyau actuel, si le répertoire \fI/initrd\fP n'existe pas, alors
+\fI/dev/ram0\fP \fBne sera pas\fP complètement démonté si \fI/dev/ram0\fP est utilisé
+par un processus ou si un système de fichiers a été monté dessus. Si
+\fI/dev/ram0\fP \fBn'est pas\fP complètement démonté, alors \fI/dev/ram0\fP restera
+chargé en mémoire.
+.IP 3.
+.\"
+.\"
+.\"
+.\" .SH AUTHORS
+.\" The kernel code for device
+.\" .BR initrd
+.\" was written by Werner Almesberger <almesber@lrc.epfl.ch> and
+.\" Hans Lermen <lermen@elserv.ffm.fgan.de>.
+.\" The code for
+.\" .BR initrd
+.\" was added to the baseline Linux kernel in development version 1.3.73.
+Les utilisateurs de \fI/dev/initrd\fP ne doivent pas compter sur les
+comportements décrits dans les deux notes précédentes. Ces comportements
+peuvent changer dans les versions futures du noyau Linux.
+.SH "VOIR AUSSI"
+\fBchown\fP(1), \fBmknod\fP(1), \fBram\fP(4), \fBfreeramdisk\fP(8), \fBrdev\fP(8)
+
+Le fichier \fIinitrd.txt\fP dans les sources du noyau, la documentation de
+LILO, celle de LOADLIN, et la documentation SYSLINUX.
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Simon Paillard et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

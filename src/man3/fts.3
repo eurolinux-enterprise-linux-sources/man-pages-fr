@@ -1,0 +1,463 @@
+.\"	$NetBSD: fts.3,v 1.13.2.1 1997/11/14 02:09:32 mrg Exp $
+.\"
+.\" Copyright (c) 1989, 1991, 1993, 1994
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)fts.3	8.5 (Berkeley) 4/16/94
+.\"
+.\" 2007-12-08, mtk, Converted from mdoc to man macros
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FTS 3 "28 décembre 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+fts, fts_open, fts_read, fts_children, fts_set, fts_close \- Parcourir une
+hiérarchie de fichiers.
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <sys/stat.h>\fP
+\fB#include <fts.h>\fP
+.sp
+\fBFTS *fts_open(char * const *\fP\fIpath_argv\fP\fB, int \fP\fIoptions\fP\fB, \fP
+\fB              int (*\fP\fIcompar\fP\fB)(const FTSENT **, const FTSENT **));\fP
+.sp
+\fBFTSENT *fts_read(FTS *\fP\fIftsp\fP\fB);\fP
+.sp
+\fBFTSENT *fts_children(FTS *\fP\fIftsp\fP\fB, int \fP\fIoptions\fP\fB);\fP
+.sp
+\fBint fts_set(FTS *\fP\fIftsp\fP\fB, FTSENT *\fP\fIf\fP\fB, int \fP\fIoptions\fP\fB);\fP
+.sp
+\fBint fts_close(FTS *\fP\fIftsp\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Les fonctions de la famille fts servent à traverser des hiérarchies de
+fichiers. Rapidement, disons que la fonction \fBfts_open\fP() renvoie une sorte
+de descripteur de la hiérarchie de fichiers, que l'on fournit ensuite aux
+autres fonctions de la famille fts. La fonction \fBfts_read\fP() renvoie un
+pointeur sur une structure décrivant l'un des fichiers de l'arborescence. La
+fonction \fBfts_children\fP() renvoie un pointeur sur une liste chaînée de
+structures, chacune décrivant l'un des fichiers contenu dans le répertoire
+de la hiérarchie. En général, les répertoires sont visités à deux reprises,
+distinctes. Un passage en ordre «\ pre\-order\ » avant d'avoir parcouru leurs
+descendants, et un passage en ordre «\ post\-order\ » après avoir visité tous
+les sous\-répertoires. Les fichiers ne sont examinés qu'une seule fois. Il
+est possible de parcourir la hiérarchie «\ logiquement\ » (en ignorant les
+liens symboliques) ou «\ physiquement\ » (en visitant les liens
+symboliques). On peut ordonner le parcours de la hiérarchie, ignorer ou
+visiter plusieurs fois certaines parties.
+.PP
+Deux structures sont définies (avec typedef) dans le fichier d'en\-tête
+\fI<fts.h>\fP. La première est \fIFTS\fP, une structure représentant
+l'arborescence des fichiers elle\-même, et la seconde est \fIFTSENT\fP, une
+structure représentant un fichier dans la hiérarchie. Normalement, une
+structure \fIFTSENT\fP est renvoyée pour chaque fichier rencontré dans la
+hiérarchie. Dans cette page de manuel, les termes «\ fichier\ » et
+«\ structure FTSENT\ » sont généralement interchangeables. La structure
+\fIFTSENT\fP contient au moins les champs suivants, décrits en détail
+ci\-dessous\ :
+.in +4n
+.nf
+
+typedef struct _ftsent {
+    unsigned short fts_info;     /* drapeau de la structure FTSENT */
+    char          *fts_accpath;  /* chemin d'accès */
+    char          *fts_path;     /* chemin de la racine */
+    short          fts_pathlen;  /* strlen(fts_path) */
+    char          *fts_name;     /* non du fichier */
+    short          fts_namelen;  /* strlen(fts_name) */
+    short          fts_level;    /* profondeur (\-1 à N) */
+    int            fts_errno;    /* fichier errno */
+    long           fts_number;   /* valeur numérique locale */
+    void          *fts_pointer;  /* valeur de l'adresse locale */
+    struct ftsent *fts_parent;   /* répertoire parent */
+    struct ftsent *fts_link;     /* fichier de structure suivant */
+    struct ftsent *fts_cycle;    /* cycle structure */
+    struct stat   *fts_statp;    /* information sur stat(2) */
+} FTSENT;
+.fi
+.in
+.PP
+.\" .Bl -tag -width "fts_namelen"
+Les membres ont les significations suivantes\ :
+.TP  12
+\fIfts_info\fP
+.\" .Bl  -tag -width FTS_DEFAULT
+L'un des attribut suivants, décrivant la structure \fIFTSENT\fP et le fichier
+qu'elle représente. Toutes ces entrées sont terminales (sauf les répertoires
+\fBFTS_D\fP ne présentant pas d'erreur), ce qui signifie qu'elle ne seront
+visitées qu'une seule fois, et que leur éventuels descendants (cas des
+répertoires en erreur) ne seront pas visités.
+.RS 12
+.TP  12
+\fBFTS_D\fP
+Un répertoire visité en phase «\ pre\-order\ ».
+.TP 
+\fBFTS_DC\fP
+Un répertoire introduisant une boucle dans l'arborescence. Le champ
+\fIfts_cycle\fP de la structure \fIFTSENT\fP sera également remplis.
+.TP 
+\fBFTS_DEFAULT\fP
+Toute structure \fIFTSENT\fP représentant un type de fichier non décrit
+explicitement par l'une des autres valeurs de \fIfts_info\fP.
+.TP 
+\fBFTS_DNR\fP
+Un répertoire ne pouvant être lu. Ceci est considéré comme une erreur, et le
+champ \fIfts_errno\fP sera défini avec une valeur décrivant sa cause.
+.TP 
+\fBFTS_DOT\fP
+Un fichier nommé «\ .\ » ou «\ ..\ » qui n'a pas été indiqué explicitement comme
+argument de \fBfts_open\fP() (consultez \fBFTS_SEEDOT\fP).
+.TP 
+\fBFTS_DP\fP
+Un répertoire visité en phase «\ post\-order\ ». Le contenu de la structure
+\fIFTSENT\fP ne sera pas différent de ce qu'il était après la phase «\
+pre\-order\ ». C'est\-à\-dire quand le champ \fIfts_info\fP valait \fBFTS_D\fP.
+.TP 
+\fBFTS_ERR\fP
+Il s'agit d'un retour d'erreur, le champ \fIfts_errno\fP étant rempli pour
+indiquer la cause de l'erreur.
+.TP 
+\fBFTS_F\fP
+Un fichier normal.
+.TP 
+\fBFTS_NS\fP
+Un fichier pour lequel aucune information provenant de \fBstat\fP(2) n'est
+disponible. Le contenu du champ \fIfts_statp\fP est indéfini. Il s'agit d'un
+cas d'erreur dont la cause est indiquée dans \fIfts_errno\fP.
+.TP 
+\fBFTS_NSOK\fP
+Un fichier pour lequel aucune information provenant de \fBstat\fP(2) n'a été
+demandée. Le contenu du champ \fIfts_statp\fP est indéfini.
+.TP 
+\fBFTS_SL\fP
+Un lien symbolique.
+.TP 
+\fBFTS_SLNONE\fP
+.\" .El
+Un lien symbolique pointant dans le vide. Le contenu du champ \fIfts_statp\fP
+contient les caractéristiques du lien lui\-même.
+.RE
+.TP 
+\fIfts_accpath\fP
+Un chemin permettant d'accéder au fichier depuis le répertoire courant.
+.TP 
+\fIfts_path\fP
+Le chemin d'accès au fichier à partir du point de départ du parcours. Il
+contient en préfixe le chemin fourni lors de l'invocation de \fBfts_open\fP().
+.TP 
+\fIfts_pathlen\fP
+La longueur de la chaîne pointée par \fIfts_path\fP.
+.TP 
+\fIfts_name\fP
+Le nom du fichier.
+.TP 
+\fIfts_namelen\fP
+La longueur de la chaîne pointée par \fIfts_name\fP.
+.TP 
+\fIfts_level\fP
+La profondeur où le fichier a été trouvé dans l'arborescence, numérotée de
+\-1 à N. La structure \fIFTSENT\fP représentant le parent du point de départ est
+numérotée \-1. La structure \fIFTSENT\fP représentant la racine de départ
+elle\-même est numérotée 0.
+.TP 
+\fIfts_errno\fP
+Dans une structure \fIFTSENT\fP renvoyée par un appel \fBfts_children\fP() ou
+\fBfts_read\fP(), dont le champ \fIfts_info\fP contient \fBFTS_DNR\fP, \fBFTS_ERR\fP ou
+\fBFTS_NS\fP, le champ \fIfts_errno\fP est défini avec la valeur de la variable
+externe \fIerrno\fP indiquant la cause de l'erreur. Dans les autres cas, le
+contenu du champ \fIfts_errno\fP est indéfini.
+.TP 
+\fIfts_number\fP
+Ce champ est mis à la disposition des programmes applicatifs, et n'est
+modifié par aucune fonction de la famille fts. Il est toutefois initialisé à
+zéro.
+.TP 
+\fIfts_pointer\fP
+Ce champ est mis à la disposition des programmes applicatifs, et n'est
+modifié par aucune fonction de la famille fts. Il est toutefois initialisé à
+NULL.
+.TP 
+\fIfts_parent\fP
+Un pointeur sur la structure \fIFTSENT\fP référençant le fichier dans la
+hiérarchie immédiatement au dessus du fichier en cours, c'est\-à\-dire le
+répertoire auquel il appartient. Une structure parente pour le point
+d'entrée initial est également fournie, mais seuls ses membres \fIfts_level\fP,
+\fIfts_number\fP et \fIfts_pointer\fP sont garantis d'être initialisés.
+.TP 
+\fIfts_link\fP
+Au retour de la fonction \fBfts_children\fP(), le champ \fIfts_link\fP pointe sur
+la structure suivante dans la liste chaînée des membres du répertoires,
+liste terminée par un NULL. Dans les autres situations, le contenu du champ
+\fIfts_link\fP est indéterminé.
+.TP 
+\fIfts_cycle\fP
+Si un répertoire introduit une boucle dans la hiérarchie (voyez
+\fBFTS_DC\fP),soit à cause d'un lien physique entre deux répertoires, soit à
+cause d'un lien symbolique pointant vers un répertoire, le champ
+\fIfts_cycle\fP pointera vers la structure \fIFTSENT\fP de la hiérarchie qui
+référence le même fichier que celui représenté par la structure
+\fIFTSENT\fP. Sinon, le contenu du champ \fIfts_cycle\fP est indéfini.
+.TP 
+\fIfts_statp\fP
+.\" .El
+Un pointeur vers les informations fournies par \fBstat\fP(2).
+.PP
+Un tampon unique est utilisé pour tous les chemins d'accès de tous les
+fichiers de la hiérarchie. Ainsi, les champs \fIfts_path\fP et \fIfts_accpath\fP
+ne sont assurés d'être terminés par un caractère nul \fIseulement\fP pour le
+dernier fichier renvoyé par \fBfts_read\fP(). Pour utiliser ces champs pour
+référencer un fichier représenté par une autre structure \fIFTSENT\fP nécessite
+que le chemin du tampon soit modifié avec l'information contenu dans le
+champ \fIfts_pathlen\fP de cette structure \fIFTSENT\fP. Tout autre modification
+devra être défaite avant que d'autres appels à \fBfts_read\fP() ne soient
+tentés. Le champ \fIfts_name\fP est toujours terminé par un caractère nul.
+.SS fts_open()
+La fonction \fBfts_open\fP() reçoit un pointeur vers une table de chaînes de
+caractères représentant un ou plusieurs chemins décrivant la hiérarchie de
+fichiers à traverser. Cette table doit se terminer par un pointeur NULL.
+.PP
+.\" .Bl -tag -width "FTS_PHYSICAL"
+Il existe un certain nombre d'options, dont au moins une est obligatoire
+(soit \fBFTS_LOGICAL\fP ou soit \fBFTS_PHYSICAL\fP). Les options sont
+sélectionnées par un \fIou logique\fP entre les valeurs suivantes\ :
+.TP  13
+\fBFTS_COMFOLLOW\fP
+Tout lien symbolique spécifié comme racine du parcours sera immédiatement
+suivi (déréférencé), que l'option \fBFTS_LOGICAL\fP soit spécifiée ou non.
+.TP 
+\fBFTS_LOGICAL\fP
+Cette option indique aux fonctions fts de renvoyer des structures \fIFTSENT\fP
+concernant les cibles des liens symboliques plutôt que les liens
+eux\-mêmes. Avec cette option, les seuls liens symboliques pour lesquels une
+structure \fIFTSENT\fP est renvoyée sont ceux pointant dans le vide. Il \fIfaut\fP
+préciser soit \fBFTS_LOGICAL\fP, soit \fBFTS_PHYSICAL\fP à la fonction
+\fBfts_open\fP().
+.TP 
+\fBFTS_NOCHDIR\fP
+Pour optimiser les performances, les fonctions fts changent de répertoire au
+cours de la traversée de la hiérarchie de fichiers. En contrepartie,
+l'application ne peut pas savoir à l'avance où elle se trouve durant la
+traversée. L'option \fBFTS_NOCHDIR\fP supprime cette optimisation et les
+fonctions fts ne changeront pas de répertoire de travail. Remarquez que les
+applications ne doivent pas modifier elles\-même le répertoire de travail et
+essayer d'accéder aux fichiers sans que l'option \fBFTS_NOCHDIR\fP ne soit
+spécifiée et que des chemins d'accès absolus soient transmis à
+\fBfts_open\fP().
+.TP 
+\fBFTS_NOSTAT\fP
+Par défaut, les structures \fIFTSENT\fP renvoyées contiennent les
+caractéristiques (voir le champ \fIstatp\fP) de chaque fichier visité. Cette
+option relâche cette contrainte pour optimiser les performances, en
+autorisant les fonctions fts à remplir le champ \fIfts_info\fP avec \fBFTS_NSOK\fP
+et laisser le contenu du membre \fIstatp\fP indéfini.
+.TP 
+\fBFTS_PHYSICAL\fP
+Avec cette option, les routines fts renvoient des structures \fIFTSENT\fP pour
+les liens symboliques eux\-mêmes et non pas les fichiers qu'ils pointent. Si
+cette option est définie, des structures \fIFTSENT\fP pour tous les liens
+symboliques de la hiérarchie sont renvoyées à l'application. Soit
+\fBFTS_LOGICAL\fP ou soit \fBFTS_PHYSICAL\fP \fIdoit\fP être fourni à la fonction
+\fBfts_open\fP().
+.TP 
+\fBFTS_SEEDOT\fP
+Par défaut, à moins d'être fournis explicitement en argument à \fBfts_open\fP()
+,tout fichier nommé «\ .\ » ou «\ ..\ » rencontré dans la hiérarchie est
+ignoré. Avec cette option, les routines fts renvoient des structures
+\fIFTSENT\fP pour ces fichiers.
+.TP 
+\fBFTS_XDEV\fP
+.\" .El
+Cette option empêche fts de descendre dans les répertoires se trouvant sur
+un périphérique différent de celui dans lequel le parcours a commencé.
+.PP
+L'argument \fBcompar\fP() spécifie une fonction définie par l'utilisateur pour
+ordonner la traversée de la hiérarchie. Elle prend en argument deux
+pointeurs sur des pointeurs sur des structures \fIFTSENT\fP, et doit renvoyer
+une valeur négative, nulle, ou positive pour indiquer que le fichier
+représenté par le premier argument doit venir avant, à n'importe quel
+moment, ou après le fichier référencé par le second argument. Les champs
+\fIfts_accpath\fP, \fIfts_path\fP et \fIfts_pathlen\fP des structures \fIFTSENT\fP ne
+doivent \fIjamais\fP être utilisés dans cette comparaison. Si le champ
+\fIfts_info\fP contient \fBFTS_NS\fP ou \fBFTS_NSOK\fP, le membre \fIfts_statp\fP ne
+doit pas être utilisé non plus. Si l'argument \fBcompar\fP() est NULL, l'ordre
+de traversée des répertoires est celui de l'argument \fIpath_argv\fP pour les
+racines, et l'ordre interne des répertoires pour le reste.
+.SS fts_read()
+La fonction \fBfts_read\fP() renvoie un pointeur sur une structure \fIFTSENT\fP
+décrivant un fichier de la hiérarchie. Les répertoires lisibles et ne
+causant pas de boucles sont parcourus au moins deux fois, une fois en phase
+«\ pre\-order\ », et une en phase «\ post\-order\ ». Les autres fichiers ne
+sont examinés qu'une seule fois. Les liens physiques entre répertoires qui
+ne causent pas de boucles, ou les liens symboliques vers des liens
+symboliques peuvent entraîner des fichiers visités plus d'une fois, ou des
+répertoires plus de deux fois.
+.PP
+Si tous les membres de la hiérarchie ont été examinés, \fBfts_read\fP() renvoie
+NULL et définit la variable externe \fIerrno\fP avec un 0. Si une erreur sans
+rapport avec un fichier particulier se produit, \fBfts_read\fP() renvoie NULL
+et définit \fIerrno\fP en conséquence. Si une erreur concernant le fichier en
+cours se produit, un pointeur sur une structure \fIFTSENT\fP est renvoyé, et
+\fIerrno\fP peut ou non être défini (voyez \fIfts_info\fP).
+.PP
+Les structures \fIFTSENT\fP renvoyées par \fBfts_read\fP() peuvent être écrasées
+après un appel à \fBfts_close\fP() sur le même descripteur de hiérarchie ou
+après un appel à \fBfts_read\fP() sur la même hiérarchie, sauf si elles
+représentent un répertoire, auquel cas elles ne seront pas écrasées avant
+l'appel \fBfts_read\fP() renvoyant la structure \fIFTSENT\fP du répertoire en
+phase «\ post\-order\ ».
+.SS fts_children()
+La fonction \fBfts_children\fP() renvoie un pointeur sur une structure
+\fIFTSENT\fP décrivant la première entrée d'une liste chaînée terminée par un
+NULL et représentant les fichiers se trouvant dans le répertoire indiqué par
+la dernière structure \fIFTSENT\fP renvoyée par un appel \fBfts_read\fP(). La
+liste est chaînée par le biais du membre \fIfts_link\fP de la structure
+\fIFTSENT\fP, et est ordonnée suivant la routine de comparaison fournie par
+l'utilisateur, si elle existe. Des appels répétés à \fBfts_children\fP()
+recréeront la liste chaînée.
+.PP
+Un cas particulier se présente si \fBfts_read\fP() n'a pas encore été appelée
+pour une hiérarchie. Alors, \fBfts_children\fP() renverra un pointeur sur les
+fichiers du répertoire logique spécifié dans \fBfts_open\fP(), c'est\-à\-dire les
+arguments fournis à \fBfts_open\fP(). Sinon, si la structure \fIFTSENT\fP la plus
+récemment renvoyée par \fBfts_read\fP() n'est pas un répertoire visité en phase
+«\ pre\-order\ », ou si le répertoire ne contient aucun fichier,
+\fBfts_children\fP() renvoie NULL et met la variable externe \fIerrno\fP à
+zéro. Si une erreur se produit, \fBfts_children\fP() renvoie NULL et définit
+\fIerrno\fP en conséquence.
+.PP
+Les structures  \fIFTSENT\fP renvoyées par \fBfts_children\fP()  peuvent être
+écrasées après un appel à \fBfts_children\fP(), \fBfts_close\fP() ou \fBfts_read\fP()
+sur la même hiérarchie de fichiers.
+.PP
+.\" .Bl -tag -width FTS_NAMEONLY
+\fIOption\fP peut contenir l'une des valeurs suivantes\ :
+.TP  13
+\fBFTS_NAMEONLY\fP
+.\" .El
+Seuls les noms des fichiers sont nécessaires. Le contenu des membres des
+structures de la liste chaînée est indéfini sauf pour \fIfts_name\fP et
+\fIfts_namelen\fP.
+.SS fts_set()
+.\" .Bl -tag -width FTS_PHYSICAL
+La fonction \fBfts_set\fP() permet à l'application de paramétrer le traitement
+à venir du fichier \fIf\fP sur la hiérarchie \fIftsp\fP. La fonction \fBfts_set\fP()
+renvoie 0 si elle réussit, et \-1 si une erreur se produit. \fIOption\fP doit
+contenir l'une des valeurs suivantes\ :
+.TP  13
+\fBFTS_AGAIN\fP
+Revisiter à nouveau le fichier. N'importe quel type de fichier peut être
+revisité. L'appel suivant de \fBfts_read\fP() renverra le fichier indiqué. Les
+membres \fIfts_stat\fP et \fIfts_info\fP de la structure seront réinitialisés à ce
+moment, mais aucun autre champ ne sera modifié. Cette option n'a de sens que
+pour le dernier fichier renvoyé par \fBfts_read\fP(). L'utilisation habituelle
+de cette possibilité concerne les répertoires en phase «\ post\-order\ », qui
+sont alors ré\-examinés (aussi bien en phase «\ pre\-order\ » que «\
+post\-order\ »), ainsi que leurs descendants.
+.TP 
+\fBFTS_FOLLOW\fP
+Le fichier référencé doit être un lien symbolique. Si ce fichier est le
+dernier renvoyé par \fBfts_read\fP(), alors l'appel suivant de \fBfts_read\fP()
+renverra le fichier, avec les champs \fIfts_info\fP et \fIfts_statp\fP
+réinitialisés pour représenter la cible du lien symbolique plutôt que le
+lien lui\-même. Si le fichier est le dernier renvoyé par \fBfts_children\fP(),
+alors les membres \fIfts_info\fP et \fIfts_statp\fP de la structure, lorsqu'elle
+sera renvoyée par \fBfts_read\fP(), représenteront la cible du lien symbolique
+plutôt que le lien lui\-même. Dans tous les cas, si la cible du lien
+symbolique n'existe pas, les membres de la structure ne seront pas modifiés,
+et le champ \fIfts_info\fP contiendra \fBFTS_SLNONE\fP.
+.IP
+Si la cible du lien est un répertoire, il y aura un retour «\ pre\-order\ »,
+suivi d'un retour pour chaque descendant, suivi d'un retour «\ post\-order\
+».
+.TP 
+\fBFTS_SKIP\fP
+.\" .El
+Aucun descendant de ce fichier ne sera visité. Le fichier doit être le
+dernier renvoyé par \fBfts_children\fP() ou \fBfts_read\fP().
+.SS fts_close()
+La fonction \fBfts_close\fP() ferme un descripteur \fIftsp\fP de hiérarchie de
+fichier, et restitue le répertoire de travail qui était en vigueur lors de
+l'appel \fBfts_open\fP() qui avait permit d'ouvrir \fIftsp\fP. La fonction
+\fBfts_close\fP() renvoie 0 si elle réussit, et \-1 en cas d'erreur.
+.SH ERREURS
+La fonction \fBfts_open\fP() peut échouer, et mettre dans \fIerrno\fP l'une des
+erreurs indiquées pour les fonctions \fBopen\fP(2) et \fBmalloc\fP(3).
+.PP
+La fonction \fBfts_close\fP() peut échouer, et mettre dans \fIerrno\fP l'une des
+erreurs indiquées pour les fonctions \fBchdir\fP(2) et \fBclose\fP(2).
+.PP
+Les fonctions \fBfts_read\fP() et \fBfts_children\fP() peuvent échouer, et mettre
+dans \fIerrno\fP l'une des erreurs indiquées pour les fonctions \fBchdir\fP(2),
+\fBmalloc\fP(3), \fBopendir\fP(3), \fBreaddir\fP(3) et \fBstat\fP(2).
+.PP
+De plus \fBfts_children\fP(), \fBfts_open\fP() et \fBfts_set\fP() peuvent échouer, et
+mettre dans \fIerrno\fP l'une des erreurs suivantes\ :
+.TP 
+\fBEINVAL\fP
+Les options ne sont pas valables.
+.SH VERSIONS
+Ces fonctions sont disponibles sous Linux depuis la glibc2.
+.SH CONFORMITÉ
+.\" The following statement is years old, and seems no closer to
+.\" being true -- mtk
+.\" The
+.\" .I fts
+.\" utility is expected to be included in a future
+.\" POSIX.1
+.\" revision.
+4.4BSD.
+.SH "VOIR AUSSI"
+\fBfind\fP(1), \fBchdir\fP(2), \fBstat\fP(2), \fBftw\fP(3), \fBqsort\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

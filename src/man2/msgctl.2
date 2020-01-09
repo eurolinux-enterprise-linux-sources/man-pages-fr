@@ -1,0 +1,246 @@
+.\" Copyright 1993 Giorgio Ciucci (giorgio@crcc.it)
+.\" and Copyright 2004, 2005 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified Tue Oct 22 08:11:14 EDT 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Sun Feb 18 01:59:29 2001 by Andries E. Brouwer <aeb@cwi.nl>
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on CAP_IPC_OWNER requirement
+.\" Modified, 17 Jun 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on CAP_SYS_ADMIN requirement for IPC_SET and IPC_RMID
+.\" Modified, 11 Nov 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Language and formatting clean-ups
+.\"	Added msqid_ds and ipc_perm structure definitions
+.\" 2005-08-02, mtk: Added IPC_INFO, MSG_INFO, MSG_STAT descriptions
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MSGCTL 2 "6 août 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+msgctl \- Contrôler les messages
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <sys/ipc.h>\fP
+\fB#include <sys/msg.h>\fP
+
+\fBint msgctl(int \fP\fImsqid\fP\fB, int \fP\fIcmd\fP\fB, struct msqid_ds *\fP\fIbuf\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Cette fonction permet d'effectuer l'opération indiquée par \fIcmd\fP sur la
+file de messages ayant l'identifiant \fImsqid\fP.
+.PP
+La structure \fImsqid_ds\fP est déclarée dans \fI<sys/msg.h>\fP comme
+suit\ :
+.nf
+.in +4n
+
+struct msqid_ds {
+    struct ipc_perm msg_perm;     /* Propriétaire et permissions */
+    time_t          msg_stime;    /* Heure du dernier msgsnd(2) */
+    time_t          msg_rtime;    /* Heure du dernier msgrcv(2) */
+    time_t          msg_ctime;    /* Heure de dernière modification */
+    unsigned long   __msg_cbytes; /* Nombre actuel d'octets dans la file
+                                    (non standard) */
+    msgqnum_t       msg_qnum;     /* Nombre actuel de messages
+                                    dans la file */
+    msglen_t        msg_qbytes;   /* Nombre maximal d'octets
+                                    autorisés dans la file */
+    pid_t           msg_lspid;    /* PID du dernier msgsnd(2) */
+    pid_t           msg_lrpid;    /* PID du dernier msgrcv(2) */
+};
+.in
+.fi
+.PP
+La structure \fIipc_perm\fP est définie dans \fI<sys/ipc.h>\fP de la façon
+suivante (les champs en gras peuvent être modifiés en utilisant \fBIPC_SET\fP)\
+:
+.PP
+.nf
+.in +4n
+struct ipc_perm {
+    key_t          __key;       /* Clé fournie à msgget(2) */
+    uid_t          \fBuid\fP;         /* UID effectif du propriétaire */
+    gid_t          \fBgid\fP;         /* GID effectif du propriétaire */
+    uid_t          cuid;           /* UID effectif du créateur */
+    gid_t          cgid;        /* GID effectif du créateur */
+    unsigned short \fBmode\fP;       /* Permissions */
+    unsigned short __seq;       /* Numéro de séquence */
+};
+.in
+.fi
+.PP
+Les valeurs autorisées pour \fIcmd\fP sont\ :
+.TP 
+\fBIPC_STAT\fP
+Copier les informations depuis la structure représentant la file de messages
+identifiée par \fImsqid\fP dans la structure \fImsqid_ds\fP pointée par
+\fIbuf\fP. L'appelant doit avoir des privilèges d'accès en lecture sur la file
+de messages.
+.TP 
+\fBIPC_SET\fP
+Écrire la valeur de certains champs de la structure \fImsqid_ds\fP pointée par
+\fIbuf\fP dans la structure du noyau représentant la file de messages, en
+mettant à jour le champ \fImsg_ctime\fP. Les champs suivants de la structure
+peuvent être mis à jour\ : \fImsg_qbytes\fP, \fImsg_perm.uid\fP, \fImsg_perm.gid\fP
+et les 9 bits de poids faible de \fImsg_perm.mode\fP. L'UID effectif du
+processus appelant doit être soit celui du propriétaire (\fImsg_perm.uid\fP),
+soit celui du créateur (\fImsg_perm.cuid\fP) de la file de messages, ou bien
+l'appelant doit être privilégié. Des privilèges particuliers (sous Linux, la
+capacité \fBCAP_IPC_RESOURCE\fP) sont nécessaires pour augmenter la valeur de
+\fImsg_qbytes\fP au\(hydessus de la constante système \fBMSGMNB\fP.
+.TP 
+\fBIPC_RMID\fP
+Effacer immédiatement la file de messages et ses structures de données, en
+réveillant tous les processus écrivains et lecteurs en attente. Ils
+obtiendront un code d'erreur, et \fIerrno\fP aura la valeur \fBEIDRM\fP. L'UID
+effectif du processus appelant doit être celui du créateur ou du
+propriétaire de la file de messages, ou bien le processus appelant doit être
+privilégié.
+.TP 
+\fBIPC_INFO\fP (spécifique à Linux)
+Renvoie des informations sur les limites et paramètres du système relatifs
+aux files de messages dans la structure pointée par \fIbuf\fP. Cette structure
+est de type \fImsginfo\fP (ce qui nécessite un transtypage), qui est défini
+dans \fI<sys/msg.h>\fP si la macro \fB_GNU_SOURCE\fP est définie\ :
+.nf
+.in +4n
+
+struct msginfo {
+    int msgpool; /* Taille en kibi\-octets du tampon utilisé
+                    pour stocker les données des messages\ ;
+                    pas utilisé par le noyau */
+    int msgmap;  /* Nombre maximal d'entrées dans la table
+                    des messages\ ; pas utilisé par le noyau */
+    int msgmax;  /* Nombre maximal d'octets pouvant être
+                    écrits dans un seul message */
+    int msgmnb;  /* Nombre maximal d'octets pouvant être écrits dans
+                    une file\ ; utilisé pour initialiser msg_qbytes
+                    lors de la création de la file (msgget(2)) */
+    int msgmni;  /* Nombre maximal de files de message */
+    int msgssz;  /* Taille du segment de message\ ;
+                    pas utilisé par le noyau */
+    int msgtql;  /* Nombre maximal de messages dans toutes les files
+                    du système\ ; pas utilisé par le noyau */
+    unsigned short int msgseg;
+                 /* Nombre maximal de segments\ ;
+                    pas utilisé par le noyau */
+};
+
+.in
+.fi
+Les paramètres \fImsgmni\fP, \fImsgmax\fP et \fImsgmnb\fP peuvent être modifiés via
+les fichiers du même nom dans \fI/proc\fP. Voir \fBproc\fP(5) pour plus de
+détails.
+.TP 
+\fBMSG_INFO\fP (Spécifique à Linux)
+Renvoie une structure \fImsginfo\fP contenant les mêmes informations que pour
+\fBIPC_INFO\fP, sauf que les champs suivants contiennent des informations sur
+les ressources système utilisées par des files de messages\ : le champ
+\fImsgpool\fP indique le nombre de files de messages existant actuellement sur
+le système\ ; le champ \fImsgmap\fP contient le nombre total de messages dans
+l'ensemble des files du système\ ; enfin le champ \fImsgtql\fP contient le
+nombre total d'octets dans tous les messages de toutes les files du système.
+.TP 
+\fBMSG_STAT\fP (Spécifique à Linux)
+Renvoie une structure \fImsqid_ds\fP comme pour \fBIPC_STAT\fP. Cependant,
+l'argument \fImsqid\fP n'est pas l'identifiant d'une file, mais un indice dans
+le tableau interne au noyau qui contient des informations sur toutes les
+files de messages du système.
+.SH "VALEUR RENVOYÉE"
+Si elles réussissent, les opérations \fBIPC_STAT\fP, \fBIPC_SET\fP et \fBIPC_RMID\fP
+renvoient 0. Une opération \fBIPC_INFO\fP ou \fBMSG_INFO\fP réussie renvoie le
+plus grand indice d'un élément utilisé dans la table interne du noyau
+contenant des informations sur les files de messages. Cette information peut
+être utilisée par des opérations \fBMSG_STAT\fP répétées afin d'obtenir des
+informations sur toutes les files du système. Une opération \fBMSG_STAT\fP
+réussie renvoie l'identifiant de la file dont l'indice était donné dans
+\fImsqid\fP.
+
+En cas d'erreur \-1 est renvoyé, et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+En cas d'erreur, \fIerrno\fP prend l'une des valeurs suivantes\ :
+.TP 
+\fBEACCES\fP
+L'argument \fIcmd\fP réclame l'opération \fBIPC_STAT\fP ou \fBMSG_STAT\fP, mais le
+processus appelant n'a pas d'accès en lecture sur la file de messages
+\fImsqid\fP, et n'a pas la capacité \fBCAP_IPC_OWNER\fP.
+.TP 
+\fBEFAULT\fP
+L'argument \fIcmd\fP réclame l'opération \fBIPC_SET\fP ou \fBIPC_STAT\fP mais \fIbuf\fP
+pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEIDRM\fP
+La file de messages a été supprimée.
+.TP 
+\fBEINVAL\fP
+\fIcmd\fP ou \fImsqid\fP ont une valeur illégale. Ou alors, dans le cas d'une
+opération \fBMSG_STAT\fP, la valeur indiquée par \fImsqid\fP pointe vers un
+élément de tableau qui n'est pas en cours d'utilisation.
+.TP 
+\fBEPERM\fP
+L'argument \fIcmd\fP réclame l'opération \fBIPC_SET\fP ou \fBIPC_RMID\fP mais l'UID
+effectif du processus appelant n'est pas le créateur (comme indiqué dans
+\fImsg_perm.cuid\fP) ou le propriétaire (comme indiqué dans \fImsg_perm.uid\fP) de
+la file de messages, et le processus n'est pas privilégié (sous Linux, il
+n'a pas la capacité \fBCAP_SYS_ADMIN\fP).
+.SH CONFORMITÉ
+.\" SVID does not document the EIDRM error condition.
+SVr4, POSIX.1\-2001.
+.SH NOTES
+Les appels \fBIPC_INFO\fP, \fBMSG_STAT\fP et \fBMSG_INFO\fP sont utilisés par le
+programme \fBipcs\fP(8) pour fournir des informations sur les ressources
+allouées. À l'avenir, ceci pourra être modifié ou remplacé par une interface
+avec le système de fichiers /proc.
+
+Divers champs de la structure \fIstruct msqid_ds\fP étaient de type \fIshort\fP
+sous Linux 2.2 et sont devenus de type \fIlong\fP sous Linux 2.4. Pour en
+profiter, une recompilation avec la glibc 2.1.91 ou ultérieure devrait
+suffire. (Le noyau distingue les appels anciens et nouveaux par un drapeau
+\fBIPC_64\fP dans \fIcmd\fP.)
+.SH "VOIR AUSSI"
+\fBmsgget\fP(2), \fBmsgrcv\fP(2), \fBmsgsnd\fP(2), \fBcapabilities\fP(7),
+\fBmq_overview\fP(7), \fBsvipc\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,130 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\" Distributed under GPL
+.\" Based on glibc infopages
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH NEXTAFTER 3 "6 octobre 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+nextafter, nextafterf, nextafterl, nexttoward, nexttowardf, nexttowardl \-
+Manipulation de nombres en virgule flottante
+.SH SYNOPSIS
+\fB#include <math.h>\fP
+.sp
+\fBdouble nextafter(double \fP\fIx\fP\fB, double \fP\fIy\fP\fB);\fP
+.br
+\fBfloat nextafterf(float \fP\fIx\fP\fB, float \fP\fIy\fP\fB);\fP
+.br
+\fBlong double nextafterl(long double \fP\fIx\fP\fB, long double \fP\fIy\fP\fB);\fP
+.sp
+\fBdouble nexttoward(double \fP\fIx\fP\fB, long double \fP\fIy\fP\fB);\fP
+.br
+\fBfloat nexttowardf(float \fP\fIx\fP\fB, long double \fP\fIy\fP\fB);\fP
+.br
+\fBlong double nexttowardl(long double \fP\fIx\fP\fB, long double \fP\fIy\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBnextafter\fP()\ : _BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500
+|| _ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.br
+\fBnextafterf\fP(), \fBnextafterl\fP()\ : _BSD_SOURCE || _SVID_SOURCE ||
+_XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.br
+\fBnexttoward\fP(), \fBnexttowardf\fP(), \fBnexttowardl\fP()\ : _XOPEN_SOURCE\ >=\
+600 || _ISOC99_SOURCE\ ; \fIcc\ \-std=c99\fP
+.ad b
+.SH DESCRIPTION
+Les fonctions \fBnextafter\fP() renvoient la valeur en virgule flottante
+pouvant être représentée suivant \fIx\fP dans la direction de \fIy\fP. Si \fIy\fP est
+inférieur à \fIx\fP, ces fonctions renverront la valeur la plus élevée pouvant
+être représentée inférieure à \fIy\fP.
+
+Si \fIx\fP est égal à \fIy\fP, la fonction renvoie \fIy\fP.
+
+La fonction \fBnexttoward\fP() réalise le même travail que \fBnextafter\fP() sauf
+qu'elle a un second argument de type \fIlong double\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient la valeur en virgule flottante
+suivante pouvant être représentée après \fIx\fP dans la direction de \fIy\fP.
+
+Si \fIx\fP est égal à \fIy\fP, alors \fIy\fP (converti dans le même type que \fIx\fP)
+est renvoyé.
+
+Si \fIx\fP ou \fIy\fP est un NaN, un NaN est renvoyé.
+
+.\" e.g., DBL_MAX
+Si \fIx\fP est une valeur finie et que le résultat produit un dépassement, une
+erreur d'intervalle est produite et les fonctions renvoient \fBHUGE_VAL\fP,
+\fBHUGE_VALF\fP ou \fBHUGE_VALL\fP, respectivement, avec le bon signe
+mathématique.
+
+Si \fIx\fP n'est pas égal à \fIy\fP et que le résultat correct de la fonction
+aurait du être subnormal, zéro, ou en cas de souspassement («\ underflow\ »),
+alors une erreur d'intervalle est produite et la valeur renvoyée est soit la
+valeur correcte (si elle peut être représentée), soit 0.
+.SH ERREURS
+Consultez \fBmath_error\fP(7) pour savoir comment déterminer qi une erreur est
+survenue lors de l'appel de ces fonctions.
+.PP
+Les erreurs suivantes peuvent se produire\ :
+.TP 
+Erreur d'intervalle\ : dépassement pour le résultat
+.\" e.g., nextafter(DBL_MAX, HUGE_VAL);
+.\" .I errno
+.\" is set to
+.\" .BR ERANGE .
+Une exception en virgule flottante de dépassement (\fBFE_OVERFLOW\fP) est
+levée.
+.TP 
+Erreur d'intervalle\ : le résultat est subnormal ou un souspassement («\ underflow\ ») se produit.
+.\" e.g., nextafter(DBL_MIN, 0.0);
+.\" .I errno
+.\" is set to
+.\" .BR ERANGE .
+Une exception en virgule flottante de souspassement (\fBFE_UNDERFLOW\fP) est
+levée.
+.PP
+.\" FIXME . Is it intentional that these functions do not set errno?
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6799
+Ces fonctions ne positionnent pas \fIerrno\fP.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001. Cette fonction est définie dans IEC 559 (et l'annexe avec
+les fonctions recommandées de IEEE 754/IEEE 854).
+.SH BOGUES
+Dans la glibc version 2.5 et antérieures, ces fonction ne lèvent pas
+d'exception de la virgule flottante de souspassement (\fBFE_UNDERFLOW\fP) quand
+un souspassement («\ underflow\ ») se produit.
+.SH "VOIR AUSSI"
+\fBnearbyint\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

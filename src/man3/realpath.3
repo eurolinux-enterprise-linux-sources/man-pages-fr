@@ -1,0 +1,172 @@
+.\" Copyright (C) 1999 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Rewritten old page, 990824, aeb@cwi.nl
+.\" 2004-12-14, mtk, added discussion of resolved_path == NULL
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH REALPATH 3 "23 février 2009" "" "Manuel du programmeur Linux"
+.SH NOM
+realpath \- Renvoie le chemin d'accès absolu.
+.SH SYNOPSIS
+.nf
+\fB#include <limits.h>\fP
+\fB#include <stdlib.h>\fP
+.sp
+\fBchar *realpath(const char *\fP\fIpath\fP\fB, char *\fP\fIresolved_path\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBrealpath\fP()\ : _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500
+.SH DESCRIPTION
+\fBrealpath\fP développe tous les liens symboliques, et résout les références à
+«\ /./\ », «\ /../\ » ainsi que les caractères «\ /\ » supplémentaires dans
+la chaîne, terminée par un caractère nul, pointée par \fIpath\fP pour produire
+une forme canonique du chemin absolu. Le chemin résultant est stocké sous la
+forme d'une chaîne terminée par un caractère nul pouvant contenir jusqu'à
+\fBPATH_MAX\fP octets, dans le tampon pointé par \fIresolved_path\fP. Le chemin
+résultant ne traversera plus de liens symboliques, et ne contiendra plus
+d'éléments «\ /./\ » ou «\ /../\ ».
+
+.\" Even if we use resolved_path == NULL, then realpath() will still
+.\" return ENAMETOOLONG if the resolved pathname would exceed PATH_MAX
+.\" bytes -- MTK, Dec 04
+.\" .SH HISTORY
+.\" The
+.\" .BR realpath ()
+.\" function first appeared in 4.4BSD, contributed by Jan-Simon Pendry.
+Si \fIresolved_path\fP est NULL, alors \fBrealpath\fP() utilise \fBmalloc\fP(3) pour
+allouer un tampon allant jusqu'à \fBPATH_MAX\fP octets pour contenir le chemin
+trouvé, et retourner un pointeur sur ce tampon. L'appelant doit libérer ce
+tampon avec \fBfree\fP(3).
+.SH "VALEUR RENVOYÉE"
+S'il n'y a pas d'erreur, \fBrealpath\fP() renvoie un pointeur sur
+\fIresolved_path\fP.
+
+Sinon elle renvoie NULL, le contenu de \fIresolved_path\fP n'est pas défini, et
+\fIerrno\fP prend la valeur du code d'erreur.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+La permission de recherche ou de lecture n'est pas accordée pour un
+composant du chemin d'accès.
+.TP 
+\fBEINVAL\fP
+Soit \fIpath\fP, soit \fIresolved_path\fP est NULL (dans la libc5, cela
+déclenchait une erreur de segmentation). Mais voir quand même la section
+NOTES ci\-dessous.
+.TP 
+\fBEIO\fP
+Une erreur d'entrée\-sortie est survenue lors de la lecture sur le système de
+fichiers.
+.TP 
+\fBELOOP\fP
+Trop de liens symboliques ont été rencontrés en parcourant le chemin.
+.TP 
+\fBENAMETOOLONG\fP
+Un élément du chemin d'accès dépasse \fBNAME_MAX\fP caractères de long, ou le
+chemin d'accès complet dépasse \fBPATH_MAX\fP caractères.
+.TP 
+\fBENOENT\fP
+Le fichier indiqué n'existe pas.
+.TP 
+\fBENOTDIR\fP
+Un élément du chemin d'accès n'est pas un répertoire.
+.SH VERSIONS
+Sous Linux, cette fonction est apparue dans la libc\ 4.5.21.
+.SH CONFORMITÉ
+BSD\ 4.4, POSIX.1\-2001.
+
+POSIX.1 indique que le comportement dans le cas où \fIresolved_path\fP est NULL
+dépend de l'implémentation. POSIX.1\-2008 spécifie le comportement décrit
+dans cette page.
+.SH NOTES
+Dans BSD\ 4.4 et Solaris la limite de longueur du chemin est \fBMAXPATHLEN\fP
+(dans \fI<sys/param.h>\fP). SUSv2 conseille \fBPATH_MAX\fP et \fBNAME_MAX\fP,
+dans \fI<limits.h>\fP ou fournis par \fBpathconf\fP(3). Un fragment de
+code typique serait
+.LP
+.in +4n
+.nf
+#ifdef PATH_MAX
+  path_max = PATH_MAX;
+#else
+  path_max = pathconf(path, _PC_PATH_MAX);
+  if (path_max <= 0)
+    path_max = 4096;
+#endif
+.fi
+.in
+.LP
+(Mais voir quand même la section BOGUES).
+.LP
+Les versions BSD\ 4.4, Linux et SUSv2 renvoient toujours un chemin
+absolu. Solaris peut renvoyer un chemin relatif si l'argument \fIpath\fP est
+relatif. Le prototype de \fBrealpath\fP() est donné dans \fI<unistd.h>\fP
+dans les libc4 et libc5, mais dans \fI<stdlib.h>\fP partout ailleurs.
+.SH BOGUES
+La version du standard POSIX.1\-2001 de cette fonctions est erronée par
+construction car elle ne permet pas de connaître la taille nécessaire pour
+le tampon de sortie \fIresolved_path\fP. D'après POSIX.1\-2001, un tampon de
+taille \fBPATH_MAX\fP suffit, mais \fBPATH_MAX\fP n'est pas nécessairement une
+constante définie et peut être obtenue avec \fBpathconf\fP(3). En outre,
+interroger \fBpathconf\fP(3) n'aide pas vraiment, car d'une part POSIX prévient
+que les résultats de \fBpathconf\fP(3) peuvent être immenses et inappropriés
+pour allouer de la mémoire et d'autre part \fBpathconf\fP(3) peut renvoyer \-1
+indiquant que \fBPATH_MAX\fP est illimité. La fonctionnalité \fIresolved_path\
+==\ NULL\fP, non standard dans POSIX.1\-2008, permet d'éviter ces problèmes.
+.LP
+Les implémentations dans les libc4 et libc5 contenaient un débordement de
+tampon (corrigé dans la libc\-5.4.13). Ainsi, les programmes Set\-UID, comme
+\fBmount\fP(8), ont besoin d'une version privée de cette routine.
+.SH "VOIR AUSSI"
+\fBreadlink\fP(2), \fBcanonicalize_file_name\fP(3), \fBgetcwd\fP(3), \fBpathconf\fP(3),
+\fBsysconf\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

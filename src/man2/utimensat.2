@@ -1,0 +1,421 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) 2008, Linux Foundation, written by Michael Kerrisk
+.\" <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UTIMENSAT 2 "29 septembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+utimensat, futimens \- Modifier les horodatages d'un fichier avec une
+précision d'une nanoseconde
+.SH SYNOPSIS
+.nf
+\fB#include <sys/stat.h>\fP
+.sp
+\fBint utimensat(int \fP\fIdirfd\fP\fB, const char *\fP\fIpathname\fP\fB,\fP
+\fB              const struct timespec \fP\fItimes\fP\fB[2], int \fP\fIflags\fP\fB);\fP
+
+\fBint futimens(int \fP\fIfd\fP\fB, const struct timespec \fP\fItimes\fP\fB[2]);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fButimensat\fP()\ : _ATFILE_SOURCE
+.br
+.\" FIXME . Fix the FTM after POSIX.1-2008 changes reach glibc
+\fBfutimens\fP()\ : _GNU_SOURCE /* Changera probablement quand les modifications
+de POSIX.1\-2008 seront incorporés dans la glibc */
+.SH DESCRIPTION
+\fButimensat\fP() et \fBfutimens\fP() mettent à jour les horodatages d'un fichier
+avec une précision d'une nanoseconde. Ceci change de l'appel historique ou
+de \fButimes\fP(2), qui permettent seulement une précision d'une seconde et
+d'une microseconde respectivement pour l'établissement des horodatages de
+fichier.
+
+Avec \fButimensat\fP(), le fichier est indiqué à l'aide du chemin fournit dans
+\fIpathname\fP. Avec \fBfutimens\fP(), le fichier dont les horodatages doit être
+mis à jour est indiqué par un descripteur de fichier ouvert, \fIfd\fP.
+
+Pour les deux appels, les nouveaux horodatages de fichier sont indiqués dans
+le tableau \fItimes\fP\ : \fItimes\fP[0] indique l'horodatage du dernier accès
+(\fIatime\fP)\ ; \fItimes\fP[1] indique l'horodatage de la dernière modification
+(\fImtime\fP). Chaque élément de \fItimes\fP indique un horodatage en secondes et
+nanosecondes depuis Epoch (1er janvier 1970, 00:00:00 UTC) dans une
+structure de la forme suivante\ :
+.in +4n
+.nf
+
+struct timespec {
+    time_t tv_sec;        /* secondes     */
+    long   tv_nsec;       /* nanosecondes */
+};
+.fi
+.in
+.PP
+L'horodatage mis à jour pour le fichier est configuré à la valeur la plus
+importante gérée par le système de fichiers et qui n'est pas supérieure à
+l'horodatage fourni
+
+.\" 2.6.22 was broken: it is not ignored
+Si le champ \fItv_nsec\fP d'une des structures \fItimespec\fP prend la valeur
+particulière \fBUTIME_NOW\fP, alors l'horodatage correspondant du fichier est
+défini à l'heure actuelle. Si le champ \fItv_nsec\fP d'une des structures
+\fItimespec\fP prend la valeur particulière \fBUTIME_OMIT\fP, alors l'horodatage
+correspondant du fichier reste inchangé. Dans ces deux cas, la valeur du
+champ \fItv_sec\fP est ignoré.
+
+.\"
+Si \fItimes\fP est NULL, les deux horodatages sont définis à l'heure actuelle.
+.SS "Droits d'accès nécessaires"
+Pour définir les deux horodatages à l'heure actuelle (c'est\-à\-dire quand
+\fItimes\fP vaut NULL ou que les deux champs \fItv_nsec\fP valent \fBUTIME_NOW\fP),
+il faut\ :
+.IP 1. 3
+.\" 2.6.22 was broken here -- for futimens() the check is
+.\" based on whether or not the file descriptor is writable,
+.\" not on whether the the caller's effective UID has write
+.\" permission for the file referred to by the descriptor.
+soit que l'utilisateur ait les droits d'écriture sur le fichier\ ;
+.IP 2.
+soit que l'identifiant effectif de l'appelant corresponde au propriétaire du
+fichier\ ;
+.IP 3.
+ou que le processus appelant ait les privilèges nécessaires.
+.PP
+.\" 2.6.22 was broken here:
+.\" both must something other than *either* UTIME_OMIT *or* UTIME_NOW.
+Pour pouvoir effectuer d'autres changement que de définir les horodatage à
+l'heure actuelle (c'est\-à\-dire quand \fItimes\fP n'est pas NULL et que les deux
+champs \fItv_nsec\fP ne valent pas \fBUTIME_NOW\fP et que les deux champs
+\fItv_nsec\fP ne valent pas non plus \fBUTIME_OMIT\fP), les conditions 2 ou 3
+ci\-dessus s'appliquent.
+
+.\"
+.\"
+Si les deux champs \fItv_nsec\fP valent \fBUTIME_OMIT\fP, aucune vérification
+n'est effectuée sur le propriétaire ou les permissions et les horodatages ne
+sont pas modifiés, mais les autres situations d'erreur sont toujours
+détectées.
+.SS "Spécificités de utimensat()"
+.\" FIXME . Say something about O_SEARCH?  (But it's not in current
+.\" glibc (Mar 08), or kernel 2.6.25.)
+Si le chemin donné dans \fIpathname\fP est relatif, il est par défaut
+interprété par rapport au répertoire référencé par le descripteur de fichier
+ouvert \fIdirfd\fP (plutôt que par rapport au répertoire courant du processus,
+comme pour \fButimes\fP(2) pour les chemins relatifs). Consultez \fBopenat\fP(2)
+pour avoir les raisons pour lesquelles ceci peut être utile.
+
+Si \fIpathname\fP est un chemin relatif, et si \fIdirfd\fP a la valeur spéciale
+\fBAT_FDCWD\fP, alors \fIpathname\fP est interprété par rapport au répertoire
+courant du processus appelant, comme dans \fButimes\fP(2).
+
+Si \fIpathname\fP est un chemin absolu, \fIdirfd\fP est ignoré.
+
+Le champ \fIflags\fP est un champ de bits qui peut être nul ou inclure les
+constantes suivantes, définies dans \fI<fcntl.h>\fP\ :
+.TP 
+\fBAT_SYMLINK_NOFOLLOW\fP
+Si \fIpathname\fP indique un lien symbolique, alors mettre à jour l'horodatage
+du lien, plutôt que le fichier pointé.
+.SH "VALEUR RENVOYÉE"
+S'ils réussissent les appels \fButimensat\fP() et \fBfutimens\fP() renvoient zéro,
+sinon ils renvoient \-1 et remplissent \fIerrno\fP avec le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+\fItimes\fP est NULL ou les deux champs \fItv_nsec\fP valent \fBUTIME_NOW\fP, et
+.PD 0
+.RS
+.IP * 2
+.\" But Linux 2.6.22 was broken here.
+.\" Traditionally, utime()/utimes() gives the error EACCES for the case
+.\" where the timestamp pointer argument is NULL (i.e., set both timestamps
+.\" to the current time), and the file is owned by a user other than the
+.\" effective UID of the caller, and the file is not writable by the
+.\" effective UID of the program.  utimensat() also gives this error in the
+.\" same case.  However, in the same circumstances, when utimensat() is
+.\" given a 'times' array in which both tv_nsec fields are UTIME_NOW, which
+.\" provides equivalent functionality to specifying 'times' as NULL, the
+.\" call succeeds.  It should fail with the error EACCES in this case.
+.\"
+.\" POSIX.1-2008 has the following:
+.\" .TP
+.\" .B EACCES
+.\" .RB ( utimensat ())
+.\" .I fd
+.\" was not opened with
+.\" .B O_SEARCH
+.\" and the permissions of the directory to which
+.\" .I fd
+.\" refers do not allow searches.
+l'identifiant de l'utilisateur effectif de l'appelant ne correspond pas au
+propriétaire du fichier, l'appelant n'a pas la permission d'écriture sur le
+fichier et l'appelant n'est pas privilégié (Linux\ : n'a ni la capacité
+\fBCAP_FOWNER\fP, ni la capacité \fBCAP_DAC_OVERRIDE\fP)\ ; ou
+.IP *
+.\" EXT2_IMMUTABLE_FL and similar flags for other file systems.
+le fichier est marqué comme étant immuable (voir \fBchattr\fP(1)).
+.RE
+.PD
+.TP 
+\fBEBADF\fP
+(\fBfutimens\fP()) \fIfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBEBADF\fP
+(\fButimensat\fP()) \fIpathname\fP est un chemin relatif, mais \fIdirfd\fP n'est ni
+\fBAT_FDCWD\fP ni un descripteur de fichier valable.
+.TP 
+\fBEFAULT\fP
+\fItimes\fP pointe vers une adresse incorrecte\ ; ou \fIdirfd\fP valait \fBAT_FDCWD\fP
+et \fIpathname\fP est NULL ou une adresse incorrecte.
+.TP 
+\fBEINVAL\fP
+Valeur incorrecte dans \fIflags\fP.
+.TP 
+\fBEINVAL\fP
+Valeur incorrecte dans un des champs \fItv_nsec\fP (valeur en dehors de
+l'intervalle allant de 0 à 999.999.999 et ne vallant ni \fBUTIME_NOW\fP ni
+\fBUTIME_OMIT\fP)\ ; ou une valeur incorrecte dans un des champs \fItv_sec\fP.
+.TP 
+\fBEINVAL\fP
+.\" SUSv4 does not specify this error.
+\fIpathname\fP est NULL, \fIdirfd\fP ne vaut pas \fBAT_FDCWD\fP et \fIflags\fP contient
+\fBAT_SYMLINK_NOFOLLOW\fP.
+.TP 
+\fBELOOP\fP
+(\fButimensat\fP()) Trop de liens symboliques ont été rencontrés en parcourant
+\fIpathname\fP.
+.TP 
+\fBENAMETOOLONG\fP
+(\fButimensat\fP()) \fIpathname\fP est trop long.
+.TP 
+\fBENOENT\fP
+(\fButimensat\fP()) Un élément du chemin d'accès \fIpathname\fP ne correspond pas
+un répertoire ou àun fichier existant ou \fIpathname\fP est une chaîne vide.
+.TP 
+\fBENOTDIR\fP
+(\fButimensat\fP()) \fIpathname\fP est un chemin relatif, mais \fIdirfd\fP n'est ni
+\fBAT_FDCWD\fP ni un descripteur de fichier correspondant à un répertoire\ ; ou
+l'un des composant au début de \fIpathname\fP n'est pas un répertoire.
+.TP 
+\fBEPERM\fP
+L'appelant a essayé de modifier un horodatage (ou les deux) en une valeur
+autre que l'heure actuelle, ou de modifier un des horodatage en l'heure
+actuelle et en ne changeant pas l'autre horodatage (c'est\-à\-dire \fItimes\fP
+n'est pas NULL, les deux champs \fItv_nsec\fP ne valent pas \fBUTIME_NOW\fP et les
+deux champs \fItv_nsec\fP ne valent pas \fBUTIME_OMIT\fP) et\ :
+.PD 0
+.RS
+.IP * 2
+l'identifiant d'utilisateur effectif de l'appelant ne correspond pas au
+propriétaire du fichier et l'appelant n'est pas privilégié (Linux\ : n'a pas
+la capacité \fBCAP_FOWNER\fP).
+.IP *
+.\" Linux 2.6.22 was broken here:
+.\" it was not consistent with the old utimes() implementation,
+.\" since the case when both tv_nsec fields are UTIME_NOW, was not
+.\" treated like the (times == NULL) case.
+.\" EXT2_IMMUTABLE_FL EXT_APPPEND_FL and similar flags for
+.\" other file systems.
+.\"
+.\" Why the inconsistency (which is described under NOTES) between
+.\" EACCES and EPERM, where only EPERM tests for append-only.
+.\" (This was also so for the older utimes() implementation.)
+le fichier est marqué comme n'acceptant que des ajouts ou est immuable (voir
+\fBchattr\fP(1)).
+.RE
+.PD
+.TP 
+\fBEROFS\fP
+Le fichier se trouve sur un système de fichiers en lecture seule.
+.TP 
+\fBESRCH\fP
+(\fButimensat\fP()) Un élément au début du chemin d'accès \fIpathname\fP ne permet
+pas le parcours.
+.SH VERSIONS
+\fButimensat\fP() a été ajouté à Linux dans le noyau\ 2.6.22\ ; la glibc le gère
+depuis la version 2.6.
+
+La prise en charge de \fBfutimens\fP() est apparu dans la glibc 2.6.
+.SH CONFORMITÉ
+\fBfutimens\fP() et \fButimensat\fP() sont spécifiés dans POSIX.1\-2008.
+.SH NOTES
+\fButimensat\fP() rend \fBfutimesat\fP(2) obsolète.
+
+Sous Linux, les horodatages ne peuvent pas être modifiés pour un fichier
+marqué comme étant immuable, et la seule modification autorisée pour les
+fichier n'autorisant que des ajouts est de définir les horodatages à l'heure
+actuelle. (C'est cohérent avec le comportement historique de \fButime\fP(2) et
+de \fButimes\fP(2) sous Linux)
+
+Sous Linux, \fBfutimens\fP() est une fonction de bibliothèque implémentée à
+l'aide de l'appel système \fButimensat\fP(). Pour ceci, l'appel système
+\fButimensat\fP() de Linux implémente une fonctionnalité non standard\ : si
+\fIpathname\fP est NULL, alors l'appel modifie les horodatages du fichier
+correspondant au descripteur de fichier \fIdirfd\fP (qui peut correspondre à
+n'importe quel type de fichier). En utilisant cette fonctionnalité, l'appel
+\fIfutimens(fd,\ times)\fP est implémenté comme ceci\ :
+.nf
+
+    utimensat(fd, NULL, times, 0);
+.fi
+.SH BOGUES
+Plusieurs bogues affectent \fButimensat\fP() et \fBfutimens\fP() sur les noyaux
+antérieurs à 2.6.26. Ces bogues sont soit des non conformités avec le
+brouillon de la spécification POSIX.1 soit des incohérences avec le
+comportement historique de Linux.
+.IP * 2
+POSIX.1 spécifie que si un des champs \fItv_nsec\fP prend la valeur
+\fBUTIME_NOW\fP ou \fBUTIME_OMIT\fP, alors la valeur du champs \fItv_sec\fP
+correspondant doit être ignorée. À la place, la valeur du champ \fItv_sec\fP
+doit être nul (ou une erreur \fBEINVAL\fP sera produite).
+.IP *
+.\" Below, the long description of the errors from the previous bullet
+.\" point (abridged because it's too much detail for a man page).
+.\" .IP *
+.\" If one of the
+.\" .I tv_nsec
+.\" fields is
+.\" .BR UTIME_OMIT
+.\" and the other is
+.\" .BR UTIME_NOW ,
+.\" then the error
+.\" .B EPERM
+.\" should occur if the process's effective user ID does not match
+.\" the file owner and the process is not privileged.
+.\" Instead, the call successfully changes one of the timestamps.
+.\" .IP *
+.\" If file is not writable by the effective user ID of the process and
+.\" the process's effective user ID does not match the file owner and
+.\" the process is not privileged,
+.\" and
+.\" .I times
+.\" is NULL, then the error
+.\" .B EACCES
+.\" results.
+.\" This error should also occur if
+.\" .I times
+.\" points to an array of structures in which both
+.\" .I tv_nsec
+.\" fields are
+.\" .BR UTIME_NOW .
+.\" Instead the call succeeds.
+.\" .IP *
+.\" If a file is marked as append-only (see
+.\" .BR chattr (1)),
+.\" then Linux traditionally
+.\" (i.e.,
+.\" .BR utime (2),
+.\" .BR utimes (2)),
+.\" permits a NULL
+.\" .I times
+.\" argument to be used in order to update both timestamps to the current time.
+.\" For consistency,
+.\" .BR utimensat ()
+.\" and
+.\" .BR futimens ()
+.\" should also produce the same result when given a
+.\" .I times
+.\" argument that points to an array of structures in which both
+.\" .I tv_nsec
+.\" fields are
+.\" .BR UTIME_NOW .
+.\" Instead, the call fails with the error
+.\" .BR EPERM .
+.\" .IP *
+.\" If a file is marked as immutable (see
+.\" .BR chattr (1)),
+.\" then Linux traditionally
+.\" (i.e.,
+.\" .BR utime (2),
+.\" .BR utimes (2)),
+.\" gives an
+.\" .B EACCES
+.\" error if
+.\" .I times
+.\" is NULL.
+.\" For consistency,
+.\" .BR utimensat ()
+.\" and
+.\" .BR futimens ()
+.\" should also produce the same result when given a
+.\" .I times
+.\" that points to an array of structures in which both
+.\" .I tv_nsec
+.\" fields are
+.\" .BR UTIME_NOW .
+.\" Instead, the call fails with the error
+.\" .BR EPERM .
+Ces bogues indiquent que pour ce qui est de la vérification des droits, le
+cas où les deux champs \fItv_nsec\fP ne valent pas \fBUTIME_NOW\fP n'est pas
+toujours traité de la même façon que lorsque \fItimes\fP est NULL, et le cas où
+une des valeurs \fItv_nsec\fP vaut \fBUTIME_NOW\fP et l'autre vaut \fBUTIME_OMIT\fP
+n'est pas traité de la même façon que quand \fItimes\fP pointe vers un tableau
+de structures contenant des valeurs de temps arbitraires. De ce fait, il se
+peut que\ : a) des horodatages de fichier puissent être mis à jour par un
+processus qui ne devrait pas avoir le droit de faire ces mises à jour\ ; b)
+des horodatages de fichier ne puissent pas être mis à jour par un processus
+qui devrait avoir le droit de faire ces mises à jour\ ; et c) la mauvaise
+valeur d'\fIerrno\fP puisse être renvoyée en cas d'erreur.
+.IP *
+.\" This means that a process with a file descriptor that allows
+.\" writing could change the timestamps of a file for which it
+.\" does not have write permission;
+.\" conversely, a process with a read-only file descriptor won't
+.\" be able to update the timestamps of a file,
+.\" even if it has write permission on the file.
+POSIX.1 indique qu'un processus qui a les \fIdroits d'accès en écriture pour
+un fichier\fP peut faire un appel avec \fItimes\fP valant NULL ou avec \fItimes\fP
+pointant vers un tableau de structures dans lesquelles les deux champs
+\fItv_nsec\fP valent \fBUTIME_NOW\fP pour mettre à jour les deux horodatages à
+l'heure actuelle. Cependant, \fBfutimens\fP() vérifie à la place si le \fImode
+d'accès du descripteur de fichier permet l'écriture\fP.
+.SH "VOIR AUSSI"
+\fBchattr\fP(1), \fBfutimesat\fP(2), \fBopenat\fP(2), \fBstat\fP(2), \fButimes\fP(2),
+\fBfutimes\fP(3), \fBpath_resolution\fP(7), \fBsymlink\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

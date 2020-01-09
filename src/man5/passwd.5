@@ -1,0 +1,144 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de),
+.\"     Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified Sun Jul 25 10:46:28 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Aug 21 18:12:27 1994 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Jun 18 01:53:57 1995 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified Mon Jan  5 20:24:40 MET 1998 by Michael Haardt
+.\"  (michael@cantor.informatik.rwth-aachen.de)
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PASSWD 5 "5 janvier 1998" Linux "Manuel du programmeur Linux"
+.SH NOM
+passwd \- Fichier des mots de passe
+.SH DESCRIPTION
+\fBpasswd\fP est un fichier de texte qui contient la liste des comptes sur le
+système, ainsi que des informations utiles sur ces comptes, comme
+l'identification de l'utilisateur, du groupe, le répertoire personnel, le
+shell, etc. Souvent, ce fichier contient également le mot de passé chiffré
+de l'utilisateur. Le fichier des mots de passe doit permettre la lecture par
+tout le monde (de nombreux utilitaires comme \fIls\fP(1)  l'utilisent pour
+convertir les UID en noms d'utilisateur). Par contre, seul le
+superutilisateur doit disposer de droits d'écriture sur le fichier.
+.PP
+Au bon vieux temps, aucun problème de sécurité ne se posait avec ce droit de
+lecture général. Chacun pouvait consulter les mots de passe cryptés, mais le
+matériel était trop lent pour pouvoir décrypter un mot de passe bien
+choisi. De plus, le principe de base d'Unix reposait sur une communauté
+soudée d'utilisateurs sans intentions néfastes. Actuellement, il est de plus
+en plus recommandé d'utiliser des systèmes de masquage des mots de passe,
+comme \fBshadow\fP avec lequel le fichier \fI/etc/passwd\fP contient des
+astériques à la place des mots de passe, et où ces derniers sont stockés
+sous forme cryptée dans \fI/etc/shadow\fP qui n'est lisible que par le
+superutilisateur.
+.PP
+Que le masquage des mots de passe soit utilisé ou non, de nombreux
+administrateurs systèmes utilisent un astérisque dans le champ «\ mot de
+passe\ » pour s'assurer que l'utilisateur en question ne puisse pas se
+connecter (Voir le paragraphe Notes plus bas).
+.PP
+Si vous devez créer un nouvel utilisateur, placez un astérisque dans le
+champ «\ mot de passe\ », puis utilisez la commande \fBpasswd\fP(1)  pour le
+mettre à jour.
+.PP
+Il doit y avoir, dans le fichier des mots de passe, une ligne par
+utilisateur, avec le format suivant\ :
+.sp
+.RS
+account:passwd:UID:GID:GECOS:directory:shell
+.RE
+.sp
+Descriptions des champs\ :
+.RS
+.TP  1.0in
+\fIaccount\fP
+Le nom que l'utilisateur utilisera pour se connecter, il ne devrait
+normalement pas contenir de majuscules
+.TP 
+\fIpassword\fP
+La représentation encryptée (optionnelle) du mot de passe, une astérique ou
+la lettre «\ x\ ».  (Voir \fBpwconv\fP(8)  pour une explication sur «\ x\ ».)
+.TP 
+\fIUID\fP
+L'ID numérique de l'utilisateur.
+.TP 
+\fIGID\fP
+L'ID numérique du groupe principal de l'utilisateur.
+.TP 
+\fIGECOS\fP
+Ce champ est optionnel et n'a qu'un rôle informatif. Il contient
+généralement le nom complet de l'utilisateur. GECOS signifie «\\ General
+Electric Comprehensive Operating System\ », qui fut renommé GCOS quand la
+division «\ gros systèmes\ » de General Electric a été vendue à
+Honeywell. Dennis Ritchie raconte\ : «\ Il arrivait que l'on envoie des
+sorties d'impression ou des résultats de traitements différés vers une
+machine GCOS. Le champ GCOS du fichier password était un endroit classique
+pour glisser des informations dans la carte $IDENT. Pas très élégant...\ »
+.TP 
+\fIdirectory\fP
+Le répertoire (personnel) de connexion de l'utilisateur (variable
+d'environnement \fB$HOME\fP).
+.TP 
+\fIshell\fP
+Le programme à exécuter après la phase de connexion (par défaut
+\fI/bin/sh\fP). Si ce fichier n'existe pas, l'utilisateur ne pourra pas se
+connecter avec \fBlogin\fP(1).
+.RE
+.SH FICHIERS
+\fI/etc/passwd\fP
+.SH NOTES
+Si vous désirez créer des groupes d'utilisateurs, leurs champs GIDs doivent
+être identiques, et il doit y avoir une entrée correspondante dans le
+fichier \fI/etc/group\fP.
+.PP
+Si le mot de passe crypté est rempli avec un astérisque, l'utilisateur ne
+pourra pas se connecter avec \fBlogin\fP(1), mais pourra toujours le faire avec
+\fBrlogin\fP(1), lancer des processus en utilisant \fBrsh\fP(1), \fBcron\fP(8),
+\fBat\fP(1), ou des filtres de courrier, etc. La modification du champ «\
+shell\ » a généralement les mêmes effets, et autorise toujours l'utilisation
+de \fBsu\fP(1).
+.SH "VOIR AUSSI"
+\fBlogin\fP(1), \fBpasswd\fP(1), \fBsu\fP(1), \fBgetpwent\fP(3), \fBgetpwnam\fP(3),
+\fBgroup\fP(5), \fBshadow\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,91 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH AIO_FSYNC 3 "14 novembre 2003" "" "Manuel du programmeur Linux"
+.SH NOM
+aio_fsync \- Synchronisation de fichier asynchrone
+.SH SYNOPSIS
+\fB#include <aio.h>\fP
+.sp
+\fBint aio_fsync(int \fP\fIop\fP\fB, struct aiocb *\fP\fIaiocbp\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP.
+.SH DESCRIPTION
+La fonction \fBaio_fsync\fP() effectue une synchronisation de toutes les
+opérations d'E/S asynchrones en cours associées à \fIaiocbp\->aio_fildes\fP.
+.LP
+Plus précisément, si \fIop\fP est défini à \fBO_SYNC\fP, toutes les opérations
+d'E/S actuellement en file d'attente seront achevées comme avec un appel à
+\fBfsync\fP(2). Si \fIop\fP est défini à \fBO_DSYNC\fP, cet appel est la version
+asynchrone de l'appel \fBfdatasync\fP(2). Veuillez noter qu'il ne s'agit que
+d'une requête\ ; cet appel n'attend pas la fin des E/S.
+.LP
+À part \fIaio_fildes\fP, le seul membre de la structure pointée par \fIaiocbp\fP
+qui soit utilisé par cet appel est le membre \fIaio_sigevent\fP (une structure
+\fIsigevent\fP) qui indique le type de notification asynchrone désiré à
+l'achèvement. Tous les autres membres sont ignorés.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite (la requête de synchronisation a été mise avec succès
+dans la file d'attente), la fonction renvoie 0. En cas d'erreur, \-1 est
+renvoyé et \fIerrno\fP est définie en conséquence.
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+Ressources insuffisantes.
+.TP 
+\fBEBADF\fP
+\fIaio_fildes\fP n'est pas un descripteur de fichier valable ouvert en
+écriture.
+.TP 
+\fBEINVAL\fP
+Le fichier ne supporte pas les E/S synchronisées, ou \fIop\fP n'est pas
+\fBO_SYNC\fP ou \fBO_DSYNC\fP.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH "VOIR AUSSI"
+\fBaio_cancel\fP(3), \fBaio_error\fP(3), \fBaio_read\fP(3), \fBaio_return\fP(3),
+\fBaio_suspend\fP(3), \fBaio_write\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2004-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

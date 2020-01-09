@@ -1,0 +1,290 @@
+.\" Copyright 1993 Giorgio Ciucci (giorgio@crcc.it)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" FIXME There is now duplication of some of the information
+.\" below in semctl.2, msgctl.2, and shmctl.2 -- MTK, Nov 04
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SVIPC 7 "26 janvier 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+svipc \- Mécanismes System\ V de communication entre processus
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <sys/ipc.h>\fP
+\fB#include <sys/msg.h>\fP
+\fB#include <sys/sem.h>\fP
+\fB#include <sys/shm.h>\fP
+.fi
+.SH DESCRIPTION
+Cette page de manuel documente l'implémentation sous Linux des mécanismes
+System\ V de communication entre processus (IPC\ : «\ InterProcess
+Communication\ »)\ : les files de messages, les ensembles de sémaphores, et
+les segments de mémoire partagée. Par la suite, le mot \fIressource\fP se
+rapportera à l'un de ces mécanismes.
+.SS "Autorisations d'accès aux ressources."
+Pour chaque ressource, le système utilise une structure commune, de type
+\fIstruct ipc_perm\fP, pour enregistrer les informations permettant de
+déterminer les autorisations concernant les opérations IPC. La structure
+\fIipc_perm\fP, définie dans le fichier d'en\-têtes système
+\fI<sys/ipc.h>\fP comporte les membres suivants\ :
+.in +4n
+.nf
+
+struct ipc_perm {
+    uid_t          cuid;   /* UID du créateur */
+    gid_t          cgid;   /* GID du créateur */
+    uid_t          uid;    /* UID du propriétaire */
+    gid_t          gid;    /* GID du propriétaire */
+    unsigned short mode;   /* autorisations l/e */
+};
+.fi
+.in
+.PP
+Le membre \fImode\fP de la structure \fIipc_perm\fP définit, sur ses 9 bits de
+poids faibles, les permissions d'accès à la ressource, pour un processus
+effectuant un appel système IPC. Les permissions sont interprétées ainsi
+(nombres en octal)\ :
+.sp
+.nf
+    0400    Lecture par le propriétaire.
+    0200    Écriture par le propriétaire.
+.sp .5
+    0040    Lecture par le groupe.
+    0020    Écriture par le groupe.
+.sp .5
+    0004    Lecture par les autres.
+    0002    Écriture par les autres.
+.fi
+.PP
+Les bits 0100, 0010 et 0001 (bits exécution) ne sont pas utilisés par ces
+appels système. De plus, «\ écriture\ » a la signification «\ modification\
+» pour un ensemble de sémaphores.
+.PP
+Le même fichier d'en\-tête définit également les constantes symboliques
+suivantes\ :
+.TP  14
+\fBIPC_CREAT\fP
+Créer une entrée si la clé n'existe pas.
+.TP 
+\fBIPC_EXCL\fP
+Échouer si la clé existe.
+.TP 
+\fBIPC_NOWAIT\fP
+Retourner éventuellement une erreur, mais ne pas attendre.
+.TP 
+\fBIPC_PRIVATE\fP
+Clé privée.
+.TP 
+\fBIPC_RMID\fP
+Supprimer la ressource.
+.TP 
+\fBIPC_SET\fP
+Positionner une option concernant la ressource.
+.TP 
+\fBIPC_STAT\fP
+Obtenir les options concernant la ressource.
+.PP
+Notez que \fBIPC_PRIVATE\fP est du type \fIkey_t\fP alors que les autres
+constantes symboliques sont des champs d'indicateurs qui peuvent être
+regroupés avec un OU logique dans une variable de type \fIint\fP.
+.SS "Files de messages"
+Une file de message est définie de manière unique par un entier positif (son
+\fImsqid\fP) et dispose d'une structure associée de type \fIstruct msqid_ds\fP,
+définie dans \fI<sys/msg.h>\fP, qui contient les membres suivants\ :
+.in +4n
+.nf
+
+struct msqid_ds {
+    struct ipc_perm msg_perm;
+    msgqnum_t       msg_qnum;    /* nb messages dans la file */
+    msglen_t        msg_qbytes;  /* octets maxi dans la file */
+    pid_t           msg_lspid;   /* PID du dernier appel à msgsnd(2) */
+    pid_t           msg_lrpid;   /* PID du dernier appel à msgrcv(2) */
+    time_t          msg_stime;   /* heure du dernier appel à msgsnd(2) */
+    time_t          msg_rtime;   /* heure du dernier appel à msgrcv(2) */
+    time_t          msg_ctime;   /* heure de dernière modification */
+};
+.fi
+.in
+.TP  11
+\fImsg_perm\fP
+Structure \fIipc_perm\fP qui indique les permissions d'accès sur la file de
+messages.
+.TP 
+\fImsg_qnum\fP
+Nombre de messages actuellement dans la file.
+.TP 
+\fImsg_qbytes\fP
+Nombre maximal d'octets pour le contenu d'un message de la file.
+.TP 
+\fImsg_lspid\fP
+PID du processus qui a effectué le dernier appel système \fBmsgsnd\fP(2).
+.TP 
+\fImsg_lrpid\fP
+PID du processus qui a effectué le dernier appel système \fBmsgrcv\fP(2).
+.TP 
+\fImsg_stime\fP
+Heure du dernier appel système \fBmsgsnd\fP(2).
+.TP 
+\fImsg_rtime\fP
+Heure du dernier appel système \fBmsgrcv\fP(2).
+.TP 
+\fImsg_ctime\fP
+Heure du dernier appel système qui a modifié un membre de la structure
+\fImsqid_ds\fP.
+.SS "Jeux de sémaphores."
+Un ensemble de sémaphores est défini de manière unique par un entier positif
+(son \fIsemid\fP) et dispose d'une structure associée de type \fIstruct
+semid_ds\fP, définie dans \fI<sys/sem.h>\fP, qui contient les membres
+suivants\ :
+.in +4n
+.nf
+
+struct semid_ds {
+    struct ipc_perm sem_perm;
+    time_t          sem_otime;   /* heure dernière opération */
+    time_t          sem_ctime;   /* heure dernière modification */
+    unsigned long   sem_nsems;   /* nb sémaphores dans le jeu */
+};
+.fi
+.in
+.TP  11
+\fIsem_perm\fP
+Structure \fIipc_perm\fP qui indique les permissions d'accès sur l'ensemble de
+sémaphores.
+.TP 
+\fIsem_otime\fP
+Heure du dernier appel système \fBsemop\fP(2).
+.TP 
+\fIsem_ctime\fP
+Heure du dernier appel système \fBsemctl\fP(2), qui a modifié un membre de la
+structure ci\-dessus ou l'état d'un sémaphore de l'ensemble.
+.TP 
+\fIsem_nsems\fP
+Nombre de sémaphores dans l'ensemble. Chaque sémaphore est référencé par un
+nombre positif ou nul dans l'intervalle \fB0\fP à \fIsem_nsems\-1\fP.
+.PP
+Un sémaphore est une structure de données de type \fIstruct sem\fP contenant
+les membres suivants\ :
+.in +4n
+.nf
+
+.\"    unsigned short semncnt; /* nr awaiting semval to increase */
+.\"    unsigned short semzcnt; /* nr awaiting semval = 0 */
+struct sem {
+    int semval;  /* valeur du sémaphore */
+    int sempid;  /* PID de la dernière opération */
+};
+.fi
+.in
+.TP  11
+\fIsemval\fP
+Valeur du sémaphore\ : entier positif ou nul.
+.TP 
+\fIsempid\fP
+.\".TP
+.\".I semncnt
+.\"Number of processes suspended awaiting for
+.\".I semval
+.\"to increase.
+.\".TP
+.\".I semznt
+.\"Number of processes suspended awaiting for
+.\".I semval
+.\"to become zero.
+PID du dernier processus ayant effectué une opération sur le sémaphore.
+.SS "Segments de mémoire partagée."
+Un segment de mémoire partagée est défini de manière unique par un entier
+positif (son \fIshmid\fP) et dispose d'une structure associée de type \fIstruct
+shmid_ds\fP, définie dans \fI<sys/shm.h>\fP, qui contient les membres
+suivants\ :
+.in +4n
+.nf
+
+struct shmid_ds {
+    struct ipc_perm shm_perm;
+    size_t          shm_segsz;   /* taille segment */
+    pid_t           shm_cpid;    /* PID du créateur */
+    pid_t           shm_lpid;    /* PID, dernière opération */
+    shmatt_t        shm_nattch;  /* nombre d'attachements */
+    time_t          shm_atime;   /* heure dernier attachement */
+    time_t          shm_dtime;   /* heure dernier détachement */
+    time_t          shm_ctime;   /* heure dernière modification */
+};
+.fi
+.in
+.TP  11
+\fIshm_perm\fP
+Structure \fIipc_perm\fP qui indique les permissions d'accès sur le segment de
+mémoire partagée.
+.TP 
+\fIshm_segsz\fP
+Taille en octets du segment.
+.TP 
+\fIshm_cpid\fP
+PID du processus ayant créé le segment.
+.TP 
+\fIshm_lpid\fP
+PID du processus ayant effectué le dernier appel système \fBshmat\fP(2) ou
+\fBshmdt\fP(2).
+.TP 
+\fIshm_nattch\fP
+Nombre d'attachements en cours pour ce segment.
+.TP 
+\fIshm_atime\fP
+Heure du dernier appel système \fBshmat\fP(2).
+.TP 
+\fIshm_dtime\fP
+Heure du dernier appel système \fBshmdt\fP(2).
+.TP 
+\fIshm_ctime\fP
+Heure du dernier appel système \fBshmctl\fP(2) qui a modifié la structure
+\fIshmid_ds\fP.
+.SH "VOIR AUSSI"
+\fBipc\fP(2), \fBmsgctl\fP(2), \fBmsgget\fP(2), \fBmsgrcv\fP(2), \fBmsgsnd\fP(2),
+\fBsemctl\fP(2), \fBsemget\fP(2), \fBsemop\fP(2), \fBshmat\fP(2), \fBshmctl\fP(2),
+\fBshmdt\fP(2), \fBshmget\fP(2), \fBftok\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

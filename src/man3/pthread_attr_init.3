@@ -1,0 +1,300 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_ATTR_INIT 3 "11 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_attr_init, pthread_attr_destroy \- Initialiser et détruire un objet
+d'attributs de thread
+.SH SYNOPSIS
+.nf
+\fB#include <pthread.h>\fP
+
+\fBint pthread_attr_init(pthread_attr_t *\fP\fIattr\fP\fB);\fP
+\fBint pthread_attr_destroy(pthread_attr_t *\fP\fIattr\fP\fB);\fP
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.SH DESCRIPTION
+La fonction \fBpthread_attr_init\fP() initialise l'objet d'attributs de thread
+pointé par \fIattr\fP avec des valeurs d'attributs par défaut. Après cet appel,
+les attributs individuels de cet objet peuvent être modifiés en utilisant
+diverses fonctions (listées dans la section VOIR AUSSI), et l'objet peut
+alors être utilisé dans un ou plusieurs appels de \fBpthread_create\fP(3) pour
+créer des threads.
+
+Appeler \fBpthread_attr_init\fP() sur un objet d'attributs de thread qui a déjà
+été initialisé résulte en un comportement indéfini.
+
+Quand un objet d'attributs de thread n'est plus nécessaire, il devrait être
+détruit en appelant la fonction \fBpthread_attr_destroy\fP(). Détruire un objet
+d'attributs de thread n'a aucun effet sur les threads qui ont été créés en
+utilisant cet objet.
+
+Dès qu'un objet d'attributs de thread a été détruit, il peut être
+réinitialisé en appelant \fBpthread_attr_init\fP(). Toute autre utilisation
+d'un objet d'attributs de thread entraîne des résultats indéfinis.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient 0\ ; en cas d'erreur elles
+renvoient un numéro d'erreur non nul.
+.SH ERREURS
+POSIX.1\-2001 documente une erreur \fBENOMEM\fP pour
+\fBpthread_attr_init\fP(). Sous Linux, ces fonctions réussissent toujours (mais
+les applications portables et à l'épreuve du temps devraient néanmoins
+prendre en charge une possible valeur de retour).
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Le type \fIpthread_attr_t\fP doit être traité comme opaque\ ; tout accès à
+l'objet en dehors des fonctions pthreads n'est pas portable et peut produire
+des résultats indéfinis.
+.SH EXEMPLE
+Le programme ci\-dessous fait un appel optionnel à \fBpthread_attr_init\fP() et
+à d'autres fonctions similaires pour initialiser un objet d'attributs de
+thread afin de l'utiliser pour créer un thread unique. Une fois créé, le
+thread utilise la fonction \fBpthread_getattr_np\fP() (une extension GNU non
+standard) pour récupérer les attributs de threads, et les afficher.
+
+Si le programme est exécuté sans argument sur la ligne de commande, alors il
+passe NULL comme valeur de l'argument \fIattr\fP de \fBpthread_create\fP(3), si
+bien que le thread est créé avec les attributs par défaut. En exécutant ce
+programmme sur Linux/x86\-32 avec l'implémentation NPTL, l'affichage sera\ :
+
+.in +4n
+.nf
+.\" Results from glibc 2.8, SUSE 11.0; Oct 2008
+$\fB ulimit \-s\fP       # No stack imit ==> default stack size is 2MB
+unlimited
+$\fB ./a.out\fP
+Thread attributes:
+        Detach state        = PTHREAD_CREATE_JOINABLE
+        Scope               = PTHREAD_SCOPE_SYSTEM
+        Inherit scheduler   = PTHREAD_INHERIT_SCHED
+        Scheduling policy   = SCHED_OTHER
+        Scheduling priority = 0
+        Guard size          = 4096 bytes
+        Stack address       = 0x40196000
+        Stack size          = 0x201000 bytes
+.fi
+.in
+
+Quand une taille de pile est passée sur la ligne de commande, le programme
+initialise un objet d'attributs de thread, modifie divers attributs de cet
+objet, et passe un pointeur sur cet objet dans l'appel à
+\fBpthread_create\fP(3). En exécutant ce programmme sur Linux/x86\-32 avec
+l'implémentation NPTL, l'affichage sera\ :
+
+.in +4n
+.nf
+.\" Results from glibc 2.8, SUSE 11.0; Oct 2008
+$\fB ./a.out 0x3000000\fP
+posix_memalign() allocated at 0x40197000
+Thread attributes:
+        Detach state        = PTHREAD_CREATE_DETACHED
+        Scope               = PTHREAD_SCOPE_SYSTEM
+        Inherit scheduler   = PTHREAD_EXPLICIT_SCHED
+        Scheduling policy   = SCHED_OTHER
+        Scheduling priority = 0
+        Guard size          = 0 bytes
+        Stack address       = 0x40197000
+        Stack size          = 0x3000000 bytes
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#define _GNU_SOURCE     /* Pour la déclaration de pthread_getattr_np() */
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+
+#define handle_error_en(en, msg) \e
+        do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
+
+static void
+display_pthread_attr(pthread_attr_t *attr, char *prefix)
+{
+    int s, i;
+    size_t v;
+    void *stkaddr;
+    struct sched_param sp;
+
+    s = pthread_attr_getdetachstate(attr, &i);
+    if (s != 0)
+        handle_error_en(s, "pthread_attr_getdetachstate");
+    printf("%sDetach state        = %s\en", prefix,
+            (i == PTHREAD_CREATE_DETACHED) ? "PTHREAD_CREATE_DETACHED" :
+            (i == PTHREAD_CREATE_JOINABLE) ? "PTHREAD_CREATE_JOINABLE" :
+            "???");
+
+    s = pthread_attr_getscope(attr, &i);
+    if (s != 0)
+        handle_error_en(s, "pthread_attr_getscope");
+    printf("%sScope               = %s\en", prefix,
+            (i == PTHREAD_SCOPE_SYSTEM)  ? "PTHREAD_SCOPE_SYSTEM" :
+            (i == PTHREAD_SCOPE_PROCESS) ? "PTHREAD_SCOPE_PROCESS" :
+            "???");
+
+    s = pthread_attr_getinheritsched(attr, &i);
+    if (s != 0)
+        handle_error_en(s, "pthread_attr_getinheritsched");
+    printf("%sInherit scheduler   = %s\en", prefix,
+            (i == PTHREAD_INHERIT_SCHED)  ? "PTHREAD_INHERIT_SCHED" :
+            (i == PTHREAD_EXPLICIT_SCHED) ? "PTHREAD_EXPLICIT_SCHED" :
+            "???");
+
+    s = pthread_attr_getschedpolicy(attr, &i);
+    if (s != 0)
+        handle_error_en(s, "pthread_attr_getschedpolicy");
+    printf("%sScheduling policy   = %s\en", prefix,
+            (i == SCHED_OTHER) ? "SCHED_OTHER" :
+            (i == SCHED_FIFO)  ? "SCHED_FIFO" :
+            (i == SCHED_RR)    ? "SCHED_RR" :
+            "???");
+
+    s = pthread_attr_getschedparam(attr, &sp);
+    if (s != 0)
+        handle_error_en(s, "pthread_attr_getschedparam");
+    printf("%sScheduling priority = %d\en", prefix, sp.sched_priority);
+
+    s = pthread_attr_getguardsize(attr, &v);
+    if (s != 0)
+        handle_error_en(s, "pthread_attr_getguardsize");
+    printf("%sGuard size          = %d bytes\en", prefix, v);
+
+    s = pthread_attr_getstack(attr, &stkaddr, &v);
+    if (s != 0)
+        handle_error_en(s, "pthread_attr_getstack");
+    printf("%sStack address       = %p\en", prefix, stkaddr);
+    printf("%sStack size          = 0x%x bytes\en", prefix, v);
+}
+
+static void *
+thread_start(void *arg)
+{
+    int s;
+    pthread_attr_t gattr;
+
+    /* pthread_getattr_np() is a non\-standard GNU extension that
+       retrieves the attributes of the thread specified in its
+       first argument */
+
+    s = pthread_getattr_np(pthread_self(), &gattr);
+    if (s != 0)
+        handle_error_en(s, "pthread_getattr_np");
+
+    printf("Thread attributes:\en");
+    display_pthread_attr(&gattr, "\et");
+
+    exit(EXIT_SUCCESS);         /* Terminate all threads */
+}
+
+int
+main(int argc, char *argv[])
+{
+    pthread_t thr;
+    pthread_attr_t attr;
+    pthread_attr_t *attrp;      /* NULL or &attr */
+    int s;
+
+    attrp = NULL;
+
+    /* If a command\-line argument was supplied, use it to set the
+       stack\-size attribute and set a few other thread attributes,
+       and set attrp pointing to thread attributes object */
+
+    if (argc > 1) {
+        int stack_size;
+        void *sp;
+
+        attrp = &attr;
+
+        s = pthread_attr_init(&attr);
+        if (s != 0)
+            handle_error_en(s, "pthread_attr_init");
+
+        s = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+        if (s != 0)
+            handle_error_en(s, "pthread_attr_setdetachstate");
+
+        s = pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+        if (s != 0)
+            handle_error_en(s, "pthread_attr_setinheritsched");
+
+        stack_size = strtoul(argv[1], NULL, 0);
+
+        s = posix_memalign(&sp, sysconf(_SC_PAGESIZE), stack_size);
+        if (s != 0)
+            handle_error_en(s, "posix_memalign");
+
+        printf("posix_memalign() allocated at %p\en", sp);
+
+        s = pthread_attr_setstack(&attr, sp, stack_size);
+        if (s != 0)
+            handle_error_en(s, "pthread_attr_setstack");
+    }
+
+    s = pthread_create(&thr, attrp, &thread_start, NULL);
+    if (s != 0)
+        handle_error_en(s, "pthread_create");
+
+    if (attrp != NULL) {
+        s = pthread_attr_destroy(attrp);
+        if (s != 0)
+            handle_error_en(s, "pthread_attr_destroy");
+    }
+
+    pause();    /* Terminates when other thread calls exit() */
+}
+.fi
+.SH "VOIR AUSSI"
+\fBpthread_attr_setaffinity_np\fP(3), \fBpthread_attr_setdetachstate\fP(3),
+\fBpthread_attr_setguardsize\fP(3), \fBpthread_attr_setinheritsched\fP(3),
+\fBpthread_attr_setschedparam\fP(3), \fBpthread_attr_setschedpolicy\fP(3),
+\fBpthread_attr_setscope\fP(3), \fBpthread_attr_setstack\fP(3),
+\fBpthread_attr_setstackaddr\fP(3), \fBpthread_attr_setstacksize\fP(3),
+\fBpthread_create\fP(3), \fBpthread_getattr_np\fP(3), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Denis Barbier (2010).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

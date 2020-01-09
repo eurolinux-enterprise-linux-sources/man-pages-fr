@@ -1,0 +1,109 @@
+.\" Copyright (C) 2007 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" 2007-10-23 mtk, Nearly a complete rewrite of the earlier page.
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH INTRO 3 "1er février 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+intro \- Introduction aux fonctions de bibliothèque
+.SH DESCRIPTION
+La section 3 des pages de manuel décrit toutes les fonctions de
+bibliothèque, à l'exception des fonctions incluses dans la section 2
+(enveloppes des appels système), implémentant des appels système.
+
+Beaucoup des fonctions décrites dans cette section font partie de la
+bibliothèque standard du C (\fIlibc\fP). Certaines fonctions font partie
+d'autres bibliothèques (par exemple, la bibliothèque mathématique, \fIlibm\fP\ ;
+ou la bibliothèque temps\-réel, \fIlibrt\fP), auxquels cas la page de manuel
+indique l'option de l'éditeur des liens à utiliser pour se lier à ces
+bibliothèque (par exemple, \fI\-lm\fP et \fI\-lrt\fP pour les bibliothèques
+mentionnée auparavant).
+
+.\"
+.\" There
+.\" are various function groups which can be identified by a letter which
+.\" is appended to the chapter number:
+.\" .IP (3C)
+.\" These functions, the functions from chapter 2 and from chapter 3S are
+.\" contained in the C standard library libc, which will be used by
+.\" .BR cc (1)
+.\" by default.
+.\" .IP (3S)
+.\" These functions are parts of the
+.\" .BR stdio (3)
+.\" library.  They are contained in the standard C library libc.
+.\" .IP (3M)
+.\" These functions are contained in the arithmetic library libm.  They are
+.\" used by the
+.\" .BR f77 (1)
+.\" FORTRAN compiler by default, but not by the
+.\" .BR cc (1)
+.\" C compiler, which needs the option \fI\-lm\fP.
+.\" .IP (3F)
+.\" These functions are part of the FORTRAN library libF77.  There are no
+.\" special compiler flags needed to use these functions.
+.\" .IP (3X)
+.\" Various special libraries.  The manual pages documenting their functions
+.\" specify the library names.
+Dans certains cas, le programmeur doit définir une macro de test de
+fonctionnalité pour obtenir des fichiers d'en\-tête la déclaration d'une
+fonction définie dans la section SYNOPSIS de la page de manuel. Dans ce cas,
+la macro nécessaire est décrite dans la page de manuel. Pour plus
+d'informations sur les macro de test de fonctionnalité, consultez
+\fBfeature_test_macros\fP(7).
+.SH CONFORMITÉ
+Certains termes et abréviations sont utilisés pour indiquer les variantes
+d'Unix ou les normes auxquelles les appels de cette section se
+conforment. Consultez \fBstandards\fP(7).
+.SH NOTES
+.SS "Auteurs et conditions de copyright"
+Consultez les en\-têtes de la source de chaque page de manuel pour connaître
+le(s) auteur(s) et conditions de copyright. Ils peuvent être différents
+selon les pages.
+.SH "VOIR AUSSI"
+\fBintro\fP(2), \fBerrno\fP(3), \fBfeature_test_macros\fP(7), \fBlibc\fP(7),
+\fBstandards\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

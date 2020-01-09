@@ -1,0 +1,101 @@
+.\" Copyright (C) 2007, Michael Kerrisk <mtk.manpages@gmail.com>
+.\" and Copyright (C) 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" 2007-05-31, mtk: Rewrite and substantial additional text.
+.\" 2008-12-03, mtk: Rewrote some pieces and fixed some errors
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH BINDRESVPORT 3 "3 décembre 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+bindresvport \- Affecter une socket à un port IP privilégié
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <netinet/in.h>\fP
+.LP
+\fBint bindresvport(int \fP\fIsockfd\fP\fB, struct sockaddr_in *\fP\fIsin\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+.LP
+.\" Glibc actually starts searching with a port # in the range 600 to 1023
+\fBbindresvport\fP() est utilisée pour affecter un descripteur de socket à un
+port IP privilégié anonyme, c'est\-à\-dire un numéro de port arbitrairement
+sélectionné dans l'intervalle [512, 1023].
+
+Si le \fBbind\fP(2) réalisé par \fBbindresvport\fP() réussi et si \fIsin\fP est non
+NULL, alors \fIsin\->sin_port\fP renvoie le numéro de port alloué.
+
+\fIsin\fP peut être NULL, dans ce cas \fIsin\->sin_family\fP est simplement
+considéré comme \fBAF_INET\fP. Cependant, dans ce cas, \fBbindresvport\fP() ne
+peut renvoyer le port actuellement alloué (cette information peut être
+obtenu ultérieurement avec \fBgetsockname\fP(2)).
+.SH "VALEUR RENVOYÉE"
+\fBbindresvport\fP() renvoie 0 en cas de succès. En cas d'erreur, \-1 est
+renvoyé et \fIerrno\fP est définie.
+.SH ERREURS
+\fBbindresvport\fP() peut échouer pour les mêmes raisons que \fBbind\fP(2). De
+plus, les erreurs suivantes peuvent se produire\ :
+.TP 
+\fBEACCES\fP
+L'appelant n'a pas les privilèges suffisants (la capacité
+\fBCAP_NET_BIND_SERVICE\fP est nécessaire).
+.TP 
+\fBEADDRINUSE\fP
+Tous les ports privilégiés sont utilisés.
+.TP 
+\fBEAFNOSUPPORT\fP (\fBEPFNOSUPPORT\fPdans la glibc2.7et les versions précédentes)
+\fIsin\fP est non NULL et \fIsin\->sin_family\fP n'est pas \fBAF_INET\fP.
+.SH CONFORMITÉ
+Absent de POSIX.1\-2001. Présent sur les systèmes BSD, Solaris et beaucoup
+d'autres.
+.SH NOTES
+Contrairement à d'autres implémentations de \fBbindresvport\fP(),
+l'implémentation de la glibc ignore toutes les valeurs que l'appelant passe
+à \fIsin\->sin_port\fP.
+.SH "VOIR AUSSI"
+\fBbind\fP(2), \fBgetsockname\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

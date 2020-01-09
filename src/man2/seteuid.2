@@ -1,0 +1,113 @@
+.\" Copyright (C) 2001 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" [should really be seteuid.3]
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SETEUID 2 "26 juillet 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+seteuid, setegid \- Fixer les UID et GID effectifs.
+.SH SYNOPSIS
+\fB#include <sys/types.h>\fP
+.br
+\fB#include <unistd.h>\fP
+.sp
+\fBint seteuid(uid_t \fP\fIeuid\fP\fB);\fP
+.br
+\fBint setegid(gid_t \fP\fIegid\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBseteuid\fP(), \fBsetegid\fP()\ : _BSD_SOURCE || _POSIX_C_SOURCE\ >=\ 200112L
+|| _XOPEN_SOURCE\ >=\ 600
+.ad b
+.SH DESCRIPTION
+\fBseteuid\fP() fixe l'UID effectif du processus appelant. Les processus non
+privilégiés peuvent uniquement fixer leur UID effectif à la valeur de leur
+UID réel, de leur UID effectif ou de leur UID sauvé.
+
+.\" When
+.\" .I euid
+.\" equals \-1, nothing is changed.
+.\" (This is an artifact of the implementation in glibc of seteuid()
+.\" using setresuid(2).)
+Ceci fonctionne exactement de la même façon avec \fBsetegid\fP() en raisonnant
+en terme de groupe (GID) au lieu d'utilisateur (UID).
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.\" .TP
+.\" .B EINVAL
+.TP 
+\fBEPERM\fP
+Le processus appelant n'est pas privilégié (sous Linux\ : n'a pas la
+capacité \fBCAP_SETUID\fP dans le cas de \fBseteuid\fP(), ou la capacité
+\fBCAP_SETGID\fP dans le cas de \fBsetegid\fP()), et l'argument \fIeuid\fP
+(respectivement \fIegid\fP) n'est pas l'UID (respectivement GID) réel, effectif
+ou sauvé.
+.SH CONFORMITÉ
+BSD\ 4.3, POSIX.1\-2001.
+.SH NOTES
+Fixer l'UID (GID) effectif à la valeur de l'UID (GID) sauvé est possible
+depuis Linux 1.1.37 (1.1.38). Sur un système Unix inconnu, il faut vérifier
+la présence de la constante \fB_POSIX_SAVED_IDS\fP.
+.LP
+Sous libc4, libc5, et glibc 2.0, \fBseteuid(\fP\fIeuid\fP\fB)\fP est équivalent à
+\fBsetreuid(\-1,\fP\fI euid\fP\fB)\fP et modifie ainsi l'UID sauvé. Sous glibc 2.1 et
+les versions suivantes, c'est équivalent à \fBsetresuid(\-1,\fP\fI euid\fP\fB, \-1)\fP
+et ne modifie donc pas l'UID sauvé. Les mêmes remarques sont valables pour
+\fBsetegid\fP().
+.SH "VOIR AUSSI"
+\fBgeteuid\fP(2), \fBsetresuid\fP(2), \fBsetreuid\fP(2), \fBsetuid\fP(2),
+\fBcapabilities\fP(7), \fBcredentials\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

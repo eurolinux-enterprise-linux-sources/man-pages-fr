@@ -1,0 +1,174 @@
+.\" t
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MQ_OPEN 3 "20 février 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+mq_open \- Ouvrir une file de messages
+.SH SYNOPSIS
+.nf
+\fB#include <fcntl.h>\fP           /* Pour les constantes O_* */
+\fB#include <sys/stat.h>\fP        /* Pour les constantes des modes */
+\fB#include <mqueue.h>\fP
+.sp
+\fBmqd_t mq_open(const char *\fP\fIname\fP\fB, int \fP\fIoflag\fP\fB);\fP
+\fBmqd_t mq_open(const char *\fP\fIname\fP\fB, int \fP\fIoflag\fP\fB, mode_t \fP\fImode\fP\fB,\fP
+\fB              struct mq_attr *\fP\fIattr\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP.
+.SH DESCRIPTION
+La fonction \fBmq_open\fP() crée une nouvelle file de messages POSIX, ou ouvre
+une file de messages existante. La file est identifiée par \fIname\fP. Pour
+plus de détails sur la construction de \fIname\fP, consultez \fBmq_overview\fP(7).
+
+L'argument \fIoflag\fP spécifie les drapeaux qui contrôlent l'opération d'appel
+(les définitions des valeurs des attributs peuvent être obtenues en incluant
+\fI<fcntl.h>\fP). Un unique drapeau parmi les suivants doit être
+spécifié dans \fIoflag\fP\ :
+.TP 
+\fBO_RDONLY\fP
+Ouvrir une file pour seulement recevoir des messages.
+.TP 
+\fBO_WRONLY\fP
+Ouvrir une file pour seulement envoyer des messages.
+.TP 
+\fBO_RDWR\fP
+Ouvrir une file pour soit envoyer ou soit recevoir des messages.
+.PP
+Zéro ou plusieurs des drapeaux suivants peuvent être ajoutés avec un \fIou
+binaire\fP dans \fIoflag\fP\ :
+.TP 
+\fBO_NONBLOCK\fP
+Ouvrir une file en mode non bloquant. Dans de telles circonstances où
+\fBmq_receive\fP(3) et \fBmq_send\fP(3) devraient être normalement bloquantes, ces
+fonctions échoueront avec le code d'erreur \fBEAGAIN\fP.
+.TP 
+\fBO_CREAT\fP
+.\" In reality the file system IDs are used on Linux.
+Créer la file de messages si elle n'existe pas. Le propriétaire de la file
+de messages est défini à l'UID du processus appelant, il en est de même pour
+le GID.
+.TP 
+\fBO_EXCL\fP
+Si \fBO_CREAT\fP est spécifié dans \fIoflag\fP, et si une file de nom \fIname\fP
+existe déjà, alors elle échouera et renverra le code d'erreur \fBEEXIST\fP.
+.PP
+Si \fBO_CREAT\fP est spécifié dans \fIoflag\fP, alors deux arguments additionnels
+doivent être spécifiés. L'argument \fImode\fP spécifie les permissions de la
+nouvelle file, comme pour \fBopen\fP(2) (les définitions symboliques des bits
+de permissions peuvent être obtenues en incluant
+\fI<sys/stat.h>\fP). La définition des permissions est masquée avec
+l'«\ umask\ » du processus. L'argument \fIattr\fP spécifie les attributs de la
+file. Consultez \fBmq_getattr\fP(3) pour plus de détails. Si \fIattr\fP est NULL,
+alors la file est créée avec les attributs par défaut de l'implémentation.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBmq_open\fP() renvoie un descripteur de file de messages à
+utiliser avec les autres fonctions des files de messages. En cas d'erreur,
+\fBmq_open\fP() renvoie \fI(mqd_t)\ \-1\fP, avec \fIerrno\fP définie.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+La file existe mais l'appelant n'a pas les permissions pour l'ouvrir dans le
+mode spécifié.
+.TP 
+\fBEACCES\fP
+.\" Note that this isn't consistent with the same case for sem_open()
+\fIname\fP contient plus d'un caratère «\ /\ ».
+.TP 
+\fBEEXIST\fP
+\fBO_CREAT\fP et \fBO_EXCL\fP sont spécifiés dans \fIoflag\fP, mais une file avec le
+même nom existe déjà.
+.TP 
+\fBEINVAL\fP
+\fBO_CREAT\fP était spécifié dans \fIoflag\fP, et \fIattr\fP était non NULL, mais
+\fIattr\->mq_maxmsg\fP ou \fIattr\->mq_msqsize\fP n'était pas valable. Ces
+deux champs doivent être supérieurs à zéro. Avec un processus non privilégié
+(qui n'a pas la capacité \fBCAP_SYS_RESOURCE\fP), \fIattr\->mq_maxmsg\fP doit
+être inférieur ou égal à la limite \fImsg_max\fP, et \fIattr\->mq_msgsize\fP
+doit être inférieur ou égal à la limite \fImsgsize_max\fP. En plus, même avec
+un processus privilégié, \fIattr\->mq_maxmsg\fP ne peut pas être plus grand
+que la limite \fBHARD_MAX\fP. Consultez \fBmq_overview\fP(7) pour les détails sur
+ces limites.
+.TP 
+\fBEMFILE\fP
+Le processus a déjà le nombre maximal autorisé de fichiers et de files de
+messages ouverts.
+.TP 
+\fBENAMETOOLONG\fP
+\fIname\fP est trop long.
+.TP 
+\fBENFILE\fP
+La limite système du nombre de fichiers ouverts et de files de messages a
+été atteinte.
+.TP 
+\fBENOENT\fP
+Le drapeau \fBO_CREAT\fP n'a pas été spécifié dans \fIoflag\fP, et aucune file
+avec le nom \fIname\fP n'existe.
+.TP 
+\fBENOENT\fP
+.\" Note that this isn't consistent with the same case for sem_open()
+\fIname\fP est juste «\ /\ » suivi d'aucun autre caractère.
+.TP 
+\fBENOMEM\fP
+Mémoire insuffisante.
+.TP 
+\fBENOSPC\fP
+Pas assez d'espace pour la création de la nouvelle file de messages. Ceci
+s'est probablement produit car la limite \fIqueues_max\fP a été atteinte\ ;
+consultez \fBmq_overview\fP(7).
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH BOGUES
+Avec les noyaux antérieurs à la version 2.6.14, l'«\ umask\ » du processus
+n'est pas appliqué aux permissions spécifiées par \fImode\fP.
+.SH "VOIR AUSSI"
+\fBmq_close\fP(3), \fBmq_getattr\fP(3), \fBmq_notify\fP(3), \fBmq_receive\fP(3),
+\fBmq_send\fP(3), \fBmq_unlink\fP(3), \fBmq_overview\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

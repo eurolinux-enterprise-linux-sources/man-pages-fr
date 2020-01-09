@@ -1,0 +1,114 @@
+.\" Copyright (C) 2006 Justin Pryzby <pryzbyj@justinpryzby.com>
+.\" and Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+.\" CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+.\" TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+.\" SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" References:
+.\"   glibc manual and source
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ERROR 3 "25 avril 2006" GNU "Manuel du programmeur Linux"
+.SH NOM
+error, error_at_line, error_message_count, error_on_per_line,
+error_print_progname \- Fonctions de compte\-rendu d'erreurs de la glibc
+.SH SYNOPSIS
+.nf
+\fB#include <error.h>\fP
+
+\fBvoid error(int \fP\fIstatus, \fP\fBint\fP\fI errnum, \fP\fBconst char *\fP\fIformat, \fP\fB...);\fP
+
+\fBvoid error_at_line(int \fP\fIstatus, \fP\fBint \fP\fIerrnum, \fP\fBconst char *\fP\fIfilename,
+                   \fP\fBunsigned int \fP\fIlinenum, \fP\fBconst char *\fP\fIformat, \fP\fB...);\fP
+
+\fBextern unsigned int \fP\fIerror_message_count\fP\fB;\fP
+
+\fBextern int \fP\fIerror_one_per_line\fP\fB;\fP
+
+\fBextern void (* \fP\fIerror_print_progname\fP\fB) (void);\fP
+.fi
+.SH DESCRIPTION
+\fBerror\fP() est une fonction générique de rapport d'erreurs. Elle vide
+\fIstdout\fP, et affiche sur \fIstderr\fP, le nom du programme, «\ :\ », une
+espace et le message spécifié par la chaîne \fIformat\fP dans le format
+\fBprintf\fP(3) et si \fIerrnum\fP est différent de zéro, «\ :\ » suivi d'une
+espace avec le contenu de \fBperror(\fP\fIerrnum\fP\fB)\fP. Tout argument de format
+doit suivre \fIformat\fP dans la liste des arguments. L'affichage se termine
+par un retour à la ligne.
+
+Le nom du programme affiché par \fBerror\fP() est la valeur de la variable
+globale \fBprogram_invocation_name\fP(3). \fIprogram_invocation_name\fP est
+initialisée à la même valeur que l'argument \fIargv[0]\fP de la fonction
+\fImain\fP(). La valeur de cette variable peut être modifiée pour changer
+l'affichage de \fBerror\fP().
+
+Si \fIstatus\fP possède une valeur non nulle, alors \fBerror\fP() appelle
+\fBexit\fP(3) afin de terminer le programme avec la valeur de retour donnée.
+
+La fonction \fBerror_at_line\fP() est identique à \fBerror\fP(), excepté les
+arguments supplémentaires \fIfilename\fP et \fIlinenum\fP. L'affichage produit est
+similaire à celui de \fBerror\fP(), excepté qu'après le nom du programme sont
+écrits «\ :\ », la valeur de \fIfilename\fP, «\ :\ » et la valeur de
+\fIlinenum\fP. Les paramètres \fB__LINE__\fP et \fB__FILE__\fP du préprocesseur
+peuvent être utiles lors de l'utilisation de \fBerror_at_line\fP(), mais
+d'autres valeurs peuvent aussi être utilisées. Par exemple, ces arguments
+peuvent faire référence à l'emplacement dans un fichier.
+
+Si la variable globale \fIerror_one_per_line\fP est définie à une valeur non
+nulle, une séquence d'appels à \fBerror_at_line\fP() avec les mêmes valeurs de
+\fIfilename\fP et \fIlinenum\fP ne produira qu'un seul message de sortie (le
+premier).
+
+La variable globale \fIerror_message_count\fP compte le nombre de messages qui
+ont été affichés avec \fBerror\fP() et \fBerror_at_line\fP().
+
+Si la variable globale \fIerror_print_progname\fP est assignée à l'adresse
+d'une fonction (c'est\-à\-dire, différent de NULL), alors cette fonction est
+appelée au lieu de préfixer le message avec le nom du programme et «\ :\
+». La fonction doit affiché une chaîne de caractère sur \fIstderr\fP.
+.SH CONFORMITÉ
+Ces fonctions et ces variables sont des extensions GNU et ne doivent pas
+être utilisées pour des applications portables.
+.SH "VOIR AUSSI"
+\fBerr\fP(3), \fBerrno\fP(3), \fBexit\fP(3), \fBperror\fP(3),
+\fBprogram_invocation_name\fP(3), \fBstrerror\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

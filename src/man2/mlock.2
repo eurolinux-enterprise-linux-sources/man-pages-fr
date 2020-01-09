@@ -1,0 +1,263 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) Michael Kerrisk, 2004
+.\"	using some material drawn from earlier man pages
+.\"	written by Thomas Kuhn, Copyright 1996
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330,
+.\" Boston, MA 02111, USA.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MLOCK 2 "25 septembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+mlock, munlock, mlockall, munlockall \- Verrouiller et déverrouiller la
+mémoire
+.SH SYNOPSIS
+.nf
+\fB#include <sys/mman.h>\fP
+.sp
+\fBint mlock(const void *\fP\fIaddr\fP\fB, size_t \fP\fIlen\fP\fB);\fP
+\fBint munlock(const void *\fP\fIaddr\fP\fB, size_t \fP\fIlen\fP\fB);\fP
+.sp
+\fBint mlockall(int \fP\fIflags\fP\fB);\fP
+\fBint munlockall(void);\fP
+.fi
+.SH DESCRIPTION
+\fBmlock\fP() et \fBmlockall\fP() verrouillent respectivement une partie et
+l'ensemble de l'espace d'adressage du processus appelant dans la mémoire
+physique, pour empêcher cette mémoire d'être évincée dans l'espace d'échange
+(swap). \fBmunlock\fP() et \fBmunlockall\fP() ont l'effet inverse, respectivement
+déverrouillant une partie ou l'ensemble de l'espace d'adressage du processus
+appelant, afin que les pages dans la zone indiquée puissent à nouveau être
+évincées dans le swap si le gestionnaire de mémoire du noyau l'exige. Le
+verrouillage et le déverrouillage de mémoire se font par multiples d'une
+page.
+.SS "mlock() et munlock()"
+\fBmlock\fP() verrouille les pages sur \fIlen\fP octets à partir de l'adresse
+\fIaddr\fP. Toutes les pages qui contiennent une partie de la zone mémoire
+indiquée seront résidentes en mémoire principale quand l'appel réussit\ ;
+elles resteront en mémoire principale jusqu'à leur déverrouillage.
+
+\fBmunlock\fP() déverrouille la mémoire sur \fIlen\fP octets à partir de l'adresse
+\fIaddr\fP. Après cet appel, toutes les pages contenant une partie de la zone
+mémoire indiquée peuvent de nouveau être évincées dans l'espace d'échange
+par le noyau.
+.SS "mlockall() et munlockall()"
+\fBmlockall\fP() verrouille toutes les pages projetées dans l'espace
+d'adressage du processus appelant. Cela inclut les pages de code, de données
+et de pile, ainsi que les bibliothèques partagées, les données utilisateur
+dans le noyau, la mémoire partagée, et les fichiers projetés en
+mémoire. Toutes les pages projetées seront résidentes en mémoire principale
+quand l'appel réussit\ ; elles resteront en mémoire principale jusqu'à leur
+déverrouillage.
+
+L'argument \fIflags\fP est composé d'un \fIOU\fP binaire avec les options
+suivantes\ :
+.TP  1.2i
+\fBMCL_CURRENT\fP
+Verrouiller toutes les pages actuellement projetées dans l'espace
+d'adressage du processus.
+.TP 
+\fBMCL_FUTURE\fP
+Verrouiller toutes les pages qui seront projetées dans l'espace d'adressage
+du processus dans le futur. Par exemple, de nouvelles pages nécessitées par
+la croissance du tas et de la pile, ou de nouveaux fichiers projetés en
+mémoire, ou des zones de mémoire partagée.
+.PP
+Si \fBMCL_FUTURE\fP a été utilisé, un appel système ultérieur
+(p.ex. \fBmmap\fP(2), \fBsbrk\fP(2), \fBmalloc\fP(3)) risque d'échouer s'il cause un
+dépassement du nombre d'octets verrouillés autorisé (voir
+ci\(hydessous). Dans les mêmes circonstances, la croissance de la pile
+risque de même d'échouer\ : le noyau interdira l'augmentation de la pile et
+enverra le signal \fBSIGSEGV\fP au processus.
+
+\fBmunlockall\fP() déverrouille toutes les pages projetées dans l'espace
+d'adressage du processus appelant.
+.SH "VALEUR RENVOYÉE"
+S'ils réussissent, ces appels système renvoient 0. En cas d'erreur, ils
+renvoient \-1, \fIerrno\fP contient le code d'erreur, et les verrouillages de
+mémoire du processus ne sont pas modifiés.
+.SH ERREURS
+.TP 
+\fBENOMEM\fP
+(Linux 2.6.9 et plus récents) L'appelant avait une limite souple
+\fBRLIMIT_MEMLOCK\fP non nulle, mais a tenté de verrouiller plus de mémoire que
+la quantité autorisée. Cette limite n'est pas imposée si le processus est
+privilégié (\fBCAP_IPC_LOCK\fP).
+.TP 
+\fBENOMEM\fP
+.\" In the case of mlock(), this check is somewhat buggy: it doesn't
+.\" take into account whether the to-be-locked range overlaps with
+.\" already locked pages.  Thus, suppose we allocate
+.\" (num_physpages / 4 + 1) of memory, and lock those pages once using
+.\" mlock(), and then lock the *same* page range a second time.
+.\" In the case, the second mlock() call will fail, since the check
+.\" calculates that the process is trying to lock (num_physpages / 2 + 2)
+.\" pages, which of course is not true.  (MTK, Nov 04, kernel 2.4.28)
+(Linux 2.4 et précédents) Le processus appelant a essayé de verrouiller plus
+de la moitié de la mémoire vive.
+.TP 
+\fBEPERM\fP
+(Linux 2.6.9 et plus récents) L'appelant n'était pas privilégié
+(\fBCAP_IPC_LOCK\fP) et sa limite souple \fBRLIMIT_MEMLOCK\fP était à 0.
+.TP 
+\fBEPERM\fP
+.\"SVr4 documents an additional EAGAIN error code.
+(Linux 2.6.8 et précédents) L'appelant n'a pas les privilèges appropriés
+pour appeler \fBmunlockall\fP(). Sous Linux, la capacité \fBCAP_IPC_LOCK\fP est
+nécessaire.
+.LP
+Pour \fBmlock\fP() et \fBmunlock\fP()\ :
+.TP 
+\fBEAGAIN\fP
+Une partie (ou l'ensemble) de l'espace d'adressage indiqué n'a pas pu être
+verrouillée.
+.TP 
+\fBEINVAL\fP
+\fIlen\fP est négatif.
+.TP 
+\fBEINVAL\fP
+(Pas sous Linux) \fIaddr\fP n'est pas un multiple de la taille de page.
+.TP 
+\fBENOMEM\fP
+Une partie de la zone indiquée ne correspond pas à des pages projetées dans
+l'espace d'adressage du processus.
+.LP
+Pour \fBmlockall\fP()\ :
+.TP 
+\fBEINVAL\fP
+Des \fIflags\fP inconnus étaient demandés.
+.LP
+Pour \fBmunlockall\fP()\ :
+.TP 
+\fBEPERM\fP
+(Linux 2.6.8 et précédents) L'appelant n'est pas privilégié
+(\fBCAP_IPC_LOCK\fP).
+.SH CONFORMITÉ
+POSIX.1\-2001, SVr4.
+.SH DISPONIBILITÉ
+Sur les systèmes POSIX où \fBmlock\fP() et \fBmunlock\fP() sont disponibles, la
+constante symbolique \fB_POSIX_MEMLOCK_RANGE\fP est définie dans
+\fI<unistd.h>\fP et le nombre d'octets par page peut être déterminé
+grâce à la constante \fBPAGESIZE\fP si définie dans \fI<limits.h>\fP ou en
+appelant \fIsysconf(_SC_PAGESIZE)\fP.
+
+.\" POSIX.1-2001: It shall be defined to -1 or 0 or 200112L.
+.\" -1: unavailable, 0: ask using sysconf().
+.\" glibc defines it to 1.
+Sur les systèmes POSIX sur lesquels \fBmlockall\fP() et \fBmunlockall\fP() sont
+disponibles, la constante symbolique \fB_POSIX_MEMLOCK\fP est définie dans
+\fI<unistd.h>\fP comme étant une valeur supérieure à 0. (Voir aussi
+\fBsysconf\fP(3).)
+.SH NOTES
+Il y a deux domaines principaux d'applications au verrouillage de pages\ :
+les algorithmes en temps réel, et le traitement de données
+confidentielles. Les applications temps réel réclament un comportement
+temporel déterministe, et la pagination est, avec l'ordonnancement, une
+cause majeure de délais imprévus. Ces algorithmes basculent habituellement
+sur un ordonnancement temps\(hyréel avec \fBsched_setscheduler\fP(2). Les
+logiciels de cryptographie manipulent souvent quelques octets hautement
+confidentiels, comme des mots de passe ou des clés privées. À cause de la
+pagination, ces données secrètes risquent d'être transférées sur un support
+physique où elles pourraient être lues par un ennemi longtemps après que le
+logiciel se soit terminé. (Soyez toutefois conscient que le mode suspendu
+sur les portables et certains ordinateurs de bureau sauvegarde une copie de
+la mémoire sur le disque, quels que soient les verrouillages.)
+
+Les processus temps\(hyréel utilisant \fBmlockall\fP() pour éviter les délais
+dus à la pagination doivent réserver assez de pages verrouillées pour la
+pile avant d'entrer dans la section temporellement critique, afin qu'aucun
+défaut de page ne survienne lors d'un appel de fonction. Cela peut être
+obtenu en appelant une fonction qui alloue une variable automatique
+suffisamment grande (comme un tableau) et écrit dans la mémoire occupée par
+ce tableau afin de modifier ces pages de pile. Ainsi, suffisamment de pages
+seront projetées pour la pile et pourront être verrouillées. Les écritures
+bidon permettent de s'assurer que même les pages copiées à l'écriture ne
+causeront pas de défaut de page dans la section critique.
+
+Les verrouillages de mémoire ne sont pas hérités par le fils lors d'un
+\fBfork\fP(2), et sont automatiquement supprimés (déverrouillés) au cours d'un
+\fBexecve\fP(2) ou lorsque le processus termine.
+
+Le verrouillage de mémoire sur une zone est automatiquement enlevé si la
+zone est invalidée par \fBmunmap\fP(2).
+
+Il n'y a pas d'empilement des verrouillages mémoire, ce qui signifie qu'une
+page verrouillée plusieurs fois par \fBmlock\fP() ou \fBmlockall\fP() sera libérée
+en un seul appel à \fBmunlock\fP() pour la zone mémoire correspondante ou par
+un appel à \fBmunlockall\fP(). Les pages qui sont verrouillées par plusieurs
+zones, ou par plusieurs processus restent verrouillées en mémoire vive tant
+qu'il y a au moins un processus ou une zone qui les verrouille.
+.SS "Notes sur Linux"
+Sous Linux, \fBmlock\fP() et \fBmunlock\fP() arrondissent automatiquement \fIaddr\fP
+à la frontière de page la plus proche. Toutefois, POSIX.1\-2001 permet à
+l'implémentation d'imposer que \fIaddr\fP soit alignée sur une frontière de
+page. Les programmes portables en prendront donc soin.
+.SS "Limites et permissions"
+Sous Linux 2.6.8 et précédents, un processus doit être privilégié
+(\fBCAP_IPC_LOCK\fP) pour verrouiller de la mémoire, et la limite souple
+\fBRLIMIT_MEMLOCK\fP définit le nombre maximal d'octets que le processus peut
+verrouiller en mémoire.
+
+Depuis Linux 2.6.9, aucune limite n'est placée sur la quantité de mémoire
+pouvant être verrouillée par un processus privilégié, et la limite souple
+\fBRLIMIT_MEMLOCK\fP définit la quantité maximale de mémoire pouvant être
+verrouillée par un processus non privilégié.
+.SH BOGUES
+Dans les noyaux Linux de la branche 2.4 jusqu'à 2.4.17 inclus, le paramètre
+\fBMCL_FUTURE\fP de \fBmlockall\fP() était hérité par le fils après un \fBfork\fP(2)
+en raison d'un bogue. Cela a été corrigé dans le noyau 2.4.18.
+
+.\" See the following LKML thread:
+.\" http://marc.theaimsgroup.com/?l=linux-kernel&m=113801392825023&w=2
+.\" "Rationale for RLIMIT_MEMLOCK"
+.\" 23 Jan 2006
+Depuis le noyau 2.6.9, si un processus privilégié appelle
+\fImlockall(MCL_FUTURE)\fP et réduit ses privilèges plus tard (perd la capacité
+\fBCAP_IPC_LOCK\fP, par exemple en prenant un UID effectif non nul), les
+allocations de mémoires suivantes (p.ex. \fBmmap\fP(2), \fBbrk\fP(2)) échoueront
+si la limite \fBRLIMIT_MEMLOCK\fP est dépassée.
+.SH "VOIR AUSSI"
+\fBmmap\fP(2), \fBsetrlimit\fP(2), \fBshmctl\fP(2), \fBsysconf\fP(3), \fBcapabilities\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

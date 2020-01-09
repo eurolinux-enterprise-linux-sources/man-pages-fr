@@ -1,0 +1,425 @@
+.\" (C)Copyright 1999-2003 Marvell(R) -- linux@syskonnect.de
+.\" sk98lin.4 1.1 2003/12/17 10:03:18
+.\" This manpage can be viewed using `groff -Tascii -man sk98lin.4 | less`
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SK98LIN 4 "25 novembre 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+sk98lin \- Pilote Gigabit Ethernet v6.21 pour Marvell/SysKonnect.
+.SH SYNOPSIS
+\fBinsmod sk98lin.o\fP [\fBSpeed_A=\fP\fIi,j,...\fP] [\fBSpeed_B=\fP\fIi,j,...\fP]
+[\fBAutoNeg_A=\fP\fIi,j,...\fP] [\fBAutoNeg_B=\fP\fIi,j,...\fP] [\fBDupCap_A=\fP\fIi,j,...\fP]
+[\fBDupCap_B=\fP\fIi,j,...\fP] [\fBFlowCtrl_A=\fP\fIi,j,...\fP]
+[\fBFlowCtrl_B=\fP\fIi,j,...\fP] [\fBRole_A=\fP\fIi,j,...\fP] [\fBRole_B=\fP\fIi,j,...\fP]
+[\fBConType=\fP\fIi,j,...\fP] [\fBModeration=\fP\fIi,j,...\fP]
+[\fBIntsPerSec=\fP\fIi,j,...\fP] [\fBPrefPort=\fP\fIi,j,...\fP] [\fBRlmtMode=\fP\fIi,j,...\fP]
+.SH DESCRIPTION
+.ad l
+.hy 0
+\fBsk98lin\fP est le pilote Gigabit Ethernet pour les cartes coupleurs réseau
+de Marvell et SysKonnect. Il supporte les adaptateurs Gigabit Ethernet
+compatibles SK\-98xx/SK\-95xx de SysKonnect et tout jeu de puces compatibles
+Yukon.
+
+Lors du chargement du pilote avec insmod, les paramètres des cartes coupleur
+réseau devraient être déclarés comme une séquence de commandes séparées par
+des virgules. Si, par exemple, deux coupleurs réseau sont installés avec
+l'auto\-négociation sur le port A du premier coupleur positionnée à ON mais
+le port A du second coupleur positionné à OFF, on doit entrer\ :
+
+   insmod sk98lin.o AutoNeg_A=On,Off
+
+Après que \fBsk98lin\fP est attaché à une ou plusieurs cartes coupleur et que
+le système de fichiers \fI/proc\fP est monté sur votre système, un fichier
+statistique dédié sera créé dans le répertoire \fI/proc/net/sk98lin\fP pour
+tous les ports des cartes coupleur réseau installées. Ces fichiers se
+nomment \fIeth[x]\fP où \fIx\fP est le numéro de l'interface qui a été affecté par
+le système au port dédié.
+
+Lorsque le chargement est achevé, toute adresse IP désirée peut être
+affectée à l'interface \fIeth[x]\fP respective en utilisant la commande
+\fBifconfig\fP(8). Cela fait que le coupleur se connecte à Ethernet et affiche
+un message d'état sur la console disant\ : «\ ethx: network connection up
+using port y\ » (ethx\ : connexion réseau établie utilisant le port y) suivi
+par les paramètres de connexion configurés ou détectés.
+
+Le pilote \fBsk98lin\fP supporte les grandes trames (également appelées trames
+jumbo). L'utilisation des trames jumbo peut grandement améliorer le débit
+lors du transfert de grandes quantités de données. Pour activer les grandes
+trames, la taille de la MTU (maximum transfer unit) d'une interface doit
+être positionnée à une grande valeur. La valeur par défaut de la MTU est de
+1500 et peut être portée à 9000 (octets). La configuration de la taille de
+la MTU peut être effectuée lors de l'affectation de l'adresse IP à
+l'interface ou plus tard, en utilisant la commande \fBifconfig\fP(8) avec le
+paramètre mtu. Si, par exemple, eth0 a besoin d'une adresse IP et d'une
+taille de MTU pour grande trame, les deux commandes suivantes peuvent être
+utilisées\ :
+
+    ifconfig eth0 10.1.1.1
+    ifconfig eth0 mtu 9000
+
+Ces deux commandes peuvent également être concaténées en une seule\ :
+
+    ifconfig eth0 10.1.1.1 mtu 9000
+
+Veuillez noter que les grandes trames ne peuvent être utilisées que si votre
+infrastructure réseau le permet. Cela signifie que tous les commutateurs
+(Ndt\ : switches) utilisés sur votre réseau Ethernet doivent également
+supporter les grandes trames. Nul doute que certains commutateurs acceptent
+les grandes trames, mais il est nécessaire qu'ils soient configurés en
+conséquence pour le permettre. La plupart du temps, leur configuration par
+défaut est de n'accepter que les trames standards avec une taille de MTU de
+1500 (octets). En plus des commutateurs à l'intérieur du réseau, tous les
+coupleurs réseau qui doivent être utilisés doivent également être activés
+pour les trames jumbo. Si un coupleur n'est pas configuré pour recevoir de
+grandes trames, il les rejettera tout simplement.
+
+Un retour à la taille standard de trame Ethernet peut être effectué en
+utilisant à nouveau la commande \fBifconfig\fP(8)\ :
+
+    ifconfig eth0 mtu 1500
+
+Le pilote Gigabit Ethernet de Marvell/SysKonnect pour Linux est capable de
+supporter les réseaux locaux virtuels (VLAN) et le «\ Link Aggregation\ »
+conformément aux normes IEEE 802.1, 802.1q, et 802.3ad. Ces fonctionnalités
+ne sont disponibles qu'après l'installation des modules open source que l'on
+peut trouver sur Internet\ :
+
+\fIVLAN\fP: http://www.candelatech.com/~greear/vlan.html
+.br
+\fILink\fP \fIAggregation\fP: http://www.st.rim.or.jp/~yumo
+
+.br
+Veuillez noter que Marvell/SysKonnect n'offre aucun support pour ces modules
+open source et n'accepte aucune responsabilité quels que soient les
+défaillances ou les problèmes pouvant survenir de l'utilisation de ces
+modules.
+.SS Paramètres
+.TP 
+\fBSpeed_A=\fP\fIi,j,...\fP
+Ce paramètre est utilisé pour configurer les possibilités de vitesse du port
+A d'une carte coupleur. Il est seulement valide pour les coupleurs cuivre de
+Yukon. Les valeurs possibles sont\ : \fI10\fP, \fI100\fP, \fI1000\fP ou \fIAuto\fP où
+\fIAuto\fP est la valeur par défaut. Habituellement, la vitesse est négociée
+entre les deux ports pendant l'établissement du lien. Si cela échoue, un
+port peut être forcé à une configuration particulière avec ce paramètre.
+.TP 
+\fBSpeed_B=\fP\fIi,j,...\fP
+Ce paramètre est utilisé pour configurer les possibilités de vitesse du port
+B d'une carte coupleur. Il est seulement valide pour les coupleurs cuivre de
+Yukon. Les valeurs possibles sont\ : \fI10\fP, \fI100\fP, \fI1000\fP ou \fIAuto\fP où
+\fIAuto\fP est la valeur par défaut. Habituellement, la vitesse est négociée
+entre les deux ports pendant l'établissement du lien. Si cela échoue, un
+port peut être forcé à une configuration particulière avec ce paramètre.
+.TP 
+\fBAutoNeg_A=\fP\fIi,j,...\fP
+Active ou désactive l'utilisation de l'autonégociation du port A d'une carte
+coupleur. Les valeurs possibles sont\ : \fIOn\fP, \fIOff\fP ou \fISense\fP où \fIOn\fP
+est la valeur par défaut. Le mode \fISense\fP détecte automatiquement si le
+partenaire du lien gère l'autonégociation ou non.
+.TP 
+\fBAutoNeg_B=\fP\fIi,j,...\fP
+Active ou désactive l'utilisation de l'autonégociation du port B d'une carte
+coupleur. Les valeurs possibles sont\ : \fIOn\fP, \fIOff\fP ou \fISense\fP où \fIOn\fP
+est la valeur par défaut. Le mode \fISense\fP détecte automatiquement si le
+partenaire du lien gère l'autonégociation ou non.
+.TP 
+\fBDupCap_A=\fP\fIi,j,...\fP
+Ce paramètre indique le mode duplex à utiliser pour le port A d'une carte
+coupleur. Les valeurs possibles sont\ : \fIHalf\fP, \fIFull\fP ou \fIBoth\fP où
+\fIBoth\fP est la valeur par défaut. Ce paramètre n'est pertinent que si
+AutoNeg_A du port A n'est pas positionné à \fISense\fP. Si AutoNeg_A est
+positionné à \fIOn\fP, les trois valeurs de DupCap_A ( \fIHalf\fP, \fIFull\fP ou
+\fIBoth\fP ) peuvent être déclarées. Si AutoNeg_A est positionné à \fIOff\fP,
+seules les valeurs de DupCap_A \fIFull\fP et \fIHalf\fP sont permises. Ce
+paramètre DupCap_A est pratique si votre partenaire de lien ne gère pas
+toutes les combinaisons duplex possibles.
+.TP 
+\fBDupCap_B=\fP\fIi,j,...\fP
+Ce paramètre indique le mode duplex à utiliser pour le port B d'une carte
+coupleur. Les valeurs possibles sont\ : \fIHalf\fP, \fIFull\fP ou \fIBoth\fP où
+\fIBoth\fP est la valeur par défaut. Ce paramètre n'est pertinent que si
+AutoNeg_B du port B n'est pas positionné à \fISense\fP. Si AutoNeg_B est
+positionné à \fIOn\fP, les trois valeurs de DupCap_B (\fIHalf\fP, \fIFull\fP ou
+\fIBoth\fP) peuvent être déclarées. Si AutoNeg_B est positionné à \fIOff\fP,
+seules les valeurs de DupCap_B \fIFull\fP et \fIHalf\fP sont permises. Ce
+paramètre DupCap_B est pratique si votre partenaire de lien ne gère pas
+toutes les combinaisons duplex possibles.
+.TP 
+\fBFlowCtrl_A=\fP\fIi,j,...\fP
+Ce paramètre peut être utilisé pour configurer les possibilités de contrôle
+de flux que le port signale pendant l'autonégociation. Les valeurs possibles
+sont\ : \fISym\fP, \fISymOrRem\fP, \fILocSend\fP ou \fINone\fP, où \fISymOrRem\fP est la
+valeur par défaut. Les différents modes ont les significations suivantes\ :
+
+.br
+\fISym\fP
+= Symmetric
+ les deux partenaires du lien sont autorisés à émettre des trames PAUSE
+.br
+\fISymOrRem\fP
+= SymmetricOrRemote
+ les deux partenaires du lien ou bien seulement le distant sont autorisés à émettre des trames PAUSE
+.br
+\fILocSend\fP
+= LocalSend
+ seul le partenaire local du lien est autorisé à émettre des trames PAUSE
+.br
+\fINone\fP
+= None
+ aucun partenaire du lien n'est autorisé à émettre des trames PAUSE
+
+Veuillez noter que ce paramètre est ignoré si AutoNeg_A est positionné à
+\fIOff\fP.
+.TP 
+\fBFlowCtrl_B=\fP\fIi,j,...\fP
+Ce paramètre peut être utilisé pour configurer les possibilités de contrôle
+de flux que le port signale pendant l'autonégociation. Les valeurs possibles
+sont\ : \fISym\fP, \fISymOrRem\fP, \fILocSend\fP ou \fINone\fP, où \fISymOrRem\fP est la
+valeur par défaut. Les différents modes ont les significations suivantes\ :
+
+\fISym\fP
+= Symmetric
+ les deux partenaires du lien sont autorisés à émettre des trames PAUSE
+.br
+\fISymOrRem\fP
+= SymmetricOrRemote
+ les deux partenaires du lien ou bien seulement le distant sont autorisés à émettre des trames PAUSE
+.br
+\fILocSend\fP
+= LocalSend
+ seul le partenaire local du lien est autorisé à émettre des trames PAUSE
+.br
+\fINone\fP
+= None
+ aucun partenaire du lien n'est autorisé à émettre des trames PAUSE
+.br
+
+Veuillez noter que ce paramètre est ignoré si AutoNeg_B est positionné à
+\fIOff\fP.
+.TP 
+\fBRole_A=\fP\fIi,j,...\fP
+Ce paramètre n'est valide que pour les cartes coupleurs 1000Base\-T. Pour que
+deux ports 1000Base\-T puissent communiquer, un doit tenir le rôle du maître
+(fournissant l'information d'horloge) pendant que l'autre tient le rôle
+d'esclave. Les valeurs possibles sont\ : \fIAuto\fP, \fIMaster\fP ou \fISlave\fP où
+\fIAuto\fP est la valeur par défaut. Habituellement, le rôle d'un port est
+négocié entre deux ports pendant l'établissement du lien, mais si cela
+échoue, le port A d'une carte coupleur peut être forcé à une configuration
+spécifique avec ce paramètre.
+.TP 
+\fBRole_B=\fP\fIi,j,...\fP
+Ce paramètre n'est valide que pour les cartes coupleurs 1000Base\-T. Pour que
+deux ports 1000Base\-T puissent communiquer, un doit tenir le rôle du maître
+(fournissant l'information d'horloge) pendant que l'autre tient le rôle
+d'esclave. Les valeurs possibles sont\ : \fIAuto\fP, \fIMaster\fP ou \fISlave\fP où
+\fIAuto\fP est la valeur par défaut. Habituellement, le rôle d'un port est
+négocié entre deux ports pendant l'établissement du lien, mais si cela
+échoue, le port B d'une carte coupleur peut être forcé à une configuration
+spécifique avec ce paramètre.
+.TP 
+\fBConType=\fP\fIi,j,...\fP
+Ce paramètre est une combinaison des cinq paramètres par port réunis dans un
+seul paramètre. Cela simplifie la configuration des deux ports d'une carte
+coupleur. Les différentes valeurs de cette variable reflètent les
+combinaisons les plus significatives des paramètres des ports. Les valeurs
+possibles et leur combinaison correspondante de paramètres par port sont\ :
+
+.nf
+ConType | DupCap   AutoNeg   FlowCtrl   Role   Speed
+\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\fIAuto\fP    |  Both      On      SymOrRem   Auto   Auto
+.br
+\fI100FD\fP   |  Full      Off       None     Auto   100
+.br
+\fI100HD\fP   |  Half      Off       None     Auto   100
+.br
+\fI10FD\fP    |  Full      Off       None     Auto   10
+.br
+\fI10HD\fP    |  Half      Off       None     Auto   10
+
+.fi
+Déclarer tout autre paramètre de port avec le paramètre \fIConType\fP
+engendrera une fusion de la configuration de ces réglages. Cela est dû au
+fait que les paramètres par port (par ex. \fISpeed_A\fP) ont une priorité plus
+haute que la variable combinée \fIConType\fP.
+.TP 
+\fBModeration=\fP\fIi,j,...\fP
+La modération d'interruption est utilisée pour limiter le nombre maximal
+d'interruptions que le pilote devra honorer. C'est\-à\-dire, une ou plusieurs
+interruptions (qui indique qu'un paquet en transmission ou réception doit
+être traité) sont mises en file d'attente jusqu'à ce que le pilote les
+traite. Lorsque les interruptions mises en file d'attente sont prêtes à être
+honorées, cela est déterminé par le paramètre \fIIntsPerSec\fP qui sera
+expliqué plus loin. Les modes de modération possibles sont\ : \fINone\fP,
+\fIStatic\fP ou \fIDynamic\fP, et \fINone\fP est la valeur par défaut. Les différents
+modes ont les significations suivantes\ :
+
+\fINone\fP Aucune modération d'interruption n'est appliquée sur la carte
+coupleur. Aussi, chaque interruption en transmission ou réception est
+immédiatement honorée aussitôt qu'elle apparaît sur la ligne d'interruption
+de la carte coupleur.
+
+.br
+\fIStatic\fP La modération d'interruption est appliquée sur la carte
+coupleur. Toutes les interruptions en transmission ou réception sont mises
+en file d'attente jusqu'à ce que l'intervalle complet de modération prenne
+fin. Lorsqu'un tel intervalle de modération s'achève, toutes les
+interruptions mises en file d'attente sont traitées d'un seul coup, sans
+délai. Le terme \fIStatic\fP reflète le fait que la modération d'interruption
+est toujours activée, et ce quelle que soit la charge du réseau sur une
+interface particulière. De plus, la durée de l'intervalle de modération a
+une longueur fixée qui ne peut jamais être modifiée tant que le pilote est
+opérationnel.
+
+.br
+\fIDynamic\fP La modération d'interruption peut être appliquée sur la carte
+coupleur, suivant la charge du système. Si le pilote détecte une charge
+système trop importante, le pilote essaie de protéger le système contre une
+charge réseau trop importante en activant la modération d'interruption. Si,
+après un certain temps, l'utilisation de la CPU décroît (ou si la charge
+réseau devient négligeable), la modération d'interruption est
+automatiquement désactivée.
+
+La modération d'interruption devrait être utilisée lorsque le pilote doit
+gérer une ou plusieurs interfaces avec une charge réseau importante,
+laquelle entraîne \(em par conséquent \(em une utilisation importante du
+CPU. Lorsque la modération est appliquée à de telles situations de forte
+charge réseau, la charge de la CPU peut être réduite de 20 à 30% sur les
+ordinateurs lents.
+
+Veuillez noter que la contrepartie de l'utilisation de la modération
+d'interruption est une augmentation du délai aller\-retour (RTT), due à la
+mise en file d'attente et au service des interruptions à des moments de
+modération dédiés.
+.TP 
+\fBIntsPerSec=\fP\fIi,j,...\fP
+Ce paramètre détermine la longueur de chaque intervalle de modération
+d'interruption. En supposant qu'une modération d'interruption statique soit
+utilisée, une valeur de 2000 pour le paramètre \fIIntsPerSec\fP conduira à un
+intervalle de modération d'interruption de 500 microsecondes. Les valeurs
+possibles pour ce paramètre sont comprises entre 30 et 40000 (interruptions
+par secondes). La valeur par défaut est 2000.
+
+Ce paramètre n'est utilisé que si une modération d'interruption statique ou
+dynamique a été activée sur la carte coupleur réseau. Ce paramètre est
+ignoré si aucune modération n'est appliquée.
+
+Veuillez noter que la durée de l'intervalle de modération doit être choisie
+avec soin. Au premier coup d'oeil, choisir une très longue durée de
+modération (par exemple, seulement 100 interruptions par seconde) semble
+être significatif, mais l'accroissement du délai de traitement des paquets
+est énorme. D'un autre coté, choisir un temps de modération très court peut
+compenser l'utilisation d'une modération à appliquer.
+.TP 
+\fBPrefPort=\fP\fIi,j,...\fP
+Ce paramètre est utilisé pour forcer la préférence sur l'un des deux ports A
+ou B (sur les coupleurs réseau à deux ports). Le port préféré est celui qui
+est utilisé si les deux ports A et B sont détecté comme étant pleinement
+fonctionnel. Les valeurs possibles sont\ : \fIA\fP ou \fIB\fP où \fIA\fP est la
+valeur par défaut.
+.TP 
+\fBRlmtMode=\fP\fIi,j,...\fP
+RLMT surveille l'état du port. Si le lien du port actif est défaillant, RLMT
+bascule immédiatement sur le lien en attente. Le lien virtuel est maintenu
+aussi longtemps qu'au moins un des liens «\ physiques\ » est établi. Ce
+paramètre déclare comment RLMT doit surveiller les ports. Les valeurs
+possibles sont\ : \fICheckLinkState\fP, \fICheckLocalPort\fP, \fICheckSeg\fP ou
+\fIDualNet\fP où \fICheckLinkState\fP est la valeur par défaut. Les différents
+modes ont les significations suivantes\ :
+
+\fICheckLinkState\fP Vérifie l'état du lien seulement\ : RLMT utilise l'état du
+lien rapporté par la partie matérielle du coupleur pour chacun des ports
+afin de déterminer si un port peut être utilisé pour tout le trafic réseau
+ou non.
+
+.br
+\fICheckLocalPort\fP Dans ce mode, RLMT surveille le lien réseau entre les deux
+ports d'un coupleur en échangeant de manière régulière des paquets entre
+eux. Ce mode nécessite une configuration du réseau dans lequel les deux
+ports sont capables de se «\ voir\ » mutuellement (c'est\-à\-dire qu'il ne
+doit pas y avoir de routeurs entre les ports).
+
+.br
+\fICheckSeg\fP Surveille le port local et la segmentation\ : ce mode supporte
+les mêmes fonctions que le mode CheckLocalPort et vérifie en plus la
+segmentation du réseau entre les ports. Ce mode n'est donc utilisé que si
+des commutateurs Gigabit Ethernet sont installés sur le réseau et ont été
+configurés pour utiliser le protocole «\ Spanning Tree\ ».
+
+.br
+\fIDualNet\fP Dans ce mode, les ports A et B sont utilisés comme des
+périphériques séparés. Si vous possédez un coupleur avec deux ports, le port
+A devra être configuré comme \fIeth[x]\fP et le port B comme \fIeth[x+1]\fP. Les
+deux ports peuvent être utilisés de manière indépendante avec des adresses
+IP distinctes. RLMT est désactivé.
+
+Veuillez noter que les modes RLMT \fICheckLocalPort\fP et \fICheckLinkState\fP
+sont conçus pour opérer dans des configurations où le lien réseau entre les
+ports d'un coupleur existe. De plus, ils ne sont pas conçus pour fonctionner
+avec des coupleurs connectés dos\-à\-dos, c.\-à\-d. directement.
+.SH FICHIERS
+.TP 
+\fI/proc/net/sk98lin/eth[x]\fP
+.br
+Le fichier de statistiques d'une interface particulière d'une carte coupleur
+contient des informations génériques sur la carte coupleur, ainsi qu'un
+résumé détaillé de tous les compteurs de transmission et de réception.
+.TP 
+\fI/usr/src/linux/Documentation/networking/sk98lin.txt\fP
+.br
+C'est le fichier \fIREADME\fP du pilote \fIsk98lin\fP. Il contient un guide
+pratique d'installation détaillé et décrit tous les paramètres du pilote. Il
+indique également les problèmes courants et fournit leurs solutions.
+.SH BOGUES
+.\" .SH AUTHORS
+.\" Ralph Roesler \(em rroesler@syskonnect.de
+.\" .br
+.\" Mirko Lindner \(em mlindner@syskonnect.de
+Signalez les bogues à linux@syskonnect.de (Ndt\ : en anglais\ !)
+.SH "VOIR AUSSI"
+\fBifconfig\fP(8), \fBinsmod\fP(8), \fBmodprobe\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2004-2006).
+Simon Paillard et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

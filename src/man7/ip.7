@@ -1,0 +1,763 @@
+.\" t
+.\" Don't change the line above. it tells man that tbl is needed.
+.\" This man page is Copyright (C) 1999 Andi Kleen <ak@muc.de>.
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" $Id: ip.7,v 1.19 2000/12/20 18:10:31 ak Exp $
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH IP 7 "28 février 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+ip \- Implémentation Linux du protocole IPv4
+.SH SYNOPSIS
+\fB#include <sys/socket.h>\fP
+.br
+.\" .B #include <net/netinet.h> -- does not exist anymore
+.\" .B #include <linux/errqueue.h> -- never include <linux/foo.h>
+\fB#include <netinet/in.h>\fP
+.br
+\fB#include <netinet/ip.h>\fP /* surensemble des précédents */
+.sp
+\fItcp_socket\fP\fB = socket(AF_INET, SOCK_STREAM, 0);\fP
+.br
+\fIudp_socket\fP\fB = socket(AF_INET, SOCK_DGRAM, 0);\fP
+.br
+\fIraw_socket\fP\fB = socket(AF_INET, SOCK_RAW, \fP\fIprotocol\fP\fB);\fP
+.SH DESCRIPTION
+.\" FIXME has someone verified that 2.1 is really 1812 compliant?
+Linux implémente le protocole internet (IP) version 4, décrit dans les RFC\
+791 et RFC\ 1122. \fBip\fP contient une implémentation de la diffusion multiple
+niveau 2 conforme à la RFC 1112. Cette implémentation inclut un routeur IP
+comprenant un filtre de paquets.
+.PP
+L'interface de programmation est compatible avec les sockets BSD. Pour plus
+d'informations sur les sockets, voyez \fBsocket\fP(7).
+.PP
+Une socket IP est créée en appelant la fonction \fBsocket\fP(2) sous la forme
+\fBsocket(AF_INET, type_socket, protocole)\fP. Les types valables de sockets
+sont \fBSOCK_STREAM\fP pour ouvrir une socket \fBtcp\fP(7), \fBSOCK_DGRAM\fP pour
+ouvrir une socket \fBudp\fP(7), ou \fBSOCK_RAW\fP pour ouvrir une socket \fBraw\fP(7)
+permettant d'accéder directement au protocole IP. Le \fIprotocole\fP indiqué
+est celui inscrit dans les en\-têtes IP émis ou reçus. Les seules valeurs
+valables pour le \fIprotocole\fP sont 0 et \fBIPPROTO_TCP\fP pour les sockets TCP,
+et 0 et \fBIPPROTO_UDP\fP pour les sockets UDP. Pour les sockets \fBSOCK_RAW\fP,
+on peut indiquer un protocole IP IANA valable dont la RFC 1700 précise les
+numéros assignés.
+.PP
+.\" FIXME ip current does an autobind in listen, but I'm not sure
+.\" if that should be documented.
+Lorsqu'un processus veut recevoir de nouveaux paquets entrants ou des
+connexions, il doit attacher une socket à une adresse d'interface locale en
+utilisant \fBbind\fP(2). Une seule socket IP peut être attachée à une paire
+(adresse, port) locale donnée. Lorsqu'on indique \fBINADDR_ANY\fP lors de
+l'attachement, la socket sera affectée à \fItoutes\fP les interfaces
+locales. Si \fBlisten\fP(2) ou \fBconnect\fP(2) sont appelées sur une socket non
+affectée, celle\-ci est automatiquement attachée à un port libre aléatoire,
+avec l'adresse locale définie à \fBINADDR_ANY\fP.
+
+L'adresse locale d'une socket TCP qui a été attachée est indisponible
+pendant quelques instants après sa fermeture, à moins que l'attribut
+\fBSO_REUSEADDR\fP ait été activé. Il faut être prudent en utilisant cet
+attribut, car il rend le protocole TCP moins fiable.
+.SS "Format d'adresse"
+Une adresse de socket IP est définie comme la combinaison d'une adresse IP
+d'interface et d'un numéro de port. Le protocole IP de base ne fournit pas
+de numéro de port, ils sont implémentés par les protocoles de plus haut
+niveau comme \fBudp\fP(7) et \fBtcp\fP(7). Sur les sockets raw, le champ
+\fIsin_port\fP contient le protocole IP.
+.PP
+.in +4n
+.nf
+struct sockaddr_in {
+    sa_family_t    sin_family; /* famille d'adresses\ : AF_INET */
+    in_port_t      sin_port;   /* port dans l'ordre des
+                                  octets réseau */
+    struct in_addr sin_addr;   /* adresse Internet */
+};
+
+/* Adresse Internet */
+struct in_addr {
+    uint32_t       s_addr;     /* adresse dans l'ordre des
+                                  octets réseau */
+};
+.fi
+.in
+.PP
+\fIsin_family\fP est toujours défini à \fBAF_INET\fP. C'est indispensable\ : sous
+Linux\ 2.2, la plupart des fonctions réseau renvoient \fBEINVAL\fP lorsque
+cette configuration manque. \fIsin_port\fP contient le numéro de port, dans
+l'ordre des octets du réseau. Les numéros de ports inférieurs à 1024 sont
+dits \fIprivilégiés\fP (ou parfois \fIports réservés\fP). Seuls les processus
+privilégiés (à savoir ceux qui ont la capacité \fBCAP_NET_BIND_SERVICE\fP)
+peuvent appeler \fBbind\fP(2) pour ces sockets. Le protocole IPv4 en tant que
+tel n'a pas le concept de ports, ceux\-ci étant seulement implémentés par des
+protocoles de plus haut niveau comme \fBtcp\fP(7) et \fBudp\fP(7).
+.PP
+\fIsin_addr\fP est l'adresse IP de l'hôte. Le membre \fIs_addr\fP de la structure
+\fIin_addr\fP contient l'adresse de l'interface de l'hôte, dans l'ordre des
+octets du réseau. \fIin_addr\fP doit se voir assigner l'une des valeurs
+INADDR_* (par exemple, \fBINADDR_ANY\fP) ou être manipulé au travers des
+fonctions de bibliothèque \fBinet_aton\fP(3), \fBinet_addr\fP(3),
+\fBinet_makeaddr\fP(3) ou directement par le système de résolution des noms
+(voir \fBgethostbyname\fP(3)).
+
+.\" Leave a loophole for XTP @)
+Les adresses IPv4 sont divisées en adresses de diffusions individuelle,
+générale et multiple. Les adresses de diffusion individuelle décrivent une
+interface unique d'un hôte, les adresses de diffusion générale correspondent
+à tous les hôtes d'un réseau, et les adresses de diffusion multiple
+représentent tous les hôtes d'un groupe de diffusion multiple. Les
+datagrammes vers des adresses de diffusion générale ne peuvent être émis et
+reçus que si l'attribut de socket \fBSO_BROADCAST\fP est activé. Dans
+l'implémentation actuelle, les sockets orientées connexion ne sont
+autorisées que sur des adresses de diffusion individuelle.
+
+Remarquez que l'adresse et le port sont toujours stockés dans l'ordre des
+octets du réseau. Cela signifie en particulier qu'il faut invoquer
+\fBhtons\fP(3) sur le numéro attribué à un port. Toutes les fonctions de
+manipulation d'adresses et de ports de la bibliothèque standard fonctionnent
+dans l'ordre des octets.
+
+Il existe plusieurs adresses particulières\ : \fBINADDR_LOOPBACK\fP (127.0.0.1)
+correspond toujours à l'hôte local via le périphérique loopback\ ;
+\fBINADDR_ANY\fP (0.0.0.0) signifie un attachement à n'importe quelle adresse\
+; \fBINADDR_BROADCAST\fP (255.255.255.255) signifie n'importe quel hôte et a le
+même effet sur l'attachement que \fBINADDR_ANY\fP, pour des raisons
+historiques.
+.SS "Options de sockets"
+.\" or SOL_IP on Linux
+.\"
+.\" FIXME Document IP_FREEBIND
+.\" Boolean
+.\" Since Linux 2.4.0-test10
+.\"
+IP gère quelques options de sockets spécifiques au protocole, qui peuvent
+être définies avec \fBsetsockopt\fP(2) et consultées avec \fBgetsockopt\fP(2). Le
+niveau d'option de sockets pour IP est \fBIPPROTO_IP\fP. Un attribut entier
+booléen est faux quand il vaut zéro, et vrai sinon.
+.TP 
+\fBIP_ADD_MEMBERSHIP\fP (depuis Linux 1.2)
+Rejoint un groupe de diffusion multiple. L'argument est une structure
+\fIip_mreqn\fP.
+.sp
+.in +4n
+.nf
+struct ip_mreqn {
+    struct in_addr imr_multiaddr; /* Adresse IP du groupe
+                                     de diffusion multiple */
+    struct in_addr imr_address;   /* Adresse IP de
+                                     l'interface locale */
+    int            imr_ifindex;   /* Numéro d'interface */
+};
+.fi
+.in
+.sp
+.\" (i.e., within the 224.0.0.0-239.255.255.255 range)
+\fIimr_multiaddr\fP contient l'adresse du groupe de diffusion multiple que
+l'application veut rejoindre ou quitter. Il doit s'agir d'une adresse de
+diffusion multiple valable (ou \fBsetsockopt\fP(2) échoue avec l'erreur
+\fBEINVAL\fP). \fIimr_address\fP est l'adresse de l'interface locale avec laquelle
+le système doit joindre le groupe de diffusion multiple. Si elle est égale à
+\fBINADDR_ANY\fP, une interface appropriée est choisie par le
+système. \fIimr_ifindex\fP est le numéro de l'interface qui doit rejoindre ou
+quitter le groupe \fIimr_multiaddr\fP, ou zéro pour indiquer n'importe quelle
+interface.
+.IP
+.\"
+\fIip_mreqn\fP n'est disponible que depuis Linux 2.2. Pour la compatibilité,
+l'ancienne structure \fIip_mreq\fP (présente depuis Linux 1.2) est encore
+gérée. Elle diffère de \fIip_mreqn\fP seulement par l'absence du membre
+\fIimr_ifindex\fP. Uniquement valable avec \fBsetsockopt\fP(2).
+.TP 
+\fBIP_DROP_MEMBERSHIP\fP (depuis Linux 1.2)
+Quitte un groupe de diffusion multiple. L'argument est une structure
+\fIip_mreqn\fP ou \fIip_mreq\fP comme pour \fBIP_ADD_MEMBERSHIP\fP.
+.TP 
+\fBIP_HDRINCL\fP (depuis Linux 2.0)
+.\" FIXME Document IP_IPSEC_POLICY
+.\" Since Linux 2.5.47
+.\" Needs CAP_NET_ADMIN
+Si cette option est activée, l'utilisateur fournit un en\-tête IP avant les
+données utilisateur. Cette option n'est valable que pour les sockets
+\fBSOCK_RAW\fP. Voyez \fBraw\fP(7) pour plus de détails. Lorsque cet attribut est
+activé, les valeurs définies pour \fBIP_OPTIONS\fP, \fBIP_TTL\fP et \fBIP_TOS\fP sont
+ignorées.
+.TP 
+\fBIP_MTU\fP (depuis Linux 2.2)
+.\" Precisely: 2.1.124
+Récupère la MTU du chemin actuellement déterminée pour la socket. Valable
+seulement quand la socket a été connectée. Renvoie un entier. Valable
+uniquement avec \fBgetsockopt\fP(2).
+.TP 
+\fBIP_MTU_DISCOVER\fP (depuis Linux 2.2)
+.\" Precisely: 2.1.124
+Définit ou récupère la définition de recherche des MTU des chemins pour une
+socket. Lorsqu'elle est activée, Linux effectuera la recherche de la MTU
+d'un chemin comme défini dans la RFC\ 1191. L'attribut interdisant la
+fragmentation est alors activé sur tous les datagrammes sortants. La valeur
+par défaut est commandée au niveau système par le fichier
+\fI/proc/sys/net/ipv4/ip_no_pmtu_disc\fP pour les sockets \fBSOCK_STREAM\fP, et
+désactivée pour toutes les autres. Pour les sockets autres que
+\fBSOCK_STREAM\fP, l'utilisateur est responsable de l'empaquetage des données
+dans des blocs inférieurs à la MTU et doit s'assurer de la retransmission si
+besoin. Le noyau rejettera les paquets qui sont plus gros que la MTU du
+chemin déterminée si cet attribut est activé (avec l'erreur \fBEMSGSIZE\fP).
+.TS
+tab(:);
+c l
+l l.
+Attributs MTU des chemins:Signification
+IP_PMTUDISC_WANT:utiliser une configuration par route
+IP_PMTUDISC_DONT:ne pas rechercher la MTU des chemins
+IP_PMTUDISC_DO:toujours chercher la MTU des chemins
+IP_PMTUDISC_PROBE:Active DF («\ Don't Fragment\ », ne
+:pas fragmenter), mais ignore les
+:recherches de MTU des chemins
+.TE
+
+Lorsque la recherche de la PMTU est activée, le noyau garde automatiquement
+une trace des MTU des chemins par hôte de destination. Lorsqu'il est
+connecté à un correspondant spécifique avec \fBconnect\fP(2), la MTU du chemin
+actuel déterminée peut être consultée en utilisant l'option \fBIP_MTU\fP de la
+socket (par exemple si une erreur \fBEMSGSIZE\fP se produit). Cette valeur peut
+changer au cours du temps. Pour les sockets sans connexion avec plusieurs
+destinations, la nouvelle MTU pour une destination donnée peut également
+être obtenue en utilisant la file d'erreur (voyez \fBIP_RECVERR\fP). Une
+nouvelle erreur sera mise en file pour chaque mise à jour de la MTU.
+
+Durant la recherche de la MTU, les paquets initiaux des sockets datagramme
+peuvent être perdus. Les applications utilisant UDP devraient le savoir, et
+les éviter dans leur stratégie de retransmission.
+
+.\" FIXME this is an ugly hack
+Pour démarrer le processus de recherche de la MTU du chemin sur les sockets
+non connectées, il est possible de démarrer avec une grande taille de
+datagramme (jusqu'à 64\ ko d'en\-tête) et la diminuer au fur et à mesure des
+mises à jours de la MTU du chemin.
+
+Afin d'obtenir une estimation initiale de la MTU du chemin, connecte une
+socket datagramme à l'adresse de destination en utilisant \fBconnect\fP(2) et
+consultez la MTU en appelant \fBgetsockopt\fP(2) avec l'option \fBIP_MTU\fP.
+
+Il est possible d'implémenter la RFC\ 4821 pour les recherches de MTU avec
+des sockets \fBSOCK_DGRAM\fP ou \fBSOCK_RAW\fP en utilisant la valeur
+\fBIP_PMTUDISC_PROBE\fP (disponible depuis Linux 2.6.22). C'est aussi
+particulièrement utile pour les outils de diagnostic comme \fBtracepath\fP(8)
+qui veulent délibérément envoyer des paquets sonde plus larges que le MTU
+observé du chemin.
+.TP 
+\fBIP_MULTICAST_IF\fP (depuis Linux 1.2)
+Définit le périphérique local pour une socket de diffusion
+multiple. L'argument est une structure \fIip_mreqn\fP ou \fIip_mreq\fP, comme pour
+\fBIP_ADD_MEMBERSHIP\fP.
+.IP
+Lorsqu'une option de socket non valable est fournie, \fBENOPROTOOPT\fP est
+renvoyée.
+.TP 
+\fBIP_MULTICAST_LOOP\fP (depuis Linux 1.2)
+Définit ou lit un entier booléen indiquant si les paquets de diffusion
+multiple doivent être renvoyés aux sockets locales.
+.TP 
+\fBIP_MULTICAST_TTL\fP (depuis Linux 1.2)
+Définit ou lit la valeur du champ Time\-To\-Live des paquets de diffusion
+multiple sortants sur cette socket. Il est très important pour les paquets
+de diffusion multiple de fixer le TTL le plus petit possible. La valeur par
+défaut est 1, ce qui signifie que les paquets de diffusion multiple ne
+quittent pas le réseau local à moins que le programme de l'utilisateur ne le
+réclame explicitement. L'argument est un entier.
+.TP 
+\fBIP_OPTIONS\fP (depuis Linux 2.0)
+.\" Precisely: 1.3.30
+.\" FIXME Document IP_PASSSEC
+.\" Boolean
+.\" Since Linux 2.6.17
+.\" commit 2c7946a7bf45ae86736ab3b43d0085e43947945c
+.\" Author: Catherine Zhang <cxzhang@watson.ibm.com>
+Définit ou lit les options IP à envoyer avec chaque paquet sur cette
+socket. Les arguments sont un pointeur sur un tampon mémoire contenant les
+options et la longueur des options. L'appel à \fBsetsockopt\fP(2) définit les
+options IP associées à une socket. La taille maximale des options pour IPv4
+vaut 40 octets. Voyez la RFC\ 791 pour les options autorisées. Lorsque le
+paquet de connexion initiale d'une socket \fBSOCK_STREAM\fP contient des
+options IP, celles\-ci seront automatiquement attribuées à la socket, avec
+les en\-têtes de routage inversés. Les paquets entrants ne peuvent pas
+modifier les options après que la connexion a été établie. Le traitement des
+options de routage des paquets entrants est désactivé par défaut, et peut
+être validé en utilisant l'interface \fIaccept_source_route\fP de \fI/proc\fP. Les
+autres options, comme les horodatages, sont toujours traitées. Pour les
+sockets datagramme, les options IP ne peuvent être définies que par
+l'utilisateur local. L'appel de \fBgetsockopt\fP(2) avec \fBIP_OPTIONS\fP remplit
+le tampon fourni avec les options d'émission actuelles.
+.TP 
+\fBIP_PKTINFO\fP (since Linux 2.2)
+.\" Precisely: 2.1.68
+Fournit un message \fBIP_PKTINFO\fP de service, qui contient une structure
+\fIpktinfo\fP fournissant quelques informations sur le paquet entrant. Ceci ne
+fonctionne que pour les sockets orientées datagramme. L'argument est un
+attribut indiquant à la socket si le message \fBIP_PKTINFO\fP doit être passé
+ou non. Le message lui\-même ne peut être écrit ou lu que comme message de
+contrôle avec un paquet, en utilisant \fBrecvmsg\fP(2) ou \fBsendmsg\fP(2).
+.IP
+.in +4n
+.nf
+struct in_pktinfo {
+    unsigned int   ipi_ifindex;   /* Numéro d'interface     */
+    struct in_addr ipi_spec_dst;  /* Adresse locale         */
+    struct in_addr ipi_addr;      /* Adresse de destination */
+};
+.fi
+.in
+.IP
+.\" FIXME elaborate on that.
+.\" This field is grossly misnamed
+\fIipi_ifindex\fP est le numéro unique de l'interface sur laquelle le paquet a
+été reçu. \fIipi_spec_dst\fP est l'adresse locale du paquet et \fIipi_addr\fP est
+l'adresse de destination dans l'en\-tête du paquet. Si \fBIP_PKTINFO\fP est
+passé à \fBsendmsg\fP(2) et \fIipi_spec_dst\fP est différent de zéro, alors il
+sera utilisé comme adresse source pour la recherche dans la table de routage
+et pour définir les options de routage IP. Si \fIipi_ifindex\fP est différent
+de zéro, l'adresse locale principale de l'interface indiquée par cet index
+remplace \fIipi_spec_dst\fP pour la table de routage.
+.TP 
+\fBIP_RECVERR\fP (depuis Linux 2.2)
+.\" Precisely: 2.1.15
+.\" or SOL_IP on Linux
+Active le passage amélioré des messages d'erreur. Lorsque cette option est
+activée pour une socket datagramme, toutes les erreurs générées seront
+envoyées dans une file d'erreurs particulière à la socket. Quand
+l'utilisateur détecte une erreur d'opération sur la socket, celle\-ci peut
+être examinée en invoquant \fBrecvmsg\fP(2) avec l'attribut \fBMSG_ERRQUEUE\fP
+défini. La structure \fIsock_extended_err\fP décrivant l'erreur sera passée
+comme message de service ayant le type \fBIP_RECVERR\fP et le niveau
+\fBIPPROTO_IP\fP. Ceci permet une gestion d'erreur fiable sur les sockets non
+connectées. La partie comprenant les données reçues de la file d'erreurs
+contient le paquet ayant rencontré un problème.
+.IP
+Le message de contrôle \fBIP_RECVERR\fP contient une structure
+\fIsock_extended_err\fP\ :
+.IP
+.in +4n
+.ne 18
+.nf
+#define SO_EE_ORIGIN_NONE    0
+#define SO_EE_ORIGIN_LOCAL   1
+#define SO_EE_ORIGIN_ICMP    2
+#define SO_EE_ORIGIN_ICMP6   3
+
+struct sock_extended_err {
+    uint32_t ee_errno;   /* numéro d'erreur */
+    uint8_t  ee_origin;  /* origine de l'erreur */
+    uint8_t  ee_type;    /* type */
+    uint8_t  ee_code;    /* code */
+    uint8_t  ee_pad;
+    uint32_t ee_info;    /* données supplémentaires */
+    uint32_t ee_data;    /* autres données */
+    /* Des données supplémentaires peuvent suivre */
+};
+
+struct sockaddr *SO_EE_OFFENDER(struct sock_extended_err *);
+.fi
+.in
+.IP
+\fIee_errno\fP contient le numéro de l'erreur \fIerrno\fP mise en
+file. \fIee_origin\fP est le code de l'origine de l'erreur. Les autres champs
+sont spécifiques au protocole. La macro \fBSO_EE_OFFENDER\fP renvoie un
+pointeur sur l'adresse d'un objet réseau d'où l'erreur provient, en prenant
+en argument un pointeur sur le message de service. Si cette adresse n'est
+pas disponible, le membre \fIsa_family\fP de la structure \fIsockaddr\fP contient
+\fBAF_UNSPEC\fP et les autres champs de \fIsockaddr\fP ne sont pas définis.
+.IP
+.\" FIXME . Is it a good idea to document that? It is a dubious feature.
+.\" On
+.\" .B SOCK_STREAM
+.\" sockets,
+.\" .B IP_RECVERR
+.\" has slightly different semantics. Instead of
+.\" saving the errors for the next timeout, it passes all incoming
+.\" errors immediately to the user.
+.\" This might be useful for very short-lived TCP connections which
+.\" need fast error handling. Use this option with care:
+.\" it makes TCP unreliable
+.\" by not allowing it to recover properly from routing
+.\" shifts and other normal
+.\" conditions and breaks the protocol specification.
+IP utilise la structure \fIsock_extended_err\fP comme suit\ : \fIee_origin\fP
+contient \fBSO_EE_ORIGIN_ICMP\fP pour les erreurs reçues sous forme de paquet
+ICMP, ou \fBSO_EE_ORIGIN_LOCAL\fP pour les erreurs locales. Les valeurs
+inconnues doivent être ignorées. \fIee_type\fP et \fIee_code\fP sont définis à
+partir des champs type et code de l'en\-tête ICMP. \fIee_info\fP contient la MTU
+déterminée pour les erreurs \fBEMSGSIZE\fP. Le message contient aussi l'adresse
+\fIsockaddr_in\fP du noeud ayant causé l'erreur, qui peut être obtenu avec la
+macro \fBSO_EE_OFFENDER\fP. Le champ \fIsin_family\fP de l'adresse fournie par
+SO_EE_OFFENDER vaut \fBAF_UNSPEC\fP si la source était inconnue. Lorsque les
+erreurs proviennent du réseau, toutes les options IP (\fIIP_OPTIONS\fP,
+\fIIP_TTL\fP, etc.) valables pour la socket et contenues dans le paquet
+d'erreur sont transmises comme messages de contrôle. La charge du paquet
+causant l'erreur est renvoyée comme charge normale. TCP n'a pas de file
+d'erreurs\ ; \fBMSG_ERRQUEUE\fP n'est pas permis sur les sockets
+\fBSOCK_STREAM\fP. \fBIP_RECVERR\fP est valable pour TCP, mais toutes les erreurs
+sont renvoyées au retour des fonctions de socket ou par \fBSO_ERROR\fP.
+.IP
+Pour les sockets raw, \fBIP_RECVERR\fP active le passage de toutes les erreurs
+ICMP reçues à l'application, sinon les erreurs sont seulement renvoyées sur
+les sockets connectées.
+.IP
+Il s'agit d'un attribut booléen entier. \fBIP_RECVERR\fP est désactivée par
+défaut.
+.TP 
+\fBIP_RECVOPTS\fP (depuis Linux 2.2)
+.\" Precisely: 2.1.15
+Passe à l'utilisateur toutes les options IP entrantes dans un message de
+contrôle \fBIP_OPTIONS\fP. L'en\-tête de routage et les autres options sont déjà
+remplies pour l'hôte local. Ceci n'est pas géré pour les sockets
+\fBSOCK_STREAM\fP.
+.TP 
+\fBIP_RECVTOS\fP (depuis Linux 2.2)
+.\" Precisely: 2.1.68
+Le message de service \fBIP_TOS\fP est passé avec les paquets entrants si cette
+option est activée. Elle contient un octet qui décrit le champ
+Type\-Of\-Service/Precedence de l'en\-tête du paquet. Il s'agit d'un attribut
+entier booléen.
+.TP 
+\fBIP_RECVTTL\fP (depuis Linux 2.2)
+.\" Precisely: 2.1.68
+Lorsque cet attribut est défini, passe un message de contrôle \fBIP_TTL\fP avec
+le champ Time To Live du paquet reçu, sous forme d'octet. Ceci n'est pas
+géré pour les sockets \fBSOCK_STREAM\fP.
+.TP 
+\fBIP_RETOPTS\fP (depuis Linux 2.2)
+.\" Precisely: 2.1.15
+Identique à \fBIP_RECVOPTS\fP, mais renvoie les options brutes non traitées,
+avec les options d'enregistrement des horodatages et du routage non remplies
+pour ce saut.
+.TP 
+\fBIP_ROUTER_ALERT\fP (depuis Linux 2.2)
+.\" Precisely: 2.1.68
+Passe tous les paquets à transférer avec l'option IP Router Alert activée
+sur cette socket. Ceci n'est valable que pour les sockets raw, et sert par
+exemple pour les démons RSVP de l'espace utilisateur. Les paquets
+enregistrés ne sont pas redirigés par le noyau\ ; l'utilisateur est
+responsable de leurs envois. L'attachement des sockets est ignoré, et de
+tels paquets ne sont filtrés que par le protocole. Il s'agit d'un attribut
+entier.
+.TP 
+\fBIP_TOS\fP (depuis Linux 1.0)
+.\" FIXME elaborate on this
+.\" FIXME Document IP_TRANSPARENT
+.\" Needs CAP_NET_ADMIN
+.\" Boolean
+.\" Since Linux 2.6.27
+.\" commit f5715aea4564f233767ea1d944b2637a5fd7cd2e
+.\" Author: KOVACS Krisztian <hidden@sch.bme.hu>
+Définit ou récupère le champ Type\-Of\-Service (TOS) envoyé avec chaque paquet
+IP sortant de cette socket. Cela sert à gérer sur le réseau les priorités
+entre paquets. TOS est un octet. Quelques attributs TOS standards sont
+définis\ : \fBIPTOS_LOWDELAY\fP pour minimiser les délais pour le trafic
+interactif, \fBIPTOS_THROUGHPUT\fP pour optimiser le débit,
+\fBIPTOS_RELIABILITY\fP pour optimiser la fiabilité, \fBIPTOS_MINCOST\fP doit être
+utilisé pour les données de remplissage, quand la lenteur de transmission
+importe peu. Une de ces valeurs TOS au maximum peut être indiquée. Les
+autres bits ne sont pas valables et doivent être effacés. Linux envoie
+d'abord des datagrammes \fBIPTOS_LOWDELAY\fP par défaut, mais le comportement
+exact dépend de la politique configurée pour la file d'attente. Quelques
+niveaux de haute priorité peuvent réclamer les privilèges du
+superutilisateur (la capacité \fBCAP_NET_ADMIN\fP). La priorité peut aussi être
+définie d'une manière indépendante du protocole avec les options de socket
+(\fBSOL_SOCKET\fP, \fBSO_PRIORITY\fP) (voyez \fBsocket\fP(7)).
+.TP 
+\fBIP_TTL\fP (depuis Linux 1.0)
+.\" FIXME Document IP_XFRM_POLICY
+.\" Since Linux 2.5.48
+.\" Needs CAP_NET_ADMIN
+Définit ou récupère le contenu actuel du champ Time\-To\-Live utilisé avec
+chaque paquet envoyé depuis cette socket.
+.SS "Interfaces /proc"
+.\" FIXME As at 2.6.12, 14 Jun 2005, the following are undocumented:
+.\"	ip_queue_maxlen
+.\"	ip_conntrack_max
+.\"
+Le protocole IP prend en charge une série d'interfaces \fI/proc\fP pour
+configurer certaines options globales. Les paramètres peuvent être accédés
+en lisant ou écrivant dans les fichiers du répertoire
+\fI/proc/sys/net/ipv4/\fP. Les interfaces décrites comme des booléens prennent
+une valeur entière. Celle\-ci signifie que l'option correspondante est
+activée si elle est différente de zéro («\ true\ »), et désactivée si elle
+vaut zéro («\ false\ »).
+.TP 
+\fIip_always_defrag\fP (booléen\ ; depuis Linux 2.2.13)
+[Nouveauté des noyaux 2.2.13, dans les noyaux précédents, cette
+fonctionnalité était contrôlée lors de la compilation avec l'option
+\fBCONFIG_IP_ALWAYS_DEFRAG\fP. Cette option n'est plus présente dans les
+versions 2.4.x et suivantes.]
+
+Lorsque cet attribut booléen est activé (différent de zéro), les fragments
+entrants (morceaux de paquets IP obtenus quand un hôte entre l'origine et la
+destination a décidé que les paquets étaient trop grands et les a coupés en
+morceaux) seront réassemblés (défragmentés) avant d'être traités, même s'ils
+doivent être transférés.
+
+Cette option n'est à utiliser que pour un pare\-feu qui est le seul lien
+d'entrée de votre réseau, ou un mandataire transparent. Il ne faut jamais
+l'utiliser pour un routeur ou un hôte normal. Sinon, les communications
+fragmentées peuvent être interrompues si les fragments circulent par
+différents liens. La défragmentation a également un coût mémoire et
+processeur important.
+
+.\"
+Ceci est automagiquement activé lorsque le masquerading ou le mandataire
+transparent sont configurés.
+.TP 
+\fIip_autoconfig\fP (depuis Linux 2.2 à 2.6.17)
+.\" Precisely: since 2.1.68
+.\" FIXME document ip_autoconfig
+.\"
+Non documenté.
+.TP 
+\fIip_default_ttl\fP (entier\ ; défaut\ : 64\ ; depuis Linux 2.2)
+.\" Precisely: 2.1.15
+.\"
+Définit la valeur par défaut du champ Time\-To\-Live des paquets
+sortants. Ceci peut être modifié individuellement pour chaque socket avec
+l'option \fBIP_TTL\fP.
+.TP 
+\fIip_dynaddr\fP (booléen\ ; désactivé par défaut\ ; depuis Linux 2.0.31)
+.\"
+Active la réécriture dynamique des adresses de socket et du masquerading
+lors des changements d'adresse d'interface. Cela sert pour les liaisons
+téléphoniques, avec des adresses IP changeantes. 0 signifie aucune
+réécriture, 1 les autorise, et 2 demande un mode bavard.
+.TP 
+\fIip_forward\fP (booléen\ ; désactivé par défaut)\ ; depuis Linux 1.2
+.\"
+Active le transfert IP avec un attribut booléen. Le transfert IP peut aussi
+être configuré interface par interface.
+.TP 
+\fIip_local_port_range\fP (depuis Linux 2.2)
+.\" Precisely: since 2.1.68
+.\"
+Contient deux entiers qui définissent l'intervalle par défaut des ports
+locaux alloués aux sockets. L'allocation démarre avec le premier numéro et
+se termine avec le second. Cela ne doit pas entrer en conflit avec les ports
+utilisés pour le masquerading (bien que cela soit traité). De même, des
+choix arbitraires peuvent poser des problèmes avec certains pare\-feu de
+filtrage par paquet qui font des suppositions sur les ports locaux
+utilisés. Le premier nombre doit être au moins supérieur à 1024 et de
+préférence à 4096 pour éviter les collisions avec les ports officiels et
+minimiser les problèmes de pare\-feu.
+.TP 
+\fIip_no_pmtu_disc\fP (booléen\ ; désactivé par défaut)\ ; depuis Linux 2.2
+.\" Precisely: 2.1.15
+.\"
+.\" The following is from 2.6.12: Documentation/networking/ip-sysctl.txt
+Si activé, supprime la recherche par défaut des MTU des chemins pour les
+sockets TCP. La recherche de la MTU d'un chemin peut échouer avec des
+pare\-feu mal configurés (qui rejettent tous les paquets ICMP) ou des
+interfaces mal configurées (par exemple, un lien point\-à\-point où les deux
+extrémités n'ont pas la même MTU). Il vaut mieux corriger le routeur
+défectueux que de supprimer globalement la recherche des MTU des chemins,
+car cette dernière option augmente les coûts du réseau.
+.TP 
+\fIip_nonlocal_bind\fP (booléen\ ; désactivé par défaut\ ; depuis Linux 2.4)
+.\" Precisely: patch-2.4.0-test10
+.\"
+.\" The following is from 2.6.12: Documentation/networking/ip-sysctl.txt
+Si défini, permet aux processus de s'attacher avec \fBbind\fP(2) à des adresses
+IP non locales, ce qui peut être utile mais peut faire planter certaines
+applications.
+.TP 
+\fIip6frag_time\fP (entier\ ; défaut\ : 30)
+.\"
+.\" The following is from 2.6.12: Documentation/networking/ip-sysctl.txt
+Définit le temps en secondes de conservation d'un fragment IPv6 en mémoire.
+.TP 
+\fIip6frag_secret_interval\fP (entier\ ; défaut\ : 600)
+Définit l'intervalle de régénération (en secondes) du secret de hachage (ou
+sa durée de vie) pour les fragments IPv6.
+.TP 
+\fIipfrag_high_thresh\fP (entier), \fIipfrag_low_thresh\fP (entier)
+Si le nombre de fragments IP en file atteint \fIipfrag_high_thresh\fP, la file
+est restreinte à \fIipfrag_low_thresh\fP. Contient un entier avec le nombre
+d'octets.
+.TP 
+\fIneigh/*\fP
+.\" FIXME Document the conf/*/* interfaces
+.\" FIXME Document the route/* interfaces
+.\" FIXME document them all
+Voyez \fBarp\fP(7).
+.SS Ioctls
+.\" 2006-04-02, mtk
+.\" commented out the following because ipchains is obsolete
+.\" .PP
+.\" The ioctls to configure firewalling are documented in
+.\" .BR ipfw (4)
+.\" from the
+.\" .B ipchains
+.\" package.
+Tous les ioctls décrits dans \fBsocket\fP(7) s'appliquent à \fBip\fP.
+.PP
+.\" FIXME Add a discussion of multicasting
+Les ioctls pour configurer les paramètres génériques des périphériques sont
+décrits dans \fBnetdevice\fP(7).
+.SH ERREURS
+.\" FIXME document all errors.
+.\"     We should really fix the kernels to give more uniform
+.\"     error returns (ENOMEM vs ENOBUFS, EPERM vs EACCES etc.)
+.TP 
+\fBEACCES\fP
+L'utilisateur a essayé de réaliser une opération sans avoir les permissions
+nécessaires. Cela inclut\ : l'envoi d'un paquet vers une adresse de
+diffusion générale sans avoir activé l'attribut \fBSO_BROADCAST\fP, l'envoi
+d'un paquet par une route \fIinterdite\fP, la modification du paramétrage du
+pare\-feu sans les privilèges du superutilisateur (la capacité
+\fBCAP_NET_ADMIN\fP) et l'attachement à un port privilégié sans les privilèges
+du superutilisateur (la capacité \fBCAP_NET_BIND_SERVICE\fP).
+.TP 
+\fBEADDRINUSE\fP
+Tentative d'attachement à une adresse déjà utilisée.
+.TP 
+\fBEADDRNOTAVAIL\fP
+Une interface inexistante a été demandée, ou l'adresse d'émission demandée
+n'était pas locale.
+.TP 
+\fBEAGAIN\fP
+L'opération sur une socket non bloquante devrait bloquer.
+.TP 
+\fBEALREADY\fP
+Une opération de connexion est déjà en cours sur une socket non bloquante.
+.TP 
+\fBECONNABORTED\fP
+Une connexion a été fermée durant un appel à \fBaccept\fP(2).
+.TP 
+\fBEHOSTUNREACH\fP
+Aucune table de routage valable ne correspond à l'adresse de
+destination. Cette erreur peut être due à un message ICMP d'un routeur
+distant ou pour la table de routage interne.
+.TP 
+\fBEINVAL\fP
+Un argument non valable a été fourni. Pour les opérations d'envoi, cela peut
+être causé par un envoi vers une route \fItrou noir\fP.
+.TP 
+\fBEISCONN\fP
+\fBconnect\fP(2) a été appelée sur une socket déjà connectée.
+.TP 
+\fBEMSGSIZE\fP
+Un datagramme est plus grand que la MTU du chemin et ne peut pas être
+fragmenté.
+.TP 
+\fBENOBUFS\fP, \fBENOMEM\fP
+La mémoire libre est insuffisante. Cela signifie souvent que l'allocation
+mémoire est contrainte par les limites du tampon de socket, pas par la
+mémoire du système, mais ce n'est pas toujours le cas.
+.TP 
+\fBENOENT\fP
+\fBSIOCGSTAMP\fP a été appelé sur une socket qu'aucun paquet n'a atteint.
+.TP 
+\fBENOPKG\fP
+Un sous\-système du noyau n'est pas configuré.
+.TP 
+\fBENOPROTOOPT\fP et \fBEOPNOTSUPP\fP
+Passage d'une option de socket non valable.
+.TP 
+\fBENOTCONN\fP
+L'opération n'est définie que sur une socket connectée, mais cette socket
+n'était pas connectée.
+.TP 
+\fBEPERM\fP
+L'utilisateur n'a pas la permission de définir une priorité haute, de
+changer la configuration ou d'envoyer des signaux au groupe ou au processus
+demandé.
+.TP 
+\fBEPIPE\fP
+La connexion a été fermée prématurément ou volontairement à l'autre
+extrémité.
+.TP 
+\fBESOCKTNOSUPPORT\fP
+La socket n'est pas configurée ou un type de socket inconnu a été demandé.
+.PP
+D'autres erreurs peuvent être déclenchées par les protocoles
+supérieurs. Voyez \fBtcp\fP(7), \fBraw\fP(7), \fBudp\fP(7) et \fBsocket\fP(7).
+.SH NOTES
+.\" IP_PASSSEC is Linux-specific
+.\" IP_TRANSPARENT is Linux-specific
+.\" IP_FREEBIND is Linux-specific
+.\" IP_XFRM_POLICY is Linux-specific
+.\" IP_IPSEC_POLICY is a non-standard extension, also present on some BSDs
+\fBIP_MTU\fP, \fBIP_MTU_DISCOVER\fP, \fBIP_PKTINFO\fP, \fBIP_RECVERR\fP et
+\fBIP_ROUTER_ALERT\fP sont spécifiques à Linux et ne devraient pas être
+utilisés dans des programmes destinés à être portables. Soyez très prudents
+avec l'option \fBSO_BROADCAST\fP, elle n'est pas privilégiée sous Linux. Il est
+facile de surcharger un réseau avec des diffusions générales sans
+précaution. Pour les nouveaux protocoles applicatifs, il vaut mieux utiliser
+un groupe de diffusion multiple plutôt que la diffusion générale. Ce dernier
+est déconseillé.
+.PP
+Certaines autres implémentations des sockets BSD fournissent les options de
+socket \fBIP_RCVDSTADDR\fP et \fBIP_RECVIF\fP pour obtenir l'adresse de
+destination et l'interface des datagrammes reçus. Linux propose l'option
+\fBIP_PKTINFO\fP plus générale pour effectuer ce travail.
+.PP
+Certaines implémentations BSD des sockets fournissent également l'option
+\fBIP_RECVTTL\fP, mais un message de service ayant le type \fBIP_RECVTTL\fP est
+fourni avec le paquet entrant. C'est différent de l'option \fBIP_TTL\fP
+utilisée sous Linux.
+.PP
+L'utilisation du niveau des options de socket \fBSOL_IP\fP n'est pas portable,
+les empilages basés sur BSD utilisent le niveau \fBIPPROTO_IP\fP.
+.SS Compatibilité
+Pour la compatibilité avec Linux 2.0, la syntaxe obsolète \fBsocket(AF_INET,
+SOCK_PACKET, \fP\fIprotocole\fP\fB)\fP est encore gérée pour ouvrir une socket
+\fBpacket\fP(7). Ceci est déconseillé, et doit être remplacé par
+\fBsocket(AF_PACKET, SOCK_RAW, \fP\fIprotocole\fP\fB)\fP. La principale différence
+est la nouvelle structure d'adresse \fIsockaddr_ll\fP pour les informations
+génériques de la couche de liaison à la place de l'ancienne \fBsockaddr_pkt\fP.
+.SH BOGUES
+Il y a trop de valeurs d'erreurs hétérogènes.
+.PP
+Les ioctls pour configurer les options d'interface spécifiques à IP et les
+tables ARP ne sont pas décrites.
+.PP
+Certaines versions de la glibc oublient de déclarer \fIin_pktinfo\fP. Le
+contournement consiste à la recopier depuis cette page de manuel dans le
+programme.
+.PP
+.\" .SH AUTHORS
+.\" This man page was written by Andi Kleen.
+La réception de l'adresse de destination originale avec \fBMSG_ERRQUEUE\fP dans
+\fImsg_name\fP par \fBrecvmsg\fP(2) ne fonctionne pas dans certains noyaux 2.2.
+.SH "VOIR AUSSI"
+\fBrecvmsg\fP(2), \fBsendmsg\fP(2), \fBbyteorder\fP(3), \fBipfw\fP(4),
+\fBcapabilities\fP(7), \fBnetlink\fP(7), \fBraw\fP(7), \fBsocket\fP(7), \fBtcp\fP(7),
+\fBudp\fP(7)
+.PP
+RFC\ 791 pour les spécifications IP d'origine.
+.br
+RFC\ 1122 pour les nécessités IPv4 des hôtes.
+.br
+.\" FIXME autobind INADDR REUSEADDR
+RFC\ 1812 pour les nécessités IPv4 des routeurs.
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

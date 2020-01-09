@@ -1,0 +1,205 @@
+.\" Copyright 1993 Giorgio Ciucci (giorgio@crcc.it)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified Sun Nov 28 17:06:19 1993, Rik Faith (faith@cs.unc.edu)
+.\"          with material from Luigi P. Bai (lpb@softint.com)
+.\" Portions Copyright 1993 Luigi P. Bai
+.\" Modified Tue Oct 22 22:04:23 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified, 5 Jan 2002, Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified, 19 Sep 2002, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Added SHM_REMAP flag description
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\" Modified, 11 Nov 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Language and formatting clean-ups
+.\"	Changed wording and placement of sentence regarding attachment
+.\"		of segments marked for destruction
+.\"
+.\" FIXME . Add an example program to this page.
+.\" FIXME Linux 2.6.9 added SHM_EXEC, which should be documented
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SHMOP 2 "3 juin 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+shmat, shmdt \- Opérations sur la mémoire partagée
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <sys/shm.h>\fP
+
+\fBvoid *shmat(int \fP\fIshmid\fP\fB, const void *\fP\fIshmaddr\fP\fB, int \fP\fIshmflg\fP\fB);\fP
+
+\fBint shmdt(const void *\fP\fIshmaddr\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBshmat\fP() attache le segment de mémoire partagée identifié par
+\fIshmid\fP au segment de données du processus appelant. L'adresse
+d'attachement est indiquée par \fIshmaddr\fP avec les critères suivants\ :
+.LP
+Si \fIshmaddr\fP vaut NULL, le système essaye de trouver une adresse libre pour
+attacher le segment.
+.LP
+Si \fIshmaddr\fP n'est pas NULL et si \fBSHM_RND\fP est indiqué dans \fIshmflg\fP,
+l'attachement a lieu à l'adresse \fIshmaddr\fP arrondie au multiple inférieur
+de \fBSHMLBA\fP. Sinon \fIshmaddr\fP doit être alignée sur une frontière de page,
+où l'attachement a lieu.
+.PP
+Si \fBSHM_RDONLY\fP est indiqué dans \fIshmflg\fP, le segment est attaché en
+lecture seulement, et le processus doit disposer de la permission de lecture
+dessus. Sinon le segment est attaché en lecture et écriture et le processus
+doit disposer des deux permissions d'accès. Il n'y a pas de notion
+d'écriture seule pour les segments de mémoire partagée.
+.PP
+L'option (spécifique à Linux) \fBSHM_REMAP\fP peut être ajoutée dans \fIshmflg\fP
+pour indiquer que la projection du segment doit remplacer une projection
+précédente dans l'intervalle commençant en \fIshmaddr\fP et s'étendant sur la
+taille du segment. (Normalement une erreur \fBEINVAL\fP se produirait si une
+projection existait déjà dans l'intervalle indiqué.) Dans ce cas, \fIshmaddr\fP
+ne doit pas être \fBNULL\fP.
+.PP
+La valeur \fBbrk\fP(2) du processus appelant n'est pas altérée par
+l'attachement. Le segment est automatiquement détaché quand le processus se
+termine. Le même segment peut être attaché à la fois en lecture seule et en
+lecture/écriture. Il peut également être attaché en plusieurs endroits de
+l'espace d'adressage du processus.
+.PP
+Quand \fBshmat\fP() réussit, les membres de la structure \fIshmid_ds\fP associée
+au segment de mémoire partagée (voir \fBshmctl\fP(2)) sont mis à jour ainsi\ :
+.IP
+\fIshm_atime\fP correspond à l'heure actuelle.
+.IP
+\fIshm_lpid\fP contient le PID de l'appelant.
+.IP
+\fIshm_nattch\fP est incrémenté de 1.
+.PP
+La fonction \fBshmdt\fP() détache le segment de mémoire partagée situé à
+l'adresse indiquée par \fIshmaddr\fP. Le segment doit être effectivement
+attaché, et l'adresse \fIshmaddr\fP doit être celle renvoyée précédemment par
+\fBshmat\fP().
+.PP
+Quand \fBshmdt\fP() réussit, les membres de la structure \fIshmid_ds\fP associée
+au segment de mémoire partagée sont mis à jour ainsi\ :
+.IP
+\fIshm_dtime\fP correspond à l'heure actuelle.
+.IP
+\fIshm_lpid\fP contient le PID de l'appelant.
+.IP
+\fIshm_nattch\fP est décrémenté de 1. S'il devient nul, et si le segment est
+marqué pour destruction, il est effectivement détruit.
+.PP
+Après un \fBfork\fP(2) le fils hérite des segments de mémoire partagée.
+
+Après un \fBexecve\fP(2) tous les segments de mémoire partagée sont détachés
+(pas détruits).
+
+Lors d'un \fB_exit\fP(2) tous les segments de mémoire partagée sont détachés
+(pas détruits).
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBshmat\fP() renvoie l'adresse d'attachement du segment de
+mémoire partagée. En cas d'échec \fI(void\ *)\ \-1\fP est renvoyé, et \fIerrno\fP
+contient le code d'erreur.
+
+\fBshmdt\fP() renvoie zéro s'il réussit et \-1 s'il échoue et écrit la cause de
+l'erreur dans \fIerrno\fP.
+.SH ERREURS
+Quand \fBshmat\fP() échoue, \fIerrno\fP prend l'une des valeurs suivantes\ :
+.TP 
+\fBEACCES\fP
+L'appelant n'a pas les permissions d'accès nécessaires pour l'attachement,
+et n'a pas la capacité \fBCAP_IPC_OWNER\fP.
+.TP 
+\fBEINVAL\fP
+\fIshmid\fP est invalide, \fIshmaddr\fP est mal alignée (c'est\-à\-dire pas alignée
+sur une page et \fBSHM_RND\fP n'a pas été précisé) ou invalide, échec lors de
+l'attachement à \fIshmaddr\fP, ou \fBSHM_REMAP\fP a été réclamé et \fIshmaddr\fP est
+\fBNULL\fP.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le système.
+.PP
+Quand \fBshmdt\fP() échoue, \fIerrno\fP prend l'une des valeurs suivantes\ :
+.TP 
+\fBEINVAL\fP
+.\" The following since 2.6.17-rc1:
+Aucun segment de mémoire partagée n'est attaché à l'adresse \fIshmaddr\fP, ou
+bien \fIshmaddr\fP n'est pas un multiple de la taille de page.
+.SH CONFORMITÉ
+.\" SVr4 documents an additional error condition EMFILE.
+SVr4, POSIX.1\-2001.
+
+Dans SVID 3 (ou peut être auparavant) le type de l'argument \fIshmaddr\fP a été
+modifié de \fIchar\ *\fP en \fIconst void\ *\fP, et le type de retour de
+\fBshmat\fP() de \fIchar\ *\fP en \fIvoid\ *\fP. (Les bibliothèques Linux libc4 et
+libc5 avaient le prototype \fIchar\ *\fP, la glibc 2 celui avec \fIvoid\ *\fP).
+.SH NOTES
+Utiliser \fBshmat\fP() avec \fIshmaddr\fP égale à NULL est la manière conseillée,
+portable, d'attacher un segment de mémoire partagée. Soyez conscients que le
+segment attaché de cette manière peut l'être à des adresses différentes dans
+les différents processus. Ainsi, tout pointeur contenu dans la mémoire
+partagée doit être relatif (typiquement par rapport au début du segment) et
+pas absolu.
+.PP
+Sous Linux, il est possible d'attacher un segment de mémoire partagée qui
+est déjà marqué pour effacement. Cependant, ce comportement n'est pas décrit
+par POSIX.1\-2001, et beaucoup d'autres implémentations ne le permettent pas.
+.LP
+Les paramètres système suivants influent sur \fBshmat\fP()\ :
+.TP 
+.\" FIXME A good explanation of the rationale for the existence
+.\" of SHMLBA would be useful here
+\fBSHMLBA\fP
+.\" FIXME That last sentence isn't true for all Linux
+.\" architectures (i.e., SHMLBA != PAGE_SIZE for some architectures)
+.\" -- MTK, Nov 04
+Multiple pour l'adresse de début de segment. Doit être aligné sur une
+frontière de page. Pour l'implémentation actuelle, \fBSHMLBA\fP à la même
+valeur que \fBPAGE_SIZE\fP.
+.PP
+L'implémentation n'a pas de limite intrinsèque pour le nombre maximal de
+segment de mémoire partagée par processus (\fBSHMSEG\fP).
+.SH "VOIR AUSSI"
+\fBbrk\fP(2), \fBmmap\fP(2), \fBshmctl\fP(2), \fBshmget\fP(2), \fBcapabilities\fP(7),
+\fBshm_overview\fP(7), \fBsvipc\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

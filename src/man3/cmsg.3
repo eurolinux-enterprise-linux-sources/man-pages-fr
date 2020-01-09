@@ -1,0 +1,184 @@
+.\" This man page is Copyright (C) 1999 Andi Kleen <ak@muc.de>.
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" $Id: cmsg.3,v 1.8 2000/12/20 18:10:31 ak Exp $
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CMSG 3 "20 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+CMSG_ALIGN, CMSG_SPACE, CMSG_NXTHDR, CMSG_FIRSTHDR \- Accéder aux
+informations de service
+.SH SYNOPSIS
+\fB#include <sys/socket.h>\fP
+.sp
+\fBstruct cmsghdr *CMSG_FIRSTHDR(struct msghdr *\fP\fImsgh\fP\fB);\fP
+.br
+\fBstruct cmsghdr *CMSG_NXTHDR(struct msghdr *\fP\fImsgh\fP\fB, struct cmsghdr
+*\fP\fIcmsg\fP\fB);\fP
+.br
+\fBsize_t CMSG_ALIGN(size_t \fP\fIlength\fP\fB);\fP
+.br
+\fBsize_t CMSG_SPACE(size_t \fP\fIlength\fP\fB);\fP
+.br
+\fBsize_t CMSG_LEN(size_t \fP\fIlength\fP\fB);\fP
+.br
+\fBunsigned char *CMSG_DATA(struct cmsghdr *\fP\fIcmsg\fP\fB);\fP
+.sp
+.nf
+struct cmsghdr {
+    socklen_t cmsg_len;    /* Nombre d'octets de données, incluant l'en\-tête */
+    int       cmsg_level;  /* Protocole d'origine */
+    int       cmsg_type;   /* Type spécifique au protocole */
+    /* suivi par unsigned char cmsg_data[]; */
+};
+.fi
+.SH DESCRIPTION
+Ces macros sont utilisées pour créer et accéder aux messages de contrôle
+(aussi appelé informations de service) qui ne font pas partie du trafic
+normal des sockets. Ces informations de contrôle peuvent inclure l'interface
+sur laquelle le paquet a été reçu, des champs d'en\-tête rarement employés,
+des descriptions d'erreur approfondies, un ensemble de descripteurs de
+fichiers ou des identificateurs Unix. Par exemple, les messages de contrôle
+peuvent être utilisés pour envoyer des champs d'en\-tête supplémentaires tels
+que des options IP. Les données de service sont émises avec \fBsendmsg\fP(2) et
+reçues avec \fBrecvmsg\fP(2). Reportez\-vous à leur page de manuel respective
+pour plus d'informations.
+.PP
+Une information de service est une séquence de structures \fIcmsghdr\fP avec
+des données ajoutées. Cette séquence ne doit être manipulée qu'au moyen des
+macros décrites dans cette page de manuel, et jamais directement. Voyez les
+pages relatives aux protocoles des types de message de commande
+disponibles. La taille maximale d'un tampon de service par socket peut être
+définie à l'aide de \fI/proc/sys/net/core/optmem_max\fP. Voyez \fBsocket\fP(7).
+.PP
+\fBCMSG_FIRSTHDR\fP() renvoie un pointeur sur la première \fIcmsghdr\fP du tampon
+de données de service associé au \fImsghdr\fP passé.
+.PP
+\fBCMSG_NXTHDR\fP() renvoie le prochain \fIcmsghdr\fP valable suivant après le
+\fIcmsghdr\fP transmis. Elle renvoie NULL s'il n'y a plus assez de place dans
+le tampon.
+.PP
+\fBCMSG_ALIGN\fP(), avec comme argument une longueur, renvoie l'alignement
+nécessaire. C'est une expression constante.
+.PP
+\fBCMSG_SPACE\fP() renvoie le nombre d'octets d'un élément de service avec la
+charge utile de la longueur passée en paramètre. C'est une expression
+constante.
+.PP
+\fBCMSG_DATA\fP() renvoie un pointeur sur une partie des données d'un
+\fIcmsghdr\fP.
+.PP
+\fBCMSG_LEN\fP() renvoie la valeur à stocker dans le membre \fIcmsg_len\fP de la
+structure \fIcmsghdr\fP, en tenant compte des alignements. Elle prend en
+paramètre la longueur des données. C'est une expression constante.
+.PP
+Pour créer des données de service, il faut tout d'abord initialiser le
+membre \fImsg_controllen\fP de la structure \fImsghdr\fP avec la longueur du
+message de contrôle. Utilisez \fBCMSG_FIRSTHDR\fP() sur la structure \fImsghdr\fP
+pour obtenir le premier message de contrôle, puis \fBCMSG_NEXTHDR\fP() pour
+obtenir les suivants. Dans chaque message de contrôle, initialisez
+\fIcmsg_len\fP (avec \fBCMSG_LEN\fP()), les autres champs d'en\-tête de \fIcmsghdr\fP,
+et la partie de données avec \fBCMSG_DATA\fP(). Enfin, il faut définir le
+membre \fImsg_controllen\fP de la structure \fImsghdr\fP avec la somme de tous les
+messages de contrôle dans le tampon renvoyé par \fBCMSG_SPACE\fP().Pour plus
+d'informations sur \fImsghdr\fP, voyez \fBrecvmsg\fP(2).
+.PP
+Lorsque le tampon de message de contrôle est trop petit pour stocker tous
+les messages, le drapeau \fBMSG_CTRUNC\fP du membre \fImsg_flags\fP de \fImsghdr\fP
+est activé.
+.SH CONFORMITÉ
+Le modèle des données de service est conforme à POSIX.1g draft, BSD\
+4.4\-Lite, «\ IPv6 advanced API\ » décrite dans la RFC\ 2292 et
+SUSv2. \fBCMSG_ALIGN\fP() est une extension Linux.
+.SH NOTES
+Pour des questions de portabilité, les données de service ne doivent être
+manipulées qu'avec les macros décrites ici. \fBCMSG_ALIGN\fP() est une
+extension Linux et ne doit pas être utilisée dans un programme portable.
+.PP
+Sous Linux, \fBCMSG_LEN\fP(), \fBCMSG_DATA\fP(), et \fBCMSG_ALIGN\fP() sont des
+expressions constantes (si leur argument est une constante)\ ; on peut donc
+les utiliser pour déclarer la taille de variables globales. Cela peut
+néanmoins ne pas être portable.
+.SH EXEMPLE
+Ce code recherche l'option \fBIP_TTL\fP dans un tampon de service reçu\ :
+.PP
+.in +4n
+.nf
+struct msghdr msgh;
+struct cmsghdr *cmsg;
+int *ttlptr;
+int received_ttl;
+
+/* Receive auxiliary data in msgh */
+for (cmsg = CMSG_FIRSTHDR(&msgh); cmsg != NULL;
+        cmsg = CMSG_NXTHDR(&msgh,cmsg)) {
+    if (cmsg\->cmsg_level == IPPROTO_IP
+            && cmsg\->cmsg_type == IP_TTL) {
+        ttlptr = (int *) CMSG_DATA(cmsg);
+        received_ttl = *ttlptr;
+        break;
+    }
+}
+if (cmsg == NULL) {
+    /*
+     * Error: IP_TTL not enabled or small buffer
+     * or I/O error.
+     */
+}
+.fi
+.in
+.PP
+Ce code, ci\-dessous, passe une table de descripteurs de fichier au travers
+d'une socket Unix avec \fBSCM_RIGHTS\fP\ :
+.PP
+.in +4n
+.nf
+struct msghdr msg = {0};
+struct cmsghdr *cmsg;
+int myfds[NUM_FD]; /* Contains the file descriptors to pass. */
+char buf[CMSG_SPACE(sizeof myfds)];  /* ancillary data buffer */
+int *fdptr;
+
+msg.msg_control = buf;
+msg.msg_controllen = sizeof buf;
+cmsg = CMSG_FIRSTHDR(&msg);
+cmsg\->cmsg_level = SOL_SOCKET;
+cmsg\->cmsg_type = SCM_RIGHTS;
+cmsg\->cmsg_len = CMSG_LEN(sizeof(int) * NUM_FD);
+/* Initialize the payload: */
+fdptr = (int *) CMSG_DATA(cmsg);
+memcpy(fdptr, myfds, NUM_FD * sizeof(int));
+/* Sum of the length of all control messages in the buffer: */
+msg.msg_controllen = cmsg\->cmsg_len;
+.fi
+.in
+.SH "VOIR AUSSI"
+\fBrecvmsg\fP(2), \fBsendmsg\fP(2)
+.PP
+RFC\ 2292
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

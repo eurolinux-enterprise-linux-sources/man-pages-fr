@@ -1,0 +1,135 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" Distributed under GPL
+.\" Heavily based on glibc documentation
+.\" Polished, added docs, removed glibc doc bug, 2002-07-20, aeb
+.\"
+.\" FIXME
+.\" According to a Fedora downstream patch, malloc hooks are deprecated
+.\" https://bugzilla.redhat.com/show_bug.cgi?id=450187
+.\" Integrate this upstream?
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MALLOC_HOOK 3 "20 juillet 2002" GNU "Manuel du programmeur Linux"
+.SH NOM
+__malloc_hook, __malloc_initialize_hook, __memalign_hook, __free_hook,
+__realloc_hook, __after_morecore_hook \- Variables de débogage de malloc.
+.SH SYNOPSIS
+.nf
+\fB#include <malloc.h>\fP
+.sp
+\fBvoid *(*__malloc_hook)(size_t \fP\fIsize\fP\fB, const void *\fP\fIcaller\fP\fB);\fP
+.sp
+\fBvoid *(*__realloc_hook)(void *\fP\fIptr\fP\fB, size_t \fP\fIsize\fP\fB, const void *\fP\fIcaller\fP\fB);\fP
+.sp
+\fBvoid *(*__memalign_hook)(size_t \fP\fIalignment\fP\fB, size_t \fP\fIsize\fP\fB,\fP
+\fB                         const void *\fP\fIcaller\fP\fB);\fP
+.sp
+\fBvoid (*__free_hook)(void *\fP\fIptr\fP\fB, const void *\fP\fIcaller\fP\fB);\fP
+.sp
+\fBvoid (*__malloc_initialize_hook)(void);\fP
+.sp
+\fBvoid (*__after_morecore_hook)(void);\fP
+.fi
+.SH DESCRIPTION
+La bibliothèque C GNU vous permet de modifier le comportement de
+\fBmalloc\fP(3), \fBrealloc\fP(3) et \fBfree\fP(3) en fixant les points d'entrée des
+routines. Vous pouvez utiliser ces points pour faciliter le débogage des
+programmes utilisant des allocations de mémoire dynamique par exemple.
+.LP
+La variable \fB__malloc_initialize_hook\fP pointe vers une fonction qui est
+appelée une seule fois à l'initialisation de malloc. C'est une variable
+libre qui peut être modifiée par l'application avec une déclaration comme
+celle\-ci\ :
+.br
+.nf
+    void (*__malloc_initialize_hook)(void) = my_init_hook;
+.fi
+.br
+À présent, la fonction \fImy_init_hook\fP() pourra faire toute l'initialisation
+des routines.
+.LP
+Les quatre fonctions pointées par \fB__malloc_hook\fP, \fB__realloc_hook\fP,
+\fB__memalign_hook\fP et \fB__free_hook\fP ont des prototypes semblables à ceux
+des fonctions \fBmalloc\fP(3), \fBrealloc\fP(3), \fBmemalign\fP(3) et \fBfree\fP(3),
+respectivement, avec un argument final supplémentaire \fIcaller\fP qui fournit
+l'adresse du code appelant \fBmalloc\fP(3), etc.
+.LP
+La variable \fB__after_morecore_hook\fP pointe sur une fonction qui est
+invoquée à chaque fois que \fBsbrk\fP(2) a été appelée pour augmenter le
+segment de données.
+.SH CONFORMITÉ
+Ces fonctions sont des extensions GNU.
+.SH EXEMPLE
+Voici un court exemple d'utilisation de ces variables.
+.sp
+.nf
+#include <stdio.h>
+#include <malloc.h>
+
+/* Prototypes de nos routines */
+static void my_init_hook(void);
+static void *my_malloc_hook(size_t, const void *);
+
+/* Variables pour sauver la routine originale */
+static void *(*old_malloc_hook)(size_t, const void *);
+
+/* Écrasement de la routine d'initialisation glibc */
+void (*__malloc_initialize_hook) (void) = my_init_hook;
+
+static void
+my_init_hook(void)
+{
+    old_malloc_hook = __malloc_hook;
+    __malloc_hook = my_malloc_hook;
+}
+
+static void *
+my_malloc_hook(size_t size, const void *caller)
+{
+    void *result;
+
+    /* Replacer la routine originale */
+    __malloc_hook = old_malloc_hook;
+
+    /* Call recursively */
+    result = malloc(size);
+
+    /* Sauver la routine originale */
+    old_malloc_hook = __malloc_hook;
+
+    /* printf() might call malloc(), so protect it too. */
+    printf("malloc(%u) called from %p returns %p\en",
+            (unsigned int) size, caller, result);
+
+    /* Replacer notre routine */
+    __malloc_hook = my_malloc_hook;
+
+    return result;
+}
+.fi
+.SH "VOIR AUSSI"
+\fBmallinfo\fP(3), \fBmalloc\fP(3), \fBmcheck\fP(3), \fBmtrace\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

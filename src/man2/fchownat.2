@@ -1,0 +1,109 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" This manpage is Copyright (C) 2006, Michael Kerrisk
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FCHOWNAT 2 "21 août 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+fchownat \- Modifier l'appartenance d'un fichier relativement à un
+descripteur de fichier de répertoire.
+.SH SYNOPSIS
+.nf
+\fB#define _ATFILE_SOURCE\fP
+\fB#include <fcntl.h> /* Définition des constantes AT_* */\fP
+\fB#include <unistd.h>\fP
+.sp
+\fBint fchownat(int \fP\fIdirfd\fP\fB, const char *\fP\fIpathname\fP\fB,\fP
+\fB             uid_t \fP\fIowner\fP\fB, gid_t \fP\fIgroup\fP\fB, int \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+L'appel système \fBfchownat\fP() fonctionne exactement comme \fBchown\fP(2), les
+seules différences étant celles décrites dans cette page.
+
+Si \fIpathname\fP est un chemin relatif, il est interprété par rapport au
+répertoire référencé par le descripteur de fichier \fIdirfd\fP (plutôt que
+relativement au répertoire de travail courant du processus appelant, comme
+cela est fait par \fBchown\fP(2) pour un chemin relatif).
+
+Si \fIpathname\fP est relatif et si \fIdirfd\fP est la valeur spéciale
+\fBAT_FDCWD\fP, \fIpathname\fP est interprété comme étant relatif au répertoire
+courant du processus appelant (comme \fBchown\fP(2)).
+
+Si \fIpathname\fP est un chemin absolu, \fIdirfd\fP est ignoré.
+
+L'argument \fIflags\fP est soit 0, soit un \fIOU\fP binaire «\ |\ » avec les
+options suivantes\ :
+.TP 
+\fBAT_SYMLINK_NOFOLLOW\fP
+Si \fIpathname\fP est un lien symbolique, ne pas le déréférencer, mais renvoyer
+des informations sur le lien lui\-même, comme le fait \fBlchown\fP(2). (Par
+défaut, \fBfchownat\fP() suit les liens symboliques, comme \fBchown\fP(2).)
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBfchownat\fP() renvoie zéro. En cas d'erreur, il renvoie \-1 et
+remplit \fIerrno\fP avec la valeur d'erreur.
+.SH ERREURS
+Les mêmes erreurs qui apparaissent pour \fBchown\fP(2) peuvent apparaître pour
+\fBfchownat\fP(). Les erreurs supplémentaires suivantes peuvent également se
+produire pour \fBfchownat\fP()\ :
+.TP 
+\fBEBADF\fP
+\fIdirfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBEINVAL\fP
+\fIflags\fP contient un attribut invalide.
+.TP 
+\fBENOTDIR\fP
+\fIpathname\fP est relatif, et le descripteur de fichier \fIdirfd\fP est associé à
+un fichier, pas à un répertoire.
+.SH VERSIONS
+\fBfchownat\fP() a été ajouté au noyau Linux dans sa version 2.6.16.
+.SH CONFORMITÉ
+POSIX.1\-2008. Un appel système similaire existe sur Solaris.
+.SH NOTES
+Voir \fBopenat\fP(2) pour une explication de la nécessité de \fBfchownat\fP().
+.SH "VOIR AUSSI"
+\fBchown\fP(2), \fBopenat\fP(2), \fBpath_resolution\fP(7), \fBsymlink\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

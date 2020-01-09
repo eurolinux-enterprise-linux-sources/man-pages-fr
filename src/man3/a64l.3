@@ -1,0 +1,85 @@
+.\" Copyright 2002 walter harms (walter.harms@informatik.uni-oldenburg.de)
+.\" Distributed under GPL
+.\"
+.\" Corrected, aeb, 2002-05-30
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH A64L 3 "26 juillet 2007" "" "Manuel du programmeur Linux"
+.SH NOM
+a64l, l64a \- Fonctions de conversion entre les types long et base 64
+.SH SYNOPSIS
+\fB#include <stdlib.h>\fP
+.sp
+\fBlong a64l(char *\fP\fIstr64\fP\fB);\fP
+.sp
+\fBchar *l64a(long \fP\fIvalue\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBa64l\fP(), \fBl64a\fP()\ : _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500
+.SH DESCRIPTION
+Ces fonctions assurent la conversion entre des entiers longs sur 32 bits et
+des chaînes de caractères ASCII (de 0 à 6 caractères) petit boutiste en base
+64. Si la chaîne passée en argument à \fBa64l\fP() possède plus de six octets,
+alors seuls les six premiers octets sont utilisés. Si les entiers de type
+\fIlong\fP font plus de 32 bits, alors \fBl64a\fP() n'utilise que les 32 bits de
+poids faible de \fIvalue\fP, et \fBa64l\fP() propage le bit de signe de son
+résultat sur 32 bits.
+.LP
+Les 64 chiffres en base 64 sont\ :
+.RS
+.nf
+
+\«\ .\ »	représente un 0
+\«\ /\ »	représente un 1
+0\-9		représentent  2\-11
+A\-Z		représentent 12\-37
+a\-z		représentent 38\-63
+
+.fi
+.RE
+Exemple\ : 123 = 59*64^0 + 1*64^1 = "v/".
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+La valeur renvoyée par \fBa64l\fP() peut être un pointeur sur un tampon
+statique, qui peut être ré\-écrit par des appels successifs.
+.LP
+Le comportement de \fBl64a\fP() est indéfinie lorsque \fIvalue\fP est négatif. Si
+\fIvalue\fP vaut zéro, une chaîne vide est renvoyée.
+.LP
+Ces fonctions n'étaient pas fonctionnelles avant la version\ 2.2.5 de la
+glibc (chiffre le plus significatif en premier).
+.LP
+Ce n'est pas l'encodage utilisé par \fBuuencode\fP(1).
+.SH "VOIR AUSSI"
+.\" .BR itoa (3),
+\fBuuencode\fP(1), \fBstrtoul\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

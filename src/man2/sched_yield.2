@@ -1,0 +1,94 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) Tom Bjorkholm & Markus Kuhn, 1996
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" 1996-04-01 Tom Bjorkholm <tomb@mydata.se>
+.\"            First version written
+.\" 1996-04-10 Markus Kuhn <mskuhn@cip.informatik.uni-erlangen.de>
+.\"            revision
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SCHED_YIELD 2 "18 octobre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+sched_yield \- Céder le processeur.
+.SH SYNOPSIS
+\fB#include <sched.h>\fP
+.sp
+\fBint sched_yield(void);\fP
+.SH DESCRIPTION
+\fBsched_yield\fP() force le thread appelant à libérer le CPU. Le thread est
+déplacé à la fin de la liste des processus prêts de sa priorité, et un autre
+thread sera exécuté.
+.SH "VALEUR RENVOYÉE"
+\fBsched_yield\fP() renvoie 0 s'il réussit ou \-1 s'il échoue auquel cas
+\fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+L'implémentation Linux de \fBsched_yield\fP() réussit toujours.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Si le thread appelant est le seul avec la priorité la plus élevée au moment
+de l'appel, il continuera son exécution après un appel à \fBsched_yield\fP().
+
+Les systèmes POSIX sur lesquels \fBsched_yield\fP() est disponible définissent
+\fB_POSIX_PRIORITY_SCHEDULING\fP dans \fI<unistd.h>\fP.
+
+Des appels stratégiques à \fBsched_yield\fP() peuvent améliorer les
+performances en donnant à d'autres thread ou processus une chance de
+s'exécuter quand des ressources (très) demandées (par exemple, des mutex)
+sont libérées par l'appelant. Évitez d'appeler \fBsched_yield\fP() si ce n'est
+pas nécessaire ou inapproprié (par exemple, si les ressources nécessaires
+pour d'autres threads pouvant être ordonnancés sont encore tenues par
+l'appelant), puisqu'en faisant ainsi provoquera des changements de contexte
+non nécessaire, qui dégraderont les performances du système.
+.SH "VOIR AUSSI"
+\fBsched_setscheduler\fP(2) pour une description de l'ordonnancement sous
+Linux.
+.PP
+\fIProgramming for the real world \- POSIX.4\fP de Bill O. Gallmeister, O'Reilly
+& Associates, Inc., ISBN 1\-56592\-074\-0
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

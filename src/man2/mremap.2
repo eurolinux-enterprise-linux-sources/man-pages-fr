@@ -1,0 +1,166 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 1996 Tom Bjorkholm <tomb@mydata.se>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" 1996-04-11 Tom Bjorkholm <tomb@mydata.se>
+.\"            First version written (1.3.86)
+.\" 1996-04-12 Tom Bjorkholm <tomb@mydata.se>
+.\"            Update for Linux 1.3.87 and later
+.\" 2005-10-11 mtk: Added NOTES for MREMAP_FIXED; revised EINVAL text.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MREMAP 2 "13 septembre 2005" Linux "Manuel du programmeur Linux"
+.SH NOM
+mremap \- Modifier une projection de la mémoire virtuelle
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP
+.br
+\fB#include <sys/mman.h>\fP
+.sp
+\fBvoid *mremap(void *\fP\fIold_address\fP\fB, size_t \fP\fIold_size\fP\fB,\fP
+\fB             size_t \fP\fInew_size\fP\fB, int \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBmremap\fP() agrandit (ou diminue) une projection (Ndt\ : mapping) de mémoire
+virtuelle en mémoire réelle, en la déplaçant éventuellement (sous contrôle
+de l'argument \fIflags\fP et de la place disponible dans l'espace d'adressage
+virtuel).
+
+\fIold_address\fP est l'ancienne adresse du bloc de mémoire virtuelle à
+agrandir (ou à diminuer). Veuillez noter que \fIold_address\fP doit être
+alignée sur une frontière de page. \fIold_size\fP est la taille du bloc de
+mémoire virtuelle. \fInew_size\fP est la taille désirée pour le nouveau bloc de
+mémoire.
+
+Sous Linux, la mémoire est divisée en pages. Un processus utilisateur
+dispose d'un ou plusieurs segments linéaires de mémoire virtuelle. À chaque
+segment correspond une ou plusieurs projections dans les pages de mémoire
+réelle (dans la table des pages). Chaque segment de mémoire virtuelle
+dispose de ses propres droits d'accès (sa protection), ce qui peut
+déclencher des fautes de segmentation si la mémoire est utilisée
+incorrectement (par exemple, en écrivant dans un segment en lecture
+seule). De même une tentative d'accès à la mémoire en\(hydehors des segments
+déclenche également une faute de segmentation.
+
+\fBmremap\fP() utilise le schéma de la table des pages de Linux. \fBmremap\fP()
+modifie la correspondance entre les adresses virtuelles et les pages de
+mémoire réelle. Ce mécanisme peut être utilisé pour implémenter un
+\fBrealloc\fP(3) très efficace.
+
+L'argument \fIflags\fP est soit 0, soit un \fIOU\fP binaire «\ |\ » avec les
+options suivantes\ :
+.TP 
+\fBMREMAP_MAYMOVE\fP
+Par défaut, s'il n'y a pas suffisamment d'espace pour agrandir une
+projection à son emplacement actuel, \fBmremap\fP() échoue. Si ce drapeau est
+utilisé, le noyau est autorisé à déplacer la projection à une autre adresse
+virtuelle si nécessaire. Si la projection est déplacée, les pointeurs
+absolus vers l'ancienne projection deviennent invalides (il faut utiliser
+des différences par rapport à l'adresse de début de la projection).
+.TP 
+\fBMREMAP_FIXED\fP (depuis Linux 2.3.31)
+Ce drapeau a un but similaire à \fBMAP_FIXED\fP pour \fBmmap\fP(2). S'il est
+utilisé, \fBmremap\fP() prend un cinquième argument \fIvoid *new_address\fP qui
+contient une adresse alignée sur un début de page, vers laquelle la
+projection doit être déplacée. Toute projection existant précédemment dans
+la zone entre \fInew_address\fP et \fInew_address\fP+\fInew_size\fP est supprimée. Si
+\fBMREMAP_FIXED\fP est utilisé, \fBMREMAP_MAYMOVE\fP doit l'être aussi.
+.PP
+Si le segment de mémoire indiqué par \fIold_address\fP et \fIold_size\fP est
+verrouillé (par \fBmlock\fP(2) ou similaire), ce verrou est maintenu quand le
+segment est modifié et/ou déplacé. Par conséquent, la quantité de mémoire
+verrouillée par le processus peut changer.
+.SH "VALEUR RENVOYÉE"
+\fBmremap\fP() renvoie un pointeur sur la nouvelle zone de mémoire virtuelle
+s'il réussit. En cas d'échec, la valeur \fBMAP_FAILED\fP (c'est\-à\-dire \fI(void\
+*)\ \-1\fP) est renvoyée et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+L'appelant a tenté d'agrandir un segment de mémoire verrouillé, mais c'est
+impossible sans dépasser la limite \fBRLIMIT_MEMLOCK\fP.
+.TP 
+\fBEFAULT\fP
+Erreur de segmentation («\ Segmentation fault\ »). Une adresse dans
+l'intervalle entre \fIold_address\fP et \fIold_address\fP+\fIold_size\fP n'est pas
+une adresse virtuelle valide pour ce processus. On peut également obtenir
+\fBEFAULT\fP même s'il existe des projections recouvrant la zone complète
+demandée, mais que ces projections sont de types différents.
+.TP 
+\fBEINVAL\fP
+Un paramètre invalide a été utilisé. Les causes possibles sont un mauvais
+alignement de \fIold_address\fP, une valeur différente de \fBMREMAP_MAYMOVE\fP ou
+\fBMREMAP_FIXED\fP dans \fIflags\fP, \fInew_size\fP à 0, \fInew_size\fP ou
+\fInew_address\fP est invalide, ou la nouvelle zone spécifiée par
+\fInew_address\fP et \fInew_size\fP recouvre en partie l'ancienne zone définie par
+\fIold_address\fP et \fIold_size\fP, ou enfin utilisation de \fBMREMAP_FIXED\fP sans
+\fBMREMAP_MAYMOVE\fP.
+.TP 
+\fBENOMEM\fP
+La zone de mémoire ne peut pas être agrandie à l'emplacement actuel, et
+l'option \fBMREMAP_MAYMOVE\fP n'a pas été fournie dans \fIflags\fP. Ou encore, il
+n'y a plus assez de mémoire virtuelle disponible.
+.SH CONFORMITÉ
+.\" 4.2BSD had a (never actually implemented)
+.\" .BR mremap (2)
+.\" call with completely different semantics.
+Cet appel système est spécifique à Linux et ne doit pas être employé dans
+des programmes destinés à être portables.
+.SH NOTES
+Avant la version 2.4, la glibc ne fournissait pas la définition de
+\fBMREMAP_FIXED\fP et le prototype de \fBmremap\fP() ne permettait pas de passer
+le paramètre \fInew_address\fP.
+.SH "VOIR AUSSI"
+\fBbrk\fP(2), \fBgetpagesize\fP(2), \fBgetrlimit\fP(2), \fBmlock\fP(2), \fBmmap\fP(2),
+\fBsbrk\fP(2), \fBmalloc\fP(3), \fBrealloc\fP(3), \fBfeature_test_macros\fP(7)
+.P
+Votre manuel de systèmes d'exploitations favori, pour des informations
+supplémentaires sur la mémoire paginée. (\fIModern Operating Systems\fP de
+Andrew S. Tannenbaum, \fIInside Linux\fP par Randolf Bentson, \fIThe Design of
+the UNIX Operating System\fP par Maurice J. Bach.)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

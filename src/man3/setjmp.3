@@ -1,0 +1,107 @@
+.\" Written by Michael Haardt, Fri Nov 25 14:51:42 MET 1994
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Added sigsetjmp, Sun Mar  2 22:03:05 EST 1997, jrv@vanzandt.mv.com
+.\" Modifications, Sun Feb 26 14:39:45 1995, faith@cs.unc.edu
+.\" "
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SETJMP 3 "26 juin 2009" "" "Manuel du programmeur Linux"
+.SH NOM
+setjmp, sigsetjmp \- Sauver le contexte de pile pour un saut non local
+.SH SYNOPSIS
+\fB#include <setjmp.h>\fP
+.sp
+.nf
+\fBint setjmp(jmp_buf \fP\fIenv\fP\fB);\fP
+
+\fBint sigsetjmp(sigjmp_buf \fP\fIenv\fP\fB, int \fP\fIsavesigs\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBsetjmp\fP()\ : consultez la section NOTES.
+.br
+\fBsigsetjmp\fP()\ : _POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE ||
+_POSIX_C_SOURCE
+.SH DESCRIPTION
+Les fonctions \fBsetjmp\fP() et \fBlongjmp\fP(3) sont utiles pour gérer les
+erreurs et les interruptions rencontrées dans des routines
+bas\-niveau. \fBsetjmp\fP() sauvegarde le contexte de pile et d'environnement
+dans \fIenv\fP afin de l'utiliser ultérieurement avec \fBlongjmp\fP(3). Le
+contexte de pile sera invalide si la fonction qui appelle \fBsetjmp\fP() se
+termine.
+.P
+\fBsigsetjmp\fP() est semblable à \fBsetjmp\fP(). Si, et seulement si, \fIsavesigs\fP
+est non nul, le masque de signaux actuel du processus est sauvegardé dans
+\fIenv\fP, et sera rétabli lorsque \fBsiglongjmp\fP(3) sera invoqué avec ce
+contexte \fIenv\fP.
+.SH "VALEUR RENVOYÉE"
+\fBsetjmp\fP() et \fBsigsetjmp\fP() renvoient 0 lorsqu'elles reviennent
+directement, et une valeur non nulle si elles reviennent à travers un appel
+à \fBlongjmp\fP(3) ou \fBsiglongjmp\fP(3) en utilisant le contexte sauvegardé.
+.SH CONFORMITÉ
+C89, C99 et POSIX.1\-2001 spécifient \fBsetjmp\fP(). POSIX.1\-2001 spécifie
+\fBsigsetjmp\fP().
+.SH NOTES
+POSIX ne spécifie pas si \fBsetjmp\fP() sauve le masque de signaux. Sous
+System\ V, ce n'est pas le cas. Sous BSD\ 4.3, le masque sera sauvé et il y a
+une fonction \fB_setjmp\fP qui ne fait pas la copie. Par défaut, Linux/glibc
+suit le comportement de System\ V, mais le comportement BSD est fournit si la
+macro de test de fonctionnalités \fB_BSD_SOURCE\fP est définie et aucune des
+macros \fB_POSIX_SOURCE\fP, \fB_POSIX_C_SOURCE\fP, \fB_XOPEN_SOURCE\fP,
+\fB_XOPEN_SOURCE_EXTENDED\fP, \fB_GNU_SOURCE\fP ou \fB_SVID_SOURCE\fP n'est définie.
+
+Si vous souhaitez sauver et restaurer le masque de signaux de façon
+portable, utilisez \fBsigsetjmp\fP() et \fBsiglongjmp\fP().
+.P
+\fBsetjmp\fP() et \fBsigsetjmp\fP() rendent les programmes difficiles à comprendre
+et à maintenir. Si possible, essayez d'utiliser une autre méthode.
+.SH "VOIR AUSSI"
+\fBlongjmp\fP(3), \fBsiglongjmp\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,104 @@
+.\" Contributed by Niki A. Rahimi, LTC Security Development
+.\" narahimi@us.ibm.com
+.\" May be freely distributed.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PCICONFIG_READ 2 "14 juillet 2003" Linux "Manuel du programmeur Linux"
+.SH NOM
+pciconfig_read, pciconfig_write, pciconfig_iobase \- Gestion d'information
+des périphériques pci.
+.SH SYNOPSIS
+.nf
+\fB#include <pci.h>\fP
+.sp
+\fBint pciconfig_read(unsigned long \fP\fIbus\fP\fB, unsigned long \fP\fIdfn\fP\fB,\fP
+\fB          unsigned long \fP\fIoff\fP\fB, unsigned long \fP\fIlen\fP\fB, void *\fP\fIbuf\fP\fB);\fP
+\fBint pciconfig_write(unsigned long \fP\fIbus\fP\fB, unsigned long \fP\fIdfn\fP\fB,\fP
+\fB          unsigned long \fP\fIoff\fP\fB, unsigned long \fP\fIlen\fP\fB, void *\fP\fIbuf\fP\fB);\fP
+\fBint pciconfig_iobase(long \fP\fIwhich\fP\fB, unsigned long \fP\fIbus\fP\fB,\fP
+\fB          unsigned long \fP\fIdevfn\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+.PP
+La plupart des interactions avec les périphériques PCI est déjà gérée par la
+couche PCI du noyau, aussi il ne devrait pas être nécessaire d'accéder à ces
+appels à partir de l'espace utilisateur.
+.TP 
+\fBpciconfig_read\fP()
+Lit dans \fIbuf\fP à partir du périphérique \fIdev\fP à l'offset \fIoff\fP.
+.TP 
+\fBpciconfig_write\fP()
+Écrit à partir de \fIbuf\fP vers le périphérique \fIdev\fP à l'offset \fIoff\fP.
+.TP 
+\fBpciconfig_iobase\fP()
+Vous lui passez une paire «\ bus/devfn\ » et vous récupérez une adresse
+physique pour chacun des offset mémoire (pour des choses comme prep, c'est
+0xc0000000), l'adresse d'entrée\-sortie (IO) de base pour les cycles PIO ou
+bien les trous ISA s'il y en a.
+.SH "VALEUR RENVOYÉE"
+.TP 
+\fBpciconfig_read\fP()
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.TP 
+\fBpciconfig_write\fP()
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.TP 
+\fBpciconfig_iobase\fP()
+Renvoie l'information de localisation de diverses régions d'entrées\-sorties
+dans la mémoire physique en fonction de la valeur de \fIwhich\fP. Les valeurs
+possibles pour \fIwhich\fP sont\ : \fBIOBASE_BRIDGE_NUMBER\fP, \fBIOBASE_MEMORY\fP,
+\fBIOBASE_IO\fP, \fBIOBASE_ISA_IO\fP, \fBIOBASE_ISA_MEM\fP.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+La valeur de \fIlen\fP n'est pas valide. Ceci ne s'applique pas à
+\fBpciconfig_iobase\fP().
+.TP 
+\fBEIO\fP
+Erreur d'entrée\-sortie.
+.TP 
+\fBENODEV\fP
+Pour \fBpciconfig_iobase\fP(), la valeur basse («\ hose value\ ») est NULL. Pour
+les autres appels, ne peut pas trouver une entrée.
+.TP 
+\fBENOSYS\fP
+Le système n'a pas implémenté ces appels (\fBCONFIG_PCI\fP n'est pas défini).
+.TP 
+\fBEOPNOTSUPP\fP
+Cette valeur de retour est valide seulement pour \fBpciconfig_iobase\fP(). Elle
+correspond au cas où \fIwhich\fP est invalide.
+.TP 
+\fBEPERM\fP
+L'utilisateur n'a pas la capacité \fBCAP_SYS_ADMIN\fP. Ceci ne s'applique pas à
+\fBpciconfig_iobase\fP().
+.SH CONFORMITÉ
+Ces appels sont spécifiques à Linux, disponibles à partir des versions Linux
+2.0.26/2.1.11.
+.SH "VOIR AUSSI"
+\fBcapabilities\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2004-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,150 @@
+.\" Copyright 2000 Nicolás Lichtmaier <nick@debian.org>
+.\" Created 2000-07-22 00:52-0300
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" Modified 2002-07-23 19:21:35 CEST 2002 Walter Harms
+.\" <walter.harms@informatik.uni-oldenburg.de>
+.\"
+.\" Modified 2003-04-04, aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ENCRYPT 3 "4 avril 2003" "" "Manuel du programmeur Linux"
+.SH NOM
+encrypt, setkey, encrypt_r, setkey_r \- Crypter des messages de 64\ bits
+.SH SYNOPSIS
+\fB#define _XOPEN_SOURCE\fP
+.br
+\fB#include <unistd.h>\fP
+.sp
+\fBvoid encrypt(char \fP\fIblock\fP\fB[64], int \fP\fIedflag\fP\fB);\fP
+.sp
+\fB#define _XOPEN_SOURCE\fP
+.br
+\fB#include <stdlib.h>\fP
+.sp
+\fBvoid setkey(const char *\fP\fIkey\fP\fB);\fP
+.sp
+\fB#define _GNU_SOURCE\fP
+.br
+\fB#include <crypt.h>\fP
+.sp
+\fBvoid setkey_r(const char *\fP\fIkey\fP\fB, struct crypt_data *\fP\fIdata\fP\fB);\fP
+.br
+\fBvoid encrypt_r(char *\fP\fIblock\fP\fB, int \fP\fIedflag\fP\fB, struct crypt_data
+*\fP\fIdata\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lcrypt\fP.
+.SH DESCRIPTION
+Ces fonctions chiffrent et déchiffrent des messages de 64\ bits. La fonction
+\fBsetkey\fP() permet de fournir la clef à utiliser pour
+\fBencrypt\fP(). L'argument \fIkey\fP est une table de 64 octets, chacun ayant la
+valeur 0 ou 1. L'octet key[n] où n=8*i\-1 est ignoré, ce qui ramène la clef à
+56 bits effectifs.
+.PP
+La fonction \fBencrypt\fP() modifie le tampon transmis, en l'encodant si
+l'argument \fIedflag\fP vaut 0, et en le décodant s'il vaut 1. L'argument
+\fIblock\fP est, comme l'argument \fIkey\fP, une représentation de la valeur à
+encoder sous forme de vecteur de bits. Le résultat est renvoyé dans le même
+vecteur.
+.PP
+Ces fonctions ne sont pas ré\-entrantes, c'est\-à\-dire que la clef est stockée
+dans une zone de stockage statique. Les fonctions \fBsetkey_r\fP() et
+\fBencrypt_r\fP() sont des versions ré\-entrantes. Elles utilisent la structure
+suivante pour contenir la clef\ :
+.in +4n
+.nf
+
+struct crypt_data {
+    char     keysched[16 * 8];
+    char     sb0[32768];
+    char     sb1[32768];
+    char     sb2[32768];
+    char     sb3[32768];
+    char     crypt_3_buf[14];
+    char     current_salt[2];
+    long int current_saltbits;
+    int      direction;
+    int      initialized;
+};
+.fi
+.in
+.PP
+Avant d'appeler \fBsetkey_r\fP(), définissez \fIdata\->initialized\fP à zéro.
+.SH "VALEUR RENVOYÉE"
+Ces routines ne renvoient pas de valeur.
+.SH ERREURS
+Définissez \fIerrno\fP à zéro avant d'appeler les fonctions ci\-dessus. Si elles
+réussissent, \fIerrno\fP n'est pas modifiée.
+.TP 
+\fBENOSYS\fP
+La fonction n'est pas disponible. (Par exemple à cause des restrictions
+américaines sur l'exportation de routines cryptographiques...)
+.SH CONFORMITÉ
+Les fonctions \fBencrypt\fP() et \fBsetkey\fP() sont conformes à SVr4, SUSv2, et
+POSIX.1\-2001. Les fonctions \fBencrypt_r\fP() et \fBsetkey_r\fP() sont des
+extensions GNU.
+.SH NOTES
+Dans la glibc\ 2.2, ces fonctions utilisent l'algorithme DES.
+.SH EXEMPLE
+Il faut lier cet exemple avec la bibliothèque libcrypt pour le compiler avec
+la glibc. Pour servir à quelque chose, les tables \fIkey[]\fP et \fItxt[]\fP
+devraient être initialisées avec des valeurs significatives.
+.sp
+.nf
+#define _XOPEN_SOURCE
+#include <unistd.h>
+#include <stdlib.h>
+
+int
+main(void)
+{
+    char key[64];      /* bit pattern for key */
+    char txt[64];      /* bit pattern for messages */
+
+    setkey(key);
+    encrypt(txt, 0);   /* encode */
+    encrypt(txt, 1);   /* decode */
+}
+.fi
+.SH "VOIR AUSSI"
+.\" .BR fcrypt (3),
+\fBcbc_crypt\fP(3), \fBcrypt\fP(3), \fBecb_crypt\fP(3), \fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

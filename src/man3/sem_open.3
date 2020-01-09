@@ -1,0 +1,132 @@
+.\" t
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SEM_OPEN 3 "20 février 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+sem_open \- Initialiser et ouvrir un sémaphore nommé
+.SH SYNOPSIS
+.nf
+\fB#include <fcntl.h>\fP           /* Pour les constantes O_* */
+\fB#include <sys/stat.h>\fP        /* Pour les constantes des modes */
+\fB#include <semaphore.h>\fP
+.sp
+\fBsem_t *sem_open(const char *\fP\fIname\fP\fB, int \fP\fIoflag\fP\fB);\fP
+\fBsem_t *sem_open(const char *\fP\fIname\fP\fB, int \fP\fIoflag\fP\fB, \fP
+\fB                mode_t \fP\fImode\fP\fB, unsigned int \fP\fIvalue\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP ou \fI\-pthread\fP.
+.SH DESCRIPTION
+\fBsem_open\fP() crée un nouveau sémaphore POSIX ou en ouvre un existant. Le
+sémaphore est identifié par \fIname\fP. Pour les détails de la construction de
+\fIname\fP, voir \fBsem_overview\fP(7).
+
+.\" In reality the file system IDs are used on Linux.
+L'argument \fIoflag\fP spécifie les attributs qui contrôlent la manière
+d'opérer de l'appel (les définitions des valeurs des attributs peuvent être
+obtenues en incluant \fI<fcntl.h>\fP). Si \fBO_CREAT\fP est spécifié dans
+\fIoflag\fP, le sémaphore est créé s'il n'existe pas déjà. Le propriétaire
+(UID) du sémaphore est l'UID effectif du processus appelant. Le groupe
+propriétaire (GID) est le GID effectif du processus appelant. Si \fBO_CREAT\fP
+et \fBO_EXCL\fP sont tous les deux spécifiés dans \fIoflag\fP, une erreur sera
+renvoyée si le sémaphore du nom de \fIname\fP existe déjà.
+.PP
+Si \fBO_CREAT\fP est spécifié dans \fIoflag\fP, deux autres arguments doivent être
+fournis. L'argument \fImode\fP spécifie les permissions à placer sur le nouveau
+sémaphore, comme pour \fBopen\fP(2) (les définitions symboliques des bits de
+permissions peuvent être obtenues en incluant \fI<sys/stat.h>\fP). Ces
+permissions sont «\ masquées\ » avec le umask du processus. Les permissions
+de lecture et d'écriture devraient être accordées à chaque classe
+d'utilisateurs qui aura accès au sémaphore. L'argument \fIvalue\fP spécifie la
+valeur initiale du nouveau sémaphore. Si \fBO_CREAT\fP est spécifié et que le
+sémaphore du nom de \fIname\fP existe déjà, \fImode\fP et \fIvalue\fP sont ignorés.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBsem_open\fP() renvoie l'adresse du nouveau sémaphore\ ; cette
+adresse est utilisée lors de l'appel des autres fonctions sur les
+sémaphores. S'il échoue, \fBsem_open\fP() renvoie \fBSEM_FAILED\fP et écrit
+\fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+Le sémaphore existe mais l'appelant n'a pas la permission de l'ouvrir.
+.TP 
+\fBEEXIST\fP
+\fBO_CREAT\fP et \fBO_EXCL\fP ont été tous les deux spécifiés dans \fIoflag\fP, mais
+un sémaphore avec le nom de \fIname\fP existe déjà.
+.TP 
+\fBEINVAL\fP
+\fIvalue\fP était plus grand que \fBSEM_VALUE_MAX\fP.
+.TP 
+\fBEINVAL\fP
+\fIname\fP consiste en une barre oblique «\ /\ », suivie d'aucun autre caractère.
+.TP 
+\fBEMFILE\fP
+Le processus a déjà le nombre maximum de fichiers ouverts.
+.TP 
+\fBENAMETOOLONG\fP
+\fIname\fP est trop long.
+.TP 
+\fBENFILE\fP
+La limite du nombre total de fichiers ouverts sur le système a été atteinte.
+.TP 
+\fBENOENT\fP
+.\" this error can occur if we have a name of the (non-portable) form
+.\" /dir/name, and the directory /dev/shm/dir does not exist.
+L'attribut \fBO_CREAT\fP n'était pas spécifié dans \fIoflag\fP, et aucun sémaphore
+avec le nom de \fIname\fP n'existe\ ; ou \fBO_CREAT\fP était spécifié, mais \fIname\fP
+n'était pas correctement formé.
+.TP 
+\fBENOMEM\fP
+Mémoire insuffisante.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH "VOIR AUSSI"
+\fBsem_close\fP(3), \fBsem_getvalue\fP(3), \fBsem_post\fP(3), \fBsem_unlink\fP(3),
+\fBsem_wait\fP(3), \fBsem_overview\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

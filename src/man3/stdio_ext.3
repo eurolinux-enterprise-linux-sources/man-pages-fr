@@ -1,0 +1,133 @@
+.\" Copyright (C) 2001 Andries Brouwer <aeb@cwi.nl>.
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STDIO_EXT 3 "16 décembre 2001" "" "Manuel du programmeur Linux"
+.SH NOM
+__fbufsize, __flbf, __fpending, __fpurge, __freadable, __freading,
+__fsetlocking, __fwritable, __fwriting, _flushlbf \- Interfaces pour la
+structure FILE (stdio)
+.SH SYNOPSIS
+\fB#include <stdio.h>\fP
+.br
+\fB#include <stdio_ext.h>\fP
+.sp
+\fBsize_t __fbufsize(FILE *\fP\fIstream\fP\fB);\fP
+.br
+\fBsize_t __fpending(FILE *\fP\fIstream\fP\fB);\fP
+.br
+\fBint __flbf(FILE *\fP\fIstream\fP\fB);\fP
+.br
+\fBint __freadable(FILE *\fP\fIstream\fP\fB);\fP
+.br
+\fBint __fwritable(FILE *\fP\fIstream\fP\fB);\fP
+.br
+\fBint __freading(FILE *\fP\fIstream\fP\fB);\fP
+.br
+\fBint __fwriting(FILE *\fP\fIstream\fP\fB);\fP
+.br
+\fBint __fsetlocking(FILE *\fP\fIstream\fP\fB, int \fP\fItype\fP\fB);\fP
+.br
+\fBvoid _flushlbf(void);\fP
+.br
+\fBvoid __fpurge(FILE *\fP\fIstream\fP\fB);\fP
+.SH DESCRIPTION
+Solaris a introduit des routines afin de permettre des accès portables aux
+composants internes de la structure \fIFILE\fP. La glibc a également implémenté
+ces routines.
+.LP
+La fonction \fB__fbufsize\fP() renvoie la taille du tampon actuellement utilisé
+par le flux considéré.
+.LP
+La fonction \fB__fpending\fP() renvoie le nombre d'octets du tampon de
+sortie. Pour les flux orientés caractères larges, l'unité est le caractère
+large. Cette fonction n'est pas définie pour les tampons en mode lecture, ou
+bien ouverts en lecture seule.
+.LP
+La fonction \fB__flbf\fP() renvoie une valeur différente de zéro si le flux a
+un tampon de ligne, sinon, elle renvoie zéro.
+.LP
+La fonction \fB__freadable\fP() renvoie une valeur différente de zéro si le
+flux peut être lu, sinon, elle renvoie zéro.
+.LP
+La fonction \fB__fwritable\fP() renvoie une valeur différente de zéro si l'on
+peut écrire dans le flux, sinon, elle renvoie zéro.
+.LP
+La fonction \fB__freading\fP() renvoie une valeur différente de zéro si le flux
+est en lecture seule, ou bien si la dernière opération sur le flux était une
+lecture, sinon, elle renvoie zéro.
+.LP
+La fonction \fB__fwriting\fP() renvoie une valeur différente de zéro si le flux
+est en écriture seule, ou bien si la dernière opération sur le flux était
+une écriture, sinon, elle renvoie zéro.
+.LP
+La fonction \fB__fsetlocking\fP() peut être utilisée afin de sélectionner le
+type de verrouillage souhaité sur le flux. Elle renvoie le type courant. Le
+paramètre \fItype\fP peut prendre les trois valeurs suivantes\ :
+.TP 
+\fBFSETLOCKING_INTERNAL\fP
+réalise un verrouillage implicite sur toutes les opérations affectant le
+flux considéré (à l'exception de fonctions nommées *_unlocked). Il s'agit du
+comportement par défaut.
+.TP 
+\fBFSETLOCKING_BYCALLER\fP
+l'appelant prendra en charge le verrouillage (en utilisant potentiellement
+\fBflockfile\fP(3) dans le cas où il y a plusieurs threads), et les routines
+d'entrées sorties standards n'effectueront plus aucun verrouillage jusqu'à
+ce que l'état soit rétabli à \fBFSETLOCKING_INTERNAL\fP.
+.TP 
+\fBFSETLOCKING_QUERY\fP
+ne change pas le type de verrouillage (le renvoie seulement).
+.LP
+La fonction \fB_flushlbf\fP() vide tous les flux à tampon de ligne (sans doute
+de sorte que la sortie d'un terminal soit écrite, par exemple avant de lire
+une entrée sur le clavier).
+.LP
+La fonction \fB__fpurge\fP() permet de se débarrasser du contenu du tampon de
+flux.
+.SH "VOIR AUSSI"
+\fBflockfile\fP(3), \fBfpurge\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

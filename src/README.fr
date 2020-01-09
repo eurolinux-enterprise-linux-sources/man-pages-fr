@@ -1,0 +1,52 @@
+
+   HISTORIQUE
+   ----------
+
+La traduction française des pages de manuel a été initiée par
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> en
+1996, dont il s'est occupé jusqu'en 2005.
+Il fut aidé par de nombreuses personnes, les contributeurs
+principaux étant (par ordre alphabétique) :
+   Denis Barbier, Christophe Blaess, Gérard Delafond,
+   Frédéric Delanoy, Frédéric Gacquer, François Micaux,
+   Alain Portal, Michel Quercia, Stephan Rafin,
+   Jérome Signouret, Thierry Vignaud
+
+En 2005, Alain Portal <URL:http://manpagesfr.free.fr/> a pris
+le relais et met depuis de nouvelles versions à disposition.
+
+En 2006, Thomas Huriaux et Denis Barbier ont utilisé po4a
+<URL:http://po4a.alioth.debian.org/> pour gérer ces traductions
+au sein de Debian, en utilisant la version 1.67.0. Les
+traductions des pages de manuel de Debian ont jusqu'en 2009 été
+effectuées par l'équipe de traduction francophone de Debian et des
+échanges avec Alain Portal, et maintenues successivement par Denis
+Barbier, Thomas Huriaux et Nicolas François. Les contributeurs
+principaux étant (par ordre alphabétique) :
+   Jean-Luc Coulon, Julien Cristau, Nicolas François,
+   Florentin Duneau, Thomas Huriaux, Simon Paillard,
+   Alain Portal
+
+En 2010, Denis Barbier a initié le projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/> afin de
+populariser cette méthode et de permettre aux autres
+distributions Linux de profiter de la même infrastructure.
+
+
+   LICENCE
+   -------
+
+Les pages de manuel originales sont disponibles sous des
+licences très variées, mais toutes peuvent être redistribuées,
+voir le source nroff pour connaître chaque licence.
+Les traductions sont disponibles sous la même licence que
+la page originale.
+
+   ORIGINAUX
+   ---------
+
+Les pages de manuel en anglais sont actuellement maintenues
+par Michael Kerrisk, voir <URL:http://www.kernel.org/doc/man-pages/>
+pour obtenir des renseignements sur la façon de signaler des
+erreurs dans les pages originales.
+

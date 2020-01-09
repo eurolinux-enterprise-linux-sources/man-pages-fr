@@ -1,0 +1,520 @@
+.\" t
+.\" Copyright (c) 1994,1995 Mike Battersby <mib@deakin.edu.au>
+.\" and Copyright 2004, 2005 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" based on work by faith@cs.unc.edu
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified, aeb, 960424
+.\" Modified Fri Jan 31 17:31:20 1997 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Thu Nov 26 02:12:45 1998 by aeb - add SIGCHLD stuff.
+.\" Modified Sat May  8 17:40:19 1999 by Matthew Wilcox
+.\"	add POSIX.1b signals
+.\" Modified Sat Dec 29 01:44:52 2001 by Evan Jones <ejones@uwaterloo.ca>
+.\"	SA_ONSTACK
+.\" Modified 2004-11-11 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Added mention of SIGCONT under SA_NOCLDSTOP
+.\"	Added SA_NOCLDWAIT
+.\" Modified 2004-11-17 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Updated discussion for POSIX.1-2001 and SIGCHLD and sa_flags.
+.\"	Formatting fixes
+.\" 2004-12-09, mtk, added SI_TKILL + other minor changes
+.\" 2005-09-15, mtk, split sigpending(), sigprocmask(), sigsuspend()
+.\"	out of this page into separate pages.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SIGACTION 2 "25 juillet 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+sigaction \- Examiner et modifier l'action associée à un signal
+.SH SYNOPSIS
+.nf
+\fB#include <signal.h>\fP
+.sp
+\fBint sigaction(int \fP\fIsignum\fP\fB, const struct sigaction *\fP\fIact\fP\fB,\fP
+\fB              struct sigaction *\fP\fIoldact\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBsigaction\fP()\ : _POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE ||
+_POSIX_SOURCE
+.ad b
+.SH DESCRIPTION
+L'appel système \fBsigaction\fP() sert à modifier l'action effectuée par un
+processus à la réception d'un signal spécifique. (Voir \fBsignal\fP(7) pour une
+vue d'ensemble sur les signaux)
+.PP
+\fIsignum\fP indique le signal concerné, à l'exception de \fBSIGKILL\fP et
+\fBSIGSTOP\fP.
+.PP
+Si \fIact\fP est non nul, la nouvelle action pour le signal \fIsignum\fP est
+définie par \fIact\fP. Si \fIoldact\fP est non nul, l'ancienne action est
+sauvegardée dans \fIoldact\fP.
+.PP
+La structure \fIsigaction\fP est définie par quelque chose comme\ :
+.sp
+.in +4n
+.nf
+struct sigaction {
+    void     (*sa_handler)(int);
+    void     (*sa_sigaction)(int, siginfo_t *, void *);
+    sigset_t   sa_mask;
+    int        sa_flags;
+    void     (*sa_restorer)(void);
+};
+.fi
+.in
+.PP
+Sur certaines architectures, on emploie une union. Il ne faut donc pas
+utiliser ou remplir simultanément \fIsa_handler\fP et \fIsa_sigaction\fP.
+.PP
+L'élément \fIsa_restorer\fP est obsolète et ne devrait pas être utilisé, POSIX
+ne mentionne pas de membre \fIsa_restorer\fP.
+.PP
+\fIsa_handler\fP indique l'action affectée au signal \fIsignum\fP, et peut être
+\fBSIG_DFL\fP pour l'action par défaut, \fBSIG_IGN\fP pour ignorer le signal, ou
+un pointeur sur une fonction de gestion de signaux.
+.PP
+Si \fBSA_SIGINFO\fP est indiqué dans \fIsa_flags\fP, alors \fIsa_sigaction\fP (plutôt
+que \fIsa_handler\fP) pointe vers le gestionnaire de signal pour
+\fIsignum\fP. Cette fonction prend le numéro du signal comme premier argument,
+un pointeur vers un \fIsiginfo_t\fP comme second argument, et un pointeur vers
+un \fIucontext_t\fP (transtypé en \fIvoid\ *\fP) comme troisième paramètre.
+.PP
+\fIsa_mask\fP spécifie un masque de signaux à bloquer (c'est\-à\-dire ajoutés au
+masque de signaux du thread dans lequel le gestionnaire est appelé) pendant
+l'exécution du gestionnaire. De plus le signal ayant appelé le gestionnaire
+est bloqué à moins que l'attribut \fBSA_NODEFER\fP soit précisé.
+.PP
+\fIsa_flags\fP spécifie un ensemble d'attributs qui modifient le comportement
+du signal. Il est formé par un OU binaire «\ |\ ») entre les options
+suivantes\ :
+.RS 4
+.TP 
+\fBSA_NOCLDSTOP\fP
+Si \fIsignum\fP vaut \fBSIGCHLD\fP, ne pas recevoir les signaux de notification
+d'arrêt (quand le fils reçoit un signal \fBSIGSTOP\fP, \fBSIGTSTP\fP, \fBSIGTTIN\fP
+ou \fBSIGTTOU\fP) ou de relance (quand il reçoit \fBSIGCONT\fP) des processus
+fils. Voir \fBwait\fP(2). Cet attribut n'a de sens que lors de la mise en place
+d'un gestionnaire pour \fBSIGCHLD\fP.
+.TP 
+\fBSA_NOCLDWAIT\fP (Depuis Linux 2.6)
+.\" To be precise: Linux 2.5.60 -- MTK
+Si \fIsignum\fP vaut \fBSIGCHLD\fP, ne pas transformer les fils en zombies
+lorsqu'ils se terminent. Voir aussi \fBwaitpid\fP(2). Cet attribut n'a de sens
+que lors de la mise en place d'un gestionnaire pour \fBSIGCHLD\fP, ou lors de
+la configuration de la disposition de signal de \fBSIG_DFL\fP.
+
+Si l'attribut \fBSA_NOCLDWAIT\fP est défini lors de la mise en place d'un
+gestionnaire pour \fBSIGCHLD\fP, POSIX.1 ne spécifie pas si le signal
+\fBSIGCHLD\fP est généré lorsqu'un processus fils se termine. Sous Linux, un
+signal \fBSIGCHLD\fP est généré dans ce cas\ ; sur d'autres implémentations, il
+ne l'est pas.
+.TP 
+\fBSA_NODEFER\fP
+Ne pas empêcher un signal d'être reçu depuis l'intérieur de son propre
+gestionnaire. Cet attribut n'a de sens que lors de la mise en place d'un
+gestionnaire de signal. \fBSA_NOMASK\fP est un synonyme obsolète et non
+standard pour cet attribut.
+.TP 
+\fBSA_ONSTACK\fP
+Appeler le gestionnaire avec une pile différente fournie par
+\fBsigaltstack\fP(2). Si cette pile est indisponible, on utilisera la pile par
+défaut. Cet attribut n'a de sens que lors de la mise en place d'un
+gestionnaire de signal.
+.TP 
+\fBSA_RESETHAND\fP
+Rétablir l'action à son comportement par défaut une fois que le gestionnaire
+a été appelé. Cet attribut n'a de sens que lors de la mise en place d'un
+gestionnaire de signal. \fBSA_ONESHOT\fP est un synonyme obsolète et non
+standard pour cet attribut.
+.TP 
+\fBSA_RESTART\fP
+Fournir un comportement compatible avec la sémantique BSD en redémarrant
+automatiquement les appels système lents interrompus par l'arrivée du
+signal. Cet attribut n'a de sens que lors de la mise en place d'un
+gestionnaire de signal. Voir \fBsignal\fP(7) pour une discussion sur le
+redémarrage d'un appel système.
+.TP 
+\fBSA_SIGINFO\fP (depuis Linux 2.2)
+.\" (The
+.\" .I sa_sigaction
+.\" field was added in Linux 2.1.86.)
+Le gestionnaire de signal recevra trois arguments, et non plus un seul. Dans
+ce cas, il faut utiliser le membre \fIsa_sigaction\fP au lieu de
+\fIsa_handler\fP. Cet attribut n'a de sens que lors de la mise en place d'un
+gestionnaire de signal.
+.RE
+.PP
+Le paramètre \fIsiginfo_t\fP de la routine \fIsa_sigaction\fP est une structure
+contenant les éléments suivants\ :
+.sp
+.in +4n
+.nf
+.\" FIXME
+.\" si_trapno seems to be only used on SPARC and Alpha;
+.\" this page could use a little more detail on its purpose there.
+.\" In the kernel: si_tid
+siginfo_t {
+    int      si_signo;    /* Numéro de signal           */
+    int      si_errno;    /* Numéro d'erreur            */
+    int      si_code;     /* Code du signal             */
+    int      si_trapno;   /* Numéro de trappe qui a causé
+                             le signal généré par le
+                             matériel (pas utilisé sur la
+                             plupart des architectures) */
+    pid_t    si_pid;      /* PID de l'émetteur          */
+    uid_t    si_uid;      /* UID réel de l'émetteur     */
+    int      si_status;   /* Valeur de sortie ou signal */
+    clock_t  si_utime;    /* Temps utilisateur écoulé   */
+    clock_t  si_stime;    /* Temps système écoulé       */
+    sigval_t si_value;    /* Valeur de signal           */
+    int      si_int;      /* Signal POSIX.1b            */
+    void    *si_ptr;      /* Signal POSIX.1b            */
+    void    *si_addr;     /* Emplacement mémoire ayant
+                             causé l'erreur             */
+    int      si_band;     /* Band event                 */
+    int      si_fd;       /* Descripteur de fichier     */
+}
+.fi
+.in
+
+\fIsi_signo\fP, \fIsi_errno\fP et \fIsi_code\fP sont définis pour tous les signaux
+(\fIsi_errno\fP n'est généralement pas utilisé sous Linux). Le reste de la
+structure peut être une union, de telle sorte qu'on puisse lire les champs
+spécifiques à chaque signaux.
+.IP * 2
+Les signaux POSIX.1b et \fBSIGCHLD\fP remplissent \fIsi_pid\fP et \fIsi_uid\fP.
+.IP *
+Les horloges POSIX.1b (depuis Linux\ 2.6) remplissent \fIsi_overrun\fP et
+\fIsi_timerid\fP. Le champ \fIsi_timerid\fP est un identifiant interne utilisé par
+le noyau pour identifier l'horloge\ ; ce n'est pas la même chose que
+l'identifient d'horloge renvoyé par \fBtimer_create\fP(2).
+.IP *
+\fBSIGCHLD\fP remplit \fIsi_status\fP, \fIsi_utime\fP et \fIsi_stime\fP. Les champs
+\fIsi_utime\fP et \fIsi_stime\fP ne comprennent pas le temps utilisé par les fils
+lorsqu'ils sont attendus (au contraire de \fBgetrusage\fP(2) et
+\fBtime\fP(2)). Dans les noyaux antérieurs à la version 2.6 et jusqu'à la
+version 2.6.27, ces champs renvoient le temps CPU en unité de
+\fIsysconf(_SC_CLK_TCK)\fP. Dans les noyaux de la série 2.6, avant le noyau
+2.6.27, un bogue faisait que ces champs renvoyaient des temps mesurés en
+jiffy système (consultez \fBtime\fP(7)).
+
+.\" FIXME .
+.\" When si_utime and si_stime where originally implemented, the
+.\" measurement unit was HZ, which was the same as clock ticks
+.\" (sysconf(_SC_CLK_TCK)).  In 2.6, HZ became configurable, and
+.\" was *still* used as the unit to return the info these fields,
+.\" with the result that the field values depended on the the
+.\" configured HZ.  Of course, the should have been measured in
+.\" USER_HZ instead, so that sysconf(_SC_CLK_TCK) could be used to
+.\" convert to seconds.  I have a queued patch to fix this:
+.\" http://thread.gmane.org/gmane.linux.kernel/698061/ .
+.\" This patch made it into 2.6.27.
+.\" But note that these fields still don't return the times of
+.\" waited-for children (as is done by getrusage() and times()
+.\" and wait4()).  Solaris 8 does include child times.
+.IP *
+\fIsi_int\fP et \fIsi_ptr\fP sont spécifiés par l'émetteur du signal
+POSIX.1b. Voir \fBsigqueue\fP(2) pour plus de détails.
+.IP *
+\fBSIGILL\fP, \fBSIGFPE\fP, \fBSIGSEGV\fP et \fBSIGBUS\fP remplissent \fIsi_addr\fP avec
+l'adresse de la faute. \fBSIGPOLL\fP remplit \fIsi_band\fP et \fIsi_fd\fP.
+.PP
+\fIsi_code\fP est une valeur (pas un masque de bits) qui indique pourquoi ce
+signal a été envoyé. La liste suivante indique les valeurs que peut prendre
+\fIsi_code\fP pour n'importe quel signal, avec la raison associée.
+.RS 4
+.TP  15
+\fBSI_USER\fP
+\fBkill\fP(2) ou \fBraise\fP(3)
+.TP 
+\fBSI_KERNEL\fP
+Envoyé par le noyau.
+.TP 
+\fBSI_QUEUE\fP
+\fBsigqueue\fP(2)
+.TP 
+\fBSI_TIMER\fP
+Fin d'une temporisation POSIX
+.TP 
+\fBSI_MESGQ\fP
+Changement d'état d'une file de messages (depuis Linux 2.6.6)\ ; consultez
+\fBmq_notify\fP(3)
+.TP 
+\fBSI_ASYNCIO\fP
+Fin d'une AIO
+.TP 
+\fBSI_SIGIO\fP
+SIGIO empilé
+.TP 
+\fBSI_TKILL\fP
+.\" SI_DETHREAD is defined in 2.6.9 sources, but isn't implemented
+.\" It appears to have been an idea that was tried during 2.5.6
+.\" through to 2.5.24 and then was backed out.
+\fBtkill\fP(2) ou \fBtgkill\fP(2) (depuis Linux 2.4.19)
+.RE
+.PP
+Les valeurs suivantes peuvent être prises par \fIsi_code\fP pour un signal
+\fBSIGILL\fP\ :
+.RS 4
+.TP  15
+\fBILL_ILLOPC\fP
+opcode illégal
+.TP 
+\fBILL_ILLOPN\fP
+opérande illégale
+.TP 
+\fBILL_ILLADR\fP
+mode d'adressage illégal
+.TP 
+\fBILL_ILLTRP\fP
+trappe illégale
+.TP 
+\fBILL_PRVOPC\fP
+opcode privilégié
+.TP 
+\fBILL_PRVREG\fP
+registre privilégié
+.TP 
+\fBILL_COPROC\fP
+erreur de coprocesseur
+.TP 
+\fBILL_BADSTK\fP
+erreur interne de pile
+.RE
+.PP
+Les valeurs suivantes peuvent être prises par \fIsi_code\fP pour un signal
+\fBSIGFPE\fP\ :
+.RS 4
+.TP  15
+\fBFPE_INTDIV\fP
+division entière par zéro
+.TP 
+\fBFPE_INTOVF\fP
+débordement entier
+.TP 
+\fBFPE_FLTDIV\fP
+division flottante par zéro
+.TP 
+\fBFPE_FLTOVF\fP
+débordement flottant
+.TP 
+\fBFPE_FLTUND\fP
+débordement inférieur flottant
+.TP 
+\fBFPE_FLTRES\fP
+résultat flottant inexact
+.TP 
+\fBFPE_FLTINV\fP
+opération flottante invalide
+.TP 
+\fBFPE_FLTSUB\fP
+indice hors intervalle
+.RE
+.PP
+Les valeurs suivantes peuvent être prises par \fIsi_code\fP pour un signal
+\fBSIGSEGV\fP\ :
+.RS 4
+.TP  15
+\fBSEGV_MAPERR\fP
+adresse sans objet
+.TP 
+\fBSEGV_ACCERR\fP
+permissions invalides pour l'objet
+.RE
+.PP
+Les valeurs suivantes peuvent être prises par \fIsi_code\fP pour un signal
+\fBSIGBUS\fP\ :
+.RS 4
+.TP  15
+\fBBUS_ADRALN\fP
+alignement d'adresse invalide
+.TP 
+\fBBUS_ADRERR\fP
+adresse physique inexistante
+.TP 
+\fBBUS_OBJERR\fP
+erreur matérielle spécifique
+.RE
+.PP
+Les valeurs suivantes peuvent être prises par \fIsi_code\fP pour un signal
+\fBSIGTRAP\fP\ :
+.RS 4
+.TP  15
+\fBTRAP_BRKPT\fP
+point d'arrêt du processus
+.TP 
+\fBTRAP_TRACE\fP
+suivi d'exécution du processus
+.RE
+.PP
+Les valeurs suivantes peuvent être prises par \fIsi_code\fP pour un signal
+\fBSIGCHLD\fP\ :
+.RS 4
+.TP  15
+\fBCLD_EXITED\fP
+fils terminé normalement
+.TP 
+\fBCLD_KILLED\fP
+fils tué par un signal
+.TP 
+\fBCLD_DUMPED\fP
+fils terminé anormalement
+.TP 
+\fBCLD_TRAPPED\fP
+fils en cours de suivi
+.TP 
+\fBCLD_STOPPED\fP
+fils arrêté
+.TP 
+\fBCLD_CONTINUED\fP
+fils arrêté a redémarré (depuis Linux 2.6.9)
+.RE
+.PP
+Les valeurs suivantes peuvent être prises par \fIsi_code\fP pour un signal
+\fBSIGPOLL\fP\ :
+.RS 4
+.TP  15
+\fBPOLL_IN\fP
+données disponibles en entrée
+.TP 
+\fBPOLL_OUT\fP
+tampons de sortie libres
+.TP 
+\fBPOLL_MSG\fP
+message disponible en entrée
+.TP 
+\fBPOLL_ERR\fP
+Erreur d'entrées\-sorties
+.TP 
+\fBPOLL_PRI\fP
+entrée haute priorité disponible
+.TP 
+\fBPOLL_HUP\fP
+périphérique débranché
+.RE
+.SH "VALEUR RENVOYÉE"
+\fBsigaction\fP() renvoie 0 s'il réussit, et \-1 en cas d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fIact\fP ou \fIoldact\fP pointent en\-dehors de l'espace d'adressage accessible.
+.TP 
+\fBEINVAL\fP
+Un signal invalide est indiqué. Ceci se produit également si l'on tente de
+modifier l'action associée aux signaux \fBSIGKILL\fP ou \fBSIGSTOP\fP, qui ne
+peuvent pas être interceptés ou ignorés.
+.SH CONFORMITÉ
+.\" SVr4 does not document the EINTR condition.
+POSIX.1\-2001, SVr4.
+.SH NOTES
+Un fils créé par \fBfork\fP(2) hérite d'une copie des dispositions de signaux
+de son père. Lors d'un \fBexecve\fP(2), les dispositions des signaux pris en
+charge sont remises aux valeurs par défaut\ ; les dispositions des signaux
+ignorés ne sont pas modifiées.
+
+Comme spécifié par POSIX, le comportement d'un processus est indéfini après
+la réception d'un signal \fBSIGFPE\fP, \fBSIGILL\fP, ou \fBSIGSEGV\fP qui n'a pas été
+engendré par une fonction \fBkill\fP(2) ou \fBraise\fP(3). La division entière par
+zéro a un résultat indéfini, sur certaines architectures elle déclenche un
+signal \fBSIGFPE\fP. De même, diviser l'entier le plus négatif par \-1 peut
+déclencher \fBSIGFPE\fP.
+.PP
+POSIX.1\-1990 interdisait d'ignorer \fBSIGCHLD\fP avec \fBSIG_IGN\fP. POSIX.1\-2001
+l'autorise, et ignorer \fBSIGCHLD\fP permet donc d'éviter la création de
+zombies (voir \fBwait\fP(2)). Cependant, les comportements historiques de BSD
+et de System\ V quand \fBSIGCHLD\fP est ignoré diffèrent, donc la seule méthode
+complètement portable pour s'assurer que les fils ne deviennent pas des
+zombies à leur terminaison est d'intercepter le signal \fBSIGCHLD\fP et
+d'invoquer \fBwait\fP(2) ou équivalent.
+.PP
+POSIX.1\-1990 ne documentait que \fBSA_NOCLDSTOP\fP. POSIX.1\-2001 a ajouté
+\fBSA_NOCLDWAIT\fP, \fBSA_RESETHAND\fP, \fBSA_NODEFER\fP et
+\fBSA_SIGINFO\fP. L'utilisation de ces dernières valeurs dans \fIsa_flags\fP peut
+être moins portable dans les applications censées s'exécuter sur des
+implémentations Unix anciennes.
+.PP
+L'option \fBSA_RESETHAND\fP est compatible avec l'option SVr4 du même nom.
+.PP
+L'option \fBSA_NODEFER\fP est compatible avec l'option SVr4 du même nom pour
+les noyaux 1.3.9 et ultérieurs. Pour les noyaux plus anciens, Linux
+autorisera la réception de tous les signaux et pas seulement celui qui vient
+de se déclencher (écrasant effectivement \fIsa_mask\fP ).
+.PP
+\fBsigaction\fP() peut être appelé avec un second argument nul pour obtenir le
+gestionnaire de signaux actuel. On peut aussi vérifier si un signal est
+valide sur la machine actuelle en l'appelant avec les deuxième et troisième
+arguments nuls.
+.PP
+Il est impossible de bloquer \fBSIGKILL\fP or \fBSIGSTOP\fP (en les indiquant dans
+\fIsa_mask\fP). Les tentatives seront ignorées silencieusement.
+.PP
+Voir \fBsigsetops\fP(3) pour les détails concernant les ensembles de signaux.
+.PP
+Voir \fBsignal\fP(7) pour une liste de fonctions sûres pour les signaux
+asynchrones qui peuvent être appelée dans les gestionnaires de signaux.
+.SS "Non documenté"
+Avant l'introduction de l'attribut \fBSA_SIGINFO\fP il était déjà possible
+d'obtenir des informations supplémentaires, en ajoutant au \fIsa_handler\fP un
+second paramètre de type \fIstruct sigcontext\fP. On peut retrouver ceci dans
+les sources du noyau. Ce mécanisme est désormais obsolète.
+.SH BOGUES
+Dans les noyaux jusqu'à 2.6.13 inclus, indiquer \fBSA_NODEFER\fP dans
+\fIsa_flags\fP empêchait non seulement le signal reçu d'être masqué pendant
+l'exécution du gestionnaire, mais empêchait également les signaux de
+\fIsa_mask\fP d'être masqués. Ce bogue a été corrigé dans Linux 2.6.14.
+.SH EXEMPLE
+Voir \fBmprotect\fP(2).
+.SH "VOIR AUSSI"
+\fBkill\fP(1), \fBkill\fP(2), \fBkillpg\fP(2), \fBpause\fP(2), \fBsigaltstack\fP(2),
+\fBsignal\fP(2), \fBsignalfd\fP(2), \fBsigpending\fP(2), \fBsigprocmask\fP(2),
+\fBsigqueue\fP(2), \fBsigsuspend\fP(2), \fBwait\fP(2), \fBraise\fP(3),
+\fBsiginterrupt\fP(3), \fBsigsetops\fP(3), \fBsigvec\fP(3), \fBcore\fP(5), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

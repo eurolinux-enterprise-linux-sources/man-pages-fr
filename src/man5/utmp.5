@@ -1,0 +1,293 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@cantor.informatik.rwth-aachen.de),
+.\" Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified 1993-07-25 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 1995-02-26 by Michael Haardt
+.\" Modified 1996-07-20 by Michael Haardt
+.\" Modified 1997-07-02 by Nicolás Lichtmaier <nick@debian.org>
+.\" Modified 2004-10-31 by aeb, following Gwenole Beauchesne
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UTMP 5 "10 octobre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+utmp, wtmp \- Enregistrements de connexion.
+.SH SYNOPSIS
+\fB#include <utmp.h>\fP
+.SH DESCRIPTION
+Le fichier \fIutmp\fP permet de voir qui est connecté sur le système. Tous les
+programmes n'utilisant pas les enregistrement utmp, il se peut qu'il y ait
+plus d'utilisateurs que ceux affichés.
+.PP
+\fBAttention\fP\ : \fIutmp\fP ne doit pas être accessible en écriture par la classe
+d'utilisateurs «\ autres\ », car de nombreux programmes systèmes dépendent
+(malheureusement) de son intégrité. En laissant \fIutmp\fP accessible en
+écriture pour les utilisateurs n'étant ni le propriétaire ni dans le groupe
+propriétaire, vous prenez le risque d'avoir de mauvais fichiers de
+journalisation, et des modifications de fichiers système.
+.PP
+Le fichier est une suite de structures \fIutmp\fP, déclarées comme ceci dans
+\fI<utmp.h>\fP (notez qu'il ne s'agit que d'une des définitions
+existantes\ ; les détails dépendent de la version de la bibliothèque\ C)\ :
+.in +4n
+.nf
+.sp
+/* Valeurs pour le champ ut_type, ci\-dessous */
+
+#define EMPTY         0 /* L'enregistrement ne contient pas
+                           d'information valable (connu auparavant
+                           comme UT_UNKNOWN sous Linux) */
+#define RUN_LVL       1 /* Modification du niveau d'exécution système
+                           (voir \fBinit\fP(8)) */
+#define BOOT_TIME     2 /* Date de démarrage du système
+                           (en \fIut_tv\fP) */
+#define NEW_TIME      3 /* Heure après le changement d'heure système
+                           (en \fIut_tv\fP) */
+#define OLD_TIME      4 /* Heure avant le changement d'heure système
+                           (en \fIut_tv\fP) */
+#define INIT_PROCESS  5 /* Processus lancé par \fBinit\fP(8) */
+#define LOGIN_PROCESS 6 /* Processus leader de session pour
+                           la connexion de l'utilisateur */
+#define USER_PROCESS  7 /* Processus normal */
+#define DEAD_PROCESS  8 /* Processus terminé */
+#define ACCOUNTING    9 /* Pas implémenté */
+
+#define UT_LINESIZE      32
+#define UT_NAMESIZE      32
+#define UT_HOSTSIZE     256
+
+struct exit_status {              /* Type pour ut_exit ci\-dessous */
+    short int e_termination;      /* code de fin de processus     */
+    short int e_exit;             /* code de sortie de processus  */
+};
+
+struct utmp {
+    short   ut_type;              /* Type d'enregistrement */
+    pid_t   ut_pid;               /* PID du processus */
+    char    ut_line[UT_LINESIZE]; /* Nom du périphérique tty
+                                     \- «\ /dev/\ » */
+    char    ut_id[4];             /* Suffixe du nom de terminal,
+                                     ou identifiant inittab(5)
+    char    ut_user[UT_NAMESIZE]; /* Nom d'utilisateur */
+    char    ut_host[UT_HOSTSIZE]; /* Nom d'hôte pour connexion distante,
+                                     ou version du noyau pour les
+                                     messages du niveau d'exécution
+                                     (run\-level) */
+    struct  exit_status ut_exit;  /* Code de fin d'un processus
+                                     déjà marqué DEAD_PROCESS\ ;
+                                     pas utilisé par init(8) de Linux. */
+    /* Les champs ut_session et ut_tv fields doivent avoir la même
+       taille lors de la compilation, 32 et 64 bits. Cela permet aux
+       fichiers de données et à la mémoire partagée d'être partagés
+       entre les applications 32 et 64 bits. */
+#if __WORDSIZE == 64 && defined __WORDSIZE_COMPAT32
+    int32_t ut_session;           /* ID de session  (\fBgetsid\fP(2)),
+                                     utilisé pour le fenêtrage */
+    struct {
+        int32_t tv_sec;           /* Secondes */
+        int32_t tv_usec;          /* Microsecondes */
+    } ut_tv;                      /* Horodatage */
+#else
+    long int ut_session;          /* ID de session */
+    struct timeval ut_tv;         /* Horodatage */
+#endif
+
+    int32_t ut_addr_v6[4];        /* Adresse IP hôte distant\ ;
+                                     les adresses IPv4 utilisent
+                                     seulement ut_addr_v6[0] */
+    char __unused[20];            /* Réservé pour utilisation future */
+};
+
+/* Bidouille pour compatibilité ascendante */
+#define ut_name ut_user
+#ifndef _NO_UT_TIME
+#define ut_time ut_tv.tv_sec
+#endif
+#define ut_xtime ut_tv.tv_sec
+#define ut_addr ut_addr_v6[0]
+.sp
+.fi
+.in
+Cette structure donne le nom du fichier spécial associé au terminal de
+l'utilisateur, le nom d'utilisateur, l'heure de connexion sous la forme
+\fBtime\fP(2). Les chaînes de caractères se terminent par «\ \fB\e0\fP\ » si elles
+sont plus courtes que les longueurs définies dans la structure.
+.PP
+Le premier enregistrement créé est le traitement de \fBinittab\fP(5) par
+\fBinit\fP(8). Néanmoins, avant ça, \fBinit\fP(8) positionne le champ \fIut_type\fP à
+\fBDEAD_PROCESS\fP, et efface \fIut_user\fP, \fIut_host\fP et \fIut_time\fP (remplis
+avec des octets nuls) de tous les enregistrement dont l'\fIut_type\fP n'est ni
+\fBDEAD_PROCESS\fP ni \fBRUN_LVL\fP, et si aucun processus de PID \fIut_pid\fP
+n'existe. Si aucun enregistrement vide n'est trouvé avec le \fIut_id\fP
+correct, \fBinit\fP(8) en crée un nouveau. Il positionne \fIut_id\fP en s'aidant
+de l'inittab, \fIut_pid\fP et \fIut_time\fP avec les valeurs actuelles et
+\fIut_type\fP à \fBINIT_PROCESS\fP.
+.PP
+\fBmingetty\fP(8) (ou \fBagetty\fP(8)) récupère l'entrée correspondant à son PID,
+donne à \fIut_type\fP la valeur \fBLOGIN_PROCESS\fP, modifie \fIut_time\fP, définit
+\fIut_line\fP et attend l'établissement d'une connexion. Une fois qu'un
+utilisateur a été authentifié, \fBlogin\fP(1) donne à \fIut_type\fP la valeur
+\fBUSER_PROCESS\fP, modifie \fIut_time\fP et définit \fIut_host\fP et
+\fIut_addr\fP. Selon les utilitaires \fBmingetty\fP(8) (ou \fBagetty\fP(8)) et
+\fBlogin\fP(1) utilisés, les enregistrements sont parfois identifiés par
+\fIut_line\fP plutôt que \fIut_pid\fP, qui est préférable.
+.PP
+Quand \fBinit\fP(8) s'aperçoit qu'un processus est terminé, il identifie son
+enregistrement utmp grâce au champ \fIut_pid\fP, positionne \fIut_type\fP à
+\fBDEAD_PROCESS\fP et efface \fIut_user\fP, \fIut_host\fP et \fIut_time\fP avec des
+octets nuls.
+.PP
+\fBxterm\fP(1), et d'autres émulateurs de terminaux, créent directement un
+enregistrement \fBUSER_PROCESS\fP, engendrant \fIut_id\fP grâce à la chaîne qui
+suffixe le nom du terminal (les caractères qui suivent \fI/dev/[pt]ty\fP.)
+S'ils trouvent un \fBDEAD_PROCESS\fP correspondant à cet ID, ils le recycle,
+sinon ils en créent un nouveau. Si possible, ils marquent l'enregistrement
+comme étant \fBDEAD_PROCESS\fP lorsqu'ils se terminent et il faut tenir compte
+du fait qu'ils effacent également \fIut_line\fP, \fIut_time\fP, \fIut_user\fP et
+\fIut_host\fP.
+.PP
+\fBtelnetd\fP(8) construit un enregistrement \fBLOGIN_PROCESS\fP et laisse le
+reste du travail à \fBlogin\fP(1). Une fois que la session telnet est terminée,
+\fBtelnetd\fP(8) efface l'utmp de la manière décrite plus haut.
+.PP
+Le fichier \fIwtmp\fP enregistre les connexions et déconnexions. Son format est
+exactement le même que \fIutmp\fP excepté qu'un utilisateur nul indique une
+déconnexion sur le terminal associé. De plus, un nom de terminal «\ \fB~\fP\ »
+associé à un nom d'utilisateur «\ \fBshutdown\fP\ » ou «\ \fBreboot\fP\ » indique
+un arrêt ou un redémarrage du système. Une paire d'enregistrements avec les
+noms de terminaux «\ \fB|\fP/\fB}\fP\ » indique une modification de l'heure
+système avec \fBdate\fP(1). Le fichier \fIwtmp\fP est maintenu par \fBlogin\fP(1),
+\fBinit\fP(8) et quelques uns des \fBgetty\fP(8) (par exemple \fBmingetty\fP(8) ou
+\fBagetty\fP(8)). Aucun de ces programmes ne crée le fichier. Aussi, si on le
+supprime, les enregistrements de connexions sont arrêtés.
+.SH FICHIERS
+\fI/var/run/utmp\fP
+.br
+\fI/var/log/wtmp\fP
+.SH CONFORMITÉ
+.PP
+POSIX.1 ne spécifie pas de structure \fIutmp\fP, mais une appelée \fIutmpx\fP,
+avec des spécifications pour les champs \fIut_type\fP, \fIut_pid\fP, \fIut_line\fP,
+\fIut_id\fP, \fIut_user\fP et \fIut_tv\fP. POSIX.1 ne spécifie pas les tailles des
+champs \fIut_line\fP et \fIut_user\fP.
+
+Linux définit la structure \fIutmpx\fP comme étant la même que la structure
+\fIutmp\fP.
+.SS "Comparaison avec des systèmes historiques"
+Les enregistrements utmp de Linux ne se conforment ni à v7/BSD ni à
+System\ V. Ils sont en réalité un mélange des deux.
+
+v7/BSD comporte moins de champs\ ; par exemple pas de \fIut_type\fP, ce qui
+conduit les programmes natifs de v7/BSD à afficher des entrées (par exemple)
+des entrées «\ mortes\ » ou d'identification («\ login\ »). De plus, il n'y pas
+de fichier de configuration pour allouer les slots aux sessions. BSD le fait
+parce qu'il lui manque le champ \fIut_id\fP.
+
+Sous Linux (comme sous System\ V), le champ \fIut_id\fP d'un enregistrement ne
+sera jamais modifié après son initialisation. L'effacement de \fIut_id\fP peut
+engendrer des conditions de concurrence conduisant à avoir des entrées utmp
+corrompues et, potentiellement, des trous de sécurité. Effacer les champs
+mentionnés ci\-dessus en les remplissant avec des zéros binaires n'est pas
+requis par la sémantique de System\ V, mais cela permet l'exécution de
+nombreux programmes qui s'appuient sur la sémantique de BSD et qui ne
+modifient pas utmp. Linux utilise les conventions BSD en ce qui concerne le
+contenu des lignes, tels que c'est précisé plus haut.
+.PP
+.\" mtk: What is the referrent of "them" in the following sentence?
+.\" System V only uses the type field to mark them and logs
+.\" informative messages such as \fB"new time"\fP in the line field.
+System\ V n'a pas de champ \fIut_host\fP ni \fIut_addr_v6\fP.
+.SH NOTES
+.PP
+Contrairement à d'autres systèmes, sur lesquels l'effacement du fichier
+arrête la journalisation, le fichier utmp doit toujours exister sous
+Linux. Si vous désirez désactiver \fBwho\fP(1), laissez le fichier utmp en
+place, mais ne le laissez pas lisible par tout le monde.
+.PP
+Le format de ces fichiers dépend de la machine, et il est recommandé de ne
+les utiliser que sur la machine où ils ont été créés.
+.PP
+Notez que sur les plates\-formes \fIbiarch\fP, c'est\-à\-dire les systèmes qui
+utilisent à la fois des applications 32 et 64 bits (x86_64, ppc64, s390x,
+etc.), \fIut_tv\fP est de la même taille en mode 32 bits et en mode 64 bits. De
+même en ce qui concerne \fIut_session\fP et \fIut_time\fP s'ils existent. Ceci
+permet aux fichiers de données et à la mémoire partagée d'être partagés
+entre les applications 32 bits et 64 bits. Cela est fait en modifiant le
+type de \fIut_session\fP en \fIint32_t\fP, et celui de \fIut_tv\fP en une structure
+avec deux champs \fIint32_t\fP, \fItv_sec\fP et \fItv_usec\fP. Puisque la structure
+\fIut_tv\fP est différente de la structure \fItimeval\fP, au lieu de l'appel\ :
+.in +4n
+.nf
+.sp
+gettimeofday((struct timeval *) &ut.ut_tv, NULL);
+.fi
+.in
+
+il est recommandé d'utiliser la méthode suivante pour définir ce champ
+.in +4n
+.nf
+.sp
+struct utmp ut;
+struct timeval tv;
+
+gettimeofday(&tv, NULL);
+ut.ut_tv.tv_sec = tv.tv_sec;
+ut.ut_tv.tv_usec = tv.tv_usec;
+.fi
+.in
+.PP
+Notez que l'implémentation de la structure \fIutmp\fP a changé entre les
+bibliothèques C libc5 et libc6. À cause de ceci, les fichiers exécutables
+utilisant l'ancien format libc5 risquent d'endommager les fichiers
+\fI/var/run/utmp\fP et/ou \fI/var/log/wtmp\fP.
+.SH BOGUES
+Cette page de manuel est basée sur la libc5, et les choses fonctionnent
+peut\-être différemment à présent.
+.SH "VOIR AUSSI"
+\fBac\fP(1), \fBdate\fP(1), \fBlast\fP(1), \fBlogin\fP(1), \fBwho\fP(1), \fBgetutent\fP(3),
+\fBgetutmp\fP(3), \fBlogin\fP(3), \fBlogout\fP(3), \fBlogwtmp\fP(3), \fBupdwtmp\fP(3),
+\fBinit\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

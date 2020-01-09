@@ -1,0 +1,137 @@
+.\" Copyright (c) 1994 Mike Battersby
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified by aeb, 960721
+.\" 2005-11-21, mtk, added descriptions of sigisemptyset(), sigandset(),
+.\"                  and sigorset()
+.\" 2007-10-26 mdw   added wording that a sigset_t must be initialized
+.\"                  prior to use
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SIGSETOPS 3 "1er septembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+sigsetops, sigemptyset, sigfillset, sigaddset, sigdelset, sigismember \-
+Opérations sur les ensembles de signaux POSIX
+.SH SYNOPSIS
+\fB#include <signal.h>\fP
+.sp
+\fBint sigemptyset(sigset_t *\fP\fIset\fP\fB);\fP
+.sp
+\fBint sigfillset(sigset_t *\fP\fIset\fP\fB);\fP
+.sp
+\fBint sigaddset(sigset_t *\fP\fIset\fP\fB, int \fP\fIsignum\fP\fB);\fP
+.sp
+\fBint sigdelset(sigset_t *\fP\fIset\fP\fB, int \fP\fIsignum\fP\fB);\fP
+.sp
+\fBint sigismember(const sigset_t *\fP\fIset\fP\fB, int \fP\fIsignum\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBsigemptyset\fP(), \fBsigfillset\fP(), \fBsigaddset\fP(), \fBsigdelset\fP(),
+\fBsigismember\fP()\ : _POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE ||
+_POSIX_SOURCE
+.ad b
+.SH DESCRIPTION
+Ces fonctions permettent la manipulation des ensembles de signaux POSIX.
+.PP
+\fBsigemptyset\fP() vide l'ensemble de signaux fourni par \fIset\fP, tous les
+signaux étant exclus de cet ensemble.
+.PP
+\fBsigfillset\fP() remplit totalement l'ensemble de signaux \fIset\fP en incluant
+tous les signaux.
+.PP
+\fBsigaddset\fP() et \fBsigdelset\fP() ajoutent ou suppriment respectivement le
+signal \fIsignum\fP de l'ensemble \fIset\fP.
+.PP
+\fBsigismember\fP() teste si le signal \fIsignum\fP est membre de l'ensemble
+\fIset\fP.
+.PP
+Les objets de type \fIsigset_t\fP doivent être initialisés par un appel à
+\fBsigemptyset\fP() ou \fBsigfillset\fP() avant d'être passé aux fonctions
+\fBsigaddset\fP(), \fBsigdelset\fP() et \fBsigismember\fP() ou aux fonctions
+aupplémentaires de la glibc décrites ci\-dessous (\fBsigisemptyset\fP(),
+\fBsigandset\fP() et \fBsigorset\fP()). Les résultats ne sont pas définis si ce
+n'est pas fait.
+.SH "VALEUR RENVOYÉE"
+\fBsigemptyset\fP(), \fBsigfillset\fP(), \fBsigaddset\fP() et \fBsigdelset\fP()
+renvoient 0 s'il réussissent, et \-1 s'ils échouent.
+.PP
+\fBsigismember\fP() renvoie 1 si le signal \fIsignum\fP est dans l'ensemble
+\fIset\fP, 0 si \fIsignum\fP n'y est pas, et \-1 en cas d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+\fIsig\fP n'est pas un signal valide.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+.SS "Notes sur la glibc"
+Si la macro de test de fonctionnalités \fB_GNU_SOURCE\fP est définie,
+\fI<signal.h>\fP expose trois autres fonctions pour la manipulation des
+ensembles de signaux.
+.TP 
+\fBint sigisemptyset(sigset_t *\fP\fIset\fP\fB);\fP
+renvoie 1 si \fIset\fP ne contient pas de signaux et 0 autrement.
+.TP 
+\fBint sigorset(sigset_t *\fP\fIdest\fP\fB, sigset_t *\fP\fIleft\fP\fB, sigset_t *\fP\fIright\fP\fB);\fP
+place l'union des ensembles \fIleft\fP et \fIright\fP dans \fIdest\fP.
+.TP 
+\fBint sigandset(sigset_t *\fP\fIdest\fP\fB, sigset_t *\fP\fIleft\fP\fB, sigset_t *\fP\fIright\fP\fB);\fP
+place l'intersection des ensembles \fIleft\fP et \fIright\fP dans \fIdest\fP.
+.PP
+\fBsigorset\fP() et \fBsigandset\fP() renvoient 0 si elles réussissent et \-1 si
+elles échouent.
+.PP
+Ces fonctions ne sont pas standards (quelques autres systèmes ont des
+fonctions similaires) et ne devraient pas être utilisées dans des
+applications conçues pour être portables.
+.SH "VOIR AUSSI"
+\fBsigaction\fP(2), \fBsigpending\fP(2), \fBsigprocmask\fP(2), \fBsigsuspend\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

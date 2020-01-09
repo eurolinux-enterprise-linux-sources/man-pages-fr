@@ -1,0 +1,277 @@
+.\" Copyright (C) 2006 Michael Kerrisk
+.\" and Copyright (C) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CPU_SET 3 "14 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+CPU_SET, CPU_CLR, CPU_ISSET, CPU_ZERO, CPU_COUNT, CPU_AND, CPU_OR, CPU_XOR,
+CPU_EQUAL, CPU_ALLOC, CPU_ALLOC_SIZE, CPU_FREE, CPU_SET_S, CPU_CLR_S,
+CPU_ISSET_S, CPU_ZERO_S, CPU_COUNT_S, CPU_AND_S, CPU_OR_S, CPU_XOR_S,
+CPU_EQUAL_S \- macros de manipulation d'un «\ ensemble de CPUs\ »
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP
+\fB#include <sched.h>\fP
+.sp
+\fBvoid CPU_ZERO(cpu_set_t *\fP\fIset\fP\fB);\fP
+.sp
+\fBvoid CPU_SET(int \fP\fIcpu\fP\fB, cpu_set_t *\fP\fIset\fP\fB);\fP
+\fBvoid CPU_CLR(int \fP\fIcpu\fP\fB, cpu_set_t *\fP\fIset\fP\fB);\fP
+\fBint  CPU_ISSET(int \fP\fIcpu\fP\fB, cpu_set_t *\fP\fIset\fP\fB);\fP
+.sp
+\fBvoid CPU_COUNT(cpu_set_t *\fP\fIset\fP\fB);\fP
+.sp
+\fBvoid CPU_AND(cpu_set_t *\fP\fIdestset\fP\fB,\fP
+\fB             cpu_set_t *\fP\fIsrcset1\fP\fB, cpu_set_t *\fP\fIsrcset2\fP\fB);\fP
+\fBvoid CPU_OR(cpu_set_t *\fP\fIdestset\fP\fB,\fP
+\fB             cpu_set_t *\fP\fIsrcset1\fP\fB, cpu_set_t *\fP\fIsrcset2\fP\fB);\fP
+\fBvoid CPU_XOR(cpu_set_t *\fP\fIdestset\fP\fB,\fP
+\fB             cpu_set_t *\fP\fIsrcset1\fP\fB, cpu_set_t *\fP\fIsrcset2\fP\fB);\fP
+.sp
+\fBint  CPU_EQUAL(cpu_set_t *\fP\fIset1\fP\fB, cpu_set_t *\fP\fIset2\fP\fB);\fP
+.sp
+\fBcpu_set_t *CPU_ALLOC(int \fP\fInum_cpus\fP\fB);\fP
+\fBvoid CPU_FREE(cpu_set_t *\fP\fIset\fP\fB);\fP
+\fBsize_t CPU_ALLOC_SIZE(int \fP\fInum_cpus\fP\fB);\fP
+.sp
+\fBvoid CPU_ZERO_S(size_t \fP\fIsetsize\fP\fB, cpu_set_t *\fP\fIset\fP\fB);\fP
+.sp
+\fBvoid CPU_SET_S(int \fP\fIcpu\fP\fB, size_t \fP\fIsetsize\fP\fB, cpu_set_t *\fP\fIset\fP\fB);\fP
+\fBvoid CPU_CLR_S(int \fP\fIcpu\fP\fB, size_t \fP\fIsetsize\fP\fB, cpu_set_t *\fP\fIset\fP\fB);\fP
+\fBint  CPU_ISSET_S(int \fP\fIcpu\fP\fB, size_t \fP\fIsetsize\fP\fB, cpu_set_t *\fP\fIset\fP\fB);\fP
+.sp
+\fBvoid CPU_COUNT_S(size_t \fP\fIsetsize\fP\fB, cpu_set_t *\fP\fIset\fP\fB);\fP
+.sp
+\fBvoid CPU_AND_S(size_t \fP\fIsetsize\fP\fB, cpu_set_t *\fP\fIdestset\fP\fB,\fP
+\fB             cpu_set_t *\fP\fIsrcset1\fP\fB, cpu_set_t *\fP\fIsrcset2\fP\fB);\fP
+\fBvoid CPU_OR_S(size_t \fP\fIsetsize\fP\fB, cpu_set_t *\fP\fIdestset\fP\fB,\fP
+\fB             cpu_set_t *\fP\fIsrcset1\fP\fB, cpu_set_t *\fP\fIsrcset2\fP\fB);\fP
+\fBvoid CPU_XOR_S(size_t \fP\fIsetsize\fP\fB, cpu_set_t *\fP\fIdestset\fP\fB,\fP
+\fB             cpu_set_t *\fP\fIsrcset1\fP\fB, cpu_set_t *\fP\fIsrcset2\fP\fB);\fP
+.sp
+\fBint  CPU_EQUAL_S(size_t \fP\fIsetsize\fP\fB, cpu_set_t *\fP\fIset1\fP\fB, cpu_set_t *\fP\fIset2\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La structure de données \fIcpu_set_t\fP représente un «\ ensemble de CPUs\
+». Les «\ ensembles de CPUs\ » sont utilisés par \fBsched_setaffinity\fP(2) et
+les interfaces similaires.
+
+Le type \fIcpu_set_t\fP est un champ de bits. Cependant, la structure de
+données traitée est considérée comme opaque\ : toute manipulation d'un «\
+ensemble de CPU\ » devrait être effectuée avec les macros décrites dans
+cette page.
+
+Les macros suivantes sont fournies pour opérer sur l'ensemble \fIset\fP\ :
+.TP  17
+\fBCPU_ZERO\fP()
+Mettre à zéro \fIset\fP, ainsi, il ne contient aucun CPU.
+.TP 
+\fBCPU_SET\fP()
+Ajouter le CPU \fIcpu\fP à \fIset\fP.
+.TP 
+\fBCPU_CLR\fP()
+Supprimer le CPU \fIcpu\fP de \fIset\fP.
+.TP 
+\fBCPU_ISSET\fP()
+Tester si le CPU \fIcpu\fP est un membre de \fIset\fP.
+.TP 
+\fBCPU_COUNT\fP()
+Renvoyer le nombre de CPU de \fIset\fP.
+.PP
+Lorsque l'argument \fIcpu\fP est spécifié, il ne devrait pas produire d'effet
+de bord puisque les macros ci\-dessus pourraient évaluer l'argument plus
+d'une fois.
+.PP
+Le premier CPU disponible sur un système correspond à la valeur \fIcpu\fP 0, le
+CPU suivant à la valeur \fIcpu\fP 1. La constante \fBCPU_SETSIZE\fP
+(habituellement 1024) spécifie le nombre maximum de CPUs qui peut être
+enregistré dans \fIcpu_set_t\fP.
+
+Les macros suivantes réalisent des opérations logiques sur les «\ ensembles
+de CPUs\ »\ :
+.TP  17
+\fBCPU_AND\fP()
+Enregistre le ET logique des ensembles \fIsrcset1\fP et \fIsrcset2\fP dans
+\fIdestset\fP (qui peut être un ensemble source).
+.TP 
+\fBCPU_OR\fP()
+Enregistre le OU logique des ensembles \fIsrcset1\fP et \fIsrcset2\fP dans
+\fIdestset\fP (qui peut être un ensemble source).
+.TP 
+\fBCPU_XOR\fP()
+Enregistre le OU EXCLUSIF logique des ensembles \fIsrcset1\fP et \fIsrcset2\fP
+dans \fIdestset\fP (qui peut être un ensemble source).
+.TP 
+\fBCPU_EQUAL\fP()
+Tester si deux ensembles de CPUs contiennent les mêmes CPUs.
+.SS "Ensemble de CPUs de taille dynamique"
+Certaines applications nécessite des ensembles CPUs de taille dynamique (par
+exemple, pour allouer des ensembles plus grands que ceux définis avec le
+type \fIcpu_set_t\fP), la glibc propose aujourd'hui un jeu de macro pour cette
+fonctionnalité.
+
+Les macros suivantes sont utilisées pour allouer et désallouer des ensembles
+de CPUs\ :
+.TP  17
+\fBCPU_ALLOC\fP()
+Allouer un ensemble CPUs assez grand pour contenir \fInum_cpus\-1\fP CPU.
+.TP 
+\fBCPU_ALLOC_SIZE\fP()
+Renvoie la taille en octets de l'ensemble CPUs nécessaire pour contenir les
+\fInum_cpus\-1\fP cpu. Cette macro fournit la valeur de l'argument \fIsetsize\fP
+des macros \fBCPU_*_S\fP() définies ci\-dessous.
+.TP 
+\fBCPU_FREE\fP()
+Libérer un ensemble alloué avec \fBCPU_ALLOC\fP().
+.PP
+Les macros dont le nom se termine par «\ _S\ » sont les macros équivalentes
+aux macros sans «\ _S\ » qui opèrent sur les ensembles de taille dynamique
+de taille \fIsetsize\fP.
+.SH "VALEUR RENVOYÉE"
+\fBCPU_ISSET\fP()  et \fBCPU_ISSET_S\fP() renvoient une valeur non nulle si \fIcpu\fP
+est présent dans \fIset\fP, 0 sinon.
+
+\fBCPU_COUNT\fP() et \fBCPU_COUNT_S\fP() renvoient le nombre de CPUs présent dans
+\fIset\fP.
+
+\fBCPU_EQUAL\fP() et \fBCPU_EQUAL_S\fP() renvoient une valeur non nulle si les
+deux ensemble CPUs sont égaux, 0 sinon.
+
+\fBCPU_ALLOC\fP() renvoie un pointeur en cas de succès et NULL en cas
+d'échec. Les erreurs sont les mêmes que \fBmalloc\fP(3).
+
+\fBCPU_ALLOC_SIZE\fP() renvoie le nombre d'octets nécessaire pour sauvegarder
+un ensemble avec une cardinalité spécifique.
+
+Ces autres routines ne renvoient pas de valeur.
+.SH VERSIONS
+Les macros \fBCPU_ZERO\fP(), \fBCPU_SET\fP(), \fBCPU_CLR\fP() et \fBCPU_ISSET\fP() ont
+été ajoutées dans la glibc\ 2.3.3.
+
+\fBCPU_COUNT\fP() est apparue dans le glibc2.6.
+
+\fBCPU_AND\fP(), \fBCPU_OR\fP(), \fBCPU_XOR\fP(), \fBCPU_EQUAL\fP(), \fBCPU_ALLOC\fP(),
+\fBCPU_ALLOC_SIZE\fP(), \fBCPU_FREE\fP(), \fBCPU_ZERO_S\fP(), \fBCPU_SET_S\fP(),
+\fBCPU_CLR_S\fP(), \fBCPU_ISSET_S\fP(), \fBCPU_AND_S\fP(), \fBCPU_OR_S\fP(),
+\fBCPU_XOR_S\fP() et \fBCPU_EQUAL_S\fP() sont apparues en premier dans la glibc\
+2.7.
+.SH CONFORMITÉ
+Ces interfaces sont spécifiques à Linux.
+.SH NOTES
+Pour dupliquer un ensemble, utilisez \fBmemcpy\fP(3).
+
+Comme les ensembles de CPUs sont des champs de bits alloués par unité de
+mots de type \fIlong\fP, le nombre actuel de CPUs dans un ensemble dynamique
+doit être arrondi au multiple suivant de \fIsizeof(unsigned long)\fP. Une
+application doit considérer les bits non utilisés comme indéfinis.
+
+Notez que la constante \fBCPU_SETSIZE\fP indique le nombre de CPUs dans la
+structure \fIcpu_set_t\fP (c'est un comptage de bits dans le champ de bits)
+alors que l'argument \fIsetsize\fP des macros \fBCPU_*_S\fP() est une taille en
+octets.
+
+Les types de données des arguments et des valeurs de retour vues dans le
+SYNOPSIS sont des suggestions sur ce qui est prévu dans chaque
+cas. Cependant, puisque ces interfaces sont des macros, le compilateur ne va
+pas nécessairement attraper toutes les erreurs de type si vous violez ces
+suggestions.
+.SH EXEMPLE
+Le programme suivant est un exemple d'utilisation de macros dans le cas d'un
+ensemble de CPUs dynamique.
+
+.nf
+#define _GNU_SOURCE
+#include <sched.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <assert.h>
+
+int
+main(int argc, char *argv[])
+{
+    cpu_set_t *cpusetp;
+    size_t size;
+    int num_cpus, cpu;
+
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <num\-cpus>\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    num_cpus = atoi(argv[1]);
+
+    cpusetp = CPU_ALLOC(num_cpus);
+    if (cpusetp == NULL) {
+        perror("CPU_ALLOC");
+        exit(EXIT_FAILURE);
+    }
+
+    size = CPU_ALLOC_SIZE(num_cpus);
+
+    CPU_ZERO_S(size, cpusetp);
+    for (cpu = 0; cpu < num_cpus; cpu += 2)
+        CPU_SET_S(cpu, size, cpusetp);
+
+    printf("CPU_COUNT() of set:    %d\en", CPU_COUNT_S(size, cpusetp));
+
+    CPU_FREE(cpusetp);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH BOGUES
+.\" http://sourceware.org/bugzilla/show_bug.cgi?id=7029
+Sur une plate\-forme 32\ bits avec une glibc\ 2.8 ou plus récente,
+\fBCPU_ALLOC\fP() alloue deux fois plus d'espace que nécessaire, et
+\fBCPU_ALLOC_SIZE\fP() renvoie une valeur deux fois plus grande que la valeur
+attendue. Ce bogue ne devrait pas affecter la sémantique d'un programme mais
+il provoque une sur\-consommation mémoire et les macros opérant sur un
+ensemble dynamique sont moins performantes. Ce bogue est corrigé avec la
+glibc\ 2.9.
+.SH "VOIR AUSSI"
+\fBsched_setaffinity\fP(2), \fBpthread_attr_setaffinity_np\fP(3),
+\fBpthread_setaffinity_np\fP(3), \fBcpuset\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

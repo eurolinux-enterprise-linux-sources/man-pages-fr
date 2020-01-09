@@ -1,0 +1,68 @@
+.\" This page is in the public domain
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TZSELECT 8 "18 mai 2007" "" "Manuel de l'administrateur Linux"
+.SH NOM
+tzselect \- Sélectionner un fuseau horaire
+.SH SYNOPSIS
+\fBtzselect\fP
+.SH DESCRIPTION
+Le programme \fBtzselect\fP demande à l'utilisateur des informations sur son
+emplacement géographique, et fournit sur la sortie standard la description
+du fuseau horaire. Cette sortie est utilisable pour la variable
+d'environnement \fBTZ\fP.
+.PP
+Toutes les interactions avec l'utilisateur se font par l'entrée standard et
+la sortie d'erreur.
+.SH "CODE DE RETOUR"
+Le code de sortie vaut zéro si un fuseau horaire a été obtenu correctement,
+et différent de zéro dans le cas contraire.
+.SH ENVIRONNEMENT
+.TP 
+\fBAWK\fP
+Nom de l'interpréteur \fIawk\fP compatible POSIX disponible sur le système (par
+défaut\ : \fBawk\fP).
+.TP 
+\fBTZDIR\fP
+.\" or perhaps /usr/local/etc/zoneinfo in some older systems.
+Nom du répertoire contenant les fichiers de données des fuseaux horaires
+(par défaut\ : \fI/usr/share/zoneinfo\fP).
+.SH FICHIERS
+.TP 
+\fBTZDIR\fP\fI/iso3166.tab\fP
+Table des noms de pays et des codes sur deux lettres (ISO 3166).
+.TP 
+\fBTZDIR\fP\fI/zone.tab\fP
+Table des codes de pays, latitudes, longitudes, fuseaux horaires et
+commentaires descriptifs.
+.TP 
+\fBTZDIR\fP\fI/\fP\fITZ\fP
+Fichier de données de fuseau horaire pour \fITZ\fP.
+.SH "VOIR AUSSI"
+.\" @(#)tzselect.8	1.3
+\fBtzfile\fP(5), \fBzdump\fP(8), \fBzic\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Thomas Huriaux et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

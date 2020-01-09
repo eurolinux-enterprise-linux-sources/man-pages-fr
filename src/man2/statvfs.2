@@ -1,0 +1,164 @@
+.\" Copyright (C) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" The pathconf note is from Walter Harms
+.\" This is not a system call on Linux
+.\"
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STATVFS 2 "22 août 2003" Linux "Manuel du programmeur Linux"
+.SH NOM
+statvfs, fstatvfs \- Obtenir les statistiques d'un système de fichiers
+.SH SYNOPSIS
+\fB#include <sys/statvfs.h>\fP
+.sp
+\fBint statvfs(const char *\fP\fIpath\fP\fB, struct statvfs *\fP\fIbuf\fP\fB);\fP
+.br
+\fBint fstatvfs(int \fP\fIfd\fP\fB, struct statvfs *\fP\fIbuf\fP\fB);\fP
+.SH DESCRIPTION
+La fonction \fBstatvfs\fP() retourne des informations sur un système de
+fichiers monté. \fIpath\fP est un chemin vers n'importe quel fichier du système
+de fichiers monté. \fIbuf\fP est un pointeur vers une structure \fIstatvfs\fP
+approximativement définie comme ceci\ :
+
+.in +4n
+.nf
+struct statvfs {
+    unsigned long  f_bsize;    /* taille de bloc du fs */
+    unsigned long  f_frsize;   /* taille d'un fragment */
+    fsblkcnt_t     f_blocks;   /* taille du fs en unité f_frsize  */
+    fsblkcnt_t     f_bfree;    /* # blocs libres */
+    fsblkcnt_t     f_bavail;   /* # blocs libres pour non\-root */
+    fsfilcnt_t     f_files;    /* # in\(oeuds */
+    fsfilcnt_t     f_ffree;    /* # in\(oeuds libres */
+    fsfilcnt_t     f_favail;   /* # in\(oeuds libres pour non\-root */
+    unsigned long  f_fsid;     /* identifiant du système de fichiers */
+    unsigned long  f_flag;     /* attributs de montage */
+    unsigned long  f_namemax;  /* longueur maximum de nom de fichier */
+};
+.fi
+.in
+
+Les types \fIfsblkcnt_t\fP et \fIfsfilcnt_t\fP utilisés ici sont définis dans
+\fI<sys/types.h>\fP. Auparavant les deux étaient des \fIunsigned long\fP.
+
+Le champ \fIf_flag\fP est un masque de bit (des attributs de montage, voir
+\fBmount\fP(8)). Les bits définis par la spécification POSIX sont
+.TP 
+\fBST_RDONLY\fP
+Système de fichiers en lecture seule.
+.TP 
+\fBST_NOSUID\fP
+Les bits Set\-UID/Set\-GID sont ignorés par \fBexec\fP(3).
+.LP
+Il n'est pas spécifié si tous les membres de la structure retournée ont un
+sens quel que soit le système de fichiers.
+
+\fBfstatvfs\fP() renvoie la même information sur un fichier ouvert référencé
+par le descripteur \fIfd\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+(\fBstatvfs\fP()) Un élément du chemin d'accès \fIpath\fP ne permet pas le
+parcours. (Voir aussi \fBpath_resolution\fP(7).)
+.TP 
+\fBEBADF\fP
+(\fBfstatvfs\fP()) \fIfd\fP n'est pas un descripteur de fichier ouvert valide.
+.TP 
+\fBEFAULT\fP
+\fIBuf\fP ou \fIpath\fP pointent en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEINTR\fP
+L'appel a été interrompu par un signal.
+.TP 
+\fBEIO\fP
+Une erreur d'entrée\-sortie est survenue lors de la lecture sur le système de
+fichiers.
+.TP 
+\fBELOOP\fP
+(\fBstatvfs\fP()) \fIpath\fP contient une référence circulaire (à travers un lien
+symbolique).
+.TP 
+\fBENAMETOOLONG\fP
+(\fBstatvfs\fP()) \fIpath\fP est trop long.
+.TP 
+\fBENOENT\fP
+(\fBstatvfs\fP()) Le fichier indiqué par \fIpath\fP n'existe pas.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.TP 
+\fBENOSYS\fP
+Le système de fichiers ne supporte pas cet appel.
+.TP 
+\fBENOTDIR\fP
+(\fBstatvfs\fP()) Un élément du chemin d'accès \fIpath\fP n'est pas un répertoire.
+.TP 
+\fBEOVERFLOW\fP
+Certaines valeurs sont trop grandes pour être représentées dans la structure
+renvoyée.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Le noyau Linux a les appels système \fBstatfs\fP(2) et \fBfstatfs\fP(2) pour
+supporter cette fonction de bibliothèque.
+
+Les implémentations actuelles de
+.sp
+.nf
+   pathconf(path, _PC_REC_XFER_ALIGN);
+   pathconf(path, _PC_ALLOC_SIZE_MIN);
+   pathconf(path, _PC_REC_MIN_XFER_SIZE);
+.fi
+.sp
+dans la glibc utilisent respectivement les champs \fIf_frsize\fP, \fIf_frsize\fP,
+et \fIf_bsize\fP de la valeur de retour de \fIstatvfs(path,buf)\fP.
+.SH "VOIR AUSSI"
+\fBstatfs\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2004-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

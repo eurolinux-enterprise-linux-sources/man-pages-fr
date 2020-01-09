@@ -1,0 +1,251 @@
+.\" Copyright 1995 Mark D. Roth (roth@uiuc.edu)
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Solaris manpages
+.\"
+.\" Modified Thu Jul 25 14:43:46 MET DST 1996 by Michael Haardt
+.\"     <michael@cantor.informatik.rwth-aachen.de>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETUTENT 3 "29 juin 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+getutent, getutid, getutline, pututline, setutent, endutent, utmpname \-
+Accéder aux enregistrements utmp.
+.SH SYNOPSIS
+\fB#include <utmp.h>\fP
+.sp
+\fBstruct utmp *getutent(void);\fP
+.br
+\fBstruct utmp *getutid(struct utmp *\fP\fIut\fP\fB);\fP
+.br
+\fBstruct utmp *getutline(struct utmp *\fP\fIut\fP\fB);\fP
+.sp
+\fBstruct utmp *pututline(struct utmp *\fP\fIut\fP\fB);\fP
+.sp
+\fBvoid setutent(void);\fP
+.br
+\fBvoid endutent(void);\fP
+.sp
+\fBint utmpname(const char *\fP\fIfile\fP\fB);\fP
+.SH DESCRIPTION
+Les nouvelles applications devraient utiliser les versions «\ utmpx\ »
+spécifiées par POSIX.1 de ces fonctions\ ; voir CONFORMITÉ.
+
+\fButmpname\fP() indique le nom du fichier au format utmp à utiliser avec les
+autres fonctions. Si \fButmpname\fP() n'est pas appelé avant les autres
+fonctions, elles utiliseront le fichier \fB_PATH_UTMP\fP, défini dans
+\fI<paths.h>\fP.
+.PP
+\fBsetutent\fP() ramène le pointeur au début du fichier utmp. Il est
+généralement conseillé d'appeler cette fonction au début du programme.
+.PP
+\fBendutent\fP() ferme le fichier utmp. Ceci devrait être appelé une fois que
+le programme a terminé ses accès au fichier.
+.PP
+\fBgetutent\fP() lit une ligne du fichier utmp, à la position courante. Elle
+renvoie un pointeur sur une structure contenant les divers champs de la
+ligne. La définition de cette structure peut être consultée dans \fButmp\fP(5).
+.PP
+\fBgetutid\fP() effectue une recherche dans le fichier utmp, à partir de la
+position courante, en se basant sur \fIut\fP. Si \fIut\->ut_type\fP vaut
+\fBRUN_LVL\fP, \fBBOOT_TIME\fP, \fBNEW_TIME\fP, ou \fBOLD_TIME\fP, \fBgetutid\fP()
+recherchera le premier enregistrement dont le champ \fIut_type\fP correspond à
+\fIut\->ut_type\fP. Si \fIut\->ut_type\fP vaut \fBINIT_PROCESS\fP,
+\fBLOGIN_PROCESS\fP, \fBUSER_PROCESS\fP, ou \fBDEAD_PROCESS\fP, \fBgetutid\fP()
+recherchera le premier enregistrement dont le champ \fIut_id\fP correspond à
+\fIut\->ut_id\fP.
+.PP
+\fBgetutline\fP() effectue une recherche dans le fichier utmp, à partir de la
+position courante. Elle examine les enregistrements dont le champ \fIut_type\fP
+est \fBUSER_PROCESS\fP ou \fBLOGIN_PROCESS\fP et renvoie le premier dont le champ
+\fIut_line\fP correspond à \fIut\->ut_line\fP.
+.PP
+\fBpututline\fP() écrit la structure \fIutmp\fP \fIut\fP dans le fichier utmp. Elle
+utilise \fBgetutid\fP() pour rechercher l'emplacement ou insérer le nouvel
+enregistrement. Si elle ne trouve pas d'emplacement approprié pour \fIut\fP,
+\fBpututline\fP() ajoutera le nouvel enregistrement à la fin du fichier.
+.SH "VALEUR RENVOYÉE"
+\fBgetutent\fP(), \fBgetutid\fP() et \fBgetutline\fP() renvoient un pointeur sur une
+structure \fIutmp\fP, ou NULL en cas d'erreur (ce qui inclut le cas «\ pas
+d'enregistrement trouvé\ »). Cette structure \fIutmp\fP est allouée
+statiquement, et peut être écrasée par des appels successifs.
+
+Si elle réussit, \fBpututline\fP() renvoie \fIut\fP\ ; si elle échoue, elle renvoie
+NULL.
+
+\fButmpname\fP() renvoie 0 si le nouveau nom a été correctement enregistré, ou
+\-1 si elle échoue.
+.SH ERREURS
+.TP 
+\fBENOMEM\fP
+Plus de mémoire disponible.
+.TP 
+\fBESRCH\fP
+Enregistrement non trouvé.
+.PP
+\fBsetutent\fP(), \fBpututent\fP() et les fonctions \fBgetut*\fP() peuvent également
+échouer pour les raisons décrites dans \fBopen\fP(2).
+.SH FICHIERS
+/var/run/utmp \- Base de données des utilisateurs connectés.
+.br
+/var/log/wtmp \- Base de données des connexions passées.
+.SH CONFORMITÉ
+XPG2, SVr4.
+.LP
+Dans XPG2 et SVID\ 2, la fonction \fBpututline\fP() est décrite comme renvoyant
+«\ void\ », et c'est le cas sur de nombreux systèmes (AIX, HP\-UX, Linux
+libc5). HP\-UX introduit une nouvelle fonction \fB_pututline\fP() avec le
+prototype fourni plus haut pour \fBpututline\fP() (existe aussi dans la libc5
+de Linux).
+.LP
+Toutes ces fonctions sont maintenant obsolètes sur les systèmes non
+Linux. POSIX.1\-2001, suivant SUSv1, ne propose aucune de ces fonctions, mais
+utilise plutôt
+.sp
+\fB#include <utmpx.h>\fP
+.sp
+\fBstruct utmpx *getutxent(void);\fP
+.br
+\fBstruct utmpx *getutxid(const struct utmpx *);\fP
+.br
+\fBstruct utmpx *getutxline(const struct utmpx *);\fP
+.br
+\fBstruct utmpx *pututxline(const struct utmpx *);\fP
+.br
+\fBvoid setutxent(void);\fP
+.br
+\fBvoid endutxent(void);\fP
+.PP
+Ces fonctions sont fournies par la glibc et effectuent les mêmes tâches que
+leurs équivalents sans le «\ x\ » mais utilisent une structure \fIutmpx\fP,
+définie sous Linux pour être identique à la structure \fIutmp\fP. Pour être
+complet, la glibc fournit également \fButmpxname\fP(), bien que cette fonction
+ne soit pas spécifiée par POSIX.1.
+.PP
+Sur quelques autres systèmes, la structure \fIutmpx\fP est un sur\-ensemble de
+la structure \fIutmp\fP, avec des champs supplémentaires, et des versions plus
+grandes des champs existants, et des fichiers sont maintenus en parallèle,
+souvent \fI/var/*/utmpx\fP et \fI/var/*/wtmpx\fP.
+.LP
+D'un autre côté, la glibc sous Linux n'utilise pas de fichier \fIutmpx\fP en
+parallèle car sa structure \fIutmp\fP est déjà assez grande. Les fonctions
+\fBgetutxent\fP() etc. sont des alias pour \fBgetutent\fP() etc.
+.SH NOTES
+.SS "Notes sur la glibc"
+Les fonctions ci\-dessus ne sont pas sûres dans un contexte de thread. La
+glibc ajoute les versions ré\-entrantes.
+.sp
+.nf
+\fB#define _GNU_SOURCE\fP    /* ou _SVID_SOURCE ou _BSD_SOURCE */
+\fB#include <utmp.h>\fP
+.sp
+\fBint getutent_r(struct utmp *\fP\fIubuf\fP\fB, struct utmp **\fP\fIubufp\fP\fB);\fP
+.sp
+\fBint getutid_r(struct utmp *\fP\fIut\fP\fB,\fP
+\fB              struct utmp *\fP\fIubuf\fP\fB, struct utmp **\fP\fIubufp\fP\fB);\fP
+.sp
+\fBint getutline_r(struct utmp *\fP\fIut\fP\fB,\fP
+\fB                struct utmp *\fP\fIubuf\fP\fB, struct utmp **\fP\fIubufp\fP\fB);\fP
+.fi
+.sp
+Ces fonctions sont des extensions GNU, analogues aux fonctions de même nom
+sans le suffixe «\ _r\ ». Le paramètre \fIubuf\fP fournit à ces fonctions un
+endroit où stocker leur résultat. Si elles réussissent elles renvoient 0 et
+un pointeur vers le résultat dans \fI*ubufp\fP. Si elles échouent, ces
+fonctions renvoient \-1. Il n'y a pas d'équivalent «\ utmpx\ » aux fonctions
+ci\-dessus. (POSIX.1 ne spécifie pas de telles fonctions.)
+.SH EXEMPLE
+L'exemple suivant ajoute et retire un enregistrement utmp, en supposant
+qu'il est invoqué depuis un pseudo\-terminal. Dans une véritable application,
+il faudrait vérifier les valeurs renvoyées par \fBgetpwuid\fP(3) et
+\fBttyname\fP(3).
+.PP
+.nf
+#include <string.h>
+#include <stdlib.h>
+#include <pwd.h>
+#include <unistd.h>
+#include <utmp.h>
+
+int
+main(int argc, char *argv[])
+{
+    struct utmp entry;
+
+    system("echo before adding entry:;who");
+
+    entry.ut_type = USER_PROCESS;
+    entry.ut_pid = getpid();
+    strcpy(entry.ut_line, ttyname(STDIN_FILENO) + strlen("/dev/"));
+    /* only correct for ptys named /dev/tty[pqr][0\-9a\-z] */
+    strcpy(entry.ut_id, ttyname(STDIN_FILENO) + strlen("/dev/tty"));
+    time(&entry.ut_time);
+    strcpy(entry.ut_user, getpwuid(getuid())\->pw_name);
+    memset(entry.ut_host, 0, UT_HOSTSIZE);
+    entry.ut_addr = 0;
+    setutent();
+    pututline(&entry);
+
+    system("echo after adding entry:;who");
+
+    entry.ut_type = DEAD_PROCESS;
+    memset(entry.ut_line, 0, UT_LINESIZE);
+    entry.ut_time = 0;
+    memset(entry.ut_user, 0, UT_NAMESIZE);
+    setutent();
+    pututline(&entry);
+
+    system("echo after removing entry:;who");
+
+    endutent();
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBgetutmp\fP(3), \fButmp\fP(5), \fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

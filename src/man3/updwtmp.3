@@ -1,0 +1,92 @@
+.\" Copyright 1997 Nicolás Lichtmaier <nick@debian.org>
+.\" Created Wed Jul  2 23:27:34 ART 1997
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" Added info on availability, aeb, 971207
+.\" Added -lutil remark, 030718
+.\" 2008-07-02, mtk, document updwtmpx()
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UPDWTMP 3 "2 juillet 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+updwtmp, logwtmp \- Ajouter une entrée dans le fichier wtmp
+.SH SYNOPSIS
+.nf
+\fB#include <utmp.h>\fP
+.sp
+\fBvoid updwtmp(const char *\fP\fIfichier_wtmp\fP\fB, const struct utmp *\fP\fIut\fP\fB);\fP
+.br
+\fBvoid logwtmp(const char *\fP\fIligne\fP\fB, const char *\fP\fInom\fP\fB, const char *\fP\fIhôte\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBupdwtmp\fP() ajoute une structure utmp \fIut\fP dans le fichier wtmp.
+.PP
+\fBlogwtmp\fP() construit une structure utmp en utilisant les valeurs \fIligne\fP,
+\fInom\fP, \fIhôte\fP, l'heure actuelle et le numéro de processus
+appelant. Ensuite, il appelle \fBupdwtmp\fP() pour ajouter cette structure au
+fichier wtmp.
+.SH FICHIERS
+.TP 
+\fI/var/log/wtmp\fP
+base de données des connexions passées.
+.SH CONFORMITÉ
+Pas dans POSIX.1\-2001. Présentes sur Solaris, NetBSD et peut être sur
+d'autres systèmes.
+.SH DISPONIBILITÉ
+Ces deux fonctions sont disponibles dans la glibc2, mais pas dans l'ancienne
+libc5. Néanmoins, \fBlogwtmp\fP() existait dans l'ancienne libbsd. De nos
+jours, la fonction \fBlogwtmp\fP() est incluse dans libutil (il faut donc
+ajouter \fI\-lutil\fP sur la ligne de commande du compilateur).
+.SH NOTES
+Pour cohérence avec les autres fonctions «\ utmpx\ » (voir \fBgetutxent\fP(3)),
+la glibc fournit (depuis la version\ 2.1)\ :
+.nf
+.sp
+\fB#include <utmpx.h>\fP
+.sp
+\fBvoid updwtmpx (const char *\fP\fIwtmpx_file\fP\fB, const struct utmpx *\fP\fIutx\fP\fB);\fP
+.fi
+.PP
+Cette fonction effectue les mêmes tâches que \fBupdwtmp\fP(), mais en diffère
+en ce qu'elle prend une structure \fIutmpx\fP comme dernier paramètre.
+.SH "VOIR AUSSI"
+\fBgetutxent\fP(3), \fBwtmp\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

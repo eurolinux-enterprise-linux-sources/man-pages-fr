@@ -1,0 +1,55 @@
+.\"  Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"  Distributed under GPL
+.\"  the glibc-info pages are very helpful here
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MTRACE 3 "20 juillet 2002" GNU "Manuel du programmeur Linux"
+.SH NOM
+mtrace, muntrace \- Débogage de malloc.
+.SH SYNOPSIS
+\fB#include <mcheck.h>\fP
+.sp
+\fBvoid mtrace(void);\fP
+.sp
+\fBvoid muntrace(void);\fP
+.SH DESCRIPTION
+La fonction \fBmtrace\fP() installe un gestionnaire (qui surveille les
+allocations mémoire) pour \fBmalloc\fP(3), \fBrealloc\fP(3) et \fBfree\fP(3). La
+fonction \fBmuntrace\fP() désactive ce gestionnaire.
+.br
+La variable d'environnement \fBMALLOC_TRACE\fP définit le nom d'un fichier où
+\fBmtrace\fP() écrit ses résultats. Ce fichier doit être accessible en écriture
+à l'utilisateur sinon \fBmtrace\fP() ne fera rien. Si le fichier n'est pas
+vide, il sera tronqué.
+.SH CONFORMITÉ
+Ce sont des extensions GNU.
+.SH NOTES
+Le résultat de \fBmtrace\fP() est en ASCII mais pas dans un format humainement
+compréhensible. Aussi la glibc fournit\-elle un script perl appelé mtrace qui
+affiche un résultat plus compréhensible.
+.SH "VOIR AUSSI"
+\fBmalloc\fP(3), \fBmalloc_hook\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

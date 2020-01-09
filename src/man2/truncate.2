@@ -1,0 +1,204 @@
+.\" Copyright (c) 1983, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)truncate.2	6.9 (Berkeley) 3/10/91
+.\"
+.\" Modified 1993-07-24 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1996-10-22 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1998-12-21 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 2002-01-07 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2002-04-06 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TRUNCATE 2 "28 février 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+truncate, ftruncate \- Tronquer un fichier à une longueur donnée.
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.br
+\fB#include <sys/types.h>\fP
+.sp
+\fBint truncate(const char *\fP\fIpath\fP\fB, off_t \fP\fIlength\fP\fB);\fP
+.br
+\fBint ftruncate(int \fP\fIfd\fP\fB, off_t \fP\fIlength\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.ad l
+.sp
+\fBtruncate\fP()\ : _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500
+.br
+\fBftruncate\fP()\ : _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_POSIX_C_SOURCE\ >=\ 200112L
+.ad b
+.SH DESCRIPTION
+Les appels \fBtruncate\fP() et \fBftruncate\fP() tronquent le fichier ordinaire
+référencé par \fIpath\fP ou par le descripteur \fIfd\fP à une longueur
+d'exactement \fIlength\fP octets.
+.LP
+Si le fichier était plus long, les données supplémentaires sont perdues. Si
+le fichier était plus court, il est étendu, et la portion supplémentaire est
+remplie caractères nuls («\ \e0\ »).
+.LP
+Le pointeur de position n'est pas modifié.
+.LP
+Si la taille est modifiée, les champs st_ctime et st_mtime du fichier
+(respectivement heure de dernière modification d'état et de dernière
+modification\ ; voir \fBstat\fP(2)) sont mis à jour, et les bits Set\-UID et
+Set\-GID peuvent être effacés.
+.LP
+Avec \fBftruncate\fP(), le fichier doit être ouvert en écriture\ ; avec
+\fBtruncate\fP(), il doit être accessible en écriture.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+Pour \fBtruncate\fP()\ :
+.TP 
+\fBEACCES\fP
+Le fichier n'est pas accessible en écriture, ou un élément du chemin d'accès
+ne permet pas le parcours. (Voir aussi \fBpath_resolution\fP(7).)
+.TP 
+\fBEFAULT\fP
+\fIPath\fP pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEFBIG\fP
+L'argument \fIlength\fP dépasse la taille maximum d'un fichier.
+.TP 
+\fBEINTR\fP
+Un signal a été capturé pendant l'exécution.
+.TP 
+\fBEINVAL\fP
+L'argument \fIlength\fP est négatif ou plus grand que la taille maximale d'un
+fichier.
+.TP 
+\fBEIO\fP
+Une erreur d'entrée\-sortie bas niveau s'est produite.
+.TP 
+\fBEINTR\fP
+Alors qu'il était bloqué en attente de fin, l'appel a été interrompu par un
+gestionnaire de signal\ ; voir \fBfcntl\fP(2) et \fBsignal\fP(7).
+.TP 
+\fBEISDIR\fP
+Le fichier est en réalité un répertoire.
+.TP 
+\fBELOOP\fP
+Trop de liens symboliques ont été rencontrés en parcourant le chemin.
+.TP 
+\fBENAMETOOLONG\fP
+Un composant du chemin dépasse 255 caractères ou le chemin complet dépasse
+1023 caractères.
+.TP 
+\fBENOENT\fP
+Le fichier indiqué n'existe pas.
+.TP 
+\fBENOTDIR\fP
+Un élément du chemin d'accès n'est pas un répertoire.
+.TP 
+\fBEPERM\fP
+.\" This happens for at least MSDOS and VFAT file systems
+.\" on kernel 2.6.13
+Le système de fichiers ne permet pas d'agrandir un fichier au\-delà de sa
+taille actuelle.
+.TP 
+\fBEROFS\fP
+Le fichier spécifié réside sur un système de fichiers en lecture seule.
+.TP 
+\fBETXTBSY\fP
+Le fichier est un programme actuellement en cours d'exécution.
+.PP
+Pour \fBftruncate\fP() les mêmes erreurs sont possibles, sauf qu'au lieu des
+problèmes avec \fIpath\fP, on peut en avoir avec le descripteur de fichier
+\fIfd\fP\ :
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur valable.
+.TP 
+\fBEBADF\fP ou \fBEINVAL\fP
+\fIfd\fP n'est pas ouvert en écriture.
+.TP 
+\fBEINVAL\fP
+\fIfd\fP n'est pas un descripteur de fichier ordinaire.
+.SH CONFORMITÉ
+.\" POSIX.1-1996 has
+.\" .BR ftruncate ().
+.\" POSIX.1-2001 also has
+.\" .BR truncate (),
+.\" as an XSI extension.
+.\" .LP
+.\" SVr4 documents additional
+.\" .BR truncate ()
+.\" error conditions EMFILE, EMULTIHP, ENFILE, ENOLINK.  SVr4 documents for
+.\" .BR ftruncate ()
+.\" an additional EAGAIN error condition.
+BSD\ 4.4, SVr4, POSIX.1\-2001 (ces appels système sont apparus dans BSD\
+4.2).
+.SH NOTES
+.\" At the very least: OSF/1, Solaris 7, and FreeBSD conform, mtk, Jan 2002
+La description ci\-dessus est celle des systèmes compatibles XSI. Pour les
+systèmes non compatibles, le standard POSIX autorise deux comportements pour
+\fBftruncate\fP() quand \fIlength\fP dépasse la longueur du fichier (notez que
+\fBtruncate\fP() n'est pas du tout spécifié dans un tel environnement)\ : soit
+renvoyer une erreur, soit étendre le fichier. Linux, comme la plupart des
+Unix, suit le comportement XSI sur les systèmes de fichiers
+natifs. Cependant, certains systèmes de fichiers non natifs ne permettent
+pas l'utilisation de \fBtruncate\fP() et \fBftruncate\fP() pour étendre un fichier
+au\-delà de sa taille actuelle\ : un exemple notable sous Linux est VFAT.
+.SH "VOIR AUSSI"
+\fBopen\fP(2), \fBstat\fP(2), \fBpath_resolution\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

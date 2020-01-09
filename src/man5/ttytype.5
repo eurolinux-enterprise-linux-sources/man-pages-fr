@@ -1,0 +1,82 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de),
+.\"     Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified Sat Jul 24 17:17:50 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Thu Oct 19 21:25:21 MET 1995 by Martin Schulze <joey@infodrom.north.de>
+.\" Modified Mon Oct 21 17:47:19 EDT 1996 by Eric S. Raymond
+.\" <esr@thyrsus.com>xk
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TTYTYPE 5 "24 juillet 1993" Linux "Manuel du programmeur Linux"
+.SH NOM
+ttytype \- Liste des noms de terminaux et de périphériques
+.SH DESCRIPTION
+Le fichier \fI/etc/ttytype\fP associe les lignes tty avec les noms de terminaux
+termcap/terminfo. Chaque ligne est constituée du type de terminal, suivi
+d'une espace et d'un nom de tty (sans le préfixe \fI/dev/\fP).
+
+Cette association est utilisée par le programme \fBtset\fP(1)  pour remplir la
+variable d'environnement \fBTERM\fP avec le nom du terminal par défaut pour le
+tty de l'utilisateur.
+
+Cette fonctionnalité était conçue pour un environnement temps partagé
+classique, avec des terminaux en mode caractère connectés physiquement à un
+mini\-ordinateur tournant sous Unix. Elle est de moins en moins utilisée avec
+l'avènement des stations de travail modernes, et des Unix sur ordinateurs
+personnels.
+.SH FICHIERS
+.TP 
+\fI/etc/ttytype\fP
+le fichier de définition des terminaux.
+.SH EXEMPLE
+Un fichier \fI/etc/ttytype\fP typique est\ :
+.RS
+.sp
+con80x25 tty1
+.br
+vt320 ttys0
+.RE
+.SH "VOIR AUSSI"
+\fBtermcap\fP(5), \fBterminfo\fP(5), \fBagetty\fP(8), \fBmingetty\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,132 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\"
+.\" Modified 1993-03-29, David Metcalfe
+.\" Modified 1993-07-24, Rik Faith (faith@cs.unc.edu)
+.\" 2006-01-15, mtk, Added example program.
+.\"
+.\" FIXME glibc 2.8 added qsort_r(), which needs to be documented.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH QSORT 3 "15 septembre 2009" "" "Manuel du programmeur Linux"
+.SH NOM
+qsort \- Trier une table
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBvoid qsort(void *\fP\fIbase\fP\fB, size_t \fP\fInmemb\fP\fB, size_t \fP\fIsize\fP\fB,\fP
+\fB           int(*\fP\fIcompar\fP\fB)(const void *, const void *));\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBqsort\fP() trie une table contenant \fInmemb\fP éléments de taille
+\fIsize\fP. L'argument \fIbase\fP pointe sur le début de la table.
+.PP
+Le contenu de la table est trié en ordre croissant, en utilisant la fonction
+de comparaison pointée par \fIcompar\fP, laquelle est appelée avec deux
+arguments pointant sur les objets à comparer.
+.PP
+La fonction de comparaison doit renvoyer un entier inférieur, égal, ou
+supérieur à zéro si le premier argument est respectivement considéré comme
+inférieur, égal ou supérieur au second. Si la comparaison des deux arguments
+renvoie une égalité (valeur de retour nulle), l'ordre des deux éléments est
+indéfini.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBqsort\fP() ne renvoie pas de valeur.
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3, C89, C99.
+.SH NOTES
+Parmi les routines de la bibliothèque utilisables comme argument \fIcompar\fP,
+on a \fBalphasort\fP(3) et \fBversionsort\fP(3). Pour comparer des chaînes de
+caractères C, la fonction de comparaison peut appeler \fBstrcmp\fP(3), comme
+dans l'exemple ci\-dessous.
+.SH EXEMPLE
+Pour un exemple d'utilisation, voir l'exemple de la page \fBbsearch\fP(3).
+
+Un autre exemple d'utilisation est le programme ci\-dessous, qui trie les
+chaînes données sur la ligne de commande\ :
+.sp
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+static int
+cmpstringp(const void *p1, const void *p2)
+{
+    /* Les arguments de cette fonction sont des "pointeurs de
+       pointeurs sur des caractères", mais les arguments de
+       strcmp(3) sont des "pointeurs sur des caractères", d'où
+       le forçage de type et l'utilisation de l'astérisque */
+
+    return strcmp(* (char * const *) p1, * (char * const *) p2);
+}
+
+int
+main(int argc, char *argv[])
+{
+    int j;
+
+    if (argc < 2) {
+	fprintf(stderr, "Usage: %s <string>...\en", argv[0]);
+	exit(EXIT_FAILURE);
+    }
+
+    qsort(&argv[1], argc \- 1, sizeof(char *), cmpstringp);
+
+    for (j = 1; j < argc; j++)
+        puts(argv[j]);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBsort\fP(1), \fBalphasort\fP(3), \fBstrcmp\fP(3), \fBversionsort\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,157 @@
+.\" Copyright (c) 1998 Andries Brouwer (aeb@cwi.nl), 24 September 1998
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH REBOOT 2 "11 février 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+reboot \- Redémarrer la machine, ou activer/désactiver Ctrl\-Alt\-Suppr.
+.SH SYNOPSIS
+/* Avec libc4 et libc5, la fonction de bibliothèque et
+   l'appel système sont identiques, et depuis la version
+   2.1.30 du noyau, il existe des noms symboliques
+   LINUX_REBOOT_* pour les constantes et un quatrième
+   argument à l'appel\ : */
+.sp
+\fB#include <unistd.h>\fP
+.br
+\fB#include <linux/reboot.h>\fP
+.sp
+\fBint reboot(int \fP\fImagic\fP\fB, int \fP\fImagic2\fP\fB, int \fP\fIcmd\fP\fB, void
+*\fP\fIarg\fP\fB);\fP
+.sp
+/* Avec glibc, certaines des constantes concernées ont des
+   noms symboliques RB_*, et la fonction de bibliothèque est
+   une coquille à 1 argument encapsulant l'appel système à 3
+   arguments\ : */
+.sp
+\fB#include <unistd.h>\fP
+.br
+\fB#include <sys/reboot.h>\fP
+.sp
+\fBint reboot(int \fP\fIcmd\fP\fB);\fP
+.SH DESCRIPTION
+L'appel système \fBreboot\fP() fait redémarrer le système, ou active/désactive
+la séquence de touches de redémarrage (Ctrl\-Alt\-Suppr par défaut mais cela
+peut être modifié en utilisant \fBloadkeys\fP(1)). Ces touches sont abrégées en
+CAD pour Ctrl\-Alt\-Del.
+.PP
+Cet appel système échouera (avec \fBEINVAL\fP) sauf si \fImagic\fP vaut
+\fBLINUX_REBOOT_MAGIC1\fP (c'est\-à\-dire 0xfee1dead) et si \fImagic2\fP vaut
+\fBLINUX_REBOOT_MAGIC2\fP (qui est 672274793). Toutefois, sont également
+autorisées pour \fImagic2\fP les valeurs \fBLINUX_REBOOT_MAGIC2A\fP (qui vaut
+85072278) depuis la version 2.1.17 du noyau, \fBLINUX_REBOOT_MAGIC2B\fP (valant
+369367448) depuis la version 2.1.97 et \fBLINUX_REBOOT_MAGIC2C\fP (valant
+537993216) depuis la version 2.5.71. Les valeurs hexadécimales de ces
+constantes ont un sens. L'argument \fIcmd\fP peut prendre l'une des valeurs
+suivantes\ :
+.TP 
+\fBLINUX_REBOOT_CMD_RESTART\fP
+(RB_AUTOBOOT, 0x1234567). Le message «\ Restarting system.\ » est affiché et
+un redémarrage est initialisé immédiatement. Si cet appel n'est pas précédé
+par un \fBsync\fP(2), des données seront perdues.
+.TP 
+\fBLINUX_REBOOT_CMD_HALT\fP
+(RB_HALT_SYSTEM, 0xcdef0123; depuis 1.1.76). Le message «\ System halted.\ »
+est affiché et le système est arrêté. Le contrôle est transmis au moniteur
+en ROM s'il y en a un. Si cet appel n'est pas précédé par un \fBsync\fP(2), des
+données seront perdues.
+.TP 
+\fBLINUX_REBOOT_CMD_POWER_OFF\fP
+(0x4321fedc; depuis 2.1.30). Le message «\ Power down.\ » est affiché, et
+tout le système est mis hors\-tension si possible. Si cet appel n'est pas
+précédé par un \fBsync\fP(2), des données seront perdues.
+.TP 
+\fBLINUX_REBOOT_CMD_RESTART2\fP
+(0xa1b2c3d4; depuis 2.1.30). Le message «\ Restarting system with command
+\(aq%s\(aq\ » est affiché et un redémarrage (en utilisant la chaîne de
+commande fournie dans \fIarg\fP) est enclenché immédiatement. Si cet appel
+n'est pas précédé par un \fBsync\fP(2), des données seront perdues.
+.TP 
+\fBLINUX_REBOOT_CMD_CAD_ON\fP
+(RB_ENABLE_CAD, 0x89abcdef). Les touches de redémarrage Ctrl\-Alt\-Suppr sont
+autorisées. Ceci signifie que la frappe de ces touches déclenchera l'action
+associée à \fBLINUX_REBOOT_CMD_RESTART\fP immédiatement.
+.TP 
+\fBLINUX_REBOOT_CMD_CAD_OFF\fP
+(RB_DISABLE_CAD, 0). Les touches de redémarrage Ctrl\-Alt\-Suppr sont
+désactivées. Ceci signifie que la frappe de ces touches enverra un signal
+\fBSIGINT\fP au processus 1 (init). Celui\-ci pourra alors décider de l'action
+appropriée à enclencher (généralement tuer tous les processus, démonter la
+plupart des systèmes de fichiers, sync, et redémarrer).
+.LP
+Seul le superutilisateur peut appeler \fBreboot\fP().
+.LP
+L'effet exact des actions décrites ci\-dessus dépend de l'architecture. Pour
+les i386, l'argument supplémentaire ne sert à rien à ce jour (2.1.22), mais
+le type de redémarrage peut être sélectionné par un argument en ligne de
+commande du noyau («\ reboot=...\ ») afin d'être un redémarrage à chaud, à
+froid, matériel ou par le bios.
+.SH "VALEUR RENVOYÉE"
+Pour les valeurs de \fIcmd\fP qui arrêtent ou redémarrent le système, un appel
+réussi à \fBreboot\fP() ne rend pas la main. Pour les autres valeurs de \fIcmd\fP,
+0 est renvoyé en cas de succès. Dans tous les cas, \-1 est renvoyé en cas
+d'échec, et \fIerrno\fP est positionnée en conséquence.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+Problème lors de la récupération de données espace utilisateur sous
+\fBLINUX_REBOOT_CMD_RESTART2\fP.
+.TP 
+\fBEINVAL\fP
+Mauvais nombres magiques ou mauvaise valeur de \fIcmd\fP.
+.TP 
+\fBEPERM\fP
+Le processus appelant n'a pas les privilèges suffisants pour invoquer
+\fBreboot\fP()\ ; la capacité \fBCAP_SYS_BOOT\fP est nécessaire.
+.SH CONFORMITÉ
+\fBreboot\fP() est spécifique à Linux et ne devrait pas être employé dans des
+programmes destinés à être portables
+.SH "VOIR AUSSI"
+\fBsync\fP(2), \fBbootparam\fP(7), \fBcapabilities\fP(7), \fBctrlaltdel\fP(8),
+\fBhalt\fP(8), \fBreboot\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

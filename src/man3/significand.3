@@ -1,0 +1,70 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" Distributed under GPL
+.\" heavily based on glibc infopages, copyright Free Software Foundation
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SIGNIFICAND 3 "4 février 2009" GNU "Manuel du programmeur Linux"
+.SH NOM
+significand, significandf, significandl \- Obtenir la mantisse d'un nombre
+réel en virgule flottante
+.SH SYNOPSIS
+\fB#include <math.h>\fP
+.sp
+\fBdouble significand(double \fP\fIx\fP\fB);\fP
+.br
+\fBfloat significandf(float \fP\fIx\fP\fB);\fP
+.br
+\fBlong double significandl(long double \fP\fIx\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBsignificand\fP(), \fBsignificandf\fP(), \fBsignificandl\fP()\ : _SVID_SOURCE ||
+_BSD_SOURCE
+.ad b
+.SH DESCRIPTION
+La fonction \fBsignificand\fP() renvoie la mantisse de \fIx\fP mise à l'échelle
+dans l'intervalle [1,2). Cette fonction est équivalente à\ :
+.sp
+.in +4n
+scalb(x, (double) \-ilogb(x))
+.in
+.PP
+Cette fonction existe principalement afin de tester la conformité aux tests
+de standardisation de l'IEEE 754.
+.SH CONFORMITÉ
+.\" .SH HISTORY
+.\" This function came from BSD.
+Ces fonction ne sont pas standard\ ; la version pour les \fIdouble\fP est
+disponible sur une certain nombres d'autres systèmes.
+.SH "VOIR AUSSI"
+\fBilogb\fP(3), \fBscalb\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

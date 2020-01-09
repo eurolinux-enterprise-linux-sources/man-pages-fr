@@ -1,0 +1,108 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_ATTR_SETSTACKSIZE 3 "5 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_attr_setstacksize, pthread_attr_getstacksize \- Définir ou obtenir la
+taille de la pile de l'objet d'attributs de thread
+.SH SYNOPSIS
+.nf
+\fB#include <pthread.h>\fP
+
+\fBint pthread_attr_setstacksize(pthread_attr_t *\fP\fIattr\fP\fB, size_t \fP\fIstacksize\fP\fB);\fP
+\fBint pthread_attr_getstacksize(pthread_attr_t *\fP\fIattr\fP\fB, size_t *\fP\fIstacksize\fP\fB);\fP
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.SH DESCRIPTION
+La fonction \fBpthread_attr_setstacksize\fP() définit, à la valeur indiquée par
+\fIstacksize\fP, l'attribut contenant la taille de la pile dans l'objet
+d'attributs de thread auquel \fIattr\fP fait référence.
+
+L'attribut contenant la taille de la pile détermine la taille minimale (en
+octets) de la pile qui sera allouée pour les threads créés en utilisant
+l'objet d'attributs de thread \fIattr\fP.
+
+La fonction \fBpthread_attr_getstacksize\fP() renvoie, dans le tampon pointé
+par \fIstacksize\fP, l'attribut contenant la taille de la pile de l'objet
+d'attributs de thread \fIattr\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient 0\ ; en cas d'erreur elles
+renvoient un numéro d'erreur non nul.
+.SH ERREURS
+\fBpthread_attr_setstacksize\fP() peut échouer avec les erreurs suivantes\ :
+.TP 
+\fBEINVAL\fP
+La taille de la pile est inférieure à \fBPTHREAD_STACK_MIN\fP (16384) octets.
+.PP
+.\" e.g., MacOS
+Sur certains systèmes, \fBpthread_attr_setstacksize\fP() peut échouer avec
+l'erreur \fBEINVAL\fP si \fIstacksize\fP n'est pas un multiple de la taille des
+pages système.
+.SH VERSIONS
+Ces fonctions sont fournies par la glibc depuis la version\ 2.1.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH EXEMPLE
+Voir \fBpthread_create\fP(3).
+.SH NOTES
+Pour des détails sur la taille par défaut de la pile des nouveaux threads,
+voir \fBpthread_create\fP(3).
+
+La taille de la pile d'un thread est fixée au moment de la création d'un
+thread. Seul le thread principal peut dynamiquement agrandir sa pile.
+
+La fonction \fBpthread_attr_setstack\fP(3) permet à une application de définir
+à la fois la taille et l'emplacement d'une pile allouée par l'appelant qui
+doit être utilisée par un thread.
+.SH BOGUES
+Au moment de la glibc 2.8, si le paramètre \fIstacksize\fP n'est pas un
+multiple de \fBSTACK_ALIGN\fP (16 octets sur la plupart des architectures), la
+taille peut être \fIréduite\fP, ce qui est contraire à POSIX.1\-2001, qui
+indique que la pile allouée doit être d'au moins \fIstacksize\fP octets.
+.SH "VOIR AUSSI"
+\fBgetrlimit\fP(2), \fBpthread_attr_init\fP(3), \fBpthread_attr_setguardsize\fP(3),
+\fBpthread_attr_setstack\fP(3), \fBpthread_create\fP(3), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

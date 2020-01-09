@@ -1,0 +1,486 @@
+.\" (C) Copyright 1992-1999 Rickard E. Faith and David A. Wheeler
+.\" (faith@cs.unc.edu and dwheeler@ida.org)
+.\" and (C) Copyright 2007 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" 2007-05-30 created by mtk, using text from old man.7 plus
+.\" rewrites and additional text.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MAN\-PAGES 7 "28 octobre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+man\-pages \- Conventions pour l'écriture des pages de manuel Linux
+.SH SYNOPSIS
+\fBman\fP [\fIsection\fP] \fItitre\fP
+.SH DESCRIPTION
+Cette page décrit les conventions utilisées pour les pages de manuel du
+projet \fIman\-pages\fP pour Linux, qui contient les pages de manuel pour Linux
+dans les sections 2, 3, 4, 5 et 7. Les conventions décrites sur cette page
+peuvent aussi être utiles aux auteurs de pages de manuels pour d'autres
+projets.
+.SS "Sections des pages de manuel"
+.PP
+Les sections du manuel sont traditionnellement les suivantes\ :
+.TP  10
+\fB1 Commandes (programmes)\fP
+Les commandes qui peuvent être invoquées par l'utilisateur depuis un
+interpréteur de commandes.
+.TP 
+\fB2 Appels système\fP
+Les fonctions fournies par le noyau.
+.TP 
+\fB3 Fonctions de bibliothèques\fP
+La plupart des fonctions de la bibliothèque C (\fIlibc\fP).
+.TP 
+\fB4 Fichiers spéciaux (périphériques)\fP
+Fichiers spéciaux trouvés dans \fI/dev\fP.
+.TP 
+\fB5 Formats de fichiers et conventions\fP
+Le format de \fI/etc/passwd\fP et d'autres fichiers lisibles par un humain.
+.TP 
+\fB6 Jeux\fP
+.TP 
+\fB7 Conventions et divers\fP
+Panorama de divers sujets, conventions et protocoles, normes de jeux de
+caractères, et diverses autres choses.
+.TP 
+\fB8 Commandes d'administration système\fP
+.\" .TP
+.\" .B 9 Kernel routines
+.\" This is an obsolete manual section.
+.\" Once it was thought a good idea to document the Linux kernel here,
+.\" but in fact very little has been documented, and the documentation
+.\" that exists is outdated already.
+.\" There are better sources of
+.\" information for kernel developers.
+Les commandes comme \fBmount\fP(8), que seul root peut exécuter.
+.SS "Paquet de macros"
+Les nouvelles pages de manuel doivent être mises en forme en utilisant le
+paquet \fBgroff an.tmac\fP décrit dans \fBman\fP(7). Ce choix est principalement
+destiné à assurer une cohérence\ : la plupart des pages de manuel Linux sont
+mises en forme avec ces macros.
+.SS "Conventions pour l'agencement des sources"
+Veuillez limiter la longueur des lignes dans le source à environ 75
+caractères, autant que faire se peut. Cela permet d'éviter les retours à la
+ligne ajoutés par les clients de mail lorsque des patches sont soumis par ce
+moyen.
+
+Chaque phrase doit commencer une ligne. Cela permet de voir plus facilement
+l'effet des patches, qui s'appliquent souvent au niveau d'une phrase.
+.SS "Ligne de titre"
+La première commande d'une page de manuel doit être une commande \fBTH\fP
+.RS
+.sp
+\fB\&.TH\fP \fItitre section date source manuel\fP,
+.sp
+.RE
+où\ :
+.RS
+.TP  10
+\fItitre\fP
+Le titre de la page de manuel, en majuscules (par exemple \fIMAN\-PAGES\fP).
+.TP 
+\fIsection\fP
+Le numéro de section dans laquelle placer la page (par exemple \fI7\fP).
+.TP 
+\fIdate\fP
+La date de la dernière modification. Pensez à modifier cette date à chaque
+changement dans la page, car c'est la manière la plus courante d'avoir un
+contrôle de version. Les dates doivent être de la forme AAAA\-MM\-JJ.
+.TP 
+\fIsource\fP
+La source de la commande, fonction, ou de l'appel système.
+
+Pour les quelques pages de \fIman\-pages\fP dans les sections 1 et 8, il est
+conseillé d'écrire \fIGNU\fP.
+
+Pour les appels système, écrivez simplement \fILinux\fP. Précédemment, il était
+courant d'écrire aussi le numéro de version du noyau pour laquelle la page
+de manuel était écrite. Cependant, cela n'était pas fait de façon
+systématique, et était donc pire que d'omettre simplement le numéro de
+version. N'incluez donc pas de numéro de version.
+
+Pour les fonctions de bibliothèque de glibc ou de l'une des bibliothèques
+GNU standard, utilisez \fIGNU C Library\fP, \fIGNU\fP, ou une chaîne vide.
+
+Pour les pages de la section 4, utilisez \fILinux\fP.
+
+En cas d'hésitation, écrivez \fILinux\fP ou \fIGNU\fP.
+.TP 
+\fImanuel\fP
+Le titre du manuel (par exemple \fILinux Programmer's Manual\fP pour les pages
+des sections 2 et 3 dans le paquet \fIman\-pages\fP)
+.RE
+.SS "Sections dans une page de manuel"
+La liste ci\(hydessous indique les sections habituelles ou suggérées. La
+plupart des pages devraient contenir au moins les sections \fBmises en
+évidence\fP. Dans les nouvelles pages de manuel, placez les sections dans
+l'ordre indiqué dans la liste.
+.in +0.5i
+.nf
+
+.\" May 07: Few current man pages have an ERROR HANDLING section,,,
+.\" ERROR HANDLING,
+.\" May 07: Almost no current man pages have a USAGE section,,,
+.\" USAGE,
+.\" DIAGNOSTICS,
+.\" May 07: Almost no current man pages have a SECURITY section,,,
+.\" SECURITY,
+.\" AUTHORS sections are discouraged
+.\" AUTHORS             [Discouraged]
+\fBNAME\fP
+\fBSYNOPSIS\fP
+CONFIGURATION      [En général seulement section 4]
+\fBDESCRIPTION\fP
+OPTIONS            [En général seulement sections 1, 8]
+EXIT STATUS        [En général seulement sections 1, 8]
+RETURN VALUE       [En général seulement sections 2, 3]
+ERRORS             [Typiquement uniquement sections 2, 3]
+ENVIRONMENT
+FILES
+VERSIONS           [En général seulement sections 2, 3]
+CONFORMING TO
+NOTES
+BUGS
+EXAMPLE
+\fBSEE ALSO\fP
+
+.fi
+.in
+\fILorsque l'une des sections traditionnelles s'applique\fP, \fIutilisez\-la\fP\ ;
+cette cohérence rend l'information plus facile à comprendre. Si cela est
+nécessaire, vous pouvez créer vos propres titres de sections si cela rend
+les choses plus compréhensibles (particulièrement pour les pages des
+sections 4 et 5). Cependant, avant de faire cela, vérifiez qu'aucun des
+titres de sections traditionnels ne peut être utilisé, avec des
+sous\(hysections (\fI.SS\fP).
+
+La liste suivante décrit le contenu de chacune des sections ci\(hydessus.
+.TP  14
+\fBNAME\fP
+Le nom de cette page. D'importants détails sur les lignes qui doivent suivre
+la commande \fB.SH NAME\fP se trouvent dans la page \fBman\fP(7).
+.TP 
+\fBSYNOPSIS\fP
+Indique brièvement l'interface de la commande ou de la fonction. Pour les
+commandes, ce paragraphe montre sa syntaxe et ses arguments. Les caractères
+gras marquent le texte invariable et l'italique indique les arguments
+remplaçables. Les crochets «\ []\ » encadrent les arguments optionnels, les
+barres verticales «\ |\ » séparent les alternatives, et les ellipses «\
+\&...\ » signalent les répétitions. Pour les fonctions, on trouve toutes les
+déclarations et directives \fB#include\fP, suivies de la déclaration de
+fonction.
+
+.\" FIXME . Say something here about compiler options
+Si une macro de test de fonctionnalité doit être définie pour obtenir la
+déclaration d'une fonction (ou d'une variable) dans un fichier d'en\-tête,
+alors la section SYNOPSIS doit l'indiquer, comme décrit dans
+\fBfeature_test_macros\fP(7).
+.TP 
+\fBCONFIGURATION\fP
+Détails de configuration pour un périphérique. Cette section est présente
+normalement que dans les pages de la section 4.
+.TP 
+\fBDESCRIPTION\fP
+.\" If there is some kind of input grammar or complex set of subcommands,
+.\" consider describing them in a separate
+.\" .B USAGE
+.\" section (and just place an overview in the
+.\" .B DESCRIPTION
+.\" section).
+Fournit une explication sur ce que la commande, la fonction ou le format
+représente. Décrit les interactions avec les fichiers et l'entrée standard,
+ou ce qui est produit sur la sortie standard ou d'erreur. Ne contient pas
+les détails d'implémentation internes, sauf s'ils sont critique pour
+comprendre l'interface. Décrit le cas principal, pour les détails sur les
+options, on utilise le paragraphe \fBOPTIONS\fP.
+.TP 
+\fBOPTIONS\fP
+.\" .TP
+.\" .B USAGE
+.\" describes the grammar of any sublanguage this implements.
+Décrit les options acceptées par le programme et leur influence sur son
+comportement. Cette section ne doit être utilisée que pour les pages de
+manuel des sections 1 et 8.
+.TP 
+\fBEXIT STATUS\fP (\fBCODE DE RETOUR\fP)
+Indique les codes de retour d'un programme et les conditions
+associées. Cette section ne doit être utilisée que pour les pages de manuel
+des sections 1 et 8.
+.TP 
+\fBRETURN VALUE\fP (\fBVALEUR RENVOYÉE\fP)
+Pour les pages des sections 2 et 3, donne une liste des valeurs qu'une
+routine de bibliothèque renverra à l'appelant et les conditions qui
+provoquent ces retours.
+.TP 
+\fBERRORS\fP
+Pour les pages des sections 2 et 3, cette partie contient une liste des
+valeurs possibles de \fIerrno\fP en cas d'erreur, avec la description des
+causes de ces erreurs. \fILa liste d'erreurs doit être triée par ordre
+alphabétique\fP.
+.TP 
+\fBENVIRONMENT\fP (\fBENVIRONNEMENT\fP)
+Décrit toutes les variables d'environnement qui affectent le programme ou la
+fonction, ainsi que leurs effets.
+.TP 
+\fBFILES\fP (\fBFICHIERS\fP)
+.\" May 07: Almost no current man pages have a DIAGNOSTICS section;
+.\"         "RETURN VALUE" or "EXIT STATUS" is preferred.
+.\" .TP
+.\" .B DIAGNOSTICS
+.\" gives an overview of the most common error messages and how to
+.\" cope with them.
+.\" You don't need to explain system error messages
+.\" or fatal signals that can appear during execution of any program
+.\" unless they're special in some way to the program.
+.\"
+.\" May 07: Almost no current man pages have a SECURITY section.
+.\".TP
+.\".B SECURITY
+.\"discusses security issues and implications.
+.\"Warn about configurations or environments that should be avoided,
+.\"commands that may have security implications, and so on, especially
+.\"if they aren't obvious.
+.\"Discussing security in a separate section isn't necessary;
+.\"if it's easier to understand, place security information in the
+.\"other sections (such as the
+.\" .B DESCRIPTION
+.\" or
+.\" .B USAGE
+.\" section).
+.\" However, please include security information somewhere!
+Liste les fichiers utilisés par le programme ou la fonction, tels que
+fichiers de configuration, de démarrage, et les fichiers manipulés
+directement par le programme. Il faut donner le chemin d'accès complet des
+fichiers et utiliser le mécanisme d'installation pour modifier le
+préfixe. Pour la plupart des programmes, l'installation par défaut se fait
+dans \fI/usr/local\fP, aussi, votre page de manuel de base devrait utiliser
+\fI/usr/local\fP comme base.
+.TP 
+\fBVERSIONS\fP
+Un court résumé de la version du noyau Linux ou de la glibc où l'appel
+système ou la fonction de bibliothèque est apparu, ou dont le fonctionnement
+est modifié de manière significative. De manière générale, la page de manuel
+de chaque nouvelle interface devrait inclure une section
+VERSIONS. Malheureusement, bien des pages de manuel existantes n'incluent
+pas cette information (car il n'y avait pas de politique pour le faire lors
+qu'elles ont été rédigées). Les correctifs pour y remédier sont les
+bienvenus. Dans la perpective d'écriture de nouveau code, cette information
+n'a de sens que dans le cas d'interface noyau ajoutée à Linux 2.4 ou suivant
+(c'est\-à\-dire les modifications depuis la version 2.2 du noyau), et les
+fonctions de la bibliothèque ajoutées dans glibc depuis la version 2.1
+(c'est\-à\-dire les modifications depuis la version 2.0 de la glibc).
+
+La page de manuel \fBsyscalls\fP(2) fournit également des informations de
+versions de noyau dans lesquelles sont apparus les appels système.
+.TP 
+\fBCONFORMING TO\fP (\fBCONFORMITÉ\fP)
+Décrit les normes ou conventions liées à la fonction ou à la commande
+décrite par la page de manuel. Pour une page dans la section 2 ou 3, cette
+section doit indiquer la version de POSIX.1 à laquelle l'appel se conforme,
+et s'il est spécifié par C99. (Il est inutile de trop se préoccuper des
+autres normes comme SUS, SUSv2 ou XPG, ou des implémentations SVr4 ou BSD\
+4.x, sauf si la fonction était présente dans ces systèmes mais n'est pas
+dans la version actuelle de POSIX.1. (Voir \fBstandards\fP(7).)
+
+Si la fonction n'est gouvernée par aucun standard, mais existe sur d'autres
+systèmes, mentionnez\(hyles. Si elle est spécifique à Linux, notez\(hyle.
+
+Si cette section ne consiste qu'en une liste de normes (ce qui est
+d'habitude le cas), terminez la liste par un point («\ .\ »).
+.TP 
+\fBNOTES\fP
+Contient des notes diverses. Pour les pages des sections 2 et 3, il peut
+être utile d'utiliser des sous\(hysections (\fBSS\fP) appelées \fILinux Notes\fP
+ou \fIGlibc Notes\fP.
+.TP 
+\fBBUGS\fP (\fBBOGUES\fP)
+Liste les limitations ou les défauts recensés, ainsi que les sujets à débat.
+.TP 
+\fBEXAMPLE\fP (\fBEXEMPLE\fP)
+Donne un ou plusieurs exemples d'utilisation de la fonction, du fichier ou
+de la commande. Pour plus de détails sur l'écriture d'exemples de
+programmes, voir la section qui y est consacrée ci\(hydessous.
+.TP 
+\fBAUTHORS\fP (\fBAUTEURS\fP)
+Liste les auteurs de la documentation ou du programme. \fBL'utilisation d'une
+section AUTHORS est fortement découragée\fP. En général, il vaut mieux ne pas
+remplir les pages de manuel avec une liste (potentiellement longue)
+d'auteurs\ ; si vous écrivez ou modifiez de façon importante une page,
+ajoutez une notice de copyright en commentaire dans le fichier source. Si
+vous êtes l'auteur d'un pilote de périphérique et voulez inclure une adresse
+pour signaler les bogues, placez\(hyla dans la section BUGS.
+.TP 
+\fBSEE ALSO\fP (\fBVOIR AUSSI\fP)
+Fournit une liste des pages de manuel (séparées par des virgules) ayant un
+rapport, dans l'ordre des sections puis alphabétique, suivies des autres
+documents éventuels. Ne terminez pas la liste par un point.
+.SS "Conventions de fontes"
+.PP
+Pour les fonctions, les arguments sont toujours indiqués en italique, \fImême
+dans le paragraphe SYNOPSIS\fP, où le reste de la fonction est en caractères
+gras\ :
+.PP
+\fB int myfunction(int \fP\fIargc\fP\fB, char **\fP\fIargv\fP\fB);\fP
+.PP
+Les noms de variables devraient, tout comme les noms de paramètres, être
+formatés en italique.
+.PP
+Les noms de fichiers, que ce soit des chemins ou des références à des
+fichiers du répertoire \fI/usr/include\fP) sont toujours en italique (par
+exemple \fI<stdio.h>\fP), sauf dans le paragraphe SYNOPSIS, où les
+fichiers inclus sont en gras (par exemple \fB#include
+<stdio.h>\fP). Lorsque vous faites référence à un fichier d'entête
+standard situé dans \fI/usr/include\fP, spécifiez le fichier d'entête entouré
+avec les symboles inférieur et supérieur, de la même manière que dans un
+fichier source C (par exemple, \fI<stdio.h>\fP).
+.PP
+Les macros, généralement en majuscules, sont en gras (par exemple
+\fBMAXINT\fP). Exception\ : NULL ne doit pas être en gras.
+.PP
+Dans l'énumération d'une liste de code d'erreurs, les codes sont en gras, et
+la liste utilise normalement la macro \fB\&.TP\fP.
+.PP
+Les commandes complètes devraient, si elles sont longues, être écrites sous
+forme indentée, par exemple
+.in +4n
+.nf
+
+man 7 man\-pages
+
+.fi
+.in
+Si la commande est courte, elle peut être incluse dans le texte, en
+italique, par exemple, \fIman 7 man\-pages\fP. Dans ce cas, il peut être
+intéressant d'utiliser des espaces insécables («\ \e\ \ ») aux endroits
+appropriés dans la commande. Les options des commandes doivent elles aussi
+être formatées en italique, par exemple, \fI\-l\fP.
+.PP
+Les expressions, si elles ne sont pas écrites sur une ligne indentée,
+devraient être mises en italique. Ici aussi, l'utilisation d'espaces
+insécables est appropriée si l'expression est mélangée à du texte normal.
+.PP
+Toute référence au sujet de la page de manuel courante doit être écrite en
+gras. Si le sujet est une fonction (c'est\(hyà\(hydire s'il s'agit d'une
+page de section 2 ou 3), le nom doit être suivi d'une paire de parenthèses
+en caractères romans (normaux). Par exemple, dans la page \fBfcntl\fP(2), les
+références au sujet de la page sont écrites \fBfcntl\fP(). La façon d'écrire
+ceci dans le fichier source est\ :
+.nf
+
+    .BR fcntl ()
+
+.fi
+(avec ce format au lieu de «\ \efB...\efP()\ » le travail d'outils qui
+parsent les sources des pages de manuel est plus facile)
+.PP
+Toute référence à une autre page de manuel, ou au sujet principal de la page
+en cours, est en gras, et \fItoujours\fP suivi du numéro de section, en fonte
+normale, sans espace (par exemple \fBintro\fP(2)). Dans le source, on l'écrit
+habituellement de cette façon\ :
+.nf
+
+    .BR intro (2)
+
+.fi
+(inclure le numéro de section dans les références croisées permet à des
+outils comme \fBman2html\fP(1) de créer des liens hypertexte appropriés)
+.SS Orthographe
+A partir de la version 2.59, la version anglaise de \fIman\-pages\fP suit les
+conventions orthographiques américaines\ ; veuillez écrire les nouvelles
+pages et les rustines en suivants ces conventions.
+.SS "Programmes d'exemples et sessions shell."
+Les pages de manuel peuvent contenir des programmes permettant de montrer
+comment utiliser un appel système ou une fonction de
+bibliothèque. Cependant, veuillez noter ceci\ :
+.TP  3
+*
+Les programmes d'exemple doivent être écrits en C.
+.TP 
+*
+Un programme d'exemple n'est nécessaire et utile que s'il montre quelque
+chose qui ne peut pas être fourni facilement dans une description de
+l'interface. Un programme d'exemple qui ne fait qu'appeler une fonction ne
+sert en général à rien.
+.TP 
+*
+Les programmes d'exemple doivent être plutôt courts (de préférence moins de
+100 lignes, idéalement moins de 50 lignes).
+.TP 
+*
+Les programmes d'exemple doivent vérifier les erreurs après les appels
+système et les appels de fonctions de bibliothèque.
+.TP 
+*
+Les programmes d'exemple doivent être complets et compiler sans
+avertissements avec \fIcc\ \-Wall\fP.
+.TP 
+*
+Si possible et raisonnable, les programmes d'exemples doivent permettre
+d'expérimenter, en changeant de comportement en fonction des entrées
+(arguments de ligne de commande, ou bien entrées lues par le programme).
+.TP 
+*
+Les programmes d'exemple doivent être mis en forme dans le style de
+Kernighan et Ritchie, avec des indentations de 4 espaces (évitez d'utiliser
+le caractère tabulation dans les fichiers source\ !).
+.PP
+Pour voir à quoi les programmes d'exemples devraient ressembler, voyez
+\fBwait\fP(2) et \fBpipe\fP(2).
+
+Si vous incluez une session d'interpréteur de commandes pour démontrer
+l'utilisation d'un programme ou d'autres fonctionnalités système, mettez le
+texte entré par l'utilisateur en gras pour le distinguer de la sortie
+produite par le système.
+.SS "Indentation des définitions de structure, session shell, etc."
+Lorsque des définitions de structure, des sorties de session shell,
+etc. sont inclus dans le texte courant, indentez\-les avec 4 espaces
+(c'est\-à\-dire un bloc entouré par \fI.in\ +4n\fP et \fI.in\fP).
+.SH EXEMPLE
+Pour des exemples canoniques de pages de manuel du paquet \fIman\-pages\fP, voir
+\fBpipe\fP(2) et \fBfcntl\fP(2).
+.SH "VOIR AUSSI"
+\fBman\fP(1), \fBman2html\fP(1), \fBgroff\fP(7), \fBgroff_man\fP(7), \fBman\fP(7),
+\fBmdoc\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,583 @@
+.\" Copyright (c) 2007, 2008 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" and Copyright (c) 2006 Ulrich Drepper <drepper@redhat.com>
+.\" A few pieces of an earlier version remain:
+.\" Copyright 2000, Sam Varshavchik <mrsam@courier-mta.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References: RFC 2553
+.\"
+.\" 2005-08-09, mtk, added AI_ALL, AI_ADDRCONFIG, AI_V4MAPPED,
+.\"			and AI_NUMERICSERV.
+.\" 2006-11-25, Ulrich Drepper <drepper@redhat.com>
+.\"     Add text describing Internationalized Domain Name extensions.
+.\" 2007-06-08, mtk: added example programs
+.\" 2008-02-26, mtk; clarify discussion of NULL 'hints' argument; other
+.\"     minor rewrites.
+.\" 2008-06-18, mtk: many parts rewritten
+.\" 2008-12-04, Petr Baudis <pasky@suse.cz>
+.\"	Describe results ordering and reference /etc/gai.conf.
+.\" FIXME . glibc's 2.9 NEWS file documents DCCP and UDP-lite support
+.\"           and is SCTP support now also there?
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETADDRINFO 3 "3 septembre 2009" GNU "Manuel du programmeur Linux"
+.SH NOM
+getaddrinfo, freeaddrinfo, gai_strerror \- Traduction d'adresses et de
+services réseau.
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <sys/socket.h>\fP
+\fB#include <netdb.h>\fP
+.sp
+\fBint getaddrinfo(const char *\fP\fInode\fP\fB, const char *\fP\fIservice\fP\fB,\fP
+\fB                const struct addrinfo *\fP\fIhints\fP\fB,\fP
+\fB                struct addrinfo **\fP\fIres\fP\fB);\fP
+.sp
+\fBvoid freeaddrinfo(struct addrinfo *\fP\fIres\fP\fB);\fP
+.sp
+\fBconst char *gai_strerror(int \fP\fIerrcode\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.ad l
+.in
+.sp
+\fBgetaddrinfo\fP(), \fBfreeaddrinfo\fP(), \fBgai_strerror\fP()\ : _POSIX_C_SOURCE\
+>=\ 1 || _XOPEN_SOURCE || _POSIX_SOURCE
+.ad b
+.SH DESCRIPTION
+.\" .BR getipnodebyname (3),
+.\" .BR getipnodebyaddr (3),
+Étant donnés \fInode\fP et \fIservice\fP, qui identifient un hôte Internet et un
+service, \fBgetaddrinfo\fP() renvoie une ou plusieurs structure \fIaddrinfo\fP,
+chacune d'entre elles contenant une adresse Internet qui puisse être
+indiquée dans un appel à \fBbind\fP(2) ou \fBconnect\fP(2). La fonction
+\fBgetaddrinfo\fP() combine la fonctionnalité fournie par les fonctions
+\fBgetservbyname\fP(3) et \fBgetservbyport\fP(3) en une interface unique, mais à
+l'inverse de ces fonctions, \fBgetaddrinfo\fP() est ré\-entrante et permet aux
+programmes d'éliminer la dépendance envers IPv4 ou IPv6.
+.PP
+La structure \fIaddrinfo\fP utilisée par \fBgetaddrinfo\fP() contient les membres
+suivants\ :
+.sp
+.in +4n
+.nf
+struct addrinfo {
+    int              ai_flags;
+    int              ai_family;
+    int              ai_socktype;
+    int              ai_protocol;
+    size_t           ai_addrlen;
+    struct sockaddr *ai_addr;
+    char            *ai_canonname;
+    struct addrinfo *ai_next;
+};
+.fi
+.in
+.PP
+Le paramètre \fIhints\fP pointe sur une structure \fIaddrinfo\fP qui spécifie les
+critères de sélection des structures d'adresses de sockets renvoyées dans la
+liste pointée par \fIres\fP. Si \fIhints\fP n'est pas NULL, il doit pointer sur
+une structure \fIaddrinfo\fP dont les membres \fIai_family\fP, \fIai_socktype\fP, et
+\fIai_protocol\fP indiquent les critères limitant l'ensemble d'adresses de
+sockets renvoyées par \fBgetaddrinfo\fP(), de la façon suivante\ :
+.TP  12
+\fIai_family\fP
+Ce champ indique la famille d'adresse désirée des adresses renvoyées. Les
+valeurs valides de ce champ inclues \fBAF_INET\fP et \fBAF_INET6\fP. La valeur
+\fBAF_UNSPEC\fP indique que \fBgetaddrinfo\fP() doit renvoyer les adresses de
+socket de n'importe quelle famille d'adresses (par exemple, IPv4 ou IPv6)
+pouvant être utilisées avec \fInode\fP et \fIservice\fP.
+.TP 
+\fIai_socktype\fP
+Ce champ indique le type préféré de socket, par exemple \fBSOCK_STREAM\fP ou
+\fBSOCK_DGRAM\fP. Mettre 0 dans ce champ indique que \fBgetaddrinfo\fP() peut
+renvoyer n'importe quel type d'adresse de socket.
+.TP 
+\fIai_protocol\fP
+Ce champ indique le protocole des adresses de socket renvoyées. Mettre 0
+dans ce champ indique que \fBgetaddrinfo\fP() peut renvoyer des adresses de
+socket de n'importe quel type.
+.TP 
+\fIai_flags\fP
+Ce champ indique des options supplémentaires, décrites plus loin. Divers
+attributs peuvent être indiqués en les regroupant par un OU binaire.
+.PP
+Tous les autres membres de la structure pointée par \fIhints\fP doivent
+contenir 0 ou être des pointeurs NULL. Spécifier \fIhints\fP à NULL est
+équivalent à définir \fIai_socktype\fP et \fIai_protocol\fP à 0, \fIai_family\fP à
+\fBAF_UNSPEC\fP et \fIai_flags\fP à \fB(AI_V4MAPPED\ |\ AI_ADDRCONFIG)\fP.
+
+\fInode\fP indique soit une adresse réseau en format numérique (décimal pointé
+pour l'IPv4, comme prise en charge par \fBinet_aton\fP(3)\ ; hexadécimal pour
+l'IPv6, comme prise en charge par \fBinet_pton\fP(3)), soit un nom d'hôte, dont
+l'adresse réseau est alors résolue. Si le membre \fIhints.ai_flags\fP contient
+l'attribut \fBAI_NUMERICHOST\fP alors \fInode\fP devra être une adresse réseau
+numérique. L'attribut \fBAI_NUMERICHOST\fP empêche toute tentative,
+éventuellement longue, de résolution de nom d'hôte.
+.PP
+Si l'attribut \fBAI_PASSIVE\fP est indiqué dans \fIhints.ai_flags\fP, et si
+\fInode\fP est NULL, les adresses de socket renvoyées seront pertinentes pour
+lier (\fBbind\fP(2)) un socket qui acceptera (\fBaccept\fP(2)) les connexions. Les
+adresses de socket renvoyées contiendront l'«\ adresse joker\ » (wildcard
+adress) (\fBINADDR_ANY\fP pour les adresses IPv4, \fBIN6ADDR_ANY_INIT\fP pour les
+adresses IPv6). L'«\ adresse joker\ » est utilisée par des applications
+(typiquement des serveurs) qui ont l'intention d'accepter des connexions de
+n'importe quel hôte. Si \fInode\fP n'est pas NULL, l'attribut \fBAI_PASSIVE\fP est
+ignoré.
+.PP
+Si l'attribut \fBAI_PASSIVE\fP n'est pas positionné dans \fIhints.ai_flags\fP, les
+adresses de socket renvoyées seront pertinentes pour être utilisées avec
+\fBconnect\fP(2), \fBsendto\fP(2) ou \fBsendmsg\fP(2). Si \fInode\fP est NULL, l'adresse
+réseau sera définie avec l'adresse de l'interface de boucle (loopback)
+(\fBINADDR_LOOPBACK\fP pour les adresses IPv4, \fBIN6ADDR_LOOPBACK_INIT\fP pour
+les adresses IPv6)\ ; cela est utilisé par les applications qui doivent
+communiquer avec des correspondants s'exécutant sur la même machine.
+.PP
+\fIservice\fP définit le port dans chacune des structures d'adresses
+renvoyées. Si cet argument est un nom de service (voir \fBservices\fP(5)), il
+est convertit en son numéro de port correspondant. Cet argument peut
+également être indiqué sous forme décimale, qui est simplement converti en
+binaire. Si \fIservice\fP est NULL, le numéro de port des adresses de socket
+renvoyées n'est pas initialisé. Si \fBAI_NUMERICSERV\fP est indiqué dans
+\fIhints.ai_flags\fP et si \fIservice\fP n'est pas NULL, \fIservice\fP doit pointer
+vers une chaîne contenant une valeur numérique de port. Cet attribut est
+utilisé pour inhiber l'invocation du service de résolution des noms dans les
+cas où l'on sait qu'il n'est pas nécessaire.
+.PP
+\fInode\fP ou \fIservice\fP peuvent être NULL, mais pas les deux à la fois.
+.PP
+La fonction \fBgetaddrinfo\fP() alloue et initialise une liste chaînée de
+structures \fIaddrinfo\fP, une pour chaque adresse réseau correspondant à
+\fInode\fP et \fIservice\fP, soumise aux restrictions imposées par l'argument
+\fIhints\fP, et renvoie dans \fIres\fP un pointeur sur le début de la liste. Les
+éléments de la liste sont chaînés par le champ \fIai_next\fP.
+
+Il y a plusieurs raisons pour lesquelles la liste chaînée peut avoir plus
+d'une structure \fIaddrinfo\fP\ : l'hôte réseau est «\ multi\-homed\ »\ ; le même
+service est accessible depuis plusieurs protocoles (par exemple \fBAF_INET\fP
+et \fBAF_INET6\fP) ou accessible depuis plusieurs types de socket (par exemple,
+une adresse de type \fBSOCK_STREAM\fP et une autre de type
+\fBSOCK_DGRAM\fP). Normalement, l'application essaie d'utiliser les adresses
+dans l'ordre où elles sont renvoyées. La fonction de tri utilisée dans
+\fBgetaddrinfo\fP() est définie dans la RFC\ 3484\ ; le tri peut être configuré
+pour un système particulier avec le fichier \fI/etc/gai.conf\fP (disponible
+depuis la glibc\ 2.5).
+.PP
+.\" In glibc prior to 2.3.4, the ai_canonname of each addrinfo
+.\" structure was set pointing to the canonical name; that was
+.\" more than POSIX.1-2001 specified, or other implementations provided.
+.\" MTK, Aug 05
+Si \fIhints.ai_flags\fP contient l'attribut \fBAI_CANONNAME\fP, le champ
+\fIai_canonname\fP de la première structure \fIaddrinfo\fP de la liste renvoyée
+est défini pour pointer vers le nom officiel de l'hôte.
+
+Les champs restants de chaque structure \fIaddrinfo\fP renvoyée sont
+initialisés de la façon suivante\ :
+.IP * 2
+Les champs \fIai_family\fP, \fIai_socktype\fP et \fIai_protocol\fP renvoient les
+paramètres de création de la socket (c'est\-à\-dire que ces champs ont la même
+signification que les paramètres correspondants de \fBsocket\fP(2)). Par
+exemple, \fIai_family\fP pourrait renvoyer \fBAF_INET\fP ou \fBAF_INET6\fP\ ;
+\fIai_socktype\fP pourrait renvoyer \fBSOCK_DGRAM\fP ou \fBSOCK_STREAM\fP\ ; et
+\fIai_protocol\fP renvoie le protocole de la socket.
+.IP *
+Un pointeur vers l'adresse de la socket est placé dans le champ \fIai_addr\fP,
+et la longueur de l'adresse de la socket, en octets, est inscrite dans le
+champ \fIai_addrlen\fP de la structure.
+.PP
+Si \fIhints.ai_flags\fP inclut le drapeau \fBAI_ADDRCONFIG\fP, alors des adresses
+IPv4 sont renvoyées dans la liste pointée par \fIres\fP seulement si le système
+local possède au moins une adresse IPv4 configurée. Des adresses IPv6 sont
+seulement renvoyées si le système local possède au moins une adresse IPv6
+configurée.
+.PP
+Si \fIhint.ai_flags\fP spécifie le drapeau \fBAI_V4MAPPED\fP, et si
+\fIhints.ai_family\fP a été spécifié avec \fBAF_INET6\fP et qu'aucune adresse IPv6
+correspondante n'a pu être trouvée, alors des adresses IPv4 au format IPv6
+sont renvoyées dans la liste pointée par \fIres\fP. Si \fBAI_V4MAPPED\fP et
+\fBAI_ALL\fP sont spécifiés dans \fIhints.ai_family\fP, des adresses IPv6 et des
+adresses IPv4 au format IPv6 sont renvoyées dans la liste pointée par
+\fIres\fP. \fBAI_ALL\fP est ignoré si \fBAI_V4MAPPED\fP n'est pas aussi spécifié.
+.PP
+La fonction \fBfreeaddrinfo\fP() libère la mémoire qui a été allouée
+dynamiquement pour la liste chaînée \fIres\fP.
+.SS "Extensions de getaddrinfo() pour les noms de domaines internationalisés"
+.PP
+Depuis la glibc\ 2.3.4, \fBgetaddrinfo\fP() a été modifié pour sélectivement
+permettre que les noms d'hôtes entrant et sortant soient convertis vers ou
+depuis le format des noms de domaines internationalisés (IDN). Consultez la
+RFC\ 3490, \fIInternationalizing Domain Names in Applications (IDNA)\fP. Quatre
+nouveaux attributs ont été ajoutés\ :
+.TP 
+\fBAI_IDN\fP
+Si cet attribut est défini, alors le nom du n\(oeud contenu dans \fInode\fP est
+converti dans le format IDN si nécessaire. Le format d'encodage choisi est
+celui de la locale du système.
+
+.\" Implementation Detail:
+.\" To minimize effects on system performance the implementation might
+.\" want to check whether the input string contains any non-ASCII
+.\" characters.  If there are none the IDN step can be skipped completely.
+.\" On systems which allow not-ASCII safe encodings for a locale this
+.\" might be a problem.
+Si le nom du n\(oeud contient des caractères non ASCII, alors le format IDN
+est utilisé. Ces parties du nom du n\(oeud (séparées par des points) qui
+contiennent des caractères non ASCI sont encodées avec «\ ASCII Compatible
+Encoding (ACE)\ » avant d'être transférées aux fonctions de résolution de
+noms.
+.TP 
+\fBAI_CANONIDN\fP
+À la suite d'une résolution de nom réussie et si \fBAI_CANONNAME\fP a été
+spécifié, \fBgetaddrinfo\fP() retournera le nom canonique du n\(oeud
+correspondant à la valeur de la structure \fIaddrinfo\fP passée. La valeur
+renvoyée est une copie exacte de la valeur retournée par la fonction de
+résolution de noms.
+
+.\"
+.\"Implementation Detail:
+.\"If no component of the returned name starts with xn\-\- the IDN
+.\"step can be skipped, therefore avoiding unnecessary slowdowns.
+Si le nom est encodé avec ACE, alors une ou plusieurs composantes de son nom
+sont préfixées par \fIxn\-\-\fP. Pour convertir ces composantes dans un format
+lisible, l'attribut \fBAI_CANONIDN\fP peut être utilisé en plus de
+\fBAI_CANONNAME\fP. La chaîne résultante est encodée selon la locale du
+système.
+.TP 
+\fBAI_IDN_ALLOW_UNASSIGNED\fP, \fBAI_IDN_USE_STD3_ASCII_RULES\fP
+Utiliser ces attributs permet d'activer respectivement les attributs «\
+IDNA_ALLOW_UNASSIGNED\ » (permettre des caractères Unicode non assignés) et
+«\ IDNA_USE_STD3_ASCII_RULES\ » (vérifier la sortie pour être sûr que le nom
+d'hôte est conforme à STD3) utilisés dans la gestion de l'IDNA.
+.SH "VALEUR RENVOYÉE"
+.\" FIXME glibc defines the following additional errors, some which
+.\" can probably be returned by getaddrinfo(); they need to
+.\" be documented.
+.\" #ifdef __USE_GNU
+.\" #define EAI_INPROGRESS  -100  /* Processing request in progress.  */
+.\" #define EAI_CANCELED    -101  /* Request canceled.  */
+.\" #define EAI_NOTCANCELED -102  /* Request not canceled.  */
+.\" #define EAI_ALLDONE     -103  /* All requests done.  */
+.\" #define EAI_INTR        -104  /* Interrupted by a signal.  */
+.\" #define EAI_IDN_ENCODE  -105  /* IDN encoding failed.  */
+.\" #endif
+\fBgetaddrinfo\fP() renvoie 0 si elle réussit, ou l'un des codes d'erreur non
+nuls suivants\ :
+.TP 
+\fBEAI_ADDRFAMILY\fP
+.\" Not in SUSv3
+L'hôte indiqué n'a pas d'adresse dans la famille réseau demandée.
+.TP 
+\fBEAI_AGAIN\fP
+Le serveur de noms a renvoyé une erreur temporaire. Réessayez plus tard.
+.TP 
+\fBEAI_BADFLAGS\fP
+\fIhints.ai_flags\fP contient des drapeaux invalides\ ; ou \fIhints.ai_flags\fP
+inclut \fBAI_CANONNAME\fP et \fIname\fP est NULL.
+.TP 
+\fBEAI_FAIL\fP
+Le serveur de noms a renvoyé une erreur définitive.
+.TP 
+\fBEAI_FAMILY\fP
+La famille d'adresse réclamée n'est pas supportée.
+.TP 
+\fBEAI_MEMORY\fP
+Plus de mémoire disponible.
+.TP 
+\fBEAI_NODATA\fP
+.\" Not in SUSv3
+L'hôte existe mais n'a pas d'adresse réseau définie.
+.TP 
+\fBEAI_NONAME\fP
+\fInode\fP ou \fIservice\fP sont inconnus ou ils sont tous les deux NULL\ ; ou
+\fBAI_NUMERICSERV\fP a été spécifié dans \fIhints.ai_flags\fP mais \fIservice\fP
+n'est pas un numéro de port.
+.TP 
+\fBEAI_SERVICE\fP
+Le service demandé n'est pas disponible pour le type de socket demandé. Il
+est probablement disponible avec un autre type de socket. Par exemple, cette
+erreur peut se produire si \fIservice\fP est «\ shell\ » (un service uniquement
+disponible avec les sockets de type flux), et soit si \fIhints.ai_protocol\fP
+est égal à \fBIPPROTO_UDP\fP ou soit si \fIhints.ai_socktype\fP est égal à
+\fBSOCK_DGRAM\fP. L'erreur peut aussi se produire si \fIservice\fP est non NULL et
+\fIhints.ai_socktype\fP est égal à \fBSOCK_RAW\fP (un type de socket qui ne gère
+pas le concept de service).
+.TP 
+\fBEAI_SOCKTYPE\fP
+Le type de socket demandé n'est pas géré. Cela peut se produire, par exemple
+si \fIhints.ai_socktype\fP et \fIhints.ai_protocol\fP sont inconsistants (par
+exemple, \fBSOCK_DGRAM\fP et \fBIPPROTO_TCP\fP, respectivement).
+.TP 
+\fBEAI_SYSTEM\fP
+Autre erreur système, voir \fIerrno\fP pour plus de détail.
+.PP
+La fonction \fBgai_strerror\fP() traduit ces codes d'erreur en une chaîne de
+caractères compréhensible, utilisable pour rendre compte du problème.
+.SH FICHIERS
+\fI/etc/gai.conf\fP
+.SH CONFORMITÉ
+POSIX.1\-2001. La fonction \fBgetaddrinfo\fP() est documentée dans la RFC\ 2553.
+.SH NOTES
+\fBgetaddrinfo\fP() gère la notation \fIaddress\fP\fB%\fP\fIscope\-id\fP pour indiquer
+l'identifiant scope de IPv6.
+
+\fBAI_ADDRCONFIG\fP, \fBAI_ALL\fP et \fBAI_V4MAPPED\fP sont disponibles depuis la
+glibc\ 2.3.3. \fBAI_NUMERICSERV\fP est disponible depuis glibc\ 2.3.4.
+
+Selon POSIX.1\-2001, définir \fIhints\fP comme NULL devrait supposer que
+\fIai_flags\fP soit égal à 0. La bibliothèque GNU C suppose à la place que
+\fIai_flags\fP est égal à of \fB(AI_V4MAPPED\ |\ AI_ADDRCONFIG)\fP dans ce cas,
+puisque cette valeur est considérée comme une amélioration de la
+spécification.
+.SH EXEMPLE
+.\" getnameinfo.3 refers to this example
+.\" socket.2 refers to this example
+.\" bind.2 refers to this example
+.\" connect.2 refers to this example
+.\" recvfrom.2 refers to this example
+.\" sendto.2 refers to this example
+Le programme suivant explique l'utilisation de \fBgetaddrinfo\fP(),
+\fBgai_strerror\fP(), \fBfreeaddrinfo\fP(), et \fBgetnameinfo\fP(3). Les programmes
+sont des clients et serveurs
+.SS "Programme du serveur"
+\&
+.nf
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
+#define BUF_SIZE 500
+
+int
+main(int argc, char *argv[])
+{
+    struct addrinfo hints;
+    struct addrinfo *result, *rp;
+    int sfd, s;
+    struct sockaddr_storage peer_addr;
+    socklen_t peer_addr_len;
+    ssize_t nread;
+    char buf[BUF_SIZE];
+
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s port\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
+    hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
+    hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
+    hints.ai_protocol = 0;          /* Any protocol */
+    hints.ai_canonname = NULL;
+    hints.ai_addr = NULL;
+    hints.ai_next = NULL;
+
+    s = getaddrinfo(NULL, argv[1], &hints, &result);
+    if (s != 0) {
+        fprintf(stderr, "getaddrinfo: %s\en", gai_strerror(s));
+        exit(EXIT_FAILURE);
+    }
+
+    /* getaddrinfo() returns a list of address structures.
+       Try each address until we successfully bind(2).
+       If socket(2) (or bind(2)) fails, we (close the socket
+       and) try the next address. */
+
+    for (rp = result; rp != NULL; rp = rp\->ai_next) {
+        sfd = socket(rp\->ai_family, rp\->ai_socktype,
+                rp\->ai_protocol);
+        if (sfd == \-1)
+            continue;
+
+        if (bind(sfd, rp\->ai_addr, rp\->ai_addrlen) == 0)
+            break;                  /* Success */
+
+        close(sfd);
+    }
+
+    if (rp == NULL) {               /* No address succeeded */
+        fprintf(stderr, "Could not bind\en");
+        exit(EXIT_FAILURE);
+    }
+
+    freeaddrinfo(result);           /* No longer needed */
+
+    /* Read datagrams and echo them back to sender */
+
+    for (;;) {
+        peer_addr_len = sizeof(struct sockaddr_storage);
+        nread = recvfrom(sfd, buf, BUF_SIZE, 0,
+                (struct sockaddr *) &peer_addr, &peer_addr_len);
+        if (nread == \-1)
+            continue;               /* Ignore failed request */
+
+        char host[NI_MAXHOST], service[NI_MAXSERV];
+
+        s = getnameinfo((struct sockaddr *) &peer_addr,
+                        peer_addr_len, host, NI_MAXHOST,
+                        service, NI_MAXSERV, NI_NUMERICSERV);
+       if (s == 0)
+            printf("Received %ld bytes from %s:%s\en",
+                    (long) nread, host, service);
+        else
+            fprintf(stderr, "getnameinfo: %s\en", gai_strerror(s));
+
+        if (sendto(sfd, buf, nread, 0,
+                    (struct sockaddr *) &peer_addr,
+                    peer_addr_len) != nread)
+            fprintf(stderr, "Error sending response\en");
+    }
+}
+.fi
+.SS "Programme du client"
+\&
+.nf
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+
+#define BUF_SIZE 500
+
+int
+main(int argc, char *argv[])
+{
+    struct addrinfo hints;
+    struct addrinfo *result, *rp;
+    int sfd, s, j;
+    size_t len;
+    ssize_t nread;
+    char buf[BUF_SIZE];
+
+    if (argc < 3) {
+        fprintf(stderr, "Usage: %s host port msg...\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    /* Obtain address(es) matching host/port */
+
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
+    hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
+    hints.ai_flags = 0;
+    hints.ai_protocol = 0;          /* Any protocol */
+
+    s = getaddrinfo(argv[1], argv[2], &hints, &result);
+    if (s != 0) {
+        fprintf(stderr, "getaddrinfo: %s\en", gai_strerror(s));
+        exit(EXIT_FAILURE);
+    }
+
+    /* getaddrinfo() returns a list of address structures.
+       Try each address until we successfully connect(2).
+       If socket(2) (or connect(2)) fails, we (close the socket
+       and) try the next address. */
+
+    for (rp = result; rp != NULL; rp = rp\->ai_next) {
+        sfd = socket(rp\->ai_family, rp\->ai_socktype,
+                     rp\->ai_protocol);
+        if (sfd == \-1)
+            continue;
+
+        if (connect(sfd, rp\->ai_addr, rp\->ai_addrlen) != \-1)
+            break;                  /* Success */
+
+        close(sfd);
+    }
+
+    if (rp == NULL) {               /* No address succeeded */
+        fprintf(stderr, "Could not connect\en");
+        exit(EXIT_FAILURE);
+    }
+
+    freeaddrinfo(result);           /* No longer needed */
+
+    /* Send remaining command\-line arguments as separate
+       datagrams, and read responses from server */
+
+    for (j = 3; j < argc; j++) {
+        len = strlen(argv[j]) + 1;
+                /* +1 for terminating null byte */
+
+        if (len + 1 > BUF_SIZE) {
+            fprintf(stderr,
+                    "Ignoring long message in argument %d\en", j);
+            continue;
+        }
+
+        if (write(sfd, argv[j], len) != len) {
+            fprintf(stderr, "partial/failed write\en");
+            exit(EXIT_FAILURE);
+        }
+
+        nread = read(sfd, buf, BUF_SIZE);
+        if (nread == \-1) {
+            perror("read");
+            exit(EXIT_FAILURE);
+        }
+
+        printf("Received %ld bytes: %s\en", (long) nread, buf);
+    }
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+.\" .BR getipnodebyaddr (3),
+.\" .BR getipnodebyname (3),
+\fBgethostbyname\fP(3), \fBgetnameinfo\fP(3), \fBinet\fP(3), \fBhostname\fP(7), \fBip\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

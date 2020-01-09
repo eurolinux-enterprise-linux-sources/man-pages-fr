@@ -1,0 +1,129 @@
+.\"
+.\" Extended attributes system calls manual pages
+.\"
+.\" Copyright (C) Andreas Gruenbacher, February 2001
+.\" Copyright (C) Silicon Graphics Inc, September 2001
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETXATTR 2 "1er décembre 2001" Linux "Manuel du programmeur Linux"
+.SH NOM
+getxattr, lgetxattr, fgetxattr \- Lire la valeur d'un attribut étendu
+.SH SYNOPSIS
+.fam C
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <attr/xattr.h>\fP
+.sp
+\fBssize_t getxattr (const char\ *\fP\fIchemin\fP\fB, const char\ *\fP\fInom\fP\fB,\fP
+\fB                  void\ *\fP\fIvaleur\fP\fB, size_t \fP\fItaille\fP\fB);\fP
+\fBssize_t lgetxattr (const char\ *\fP\fIchemin\fP\fB, const char\ *\fP\fInom\fP\fB,\fP
+\fB                   void\ *\fP\fIvaleur\fP\fB, size_t \fP\fItaille\fP\fB);\fP
+\fBssize_t fgetxattr (int \fP\fIdescripteur\fP\fB, const char\ *\fP\fInom\fP\fB,\fP
+\fB                   void\ *\fP\fIvaleur\fP\fB, size_t \fP\fItaille\fP\fB);\fP
+.fi
+.fam T
+.SH DESCRIPTION
+Les attributs étendus sont des paires \fInom\fP:\fIvaleur\fP associées aux inœuds
+(fichiers, répertoires, liens symboliques, etc.). Ce sont des extensions des
+attributs normaux qui sont associés avec tous les inœuds du système (les
+informations renvoyées par \fBstat\fP(2). Une description complète des concepts
+d'attributs étendus est disponible dans \fBattr\fP(5).
+.PP
+\fBgetxattr\fP()  récupère la \fIvaleur\fP de l'attribut étendu identifié par le
+\fInom\fP et associé au \fIchemin\fP donné dans le système de fichiers. La
+longueur de la \fIvaleur\fP est renvoyée.
+.PP
+\fBlgetxattr\fP()  est identique à \fBgetxattr\fP(), sauf dans le cas d'un lien
+symbolique, où il interroge le lien lui\-même et non le fichier qu'il vise.
+.PP
+\fBfgetxattr\fP()  est identique à \fBgetxattr\fP(), seulement c'est le fichier
+ouvert indiqué par le \fIdescripteur\fP (fourni par \fBopen\fP(2))  qui est
+interrogé à la place du \fIchemin\fP.
+.PP
+Le \fInom\fP d'un attribut étendu est une simple chaîne terminée par un octet
+nul. Le nom inclut un préfixe d'espace de noms \- il peut y avoir plusieurs
+espaces de noms disjoints associés avec un inœud donné. La valeur d'un
+attribut étendu est un bloc de données littérales ou binaires d'une longueur
+donnée.
+.PP
+Un tampon vide, de \fItaille\fP nulle peut être transmis à ses appels, pour
+qu'ils renvoient la taille actuelle de l'attribut étendu indiqué, ce qui
+permet d'estimer la taille du tampon nécessaire pour contenir la valeur
+associée à l'attribut étendu.
+.PP
+L'interface est conçue pour permettre de supposer une taille de tampon
+initiale et de l'agrandir si la valeur renvoyée indique qu'il est trop
+petit.
+.SH "VALEUR RENVOYÉE"
+S'ils réussissent, ces appels renvoient un nombre positif correspondant à la
+taille de la valeur de l'attribut étendu. En cas d'échec, ils renvoient \-1
+et remplissent \fIerrno\fP avec un code d'erreur.
+.PP
+Si aucun attribut du nom indiqué n'existe, ou si le processus n'a pas accès
+à cet attribut, \fIerrno\fP contient \fBENOATTR\fP.
+.PP
+Si la \fItaille\fP du tampon \fIvalue\fP est trop petite pour contenir le
+résultat, \fIerrno\fP contient \fBERANGE\fP.
+.PP
+Si les attributs étendus ne sont pas supportés par le système de fichiers ou
+le noyau, \fIerrno\fP contient \fBENOTSUP\fP.
+.PP
+Les erreurs documentées pour l'appel système \fBstat\fP(2)  sont également
+applicables ici.
+.SH VERSIONS
+Ces appels système sont disponibles sous Linux depuis le noyau\ 2.4\ ; la
+glibc les prend en charge depuis la version\ 2.3.
+.SH CONFORMITÉ
+.\" .SH AUTHORS
+.\" Andreas Gruenbacher,
+.\" .RI < a.gruenbacher@computer.org >
+.\" and the SGI XFS development team,
+.\" .RI < linux-xfs@oss.sgi.com >.
+.\" Please send any bug reports or comments to these addresses.
+Ces appels système sont spécifiques à Linux.
+.SH "VOIR AUSSI"
+\fBgetfattr\fP(1), \fBsetfattr\fP(1), \fBlistxattr\fP(2), \fBopen\fP(2),
+\fBremovexattr\fP(2), \fBsetxattr\fP(2), \fBstat\fP(2), \fBattr\fP(5), \fBsymlink\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (2003-2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

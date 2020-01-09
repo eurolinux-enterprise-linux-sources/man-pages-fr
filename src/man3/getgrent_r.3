@@ -1,0 +1,182 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETGRENT_R 3 "26 juillet 2007" GNU "Manuel du programmeur Linux"
+.SH NOM
+getgrent_r, fgetgrent_r \- Obtenir un enregistrement du fichier group de
+manière ré\-entrante
+.SH SYNOPSIS
+.nf
+\fB#include <grp.h>\fP
+.sp
+\fBint getgrent_r(struct group *\fP\fIgbuf\fP\fB, char *\fP\fIbuf\fP\fB,\fP
+.br
+\fB               size_t \fP\fIbuflen\fP\fB, struct group **\fP\fIgbufp\fP\fB);\fP
+.sp
+\fBint fgetgrent_r(FILE *\fP\fIfp\fP\fB, struct group *\fP\fIgbuf\fP\fB, char *\fP\fIbuf\fP\fB,\fP
+.br
+\fB                size_t \fP\fIbuflen\fP\fB, struct group **\fP\fIgbufp\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.\" FIXME . The FTM requirements seem inconsistent here.  File a glibc bug?
+\fBgetgrent_r\fP()\ : _GNU_SOURCE
+.br
+\fBfgetgrent_r\fP()\ : _SVID_SOURCE
+.SH DESCRIPTION
+Les fonctions \fBgetgrent_r\fP() et \fBfgetgrent_r\fP() sont les versions
+ré\-entrantes des fonctions \fBgetgrent\fP(3) et \fBfgetgrent\fP(3). La première
+lit l'enregistrement group suivant à partir du flux initialisé par
+\fBsetgrent\fP(3). La seconde lit l'enregistrement group suivant à partir du
+flux \fIfp\fP.
+.PP
+La structure \fIgroup\fP est définie dans \fI<grp.h>\fP comme ceci\ :
+.sp
+.in +4n
+.nf
+struct group {
+    char    *gr_name;     /* Nom du groupe */
+    char    *gr_passwd;   /* Mot de passe du groupe */
+    gid_t    gr_gid;      /* ID du groupe */
+    char   **gr_mem;      /* Membres du groupe*/
+};
+.fi
+.in
+.sp
+Les fonctions non ré\-entrantes renvoient un pointeur sur une zone statique,
+zone qui contient d'autres pointeurs vers le nom, le mot de passe et les
+membres du groupe. Les fonctions ré\-entrantes décrites ici renvoient tout
+ceci dans des tampons fournis par l'appelant. Il y a tout d'abord le tampon
+\fIgbuf\fP qui contient une structure \fIgroup\fP. Puis le tampon \fIbuf\fP de taille
+\fIbuflen\fP qui contient les chaînes supplémentaires. Le résultat de ces
+fonctions, la structure \fIgroup\fP lue dans le flux, est enregistré dans le
+tampon \fI*gbuf\fP fourni, et un pointeur vers cette structure \fIgroup\fP est
+renvoyé dans \fI*gbufp\fP.
+.SH "VALEUR RENVOYÉE"
+Si elles réussissent, ces fonctions renvoient 0 et \fI*gbufp\fP est un pointeur
+vers la structure \fIgroup\fP. Si elles échouent, ces fonctions renvoient une
+valeur d'erreur et \fI*gbufp\fP est NULL.
+.SH ERREURS
+.TP 
+\fBENOENT\fP
+Plus d'entrées.
+.TP 
+\fBERANGE\fP
+L'espace tampon fourni est insuffisant. Veuillez essayer à nouveau avec un
+tampon plus grand.
+.SH CONFORMITÉ
+Ces fonctions sont des extensions GNU, effectuées dans un style ressemblant
+à la version POSIX de fonctions comme \fBgetpwnam_r\fP(3). D'autres systèmes
+utilisent le prototype
+.sp
+.nf
+.in +4n
+struct group *getgrent_r(struct group *grp, char *buf,
+                         int buflen);
+.in
+.fi
+.sp
+ou mieux,
+.sp
+.nf
+.in +4n
+int getgrent_r(struct group *grp, char *buf, int buflen,
+               FILE **gr_fp);
+.in
+.fi
+.SH NOTES
+La fonction \fBgetgrent_r\fP() n'est pas vraiment ré\-entrante puisqu'elle
+partage la position de lecture dans le flux avec tous les autres fils
+(threads).
+.SH EXEMPLE
+.nf
+#define _GNU_SOURCE
+#include <grp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#define BUFLEN 4096
+
+int
+main(void)
+{
+    struct group grp, *grpp;
+    char buf[BUFLEN];
+    int i;
+
+    setgrent();
+    while (1) {
+        i = getgrent_r(&grp, buf, BUFLEN, &grpp);
+        if (i)
+            break;
+        printf("%s (%d):", grpp\->gr_name, grpp\->gr_gid);
+        for (i = 0; ; i++) {
+            if (grpp\->gr_mem[i] == NULL)
+                break;
+            printf(" %s", grpp\->gr_mem[i]);
+        }
+        printf("\en");
+    }
+    endgrent();
+    exit(EXIT_SUCCESS);
+}
+.fi
+.\" perhaps add error checking - should use strerror_r
+.\" #include <errno.h>
+.\" #include <stdlib.h>
+.\"         if (i) {
+.\"               if (i == ENOENT)
+.\"                     break;
+.\"               printf("getgrent_r: %s", strerror(i));
+.\"               exit(EXIT_FAILURE);
+.\"         }
+.SH "VOIR AUSSI"
+\fBfgetgrent\fP(3), \fBgetgrent\fP(3), \fBgetgrgid\fP(3), \fBgetgrnam\fP(3),
+\fBputgrent\fP(3), \fBgroup\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2004-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

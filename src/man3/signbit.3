@@ -1,0 +1,71 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\" Distributed under GPL
+.\" Based on glibc infopages, copyright Free Software Foundation
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SIGNBIT 3 "5 août 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+signbit \- Tester le signe d'un nombre réel à virgule flottante
+.SH SYNOPSIS
+\fB#include <math.h>\fP
+.sp
+\fBint signbit(\fP\fIx\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBsignbit\fP()\ : _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE\ ; ou \fIcc\
+\-std=c99\fP
+.ad b
+.SH DESCRIPTION
+\fBsignbit\fP() est une macro générique qui peut travailler sur tous les types
+de réel à virgule flottante. Elle renvoie une valeur non nulle si la valeur
+de \fIx\fP a son bit de signe positionné.
+.PP
+Ceci n'est pas identique à \fIx < 0.0\fP, car la représentation des nombres
+en virgule flottante IEEE\ 754 permet à zéro d'être signé (\-0 ou +0). La
+comparaison \fI\-0.0 < 0.0\fP est fausse, mais \fIsignbit (\-0.0)\fP renvoie une
+valeur non nulle.
+
+Les NaN et les infinis ont un bit de signe.
+.SH "VALEUR RENVOYÉE"
+La macro \fBsignbit\fP() renvoie une valeur non nulle si le signe de \fIx\fP est
+négatif\ ; sinon elle renvoie zéro.
+.SH ERREURS
+Aucune erreur ne se produit.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001. Cette fonction est définie dans IEC 559 (et l'annexe avec
+les fonctions recommandées de IEEE 754/IEEE 854).
+.SH "VOIR AUSSI"
+\fBcopysign\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

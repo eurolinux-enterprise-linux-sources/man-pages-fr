@@ -1,0 +1,148 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 1995 Michael Chastain (mec@shell.portal.com), 15 April 1995.
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified 1997-01-31 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1997-07-30 by Paul Slootman <paul@wurtel.demon.nl>
+.\" Modified 2004-05-27 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ADJTIMEX 2 "27 mai 2004" Linux "Manuel du programmeur Linux"
+.SH NOM
+adjtimex \- Régler l'horloge du noyau (kernel clock)
+.SH SYNOPSIS
+\fB#include <sys/timex.h>\fP
+.sp
+\fBint adjtimex(struct timex *\fP\fIbuf\fP\fB);\fP
+.SH DESCRIPTION
+Linux utilise l'algorithme d'ajustement d'horloge de David L. Mills (RFC
+1305). L'appel système \fBadjtimex\fP() lit, et écrit éventuellement les
+paramètres d'ajustement pour cet algorithme. Il utilise un pointeur sur une
+structure \fItimex\fP pour mettre à jour les paramètres du noyau avec les
+valeurs de ses champs, et renvoyer la même structure avec les valeurs
+actuelles du noyau. La structure est déclarée comme suit\ :
+.PP
+.in +4n
+.nf
+.\" FIXME -- what is the scaling unit?  2^16 ?
+struct timex {
+    int modes;           /* choix du mode */
+    long offset;         /* décalage temporel (usec) */
+    long freq;           /* différence de fréquence (scaled ppm) */
+    long maxerror;       /* erreur maximale (usec) */
+    long esterror;       /* erreur estimée (usec) */
+    int status;          /* commande/état de l'horloge */
+    long constant;       /* constante de temps pll */
+    long precision;      /* précision de l'horloge (usec)
+                            (lecture seule) */
+    long tolerance;      /* tolérance sur la fréquence de
+                            l'horloge (ppm) (lecture seule)
+    struct timeval time; /* heure actuelle (lecture seule) */
+    long tick;           /* microsecondes entre les tops
+                            de l'horloge */
+};
+.fi
+.in
+.PP
+Le champ \fImodes\fP détermine les paramètres éventuels à écrire. Il contient
+un OU binaire «\ |\ » entre les valeurs suivantes\ :
+.PP
+.in +4n
+.nf
+#define ADJ_OFFSET            0x0001 /* décalage d'heure */
+#define ADJ_FREQUENCY         0x0002 /* décalage de fréquence */
+#define ADJ_MAXERROR          0x0004 /* erreur temporelle maximale */
+#define ADJ_ESTERROR          0x0008 /* erreur temporelle estimée */
+#define ADJ_STATUS            0x0010 /* état de l'horloge */
+#define ADJ_TIMECONST         0x0020 /* constante de temps pll */
+#define ADJ_TICK              0x4000 /* valeur du top */
+#define ADJ_OFFSET_SINGLESHOT 0x8001 /* ancien adjtime() */
+.fi
+.in
+.PP
+Les utilisateurs normaux sont limités à une valeur de \fImode\fP nulle, seul le
+superutilisateur peut écrire les paramètres.
+.br
+.ne 12v
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBadjtimex\fP() renvoie l'état de l'horloge\ :
+.PP
+.in +4n
+.nf
+#define TIME_OK   0 /* horloge synchronisée */
+#define TIME_INS  1 /* ajout d'une seconde */
+#define TIME_DEL  2 /* suppression d'une seconde */
+#define TIME_OOP  3 /* seconde d'ajustement en cours */
+#define TIME_WAIT 4 /* seconde d'ajustement terminée */
+#define TIME_BAD  5 /* horloge non synchronisée */
+.fi
+.in
+.PP
+En cas d'échec \fBadjtimex\fP() renvoie \-1 et remplit \fIerrno\fP.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fIbuf\fP pointe en dehors de l'espace d'adressage accessible en écriture.
+.TP 
+\fBEINVAL\fP
+Une tentative est faite de remplir \fIbuf.offset\fP en dehors de l'intervalle
+\-131071 à +131071, ou de mettre \fIbuf.status\fP a une valeur autre que celles
+listées ci\(hydessus, ou \fIbuf.tick\fP en dehors de l'intervalle 900000/\fBHZ\fP
+à 1100000/\fBHZ\fP, où \fBHZ\fP est la fréquence d'interruption de l'horloge
+système.
+.TP 
+\fBEPERM\fP
+\fIbuf.mode\fP est non nul, et l'appelant n'a pas suffisamment de
+privilèges. Sous Linux, la capacité \fBCAP_SYS_TIME\fP est nécessaire.
+.SH CONFORMITÉ
+\fBadjtimex\fP() est spécifique à Linux, et ne doit pas être employé dans des
+programmes destinés à être portés sur d'autres systèmes. Voir \fBadjtime\fP(3)
+pour une méthode plus portable, mais moins flexible, de configurer l'horloge
+système.
+.SH "VOIR AUSSI"
+\fBsettimeofday\fP(2), \fBadjtime\fP(3), \fBcapabilities\fP(7), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

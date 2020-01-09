@@ -1,0 +1,133 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified 1993-07-21 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1995-04-15 by Michael Chastain <mec@shell.portal.com>:
+.\"   Added 'fchdir'. Fixed bugs in error section.
+.\" Modified 1996-10-21 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1997-08-21 by Joseph S. Myers <jsm28@cam.ac.uk>
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CHDIR 2 "26 juillet 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+chdir, fchdir \- Changer le répertoire courant
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBint chdir(const char *\fP\fIpath\fP\fB);\fP
+.br
+\fBint fchdir(int \fP\fIfd\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBfchdir\fP()\ : _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500
+.SH DESCRIPTION
+\fBchdir\fP() remplace le répertoire de travail courant du processus appelant
+par celui indiqué dans le chemin \fIpath\fP.
+.PP
+\fBfchdir\fP() est identique à \fBchdir\fP(), sauf que le répertoire cible est
+fourni sous forme de descripteur de fichier.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+Suivant le type de système de fichiers, plusieurs erreurs peuvent être
+renvoyées, les plus courantes pour \fBchdir\fP() sont les suivantes\ :
+.TP 
+\fBEACCES\fP
+L'accès n'est pas autorisé sur un élément du chemin \fIpath\fP. (Voir aussi
+\fBpath_resolution\fP(7).)
+.TP 
+\fBEFAULT\fP
+\fIpath\fP pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEIO\fP
+Une erreur d'entrée\-sortie s'est produite.
+.TP 
+\fBELOOP\fP
+\fIpath\fP contient une référence circulaire (à travers un lien symbolique)
+.TP 
+\fBENAMETOOLONG\fP
+\fIpath\fP est trop long.
+.TP 
+\fBENOENT\fP
+Le fichier n'existe pas.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.TP 
+\fBENOTDIR\fP
+Un élément du chemin d'accès \fIpath\fP n'est pas un répertoire.
+.PP
+Les erreurs courantes pour \fBfchdir\fP() sont\ :
+.TP 
+\fBEACCES\fP
+Le répertoire ouvert sur \fIfd\fP n'autorise pas le parcours.
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier valable.
+.SH CONFORMITÉ
+SVr4, BSD\ 4.4, POSIX.1\-2001.
+.SH NOTES
+Le répertoire de travail est le point de départ pour l'interprétation des
+chemins relatifs (qui ne commencent pas par «\ /\ »).
+
+Un processus fils créé avec \fBfork\fP(2) hérite du répertoire de travail
+courant de son père. Le répertoire de travail courant n'est pas modifié par
+un \fBexecve\fP(2).
+
+Le prototype de \fBfchdir\fP() n'est disponible que si \fB_BSD_SOURCE\fP est
+défini ou si \fB_XOPEN_SOURCE\fP est défini avec la valeur 500.
+.SH "VOIR AUSSI"
+\fBchroot\fP(2), \fBgetcwd\fP(3), \fBpath_resolution\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

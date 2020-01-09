@@ -1,0 +1,139 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified 1993-07-24 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 2002-07-27 by Walter Harms
+.\" 	(walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FREXP 3 "29 septembre 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+frexp, frexpf, frexpl \- Conversion de réel en fraction normalisée
+.SH SYNOPSIS
+.nf
+\fB#include <math.h>\fP
+.sp
+\fBdouble frexp(double \fP\fIx\fP\fB, int *\fP\fIexp\fP\fB);\fP
+.br
+\fBfloat frexpf(float \fP\fIx\fP\fB, int *\fP\fIexp\fP\fB);\fP
+.br
+\fBlong double frexpl(long double \fP\fIx\fP\fB, int *\fP\fIexp\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBfrexpf\fP(), \fBfrexpl\fP(): _BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\
+>=\ 600 || _ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.ad b
+.SH DESCRIPTION
+La fonction \fBfrexp\fP() est utilisée pour convertir le nombre \fIx\fP en une
+fraction normalisée et un exposant qui est stocké dans \fIexp\fP.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBfrexp\fP() renvoie la fraction normalisée. Si l'argument \fIx\fP
+est non nul, la fraction normalisée est \fIx\fP multiplié par 2^\fIexp\fP. La
+valeur absolue de la fraction normalisée est comprise dans l'intervalle
+compris entre 1/2 (inclus) et 1 (exclu), c'est\-à\-dire [1/2,\ 1[.
+
+Si \fIx\fP est nul, la fraction normalisée vaut zéro et \fIexp\fP prend la valeur
+zéro.
+
+Si \fIx\fP est un NaN (pas un nombre\ : «\ Not a Number\ »), un NaN est renvoyé et
+la valeur de \fI*exp\fP n'est pas spécifiée.
+
+Si \fIx\fP est une valeur infinie positive (respectivement, négative), une
+valeur infinie positive (respectivement, négative) est renvoyée et la valeur
+de \fI*exp\fP n'est pas spécifiée.
+.SH ERREURS
+Aucune erreur ne se produit.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001. La variante renvoyant un \fIdouble\fP est également conforme
+à SVr4, BSD\ 4.3 et C89.
+.SH EXEMPLE
+Le programme ci\-dessus affiche les résultats comme ci\-dessous\ :
+.sp
+.nf
+.in +4n
+$\fB ./a.out 2560\fP
+frexp(2560, &e) = 0.625: 0.625 * 2^12 = 2560
+$\fB ./a.out \-4\fP
+frexp(\-4, &e) = \-0.5: \-0.5 * 2^3 = \-4
+.in
+.fi
+.SS "Source du programme"
+\&
+.nf
+#include <math.h>
+#include <float.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main(int argc, char *argv[])
+{
+    double x, r;
+    int exp;
+
+    x = strtod(argv[1], NULL);
+    r = frexp(x, &exp);
+
+    printf("frexp(%g, &e) = %g: %g * %d^%d = %g\en",
+           x, r, r, FLT_RADIX, exp, x);
+    exit(EXIT_SUCCESS);
+} /* main */
+.fi
+.SH "VOIR AUSSI"
+\fBldexp\fP(3), \fBmodf\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

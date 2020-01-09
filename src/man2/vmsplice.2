@@ -1,0 +1,140 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" This manpage is Copyright (C) 2006 Jens Axboe
+.\" and Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH VMSPLICE 2 "15 septembre 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+vmsplice \- Raccorder des pages utilisateur à un tube
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP
+\fB#include <fcntl.h>\fP
+\fB#include <sys/uio.h>\fP
+
+\fBssize_t vmsplice(int \fP\fIfd\fP\fB, const struct iovec *\fP\fIiov\fP\fB,\fP
+\fB                 unsigned long \fP\fInr_segs\fP\fB, unsigned int \fP\fIflags\fP\fB);\fP
+.fi
+.\" Return type was long before glibc 2.7
+.SH DESCRIPTION
+.\" Linus: vmsplice() system call to basically do a "write to
+.\" the buffer", but using the reference counting and VM traversal
+.\" to actually fill the buffer. This means that the user needs to
+.\" be careful not to re-use the user-space buffer it spliced into
+.\" the kernel-space one (contrast this to "write()", which copies
+.\" the actual data, and you can thus re-use the buffer immediately
+.\" after a successful write), but that is often easy to do.
+L'appel système \fBvmsplice\fP() projette les \fInr_segs\fP segments de mémoire
+utilisateur décrits par \fIiov\fP dans un tube. Le descripteur de fichier \fIfd\fP
+doit faire référence à un tube.
+
+Le pointeur \fIiov\fP pointe vers un tableau de structures \fIiovec\fP définies
+dans \fI<sys/uio.h>\fP\ :
+
+.in +4n
+.nf
+struct iovec {
+    void *iov_base;           /* Adresse de début */
+    size_t iov_len;           /* Nombre d'octets  */
+};
+.in
+.fi
+
+L'argument \fIflags\fP est constitué par un \fIOU\fP binaire entre une ou
+plusieurs des valeurs suivantes\ :
+.TP  1.9i
+\fBSPLICE_F_MOVE\fP
+Non utilisé pour \fBvmsplice\fP()\ ; voir \fBsplice\fP(2).
+.TP 
+\fBSPLICE_F_NONBLOCK\fP
+.\" Not used for vmsplice
+.\" May be in the future -- therefore EAGAIN
+Ne pas bloquer pendant les entrées\-sorties\ ; voir \fBsplice\fP(2) pour plus de
+détails.
+.TP 
+\fBSPLICE_F_MORE\fP
+N'a pas d'effet pour \fBvmsplice\fP() actuellement, mais pourrait être
+implémenté un jour\ ; voir \fBsplice\fP(2).
+.TP 
+\fBSPLICE_F_GIFT\fP
+.\" FIXME Explain the following line in a little more detail:
+.\" .... if we expect to later SPLICE_F_MOVE to the cache.
+Les pages utilisateur sont offertes au noyau. L'application ne pourra plus
+jamais modifier cette mémoire, sans quoi le cache de pages et les données
+stockées sur disque pourraient être différentes. Offrir des pages au noyau
+signifie qu'un futur appel à \fBsplice\fP(2) \fBSPLICE_F_MOVE\fP peut
+effectivement déplacer les pages\ ; si ce paramètre n'est pas spécifié, un
+futur appel à \fBsplice\fP(2) \fBSPLICE_F_MOVE\fP doit copier les pages. Les
+données doivent par ailleurs être correctement alignées sur des frontières
+de pages, que ce soit en mémoire ou en taille.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBvmsplice\fP() renvoie le nombre d'octets transférés dans le
+tube. En cas d'erreur, \fBvmsplice\fP() renvoie \-1 et \fIerrno\fP contient le code
+d'erreur.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIfd\fP est invalide ou ne correspond pas à un tube.
+.TP 
+\fBEINVAL\fP
+\fInr_segs\fP est nul ou supérieur à \fBIOV_MAX\fP, ou bien la mémoire n'est pas
+alignée si \fBSPLICE_F_GIFT\fP est spécifié.
+.TP 
+\fBENOMEM\fP
+Plus de mémoire disponible.
+.SH VERSIONS
+L'appel système \fBvmsplice\fP() est apparu dans Linux 2.6.17.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux.
+.SH NOTES
+\fBvmsplice\fP() suit les conventions des autres fonctions vectorielles de type
+read/write quant aux limites sur le nombre de segments qui peuvent être
+passés. Cette limite est \fBIOV_MAX\fP, défini dans
+\fI<limits.h>\fP. Lorsque cette page a été écrite, cette limite était
+1024.
+.SH "VOIR AUSSI"
+\fBsplice\fP(2), \fBtee\fP(2), \fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

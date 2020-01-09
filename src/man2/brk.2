@@ -1,0 +1,139 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 1993 Michael Haardt
+.\" (michael@moria.de),
+.\" Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified Wed Jul 21 19:52:58 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Sun Aug 21 17:40:38 1994 by Rik Faith <faith@cs.unc.edu>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH BRK 2 "18 juin 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+brk, sbrk \- Modifier la taille du segment de données
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBint brk(void *\fP\fIaddr\fP\fB);\fP
+.sp
+\fBvoid *sbrk(intptr_t \fP\fIincrement\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBbrk\fP(), \fBsbrk\fP()\ : _BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\
+500
+.ad b
+.SH DESCRIPTION
+\fBbrk\fP() et \fBsbrk\fP() modifient l'emplacement de l'\fIinterruption de
+programme\fP, qui définit la fin du segment de données du processus
+(c'est\-à\-dire, l'interruption de programme est l'endroit juste à la fin du
+segment de données non initialisé). Augmenter l'interruption de programme a
+pour effet d'allouer de la mémoire au processus\ ; la diminuer à pour effet
+de désallouer de la mémoire.
+
+\fBbrk\fP() positionne la fin du segment de données (le premier mot mémoire
+hors de la zone accessible) à l'adresse spécifiée par \fIaddr\fP. Cette valeur
+doit être raisonnable, le système doit avoir suffisamment de mémoire, et le
+processus ne doit pas dépasser sa taille maximale de segment de données
+(voir \fBsetrlimit\fP(2)).
+
+\fBsbrk\fP() incrémente l'espace de données du programme de \fIincrement\fP
+octets. Appeler \fBsbrk\fP() avec un \fIincrement\fP nul permet d'obtenir
+l'emplacement de la limite actuelle.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBbrk\fP() renvoie zéro. En cas d'erreur, il renvoie \-1 et
+remplit \fIerrno\fP avec \fBENOMEM\fP (voir la section \fINotes sur Linux\fP
+ci\(hydessous).
+
+S'il réussit, \fBsbrk\fP() renvoie l'interruption de programme précédente. (Si
+la limite a été augmentée, cette valeur est un pointeur sur le début de la
+nouvelle zone de données). En cas d'échec, \fI(void\ *)\ \-1\fP est renvoyé et
+\fIerrno\fP contient le code d'erreur \fBENOMEM\fP.
+.SH CONFORMITÉ
+.\"
+.\" .BR brk ()
+.\" and
+.\" .BR sbrk ()
+.\" are not defined in the C Standard and are deliberately excluded from the
+.\" POSIX.1-1990 standard (see paragraphs B.1.1.1.3 and B.8.3.3).
+BSD\ 4.3\ ; SUSv1, considéré comme historique dans SUSv2, supprimé dans
+POSIX.1\-2001.
+.SH NOTES
+Évitez d'utiliser \fBbrk\fP() et \fBsbrk\fP()\ : la fonction d'allocation mémoire
+\fBmalloc\fP(3) est une méthode portable et confortable d'allouer de la
+mémoire.
+
+.\" One sees
+.\" \fIint\fP (e.g., XPGv4, DU 4.0, HP-UX 11, FreeBSD 4.0, OpenBSD 3.2),
+.\" \fIssize_t\fP (OSF1 2.0, Irix 5.3, 6.5),
+.\" \fIptrdiff_t\fP (libc4, libc5, ulibc, glibc 2.0, 2.1),
+.\" \fIintptr_t\fP (e.g., XPGv5, AIX, SunOS 5.8, 5.9, FreeBSD 4.7, NetBSD 1.6,
+.\" Tru64 5.1, glibc2.2).
+Différents systèmes utilisent différents types comme paramètres à
+\fBsbrk\fP(). Les plus courants sont \fIint\fP, \fIssize_t\fP, \fIptrdiff_t\fP,
+\fIintptr_t\fP.
+.SS "Notes sur Linux"
+La valeur de retour décrite ci\(hydessus pour \fBbrk\fP() est le comportement
+de la fonction de glibc autour de l'appel système \fBbrk\fP() de Linux. (Sur la
+plupart des autres implémentations, la valeur de retour de \fBbrk\fP() est la
+même\ ; cette valeur de retour est également spécifiée par SUSv2.) Cependant,
+l'appel système Linux lui\(hymême renvoie la nouvelle limite du segment de
+données. En cas d'échec, l'appel système renvoie la limite actuelle. La
+fonction enveloppe de la glibc fait le nécessaire (c'est\-à\-dire vérifie que
+la nouvelle limite est inférieure à \fIaddr\fP) pour renvoyer les valeurs de
+retour 0 et \-1 décrites plus haut.
+
+Sous Linux, \fBsbrk\fP() est implémenté comme une fonction de bibliothèque
+utilisant l'appel système \fBbrk\fP(), et fait certains calculs internes pour
+pouvoir renvoyer l'ancienne valeur de la limite.
+.SH "VOIR AUSSI"
+\fBexecve\fP(2), \fBgetrlimit\fP(2), \fBend\fP(3), \fBmalloc\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

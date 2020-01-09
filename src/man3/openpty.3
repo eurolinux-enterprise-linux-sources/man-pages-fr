@@ -1,0 +1,134 @@
+.\" Copyright (c) OpenBSD Group
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" Converted into a manpage again by Martin Schulze <joey@infodrom.org>
+.\"
+.\" Added -lutil remark, 030718
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH OPENPTY 3 "18 juillet 2003" GNU "Manuel du programmeur Linux"
+.SH NOM
+openpty, login_tty, forkpty \- Fonctions utilitaires pour terminaux tty
+.SH SYNOPSIS
+.nf
+\fB#include <pty.h>\fP
+.sp
+\fBint openpty(int *\fP\fIamaster\fP\fB, int *\fP\fIaslave\fP\fB, char *\fP\fIname\fP\fB,\fP
+\fB            struct termios *\fP\fItermp\fP\fB, struct winsize *\fP\fIwinp\fP\fB);\fP
+.sp
+\fBpid_t forkpty(int *\fP\fIamaster\fP\fB, char *\fP\fIname\fP\fB, struct termios *\fP\fItermp\fP\fB,\fP
+\fB              struct winsize *\fP\fIwinp\fP\fB);\fP
+.sp
+\fB#include <utmp.h>\fP
+.sp
+\fBint login_tty(int \fP\fIfd\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lutil\fP.
+.fi
+.SH DESCRIPTION
+La fonction \fBopenpty\fP() localise un pseudo\-terminal disponible et renvoie
+des descripteurs de fichier pour le maître et l'esclave dans \fIamaster\fP et
+\fIaslave\fP. Si la chaîne \fIname\fP ne vaut pas NULL, le nom de fichier de
+l'esclave est renvoyé dans \fIname\fP. Si \fItermp\fP ne vaut pas NULL, les
+paramètres du terminal esclave seront affectés conformément aux valeurs
+spécifiées dans \fItermp\fP. Si \fIwinp\fP ne vaut pas NULL, la taille de la
+fenêtre de l'esclave sera conditionnée par les valeurs contenues dans
+\fIwinp\fP.
+
+La fonction \fBlogin_tty\fP() prépare une connexion sur le terminal \fIfd\fP (qui
+peut être un véritable périphérique tty, ou bien l'esclave d'un
+pseudo\-terminal tel que celui renvoyé par \fBopenpty\fP()) en créant une
+nouvelle session, en faisant de \fIfd\fP le terminal de contrôle pour le
+processus appelant, en affectant \fIfd\fP à l'entrée standard, à la sortie
+standard et aux flux d'erreur du processus courant, et enfin, en fermant
+\fIfd\fP.
+
+La fonction \fBforkpty\fP() combine \fBopenpty\fP(), \fBfork\fP(2) et \fBlogin_tty\fP()
+afin de créer un nouveau processus opérant dans un pseudo\-terminal. Le
+descripteur de fichier de la partie maître du pseudo\-terminal est renvoyé
+dans \fIamaster\fP, et le nom de fichier de l'esclave dans \fIname\fP s'il n'est
+pas NULL. Les paramètres \fItermp\fP et \fIwinp\fP, s'ils ne valent pas NULL,
+déterminent les attributs du terminal et la taille de la fenêtre de la
+partie esclave du pseudo\-terminal.
+.SH "VALEUR RENVOYÉE"
+Lorsqu'un appel à \fBopenpty\fP(), \fBlogin_tty\fP() ou \fBforkpty\fP() échoue,
+alors, \-1 est renvoyé et \fIerrno\fP est positionnée afin de préciser
+l'erreur. Sinon \fBopenpty\fP(), \fBlogin_tty\fP(), ainsi que le processus fils de
+\fBforkpty\fP() renvoient 0 tandis que le processus père de \fBforkpty\fP()
+renvoie le PID du processus fils.
+.SH ERREURS
+\fBopenpty\fP() échoue lorsque\ :
+.TP 
+\fBENOENT\fP
+Il n'y a plus de terminaux disponibles.
+.LP
+\fBlogin_tty\fP() échoue lorsque \fBioctl\fP(2) ne parvient pas à affecter \fIfd\fP
+au terminal de contrôle du processus appelant.
+.LP
+\fBforkpty\fP() échoue en cas d'échec de \fBopenpty\fP() ou de \fBfork\fP(2).
+.SH CONFORMITÉ
+Il s'agit de fonctions BSD présentes dans la libc5 et la glibc2.
+.SH NOTES
+.\" These functions are included in libutil, hence you'll need to add
+.\" .B \-lutil
+.\" to your compiler command line.
+.\"
+Avec les versions de la glibc antérieures à 2.0.92, \fBopenpty\fP() renvoie des
+descripteurs de fichier pour une paire de pseudo\-terminaux BSD\ ; depuis
+glibc 2.0.92, elle essaie d'abord d'ouvrir une paire de pseudo\-terminaux
+Unix 98, et se rabat sur des pseudo\-terminaux BSD en cas d'échec.
+.SH BOGUES
+Personne ne sait combien d'espace il faut réserver pour \fIname\fP, ainsi les
+appels \fBopenpty\fP() et \fBforkpty\fP() avec un argument \fIname\fP non nul peuvent
+poser un problème de sécurité.
+.SH "VOIR AUSSI"
+\fBfork\fP(2), \fBttyname\fP(3), \fBpty\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

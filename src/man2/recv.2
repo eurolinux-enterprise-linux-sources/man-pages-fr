@@ -1,0 +1,370 @@
+.\" Copyright (c) 1983, 1990, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     $Id: recv.2,v 1.3 1999/05/13 11:33:38 freitag Exp $
+.\"
+.\" Modified Sat Jul 24 00:22:20 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Tue Oct 22 17:45:19 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1998,1999 by Andi Kleen
+.\" 2001-06-19 corrected SO_EE_OFFENDER, bug report by James Hawtin
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RECV 2 "10 mars 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+recv, recvfrom, recvmsg \- Recevoir un message sur une socket
+.SH SYNOPSIS
+.\" .B #include <sys/uio.h>
+.\" .br
+.nf
+\fB#include <sys/types.h>\fP
+.br
+\fB#include <sys/socket.h>\fP
+.sp
+\fBssize_t recv(int \fP\fIsockfd\fP\fB, void *\fP\fIbuf\fP\fB, size_t \fP\fIlen\fP\fB, int \fP\fIflags\fP\fB);\fP
+.sp
+\fBssize_t recvfrom(int \fP\fIsockfd\fP\fB, void *\fP\fIbuf\fP\fB, size_t \fP\fIlen\fP\fB, int \fP\fIflags\fP\fB,\fP
+\fB                 struct sockaddr *\fP\fIsrc_addr\fP\fB, socklen_t *\fP\fIaddrlen\fP\fB);\fP
+.sp
+\fBssize_t recvmsg(int \fP\fIsockfd\fP\fB, struct msghdr *\fP\fImsg\fP\fB, int \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Les appels système \fBrecvfrom\fP() et \fBrecvmsg\fP() sont utilisés pour recevoir
+des messages depuis une socket, et peuvent servir sur une socket orientée
+connexion ou non.
+.PP
+.\" (Note: for datagram sockets in both the Unix and Internet domains,
+.\" .I src_addr
+.\" is filled in.
+.\" .I src_addr
+.\" is also filled in for stream sockets in the Unix domain, but is not
+.\" filled in for stream sockets in the Internet domain.)
+.\" [The above notes on AF_UNIX and AF_INET sockets apply as at
+.\" Kernel 2.4.18. (MTK, 22 Jul 02)]
+Si \fIsrc_addr\fP n'est pas NULL, et si le protocole sous\-jacent fournit
+l'adresse de la source, celle\-ci y est insérée. Quand \fIsrc_addr\fP vaut NULL,
+rien n'est inséré\ ; dans ce cas, \fIaddrlen\fP n'est pas utilisé et devrait
+également valoir NULL. \fIaddrlen\fP est un paramètre résultat, initialisé à la
+taille du tampon \fIsrc_addr\fP, et modifié en retour pour indiquer la taille
+réelle de l'adresse enregistrée. L'adresse renvoyée est tronquée si le
+tampon fourni est trop petit\ ; dans ce cas, \fIaddrlen\fP renverra une valeur
+supérieure à celle fourni lors de l'appel.
+.PP
+L'appel \fBrecv\fP() est normalement utilisé sur une socket \fIconnectée\fP (voir
+\fBconnect\fP(2)) et est équivalent à \fBrecvfrom\fP() avec un paramètre
+\fIsrc_addr\fP NULL.
+.PP
+Ces trois routines renvoient la longueur du message si elles réussissent. Si
+un message est trop long pour tenir dans le tampon, les octets
+supplémentaires peuvent être abandonnés suivant le type de socket utilisé.
+.PP
+Si aucun message n'est disponible sur la socket, les fonctions de réception
+se mettent en attente, à moins que la socket soit non bloquante (voir
+\fBfcntl\fP(2)) auquel cas la valeur \-1 est renvoyée, et \fIerrno\fP est
+positionnée à \fBEAGAIN\fP ou \fBEWOULDBLOCK\fP. Les fonctions de réception
+renvoient normalement les données disponibles sans attendre d'avoir reçu le
+nombre exact réclamé.
+.PP
+Les appels système \fBselect\fP(2) ou \fBpoll\fP(2) peuvent permettre de
+déterminer si des données supplémentaires sont disponibles.
+.PP
+L'argument \fIflags\fP de l'appel \fBrecv\fP() est constitué par un \fIOU\fP binaire
+entre une ou plusieurs des valeurs suivantes\ :
+.TP 
+\fBMSG_CMSG_CLOEXEC\fP (\fBrecvmsg\fP() uniquement\ ; depuis Linux 2.6.23)
+Positionne l'attribut «\ close\-on\-exec\ » pour le descripteur de fichier reçu
+via un descripteur de fichier de domaine Unix en utilisant l'opération
+\fBSCM_RIGHTS\fP (décrite dans \fBunix\fP(7)). Cet attribut est utile pour les
+mêmes raisons que l'attribut \fBO_CLOEXEC\fP de \fBopen\fP(2).
+.TP 
+\fBMSG_DONTWAIT\fP (depuis Linux 2.2)
+Activer les opérations non bloquantes. Si l'opération devait bloquer,
+l'appel échouera avec l'erreur \fBEAGAIN\fP ou \fBEWOULDBLOCK\fP (on peut aussi
+activer ce comportement avec l'option \fBO_NONBLOCK\fP de la fonction
+\fBF_SETFL\fP de \fBfcntl\fP(2)).
+.TP 
+\fBMSG_ERRQUEUE\fP (depuis Linux 2.2)
+Cet attribut demande que les erreurs soient reçues depuis la file d'erreur
+de la socket. Les erreurs sont transmises dans un message annexe dont le
+type dépend du protocole (\fBIP_RECVERR\fP pour IPv4). Il faut alors fournir un
+tampon de taille suffisante. Voir \fBcmsg\fP(3) et \fBip\fP(7) pour plus de
+détails. Le contenu du paquet original qui a causé l'erreur est passé en
+tant que données normales dans \fImsg_iovec\fP. L'adresse de destination
+originale du datagramme ayant causé l'erreur est fournie dans \fImsg_name\fP.
+.IP
+Pour les erreurs locales, aucune adresse n'est passée (ceci peut être
+vérifié dans le membre \fIcmsg_len\fP de \fIcmsghdr\fP). À la réception d'une
+erreur, \fBMSG_ERRQUEUE\fP est placé dans \fImsghdr\fP. Après réception d'une
+erreur, l'erreur en attente sur la socket est régénérée en fonction de la
+prochaine erreur dans la file, et sera transmise lors de l'opération
+suivante sur la socket.
+
+L'erreur est contenue dans une structure \fIsock_extended_err\fP\ :
+.in +4n
+.nf
+
+#define SO_EE_ORIGIN_NONE    0
+#define SO_EE_ORIGIN_LOCAL   1
+#define SO_EE_ORIGIN_ICMP    2
+#define SO_EE_ORIGIN_ICMP6   3
+
+struct sock_extended_err
+{
+    uint32_t ee_errno;   /* numéro d'erreur */
+    uint8_t  ee_origin;  /* origine de l'erreur */
+    uint8_t  ee_type;    /* type */
+    uint8_t  ee_code;    /* code */
+    uint8_t  ee_pad;     /* remplissage */
+    uint32_t ee_info;    /* données supplémentaires */
+    uint32_t ee_data;    /* autres données */
+    /* Des données supplémentaires peuvent suivre */
+};
+
+struct sockaddr *SO_EE_OFFENDER(struct sock_extended_err *);
+.fi
+.in
+.IP
+\fIee_errno\fP contient le code \fIerrno\fP de l'erreur en file. \fIee_origin\fP est
+le code d'origine de l'erreur. Les autres champs sont spécifiques au
+protocole. La macro \fBSOCK_EE_OFFENDER\fP renvoie un pointeur sur l'adresse de
+l'objet réseau ayant déclenché l'erreur, à partir d'un pointeur sur le
+message. Si l'adresse n'est pas connue, le membre \fIsa_family\fP de la
+structure \fIsockaddr\fP contient \fBAF_UNSPEC\fP et les autres champs de la
+structure \fIsockaddr\fP sont indéfinis. Le contenu du paquet ayant déclenché
+l'erreur est transmis en données normales.
+.IP
+Pour les erreurs locales, aucune adresse n'est passée (ceci peut être
+vérifié dans le membre \fIcmsg_len\fP de \fIcmsghdr\fP). À la réception d'une
+erreur, \fBMSG_ERRQUEUE\fP est placé dans \fImsghdr\fP. Après réception d'une
+erreur, l'erreur en attente sur la socket est régénérée en fonction de la
+prochaine erreur dans la file, et sera transmise lors de l'opération
+suivante sur la socket.
+.TP 
+\fBMSG_OOB\fP
+Cette option permet la lecture des données hors\-bande qui ne seraient
+autrement pas placées dans le flux de données normales. Certains protocoles
+placent ces données hors\-bande en tête de la file normale, et cette option
+n'a pas lieu d'être dans ce cas.
+.TP 
+\fBMSG_PEEK\fP
+Cette option permet de lire les données en attente dans la file sans les
+enlever de cette file. Ainsi une lecture ultérieure renverra à nouveau les
+mêmes données.
+.TP 
+\fBMSG_TRUNC\fP (depuis Linux 2.2)
+Pour les socket en mode brut (\fBAF_PACKET\fP), datagramme Internet (depuis
+Linux 2.4.27/2.6.8) et netlink (depuis Linux 2.6.22)\ : renvoyer la taille
+réelle du paquet ou datagramme, même quand il est plus grand que le tampon
+fourni. Ce n'est pas implémenté pour les sockets de domaine Unix
+(\fBunix\fP(7)).
+
+Pour une utilisation avec des sockets en mode flux, consultez \fBtcp\fP(7).
+.TP 
+\fBMSG_WAITALL\fP (depuis Linux 2.2)
+Cette option demande que l'opération de lecture soit bloquée jusqu'à ce que
+la requête complète soit satisfaite. Toutefois, la lecture peut renvoyer
+quand même moins de données que prévu si un signal est reçu, ou si une
+erreur ou une déconnexion se produisent.
+.PP
+L'appel \fBrecvmsg\fP() utilise une structure \fImsghdr\fP pour minimiser le
+nombre de paramètres à fournir directement. Cette structure est définie dans
+\fI<sys/socket.h>\fP comme ceci\ :
+.in +4n
+.nf
+
+struct iovec {                    /* dispersion/assemblage
+                                     d'éléments de tableaux */
+    void *iov_base;               /* Adresse de début */
+    size_t iov_len;               /* Nombre d'octets à transférer */
+};
+
+struct msghdr {
+    void         *msg_name;       /* adresse optionnelle */
+    socklen_t     msg_namelen;    /* taille de l'adresse */
+    struct iovec *msg_iov;        /* tableau scatter/gather */
+    size_t        msg_iovlen;     /* # éléments dans msg_iov */
+    void         *msg_control;    /* métadonnées, voir ci\(hydessous */
+    socklen_t     msg_controllen; /* taille du tampon de métadonnées */
+    int           msg_flags;      /* attributs du message reçu */
+};
+.fi
+.in
+.PP
+Ici \fImsg_name\fP et \fImsg_namelen\fP spécifient l'adresse d'origine si la
+socket n'est pas connectée\ ; \fImsg_name\fP peut être un pointeur nul si le
+nom n'est pas nécessaire. \fImsg_iov\fP et \fImsg_iovlen\fP décrivent les tampons
+de réception comme décrit dans \fBreadv\fP(2). \fImsg_control\fP, de longueur
+\fImsg_controllen\fP, pointe sur un tampon utilisé pour les autres messages
+relatifs au protocole, ou à d'autres données annexes. Lorsqu'on invoque
+\fBrecvmsg\fP, \fImsg_controllen\fP doit contenir la longueur disponible dans le
+tampon \fImsg_control\fP\ ; au retour il contiendra la longueur de la séquence
+de message de contrôle.
+.PP
+Les messages ont la forme
+.in +4n
+.nf
+
+struct cmsghdr {
+    socklen_t     cmsg_len;     /* nombre d'octets de données, y compris l'en\-tête */
+    int           cmsg_level;   /* protocole d'origine */
+    int           cmsg_type;    /* type dépendant du protocole */
+/* suivi de
+    unsigned char cmsg_data[]; */
+};
+.fi
+.in
+.PP
+Les données de service ne doivent être manipulées qu'avec les macros de
+\fBcmsg\fP(3).
+.PP
+À titre d'exemple, Linux utilise ce mécanisme pour transmettre des erreurs
+étendues, des options IP, ou des descripteurs de fichier sur des sockets
+Unix.
+.PP
+Le champ \fImsg_flags\fP du msghdr est rempli au retour de \fBrecvmsg\fP(). Il
+peut contenir plusieurs attributs\ :
+.TP 
+\fBMSG_EOR\fP
+indique une fin d'enregistrement, les données reçues terminent un
+enregistrement (utilisé généralement avec les sockets du type
+\fBSOCK_SEQPACKET\fP).
+.TP 
+\fBMSG_TRUNC\fP
+indique que la portion finale du datagramme a été abandonnée car le
+datagramme était trop long pour le tampon fourni.
+.TP 
+\fBMSG_CTRUNC\fP
+indique que des données de contrôle ont été abandonnées à cause d'un manque
+de place dans le tampon de données annexes.
+.TP 
+\fBMSG_OOB\fP
+indique que des données hors\-bande ont été reçues.
+.TP 
+\fBMSG_ERRQUEUE\fP
+indique qu'aucune donnée n'a été reçue, sauf une erreur étendue depuis la
+file d'erreurs.
+.SH "VALEUR RENVOYÉE"
+Ces fonctions renvoient le nombre d'octets reçus si elles réussissent, ou \-1
+si elles échouent. La valeur de retour sera 0 si le pair a effectué un arrêt
+normal.
+.SH ERREURS
+Il y a des erreurs standards déclenchées par le niveau socket, et des
+erreurs supplémentaires spécifiques aux protocoles. Voyez leurs pages de
+manuel.
+.TP 
+\fBEAGAIN\fP ou \fBEWOULDBLOCK\fP
+.\" Actually EAGAIN on Linux
+La socket est non bloquante et aucune donnée n'est disponible, ou un délai
+de timeout a été indiqué, et il a expiré sans que l'on ait reçu quoi que ce
+soit. POSIX.1\-2001 permet de renvoyer l'une ou l'autre des erreurs dans ce
+cas et n'exige pas que ces constantes aient la même valeur. Une application
+portable devrait donc tester les deux possibilités.
+.TP 
+\fBEBADF\fP
+Le paramètre \fIsockfd\fP n'est pas un descripteur correct.
+.TP 
+\fBECONNREFUSED\fP
+Un hôte distant a refusé la connexion réseau (généralement parce qu'il
+n'offre pas le service demandé).
+.TP 
+\fBEFAULT\fP
+Un tampon pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEINTR\fP
+Un signal a interrompu la lecture avant que des données soient disponibles\ ;
+voir \fBsignal\fP(7).
+.TP 
+\fBEINVAL\fP
+.\" e.g., msg_namelen < 0 for recvmsg() or addrlen < 0 for recvfrom()
+Un paramètre non valable a été fourni.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour \fBrecvmsg\fP().
+.TP 
+\fBENOTCONN\fP
+La socket est associée à un protocole orienté connexion et n'a pas encore
+été connectée (voir \fBconnect\fP(2) et \fBaccept\fP(2)).
+.TP 
+\fBENOTSOCK\fP
+Le paramètre \fIsockfd\fP ne correspond pas à une socket.
+.SH CONFORMITÉ
+BSD\ 4.4 (ces fonctions sont apparues dans BSD\ 4.2), POSIX.1\-2001.
+.LP
+POSIX.1\-2001 décrit seulement les drapeaux \fBMSG_OOB\fP, \fBMSG_PEEK\fP, et
+\fBMSG_WAITALL\fP.
+.SH NOTES
+Les prototypes fournis concernent la glibc 2. Les Spécifications Single Unix
+les définissent, mais le type de retour est \fIssize_t\fP (alors que BSD\ 4.x,
+libc4 , et libc5 renvoient un \fIint\fP). L'argument \fIflags\fP est un \fIint\fP
+dans BSD\ 4.x, mais \fIunsigned int\fP dans libc4 et libc5. L'argument \fIlen\fP
+est un \fIint\fP dans BSD\ 4.x, mais un \fIsize_t\fP dans libc4 et
+libc5. L'argument \fIaddrlen\fP est un \fIint\ *\fP dans BSD\ 4.x, libc4 et
+libc5. Le \fIsocklen_t\ *\fP actuel a été inventé par POSIX. Voir également
+\fBaccept\fP(2).
+
+.\" glibc bug raised 12 Mar 2006
+.\" http://sourceware.org/bugzilla/show_bug.cgi?id=2448
+.\" The problem is an underlying kernel issue: the size of the
+.\" __kernel_size_t type used to type this field varies
+.\" across architectures, but socklen_t is always 32 bits.
+Selon POSIX.1\-2001, le champ \fImsg_controllen\fP de la structure \fImsghdr\fP
+devrait être de type \fIsocklen_t\fP, mais il a actuellement le type \fIsize_t\fP
+dans la glibc (version 2.4).
+.SH EXEMPLE
+Un exemple d'utilisation de \fBrecvfrom\fP() se trouve dans la page de manuel
+de \fBgetaddrinfo\fP(3).
+.SH "VOIR AUSSI"
+\fBfcntl\fP(2), \fBgetsockopt\fP(2), \fBread\fP(2), \fBselect\fP(2), \fBshutdown\fP(2),
+\fBsocket\fP(2), \fBcmsg\fP(3), \fBsockatmark\fP(3), \fBsocket\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

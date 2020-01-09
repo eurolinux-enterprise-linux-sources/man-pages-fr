@@ -1,0 +1,122 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified 1993-07-24 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 1996-06-08 by aeb
+.\" Modified 2002-07-27 by Walter Harms
+.\" (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH COSH 3 "10 août 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+cosh, coshf, coshl \- Fonctions cosinus hyperbolique
+.SH SYNOPSIS
+.nf
+\fB#include <math.h>\fP
+.sp
+\fBdouble cosh(double \fP\fIx\fP\fB);\fP
+.br
+\fBfloat coshf(float \fP\fIx\fP\fB);\fP
+.br
+\fBlong double coshl(long double \fP\fIx\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBcoshf\fP(), \fBcoshl\fP(): _BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\
+>=\ 600 || _ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.ad b
+.SH DESCRIPTION
+The \fBcosh\fP()  function returns the hyperbolic cosine of \fIx\fP, which is
+defined mathematically as:
+.nf
+
+    cosh(x) = (exp(x) + exp(\-x)) / 2
+.fi
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient le cosinus hyperbolique de \fIx\fP.
+
+Si \fIx\fP est un NaN, la valeur renvoyée et un NaN.
+
+Si \fIx\fP vaut +0 ou \-0, la valeur renvoyée est 1.
+
+Si \fIx\fP est une valeur infinie positive ou négative, une valeur infinie
+positive est renvoyée.
+
+En cas de dépassement pour le résultat, une erreur d'intervalle se produit
+et les fonctions renvoient +\fBHUGE_VAL\fP, +\fBHUGE_VALF\fP ou +\fBHUGE_VALL\fP,
+respectivement.
+.SH ERREURS
+Consultez \fBmath_error\fP(7) pour savoir comment déterminer qui une erreur est
+survenue lors de l'appel de ces fonctions.
+.PP
+Les erreurs suivantes peuvent se produire\ :
+.TP 
+Erreur d'intervalle\ : dépassement pour le résultat
+\fIerrno\fP est configurée à \fBERANGE\fP. Une exception de dépassement en virgule
+flottante (\fBFE_OVERFLOW\fP) est levée.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001. La variante renvoyant un \fIdouble\fP est également conforme
+à SVr4 et BSD\ 4.3.
+.SH BOGUES
+Dans la glibc version 2.3.4 et les précédentes, une exception de dépassement
+en virgule flottante (\fBFE_OVERFLOW\fP) n'est pas levée quand un dépassement
+se produit.
+.SH "VOIR AUSSI"
+\fBacosh\fP(3), \fBasinh\fP(3), \fBatanh\fP(3), \fBccos\fP(3), \fBsinh\fP(3), \fBtanh\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

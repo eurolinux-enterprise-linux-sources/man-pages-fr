@@ -1,0 +1,83 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single Unix specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FPUTWC 3 "25 juillet 1999" GNU "Manuel du programmeur Linux"
+.SH NOM
+fputwc, putwc \- Écrire un caractère large dans un flux FILE
+.SH SYNOPSIS
+.nf
+\fB#include <stdio.h>\fP
+.br
+\fB#include <wchar.h>\fP
+.sp
+\fBwint_t fputwc(wchar_t \fP\fIwc\fP\fB, FILE *\fP\fIstream\fP\fB);\fP
+\fBwint_t putwc(wchar_t \fP\fIwc\fP\fB, FILE *\fP\fIstream\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBfputwc\fP() est l'équivalent pour les caractères larges de la
+fonction \fBfputc\fP(3). Elle écrit le caractère large \fIwc\fP dans le flux
+\fIstream\fP. Si \fIferror(stream)\fP devient vraie, \fBWEOF\fP est renvoyé. Si une
+erreur de conversion du caractère large se produit, \fIerrno\fP est défini à
+\fBEILSEQ\fP et \fBWEOF\fP est renvoyé. Sinon \fIwc\fP est renvoyé.
+.PP
+La fonction ou la macro \fBputwc\fP() est identique à \fBfputwc\fP(). Elle peut
+être implémentée comme une macro et donc évaluer plusieurs fois son
+argument. Il n'y a plus aucune raison de l'utiliser.
+.PP
+Pour des versions de ces fonctions ignorant les verrouillages, voir
+\fBunlocked_stdio\fP(3).
+.SH "VALEUR RENVOYÉE"
+La fonction \fBfputwc\fP() renvoie \fIwc\fP si aucune erreur ne s'est produite,
+\fBWEOF\fP sinon.
+.SH ERREURS
+En plus des erreurs habituelles, il y a\ :
+.TP 
+\fBEILSEQ\fP
+La conversion de \fIwc\fP vers l'encodage du flux a échoué.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001.
+.SH NOTES
+Le comportement de \fBfputwc\fP() dépend de la valeur \fBLC_CTYPE\fP de la locale
+courante.
+.PP
+En l'absence d'informations supplémentaires passées à l'appel \fBfopen\fP(3),
+il est raisonnable de penser que \fBfputwc\fP() écrira en fait la séquence
+multi\-octets correspondant au caractère large \fIwc\fP.
+.SH "VOIR AUSSI"
+\fBfgetwc\fP(3), \fBfputws\fP(3), \fBunlocked_stdio\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

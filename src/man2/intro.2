@@ -1,0 +1,104 @@
+.\" Copyright (C) 2007 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" 2007-10-23 mtk: moved the _syscallN specific material to the
+.\"     new _syscall(2) page, and substantially enhanced and rewrote
+.\"     the remaining material on this page.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH INTRO 2 "23 octobre 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+intro \- Introduction à la section des appels système
+.SH DESCRIPTION
+La section 2 des manuels décrit les appels système Linux. Un appel système
+est un point d'entrée dans le noyau Linux.  Généralement, les appels système
+ne sont pas invoqués directement\ : à la place, la plupart des appels système
+ont des fonctions enveloppes correspondantes dans la bibliothèque C qui
+effectuent les étapes nécessaires (par exemple, déroutement (trap) en mode
+noyau) afin d'invoquer l'appel système. Ainsi, faire un appel système
+ressemble à la même chose que d'invoquer une fonction de la bibliothèque.
+
+Pour avoir une liste des appels système de Linux, voyez la page
+\fBsyscalls\fP(2).
+.SH "VALEUR RENVOYÉE"
+En cas d'erreur, la plupart des appels système renvoient une valeur d'erreur
+négative (c'est\-à\-dire, la valeur opposée de l'une des constantes décrites
+dans \fBerrno\fP(3)). La fonction enveloppe de la bibliothèque C cache ce
+détail à l'appelant\ : lorsqu'un appel système renvoie une valeur négative,
+la fonction enveloppe met dans la variable \fIerrno\fP la valeur absolue de
+cette valeur de retour et renvoie \-1 comme sa valeur de retour.
+
+La valeur renvoyée par un appel système réussi dépend de l'appel. Beaucoup
+d'appels système renvoient 0 lorsqu'ils réussissent, mais certains renvoient
+parfois une valeur non nulle dans ce cas. Les détails sont décrits dans leur
+page de manuel associée.
+
+Dans certains cas, le programmeur doit définir une macro de test de
+fonctionnalités afin d'obtenir la déclaration d'un appel système du fichier
+d'entête spécifié dans la section SYNOPSIS de la page de manuel. Dans de
+tels cas, la macro nécessaire est décrite dans la page de manuel. Pour plus
+d'informations sur les macros de test de fonctionnalités, voir
+\fBfeature_test_macros\fP(7).
+.SH CONFORMITÉ
+Certains termes et abréviations sont utilisés pour indiquer les variantes
+d'Unix ou les normes auxquelles les appels de cette section se
+conforment. Consultez \fBstandards\fP(7).
+.SH NOTES
+.SS "Appel Direct"
+Dans la plupart des cas, il n'est pas nécessaire d'invoquer un appel système
+directement, mais il arrive parfois que la bibliothèque C standard
+n'implémente pas une fonction pourtant utile. Dans ce cas, le programmeur
+doit invoquer l'appel système à la main, en utilisant
+\fBsyscall\fP(2). Auparavant il était aussi possible d'utiliser les macros
+_syscall, qui sont décrites dans \fB_syscall\fP(2).
+.SS "Auteurs et conditions de copyright"
+Consultez les en\-têtes de la source de chaque page de manuel pour connaître
+le(s) auteur(s) et conditions de copyright. Ils peuvent être différents
+selon les pages.
+.SH "VOIR AUSSI"
+\fB_syscall\fP(2), \fBsyscall\fP(2), \fBerrno\fP(3), \fBfeature_test_macros\fP(7),
+\fBstandards\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

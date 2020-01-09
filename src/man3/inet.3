@@ -1,0 +1,257 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\"     libc.info (from glibc distribution)
+.\" Modified Sat Jul 24 19:12:00 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Sun Sep  3 20:29:36 1995 by Jim Van Zandt <jrv@vanzandt.mv.com>
+.\" Changed network into host byte order (for inet_network),
+.\"     Andreas Jaeger <aj@arthur.rhein-neckar.de>, 980130.
+.\" 2008-06-19, mtk
+.\"     Describe the various address forms supported by inet_aton().
+.\"     Clarify discussion of inet_lnaof(), inet_netof(), and inet_makeaddr().
+.\"     Add discussion of Classful Addressing, noting that it is obsolete.
+.\"     Added an EXAMPLE program.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH INET 3 "19 juin 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+inet_aton, inet_addr, inet_network, inet_ntoa, inet_makeaddr, inet_lnaof,
+inet_netof \- Routines de manipulation d'adresses Internet
+.SH SYNOPSIS
+.nf
+\fB#include <sys/socket.h>\fP
+\fB#include <netinet/in.h>\fP
+\fB#include <arpa/inet.h>\fP
+.sp
+\fBint inet_aton(const char *\fP\fIcp\fP\fB, struct in_addr *\fP\fIinp\fP\fB);\fP
+.sp
+\fBin_addr_t inet_addr(const char *\fP\fIcp\fP\fB);\fP
+.sp
+\fBin_addr_t inet_network(const char *\fP\fIcp\fP\fB);\fP
+.sp
+\fBchar *inet_ntoa(struct in_addr \fP\fIin\fP\fB);\fP
+.sp
+\fBstruct in_addr inet_makeaddr(int \fP\fInet\fP\fB, int \fP\fIhost\fP\fB);\fP
+.sp
+\fBin_addr_t inet_lnaof(struct in_addr \fP\fIin\fP\fB);\fP
+.sp
+\fBin_addr_t inet_netof(struct in_addr \fP\fIin\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBinet_aton\fP(), \fBinet_ntoa\fP()\ : _BSD_SOURCE || _SVID_SOURCE
+.SH DESCRIPTION
+\fBinet_aton\fP() convertit l'adresse Internet de l'hôte \fIcp\fP depuis la
+notation IPv4 avec nombres et points vers une forme binaire (dans l'ordre
+d'octet du réseau), et la stocke dans la structure pointée par
+\fIinp\fP. \fBinet_aton\fP() renvoie une valeur non nulle si l'adresse est valide,
+et zéro sinon. L'adresse fournie à \fIcp\fP peut avoir l'une des formes
+suivantes\ :
+.TP  10
+\fIa.b.c.d\fP
+Chacune des quatre parties numériques représente un octet de l'adresse\ ; ces
+octets sont assignés de gauche à droite pour produire l'adresse binaire.
+.TP 
+\fIa.b.c\fP
+Les parties \fIa\fP et \fIb\fP représentent les deux premiers octets de l'adresse
+binaire. La partie \fIc\fP est interprétée comme une valeur 16\ bits définissant
+les deux octets les plus à droite de l'adresse binaire. Cette notation est
+pertinente pour indiquer (démodé) des adresses de réseaux de classe B.
+.TP 
+\fIa.b\fP
+La partie \fIa\fP représente le premier octet de l'adresse binaire. La partie
+\fIb\fP est interprétée comme une valeur 24\ bits définissant les trois octets
+les plus à droite de l'adresse binaire. Cette notation est pertinente pour
+indiquer (démodé) des adresses de réseaux de classe C.
+.TP 
+\fIa\fP
+La valeur \fIa\fP est interprétée comme une valeur 24\ bits directement
+enregistrée dans l'adresse binaire, sans aucun réajustement d'octet.
+.PP
+Dans toutes les formes précédentes, les éléments d'une adresse en notation
+pointée peuvent être indiqués sous forme décimale, octale (avec un \fI0\fP
+devant) ou hexadécimale (avec un \fI0X\fP devant). La terminologie des adresses
+sous ces formes est appelée \fInotation numérique pointée IPv4\fP. La forme qui
+utilise exactement quatre nombres décimaux est appelée \fInotation décimale
+pointée IPV4\fP (ou quelques fois\ : \fInotation quadruplée pointée IPv4\fP).
+.PP
+La fonction \fBinet_addr\fP() convertit l'adresse Internet de l'hôte \fIcp\fP
+depuis la notation IPv4 avec nombres et points en une donnée binaire dans
+l'ordre des octets du réseau. Si l'adresse est invalide, \fBINADDR_NONE\fP
+(généralement \-1) est renvoyé. L'utilisation de cette fonction pose problème
+car \-1 est une adresse valable (255.255.255.255). Évitez\-la au profit de
+\fBinet_aton\fP(), \fBinet_pton\fP(3) ou \fBgetaddrinfo\fP(3) qui fournissent un
+renvoi d'erreur plus propre.
+.PP
+La fonction \fBinet_network\fP() convertit \fIcp\fP, une chaîne en notation
+numérique pointée IPv4, en un nombre dans l'ordre des octets de l'hôte qui
+pourra être utilisé comme adresse de réseau Internet. Si elle réussit, cette
+fonction renvoie l'adresse convertie. Si l'adresse n'est pas valable, \-1 est
+renvoyé.
+.PP
+La fonction \fBinet_ntoa\fP() convertit l'adresse Internet de l'hôte \fIin\fP
+donnée dans l'ordre des octets du réseau en une chaîne de caractères dans la
+notation numérique pointée. La chaîne est renvoyée dans un tampon alloué
+statiquement, qui est donc écrasé à chaque appel.
+.PP
+La fonction \fBinet_lnaof\fP() renvoie la partie correspondant à l'adresse du
+réseau local d'une adresse Internet \fIin\fP. La valeur est renvoyée dans
+l'ordre des octets de l'hôte.
+.PP
+La fonction \fBinet_netof\fP() renvoie la partie adresse réseau extraite d'une
+adresse Internet \fIin\fP. La valeur est renvoyée dans l'ordre des octets de
+l'hôte.
+.PP
+La fonction \fBinet_makeaddr\fP() est la réciproque des fonctions
+\fBinet_netof\fP() et \fBinet_lnaof\fP(). Elle renvoie une adresse d'hôte Internet
+dans l'ordre des octets du réseau, en combinant le numéro du réseau \fInet\fP
+et l'adresse locale \fIhost\fP, chacun d'eux étant donné dans l'ordre des
+octets de l'hôte.
+.PP
+La structure \fIin_addr\fP utilisée dans \fBinet_ntoa\fP(), \fBinet_makeaddr\fP(),
+\fBinet_lnaof\fP() et \fBinet_netof\fP() est définie ainsi dans
+\fI<netinet/in.h>\fP\ :
+.sp
+.in +4n
+.nf
+typedef uint32_t in_addr_t;
+
+struct in_addr {
+    in_addr_t s_addr;
+};
+.fi
+.in
+.SH CONFORMITÉ
+BSD\ 4.3. \fBinet_addr\fP() et \fBinet_ntoa\fP() sont spécifiées dans
+POSIX.1\-2001. \fBinet_aton\fP() n'est pas spécifiée dans POSIX.1\-2001, mais est
+disponible sur la plupart des systèmes.
+.SH NOTES
+L'ordre des octets des machines i386 est «\ LSB\ » (poids faible en premier,
+«\ little endian\ »), alors que l'ordre des octets sur internet est «\ MSB\
+» (poids fort en premier ou «\ big endian\ »).
+
+\fBinet_lnaof\fP(), \fBinet_netof\fP() et \fBinet_makeaddr\fP() sont des fonctions
+héritées qui supposent qu'elles traitent des \fIadresses de classes
+canoniques\fP. Les sous\-réseaux de classes canoniques divisent la partie
+réseau et la partie hôte des adresses IPv4 sur des limites d'octets comme
+suit\ :
+.TP  10
+Classe A
+Ce type d'adresse est indiqué par la valeur 0 du bit de poids fort (dans
+l'ordre des octets du réseau) de l'adresse. L'adresse du réseau est contenue
+dans l'octet de poids fort et l'adresse de l'hôte dans les trois octets
+restants.
+.TP 
+Classe B
+Ce type d'adresse est indiqué par la valeur binaire 10 dans les deux bits de
+poids fort de l'adresse. L'adresse du réseau est contenue dans les deux
+octets de poids fort et l'adresse de l'hôte dans les deux octets restants.
+.TP 
+Classe C
+Ce type d'adresse est indiqué par la valeur binaire 110 dans les trois bits
+de poids fort de l'adresse. L'adresse du réseau est contenue dans les trois
+octets de poids fort et l'adresse de l'hôte dans l'octet restant.
+.PP
+La classification des adresses réseaux est aujourd'hui obsolète, supplantée
+par le «\ Classless Inter\-Domain Routing (CIDR)\ », qui scinde les adresses
+en éléments réseau et hôte sur une frontière arbitraire en bit (plutôt qu'en
+octet).
+.SH EXEMPLE
+Ci\-dessous, un exemple de l'utilisation de \fBinet_aton\fP() et de
+\fBinet_ntoa\fP(). Voici des exemples d'exécution\ :
+.in +4n
+.nf
+
+$\fB ./a.out 226.000.000.037\fP      # Last byte is in octal
+226.0.0.31
+$\fB ./a.out 0x7f.1         \fP      # First byte is in hex
+127.0.0.1
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#define _BSD_SOURCE
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main(int argc, char *argv[])
+{
+    struct in_addr addr;
+
+    if (argc != 2) {
+        fprintf(stderr, "%s <dotted\-address>\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    if (inet_aton(argv[1], &addr) == 0) {
+        perror("inet_aton");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("%s\en", inet_ntoa(addr));
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBbyteorder\fP(3), \fBgetaddrinfo\fP(3), \fBgethostbyname\fP(3), \fBgetnameinfo\fP(3),
+\fBgetnetent\fP(3), \fBinet_ntop\fP(3), \fBinet_pton\fP(3), \fBhosts\fP(5),
+\fBnetworks\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

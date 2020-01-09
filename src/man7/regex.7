@@ -1,0 +1,274 @@
+.ie  t .ds dg \(dg
+.el .ds dg (!)
+.\" From Henry Spencer's regex package (as found in the apache
+.\" distribution). The package carries the following copyright:
+.\"
+.\"  Copyright 1992, 1993, 1994 Henry Spencer.  All rights reserved.
+.\"  This software is not subject to any license of the American Telephone
+.\"  and Telegraph Company or of the Regents of the University of California.
+.\"
+.\"  Permission is granted to anyone to use this software for any purpose
+.\"  on any computer system, and to alter it and redistribute it, subject
+.\"  to the following restrictions:
+.\"
+.\"  1. The author is not responsible for the consequences of use of this
+.\"     software, no matter how awful, even if they arise from flaws in it.
+.\"
+.\"  2. The origin of this software must not be misrepresented, either by
+.\"     explicit claim or by omission.  Since few users ever read sources,
+.\"     credits must appear in the documentation.
+.\"
+.\"  3. Altered versions must be plainly marked as such, and must not be
+.\"     misrepresented as being the original software.  Since few users
+.\"     ever read sources, credits must appear in the documentation.
+.\"
+.\"  4. This notice may not be removed or altered.
+.\"
+.\" In order to comply with `credits must appear in the documentation'
+.\" I added an AUTHOR paragraph below - aeb.
+.\"
+.\" In the default nroff environment there is no dagger \(dg.
+.\"
+.\" 2005-05-11 Removed discussion of `[[:<:]]' and `[[:>:]]', which
+.\" 	appear not to be in the glibc implementation of regcomp
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH REGEX 7 "12 janvier 2009" "" "Manuel du programmeur Linux"
+.SH NOM
+regex \- Expressions rationnelles POSIX.2
+.SH DESCRIPTION
+Les expressions rationnelles («\ ER\ »), définies par POSIX.2 existent sous
+deux formes\ : les ER modernes (en gros celles de \fIegrep\fP\ ; que POSIX.2
+appelle expressions rationnelles «\ étendues\ »), et les ER obsolètes (en
+gros celles de \fBed\fP(1)\ ; les ER basiques pour POSIX.2). [NDT\ : Le terme
+«\ officiel\ » pour la traduction de «\ Regular expression\ » est «\
+expression rationnelle\ », et c'est celui que j'emploierai. Toutefois, on
+utilise couramment le terme «\ expression régulière\ », même s'il s'agit
+d'un léger abus de langage.] Les ER obsolètes existent surtout à titre de
+compatibilité avec d'anciens programmes\ ; on en parlera à la fin. POSIX.2
+laisse de côté certains aspects syntaxiques et sémantiques des ER\ ; un
+signe «\ \*(dg\ » indique une interprétation qui peut ne pas être totalement
+portable sur d'autres implémentations de POSIX.2.
+.PP
+Une ER (moderne) est une\*(dg ou plusieurs \fIbranches\fP non\-vides\*(dg,
+séparées par «\ |\ ». Elle correspond à tout ce qui correspond à l'une des
+branches.
+.PP
+Une branche est une\*(dg ou plusieurs \fIpièces\fP concaténées. Elle correspond
+à ce qui correspond à la première pièce, suivi de ce qui correspond à la
+seconde, et ainsi de suite.
+.PP
+Une pièce est un \fIatome\fP suivi éventuellement d'un unique\*(dg «\ *\ », «\
++\ », «\ ?\ », ou d'un \fIencadrement\fP. Un atome suivi de «\ *\ » correspond
+à une séquence de 0 ou plusieurs correspondances pour l'atome. Un atome
+suivi d'un «\ +\ » correspond à une séquence de 1 ou plusieurs
+correspondances pour l'atome. Un atome suivi d'un «\ ?\ » correspond à une
+séquence de zéro ou une correspondance pour l'atome.
+.PP
+Un \fIencadrement\fP est un «\ {\ » suivi d'un entier décimal non\-signé, suivis
+éventuellement d'une virgule, suivis éventuellement d'un entier décimal
+non\-signé, toujours suivis d'un «\ }\ ». Les entiers doivent être entre 0 et
+\fBRE_DUP_MAX\fP (255\*(dg) compris, et s'il y en a deux, le second ne doit pas
+être plus petit que le premier. Un atome suivi d'un encadrement contenant un
+entier \fIi\fP et pas de virgule correspond à une séquence de \fIi\fP
+correspondances pour l'atome exactement. Un atome suivi d'un encadrement
+contenant un entier \fIi\fP et une virgule correspond à une séquence d'au moins
+\fIi\fP correspondances pour l'atome. Un atome suivi d'un encadrement contenant
+deux entiers \fIi\fP et \fIj\fP correspond à une séquence de \fIi\fP à \fIj\fP (compris)
+correspondances pour l'atome.
+.PP
+Un atome est une expression rationnelle encadrée par des parenthèses
+(correspondant à ce qui correspond à l'expression rationnelle), un ensemble
+vide «\ \fI()\fP\ » (correspond à une chaîne nulle)\*(dg, une \fIexpression
+entre crochets\fP (voir plus bas), un point «\ .\ » (correspondant à n'importe
+quel caractère), un accent «\ ^\ » (correspondant à une chaîne vide en début
+de ligne), «\ $\ » (correspondant à une chaîne vide en fin de ligne), un «\
+\e\ » suivi d'un des caractères «\ \fI^.[$()|*+?{\e\fP\ » (correspondant au
+caractère littéral \- sans signification particulière), un «\ \e\ » suivi de
+n'importe quel autre caractère\*(dg (correspondant au caractère pris sous
+forme littérale, comme si le «\ \e\ » était absent\*(dg), ou un caractère
+simple sans signification particulière (correspondant à ce caractère/ Un «\
+{\ » suivi d'un caractère autre qu'un chiffre est considéré sous sa forme
+littérale, pas un encadrement \*(dg. Il est illégal de terminer une ER avec
+un «\ \e\ » seul.
+.PP
+Une \fIexpression entre crochets\fP est une liste de caractères encadrés par «\
+\fI[]\fP\ ». Elle correspond normalement à n'importe quel caractère de la
+liste. Si la liste débute par «\ ^\ », elle correspond à n'importe quel
+caractère \fIsauf\fP ceux de la liste. Si deux caractères de la liste sont
+séparés par un «\ \-\ », ils représentent tout \fIl'intervalle\fP de caractères
+entre\-eux (compris). Par exemple «\ \fI[0\-9]\fP\ » en ASCII représente n'importe
+quel chiffre décimal. Il est illégal\*(dg d'utiliser la même limite dans
+deux intervalles, comme «\ \fIa\-c\-e\fP\ ». Les intervalles dépendent beaucoup
+de l'ordre de classement des caractères, et les programmes portables doivent
+éviter de les utiliser.
+.PP
+Pour insérer un «\ ]\ » littéral dans la liste, il faut le mettre en
+première position (ou après un éventuel «\ ^\ »). Pour inclure un «\ \-\ »
+littéral, il faut le placer en première, dernière position, ou en seconde
+borne d'un intervalle. Pour utiliser un \- en première borne d'intervalle,
+encadrez\-le entre «\ \fI[.\fP\ » et «\ \fI.]\fP\ » pour en faire une fusion (plus
+bas). À l'exception de ces éléments, et de quelques combinaisons avec des
+crochets (voir plus bas), tous les autres caractères spéciaux, y compris le
+«\ \e\ », perdent leurs significations spéciales dans une expression entre
+crochets.
+.PP
+Dans une expression entre crochet, une fusion (un seul caractère, ou une
+séquence de caractères qui se comporte comme un seul, ou un nom de fusion)
+entre «\ \fI[.\fP\ » et «\ \fI.]\fP\ » correspond à la séquence des caractères de
+la fusion. Une séquence est un élément unique de l'expression entre
+crochets. Ainsi, un expression entre crochets contenant une fusion
+multi\-caractères peut correspondre à plus d'un caractère. Par exemple, si la
+séquence inclut la fusion «\ ch\ », alors l'ER «\ \fI[[.ch.]]*c\fP\ »
+correspond aux cinq premiers caractères de «\ chchcc\ ».
+.PP
+Dans une expression entre crochets, une séquence encadrée par «\ \fI[=\fP\ » et
+«\ \fI=]\fP\ » est une classe d'équivalence, correspondant à la séquence des
+caractères de tous les éléments équivalents à celui\-ci, y compris
+lui\-même. (S'il n'y a pas d'autres éléments équivalents, le fonctionnement
+est le même que si l'encadrement était «\ \fI[.\fP\ » et «\ \fI.]\fP\ »). Par
+exemple, si o et \o'o^' sont membres d'une classe équivalence, alors «\
+\fI[[=o=]]\fP\ », «\ \fI[[=\o'o^'=]]\fP\ », et «\ \fI[o\o'o^']\fP\ » sont tous
+synonymes. Une classe d'équivalence ne doit\*(dg pas être une borne
+d'intervalle.
+.PP
+Dans une expression entre crochet, le nom d'une \fIclasse de caractères\fP
+encadré par «\ \fI[:\fP\ » et «\ \fI:]\fP\ » correspond à la liste de tous les
+caractères de la classe. Les noms des classes standards sont\ :
+.PP
+.RS
+.nf
+.ta 3c 6c 9c
+alnum	digit	punct
+alpha	graph	space
+blank	lower	upper
+cntrl	print	xdigit
+.fi
+.RE
+.PP
+.\" As per http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=295666
+.\" The following does not seem to apply in the glibc implementation
+.\" .PP
+.\" There are two special cases\*(dg of bracket expressions:
+.\" the bracket expressions "\fI[[:<:]]\fP" and "\fI[[:>:]]\fP" match
+.\" the null string at the beginning and end of a word respectively.
+.\" A word is defined as a sequence of
+.\" word characters
+.\" which is neither preceded nor followed by
+.\" word characters.
+.\" A word character is an
+.\" .I alnum
+.\" character (as defined by
+.\" .BR wctype (3))
+.\" or an underscore.
+.\" This is an extension,
+.\" compatible with but not specified by POSIX.2,
+.\" and should be used with
+.\" caution in software intended to be portable to other systems.
+Cela correspond aux classes des caractères définis pour \fBwctype\fP(3). Une
+localisation peut en fournir d'autres. Une classe de caractères ne doit pas
+être utilisée comme borne d'intervalle.
+.PP
+Dans le cas où une ER peut correspondre à plusieurs sous\-chaînes d'une
+chaîne donnée, elle correspond à celle qui commence le plus tôt dans la
+chaîne. Si l'ER peut correspondre à plusieurs sous\-chaînes débutant au même
+point, elle correspond à la plus longue sous\-chaîne. Les sous\-expressions
+correspondent aussi à la plus longue sous\-chaîne possible, à condition que
+la correspondance complète soit la plus longue possible, les
+sous\-expressions débutant le plus tôt dans l'ER ayant priorité sur celles
+débutant plus loin. Notez que les sous\-expressions de haut\-niveau ont donc
+priorité sur les sous\-expressions de bas\-niveau les composant.
+.PP
+La longueur des correspondances est mesurée en caractères, pas en éléments
+fusionnés. Une chaîne vide est considérée comme plus longueur qu'aucune
+correspondance. Par exemple «\ \fIbb*\fP\ » correspond au trois caractères du
+milieu de «\ abbbc\ », «\ \fI(wee|week)(knights|nights)\fP\ » correspond aux
+dix caractères de «\ weeknights\ », quand «\ \fI(.*).*\fP\ » est mis en
+correspondance avec «\ abc\ », la sous\-expression entre parenthèses
+correspond aux trois caractères, et si «\ \fI(a*)*\fP\ » est mis en
+correspondance avec «\ bc\ » l'ER entière et la sous\-ER entre parenthèses
+correspondent toutes deux avec une chaîne nulle.
+.PP
+Si une correspondance sans distinction de casse est demandée, toutes les
+différences entre majuscules et minuscules disparaissent de l'alphabet. Un
+symbole alphabétique apparaissant hors d'une expression entre crochets est
+remplacé par une expression contenant les deux casses (par exemple «\ x\ »
+devient «\ \fI[xX]\fP\ »). Lorsqu'il apparaît dans une expression entre
+crochets, tous ses équivalents sont ajoutés («\ \fI[x]\fP\ » devient «\
+\fI[xX]\fP\ » et «\ \fI[^x]\fP\ » devient «\ \fI[^xX]\fP\ »).
+.PP
+Aucune limite particulière n'est imposée sur la longueur est ER\*(dg. Les
+programmes destinés à être portables devrait limiter leurs ER à 256 octets,
+car une implémentation compatible POSIX peut refuser les expressions plus
+longues.
+.PP
+Les expressions rationnelles obsolètes (basiques) diffèrent sur plusieurs
+points. «\ |\ », «\ +\ », et «\ ?\ » sont des caractères normaux sans
+équivalents. Les délimiteurs d'encadrements sont «\ \fI\e{\fP\ » et «\ \fI\e}\fP\
+», car «\ {\ » et «\ {\ » sont des caractères ordinaires. Les parenthèses
+pour les sous\-expressions sont «\ \fI\e(\fP\ » et «\ \fI\e)\fP\ », car «\ (\ » et
+«\ )\ » sont des caractères ordinaires. «\ ^\ » est un caractère ordinaire
+sauf au début d'une ER ou au\*(dg début d'une sous\-expression entre
+parenthèses, «\ $\ » est un caractère ordinaire sauf à la fin d'une ER ou
+à\*(dg la fin d'une sous\-expressions entre parenthèses, et «\ *\ » est un
+caractère ordinaire s'il apparaît au début d'une ER ou au début d'une
+sous\-expression entre parenthèses (après un éventuel «\ ^\ »).
+.PP
+Enfin, il existe un nouveau type d'atome, la \fIréférence arrière\fP\ : «\ \e\
+» suivi d'un chiffre décimal non\-nul \fIn\fP correspond à la même séquence de
+caractères que ceux mis en correspondance avec la \fIn\fP\-ième sous\-expression
+entre parenthèses. (les sous\-expressions sont numérotées par leurs
+parenthèses ouvrantes, de gauche à droite), ainsi «\ \fI\e([bc]\e)\e1\fP\ »
+correspond à «\ bb\ » ou «\ cc\ » mais pas à «\ bc\ ».
+.SH BOGUES
+Avoir deux sortes d'ER est un calvaire.
+.PP
+La norme POSIX.2 actuelle dit que «\ )\ » est un caractère ordinaire en
+l'absence de la «\ (\ » correspondante. C'est dû à une erreur
+d'interprétation et changera probablement. Évitez d'en tenir compte.
+.PP
+Les références arrières sont un vrai calvaire, et posent de gros problèmes
+d'efficacité pour l'implémentation. Elles sont de plus assez mal définies
+(est\-ce que «\ \fIa\e(\e(b\e)*\e2\e)*d\fP\ » correspond à «\ abbbd\ »\
+?). Évitez\-les.
+.PP
+.\" As per http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=295666
+.\" The following does not seem to apply in the glibc implementation
+.\" .PP
+.\" The syntax for word boundaries is incredibly ugly.
+Les spécifications POSIX.2 sur les correspondances sans distinction de casse
+sont assez vagues. La description donnée plus haut est le consensus actuel
+parmi les implémenteurs.
+.SH AUTEUR
+.\" Sigh... The page license means we must have the author's name
+.\" in the formatted output.
+Cette page a été prise dans le paquet regex de Henry Spencer.
+.SH "VOIR AUSSI"
+\fBgrep\fP(1), \fBregex\fP(3)
+.PP
+POSIX.2, section 2.8 (Regular Expression Notation).
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,149 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 1993 Michael Haardt
+.\" (michael@moria.de),
+.\" Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified 1993-07-22 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1993-08-10 by Alan Cox <iiitac@pyramid.swansea.ac.uk>
+.\" Modified 1998-11-04 by Tigran Aivazian <tigran@sco.com>
+.\" Modified 2004-05-27, 2004-06-17, 2004-06-23 by Michael Kerrisk
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ACCT 2 "16 juin 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+acct \- Activer/désactiver la comptabilité des processus
+.SH SYNOPSIS
+.ad l
+.nf
+\fB#include <unistd.h>\fP
+.sp
+\fBint acct(const char *\fP\fIfilename\fP\fB);\fP
+.fi
+.ad b
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBacct\fP()\ : _BSD_SOURCE || (_XOPEN_SOURCE && _XOPEN_SOURCE\ <\ 500)
+.SH DESCRIPTION
+L'appel système \fBacct\fP() active ou désactive la comptabilité des
+processus. Lorsqu'il est appelé avec un nom de fichier existant comme
+argument, la comptabilité est mise en marche, un enregistrement étant ajouté
+à \fIfilename\fP à la fin de chaque processus. Un argument NULL arrête la
+comptabilité.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+L'autorisation d'écrire est refusée pour le fichier indiqué, ou
+l'autorisation de parcours est refusée pour l'un des répertoires du chemin
+de \fIfilename\fP (voir aussi \fBpath_resolution\fP(7)), ou \fIfilename\fP n'est pas
+un fichier ordinaire.
+.TP 
+\fBEFAULT\fP
+L'argument \fIfilename\fP pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEIO\fP
+Impossible d'écrire dans le fichier \fIfilename\fP.
+.TP 
+\fBEISDIR\fP
+\fIfilename\fP est un répertoire.
+.TP 
+\fBELOOP\fP
+Références symboliques circulaires dans le chemin d'accès à \fIfilename\fP.
+.TP 
+\fBENAMETOOLONG\fP
+\fIfilename\fP est une chaîne trop longue.
+.TP 
+\fBENFILE\fP
+La limite du nombre total de fichiers ouverts sur le système a été atteinte.
+.TP 
+\fBENOENT\fP
+Le nom de fichier indiqué n'existe pas.
+.TP 
+\fBENOMEM\fP
+Plus de mémoire disponible.
+.TP 
+\fBENOSYS\fP
+Le système de comptabilité BSD n'a pas été activé lors de la compilation du
+noyau. Le paramètre de configuration du noyau contrôlant cette option est
+\fBCONFIG_BSD_PROCESS_ACCT\fP.
+.TP 
+\fBENOTDIR\fP
+Un élément du chemin d'accès \fIfilename\fP n'est pas un répertoire.
+.TP 
+\fBEPERM\fP
+L'appelant n'a pas de privilèges suffisants pour activer la
+comptabilité. Sous Linux, la capacité \fBCAP_SYS_PACCT\fP est nécessaire.
+.TP 
+\fBEROFS\fP
+\fIfilename\fP se trouve sur un système de fichiers en lecture seule.
+.TP 
+\fBEUSERS\fP
+Il n'y a plus de structures de fichiers libres, ou pas assez de mémoire.
+.SH CONFORMITÉ
+.\" SVr4 documents an EBUSY error condition, but no EISDIR or ENOSYS.
+.\" Also AIX and HP-UX document EBUSY (attempt is made
+.\" to enable accounting when it is already enabled), as does Solaris
+.\" (attempt is made to enable accounting using the same file that is
+.\" currently being used).
+SVr4, BSD\ 4.3 (mais pas POSIX).
+.SH NOTES
+Aucune comptabilisation n'est effectuée pour les programmes en cours
+d'exécution si un plantage système survient. En particulier les processus
+qui ne se terminent jamais ne sont pas comptabilisés.
+
+La structure des enregistrements écrits dans le fichier de comptabilité est
+décrite dans \fBacct\fP(5).
+.SH "VOIR AUSSI"
+\fBacct\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

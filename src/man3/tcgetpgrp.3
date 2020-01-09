@@ -1,0 +1,109 @@
+.\" Copyright (C) 2002 Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TCGETPGRP 3 "28 janvier 2003" GNU "Manuel du programmeur Linux"
+.SH NOM
+tcgetpgrp, tcsetpgrp \- Lire/écrire le processus de premier plan d'un
+terminal
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBpid_t tcgetpgrp(int \fP\fIfd\fP\fB);\fP
+.sp
+\fBint tcsetpgrp(int \fP\fIfd\fP\fB, pid_t \fP\fIpgrp\fP\fB);\fP
+.SH DESCRIPTION
+.\" The process itself may be a background process.
+La fonction \fBtcgetpgrp\fP() renvoie l'ID du groupe de processus au premier
+plan sur le terminal associé \fIfd\fP, qui doit être le terminal de contrôle du
+processus appelant.
+.LP
+La fonction \fBtcsetpgrp\fP() fait du groupe de processus \fIpgrp\fP le groupe au
+premier plan sur le terminal associé à \fIfd\fP, qui doit être le terminal de
+contrôle du processus appelant, et être toujours associé à sa session. En
+outre, \fIpgrp\fP doit être un groupe (non vide) de processus appartenant à la
+même session que le processus appelant.
+.LP
+Si \fBtcsetpgrp\fP() est appelé par un membre d'un groupe de processus en
+arrière\-plan dans sa session, et si le processus appelant ne bloque ni
+n'ignore \fBSIGTTOU\fP, un signal \fBSIGTTOU\fP est envoyé à tous les membres du
+groupe en arrière\-plan.
+.SH "VALEUR RENVOYÉE"
+Quand \fIfd\fP identifie le terminal de contrôle du processus appelant, la
+fonction \fBtcgetpgrp\fP() renverra l'ID du groupe de processus au premier plan
+sur ce terminal s'il existe, sinon il renvoie une valeur supérieure à 1,
+différente d'un ID de groupe de processus existant. Si \fIfd\fP ne correspond
+pas au terminal de contrôle du processus, \-1 est renvoyé et \fIerrno\fP est
+positionnée en conséquence.
+.LP
+Lorsqu'elle réussit, la fonction \fBtcsetpgrp\fP() renvoie 0. Sinon, elle
+renvoie \-1, et remplit \fIerrno\fP avec le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBEINVAL\fP
+\fIpgrp\fP a une valeur illégale.
+.TP 
+\fBENOTTY\fP
+Le processus appelant n'a pas de terminal de contrôle, ou il en a un mais ce
+n'est pas celui décrit par \fIfd\fP, ou, pour \fBtcsetpgrp\fP(), ce terminal de
+contrôle n'est plus associé avec la session du processus appelant.
+.TP 
+\fBEPERM\fP
+\fIpgrp\fP a une valeur légale, mais ce n'est pas l'ID d'un groupe de processus
+dans la même session que le processus appelant.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Ces fonctions sont implémentées via les ioctls \fBTIOCGPGRP\fP et \fBTIOCSPGRP\fP.
+.SS Historique
+Les ioctls sont apparus dans BSD\ 4.2. Ces fonctions sont des inventions
+POSIX.
+.SH "VOIR AUSSI"
+\fBsetpgid\fP(2), \fBsetsid\fP(2), \fBcredentials\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

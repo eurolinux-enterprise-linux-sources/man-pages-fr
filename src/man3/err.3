@@ -1,0 +1,150 @@
+.\" Copyright (c) 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"	From: @(#)err.3	8.1 (Berkeley) 6/9/93
+.\" $FreeBSD: src/lib/libc/gen/err.3,v 1.11.2.5 2001/08/17 15:42:32 ru Exp $
+.\"
+.\" 2007-12-08, mtk, Converted from mdoc to man macros
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ERR 3 "28 décembre 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+err, verr, errx, verrx, warn, vwarn, warnx, vwarnx \- Messages d'erreurs
+formatés
+.SH SYNOPSIS
+.nf
+\fB#include <err.h>\fP
+.sp
+\fBvoid err(int \fP\fIeval\fP\fB, const char *\fP\fIfmt\fP\fB, ...);\fP
+.sp
+\fBvoid errx(int \fP\fIeval\fP\fB, const char *\fP\fIfmt\fP\fB, ...);\fP
+.sp
+\fBvoid warn(const char *\fP\fIfmt\fP\fB, ...);\fP
+.sp
+\fBvoid warnx(const char *\fP\fIfmt\fP\fB, ...);\fP
+.sp
+\fB#include <stdarg.h>\fP
+.sp
+\fBvoid verr(int \fP\fIeval\fP\fB, const char *\fP\fIfmt\fP\fB, va_list \fP\fIargs\fP\fB);\fP
+.sp
+\fBvoid verrx(int \fP\fIeval\fP\fB, const char *\fP\fIfmt\fP\fB, va_list \fP\fIargs\fP\fB);\fP
+.sp
+\fBvoid vwarn(const char *\fP\fIfmt\fP\fB, va_list \fP\fIargs\fP\fB);\fP
+.sp
+\fBvoid vwarnx(const char *\fP\fIfmt\fP\fB, va_list \fP\fIargs\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Les fonctions de la famille \fBerr\fP() et \fBwarn\fP() affichent un message
+d'erreur formaté sur la sortie d'erreur standard. Dans tous les cas, elles
+affichent le nom du programme, un deux\-points, et une espace. Si l'argument
+\fIfmt\fP n'est pas NULL, le message est affiché avec un format de type
+\fBprintf\fP(3). La sortie se termine par un saut de ligne.
+.PP
+Les fonctions \fBerr\fP(), \fBverr\fP(), \fBwarn\fP(), et \fBvwarn\fP() ajoutent un
+message d'erreur obtenu avec \fBstrerror\fP(3) à partir d'un code transmis ou
+de la variable globale \fIerrno\fP, précédé d'un autre deux\-points et d'un
+espace, sauf si l'argument \fIfmt\fP est NULL.
+.PP
+Les fonctions \fBerr\fP(), \fBverr\fP(), \fBwarn\fP() et \fBvwarn\fP() utilisent la
+variable globale \fIerrno\fP pour rechercher le message d'erreur.
+.PP
+Les fonctions \fBerrx\fP() et \fBwarnx\fP() n'ajoutent pas de message d'erreur.
+.PP
+Les fonctions \fBerr\fP(), \fBverr\fP(), \fBerrx\fP(), et \fBverrx\fP() ne reviennent
+pas, elles terminent le programme avec le code de retour \fIeval\fP.
+.SH EXEMPLES
+Afficher la chaîne d'informations \fIerrno\fP courante et sortir\ :
+.in +4n
+.nf
+
+if ((p = malloc(size)) == NULL)
+    err(1, NULL);
+if ((fd = open(file_name, O_RDONLY, 0)) == \-1)
+    err(1, "%s", file_name);
+.fi
+.in
+.PP
+Afficher un message d'erreur et sortir\ :
+.in +4n
+.nf
+
+if (tm.tm_hour < START_TIME)
+    errx(1, "too early, wait until %s", start_time_string);
+.fi
+.in
+.PP
+Avertissement sur une erreur\ :
+.in +4n
+.nf
+
+if ((fd = open(raw_device, O_RDONLY, 0)) == \-1)
+    warnx("%s: %s: trying the block device",
+            raw_device, strerror(errno));
+if ((fd = open(block_device, O_RDONLY, 0)) == \-1)
+    err(1, "%s", block_device);
+.fi
+.in
+.SH CONFORMITÉ
+.\" .SH HISTORY
+.\" The
+.\" .BR err ()
+.\" and
+.\" .BR warn ()
+.\" functions first appeared in
+.\" 4.4BSD.
+Ces fonctions sont des extensions BSD non standard.
+.SH "VOIR AUSSI"
+\fBerror\fP(3), \fBexit\fP(3), \fBperror\fP(3), \fBprintf\fP(3), \fBstrerror\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

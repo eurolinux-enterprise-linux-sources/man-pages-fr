@@ -1,0 +1,61 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STRNLEN 3 "25 juillet 1999" GNU "Manuel du programmeur Linux"
+.SH NOM
+strnlen \- Déterminer la longueur d'une chaîne.
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP
+.sp
+\fB#include <string.h>\fP
+.sp
+\fBsize_t strnlen(const char *\fP\fIs\fP\fB, size_t \fP\fIlngmax\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBstrnlen\fP() renvoie le nombre de caractères de la chaîne
+pointée par \fIs\fP (non compris le caractère «\ \e0\ » final), mais en
+examinant au maximum \fIlngmax\fP caractères. Ce faisant, \fBstrnlen\fP()
+n'examine que les \fIlngmax\fP premiers caractères de \fIs\fP et n'atteint jamais
+\fIs+lngmax\fP.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBstrnlen\fP() renvoie \fIstrlen(s)\fP si la longueur est inférieure
+à \fIlngmax\fP, ou \fIlngmax\fP s'il n'y a pas de caractère '\e0' parmi les
+\fIlngmax\fP premiers caractères de la chaîne pointée par \fIs\fP.
+.SH CONFORMITÉ
+Cette fonction est une extension GNU.
+.SH "VOIR AUSSI"
+\fBstrlen\fP(3), \fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

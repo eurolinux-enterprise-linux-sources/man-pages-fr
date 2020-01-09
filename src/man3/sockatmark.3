@@ -1,0 +1,138 @@
+.\" Copyright (c) 2006, Michael Kerrisk (mtk.manpages@gmail.com)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SOCKATMARK 3 "3 décembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+sockatmark \- Déterminer si la socket a atteint la marque de données
+hors\-bande
+.SH SYNOPSIS
+\fB#include <sys/socket.h>\fP
+.sp
+\fBint sockatmark(int \fP\fIsockfd\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBsockatmark\fP()\ : _POSIX_C_SOURCE\ >=\ 200112L || _XOPEN_SOURCE\ >=\
+600
+.ad b
+.SH DESCRIPTION
+\fBsockatmark\fP() renvoie une valeur indiquant si oui ou non la socket
+référencée par le descripteur de fichier \fIsockfd\fP a atteint une marque de
+données hors\-bande. Si la socket a atteint la marque, la fonction renvoie 1,
+sinon elle renvoie 0. Cette fonction ne supprime pas la marque de données
+hors\-bande.
+.SH "VALEUR RENVOYÉE"
+Un appel réussit à \fBsockatmark\fP() renvoie 1 si la socket a atteint la
+marque de données hors\-bande, ou 0 dans le cas contraire. En cas d'erreur,
+elle renvoie \-1 et écrit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIsockfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBEINVAL\fP
+.\" POSIX.1 says ENOTTY for this case
+\fIsockfd\fP n'est pas un descripteur de fichier sur lequel \fBsockatmark\fP()
+peut s'appliquer.
+.SH VERSIONS
+\fBsockatmark\fP() a été ajoutée à la glibc dans la version 2.2.4.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Si \fBsockatmark\fP() renvoie 1, les données hors\-bande peuvent être lues en
+utilisant l'attribut \fBMSG_OOB\fP de \fBrecv\fP(2).
+
+Les données hors\-bande ne sont supportées que par certains protocoles de
+socket de flux.
+
+\fBsockatmark\fP() peut être appelée de manière sûre par un gestionnaire pour
+le signal \fBSIGURG\fP.
+
+\fBsockatmark\fP() est implémentée en utilisant l'opération \fBioctl\fP(2)
+\fBSIOCATMARK\fP.
+.SH BOGUES
+Avant la glibc 2.4, \fBsockatmark\fP() ne fonctionnait pas.
+.SH EXEMPLE
+Le code suivant peut être utilisé après la réception d'un signal \fBSIGURG\fP
+pour lire (et abandonner) toutes les données jusqu'à la marque de données
+hors\-bande, puis lit l'octet de donnée à la marque\ :
+.nf
+
+    char buf[BUF_LEN];
+    char oobdata;
+    int atmark, s;
+
+    for (;;) {
+        atmark = sockatmark(sockfd);
+        if (atmark == \-1) {
+            perror("sockatmark");
+            break;
+        }
+
+        if (atmark)
+            break;
+
+        s = read(sockfd, buf, BUF_LEN) <= 0);
+        if (s == \-1)
+            perror("read");
+        if (s <= 0)
+            break;
+    }
+
+    if (atmark == 1) {
+        if (recv(sockfd, &oobdata, 1, MSG_OOB) == \-1) {
+            perror("recv");
+            ...
+        }
+    }
+.fi
+.SH "VOIR AUSSI"
+\fBfcntl\fP(2), \fBrecv\fP(2), \fBsend\fP(2), \fBtcp\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

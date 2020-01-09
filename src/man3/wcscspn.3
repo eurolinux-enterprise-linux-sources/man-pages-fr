@@ -1,0 +1,63 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single Unix specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH WCSCSPN 3 "25 juillet 1999" GNU "Manuel du programmeur Linux"
+.SH NOM
+wcscspn \- Extraire des portions de chaîne de caractères larges
+.SH SYNOPSIS
+.nf
+\fB#include <wchar.h>\fP
+.sp
+\fBsize_t wcscspn(const wchar_t *\fP\fIwcs\fP\fB, const wchar_t *\fP\fIrejet\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBwcscspn\fP() est l'équivalent pour caractères larges de la
+fonction \fBstrcspn\fP(3). Elle détermine la longueur du plus long segment
+initial de \fIwcs\fP constitué entièrement de caractères larges non cités dans
+\fIrejet\fP. En d'autres termes, elle cherche la première occurrence de l'un
+des caractères larges contenus dans \fIrejet\fP au sein de la chaîne \fIwcs\fP.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBwcscspn\fP() renvoie le nombre de caractères larges du segment
+initial de la chaîne \fIwcs\fP non contenus dans \fIrejet\fP. Elle retourne donc
+la position de la première occurrence d'un caractère de la chaîne \fIrejet\fP
+au sein de \fIwcs\fP ou \fIwcslen(wcs)\fP si aucun n'est trouvé.
+.SH CONFORMITÉ
+C99.
+.SH "VOIR AUSSI"
+\fBstrcspn\fP(3), \fBwcspbrk\fP(3), \fBwcsspn\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

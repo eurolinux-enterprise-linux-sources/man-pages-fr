@@ -1,0 +1,240 @@
+.\" t
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MQ_OVERVIEW 7 "27 septembre 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+mq_overview \- Panorama des files de messages POSIX
+.SH DESCRIPTION
+Les files de messages POSIX permettent aux processus d'échanger des données
+sous forme de messages. Cette API est distincte de celle fournie par les
+files de messages System\ V (\fBmsgget\fP(2), \fBmsgsnd\fP(2), \fBmsgrcv\fP(2), etc.),
+mais propose des fonctionnalités similaires.
+
+Les files de messages sont créées et ouvertes en utilisant
+\fBmq_open\fP(3). Cette fonction retourne un \fIdescripteur de file de messages\fP
+(\fImqd_t\fP), utilisé pour se référer à la file de messages ouverte dans les
+prochains appels. Chaque file de messages est distinguée par son nom sous la
+forme \fI/un_nom\fP\ ; c'est\-à\-dire un chaîne terminée par un caractère nul
+pouvant avoir jusqu'à \fBNAME_MAX\fP (255) caractères, commençant par une barre
+oblique («\ /\ ») suivie d'un caractère ou plus, aucun de ces derniers n'étant
+une barre oblique. Deux processus peuvent opérer sur la même file en
+fournissant le même nom à \fBmq_open\fP(3).
+
+Les messages sont transférés à une file et récupérés depuis une file en
+utilisant \fBmq_send\fP(3) et \fBmq_receive\fP(3). Lorsqu'un processus a fini
+d'utiliser la file, il la ferme en utilisant \fBmq_close\fP(3), et lorsque
+cette file n'est plus nécessaire, elle peut être supprimée avec
+\fBmq_unlink\fP(3). Les attributs de la file peuvent être obtenus et (dans
+certains cas) modifiés en utilisant \fBmq_getattr\fP(3) et \fBmq_setattr\fP(3). Un
+processus peut demander un avertissement asynchrone de l'arrivée d'un
+message sur une file auparavant vide en utilisant \fBmq_notify\fP(3).
+
+Un descripteur de file de messages est une référence à une \fIdescription
+d'une file de messages ouverte\fP (voyez \fBopen\fP(2)). Après un appel à
+\fBfork\fP(2), un processus fils hérite des copies des descripteurs de file de
+messages de son parent, et ces descripteurs réfèrent aux mêmes descriptions
+de files de messages ouvertes que les descripteurs correspondants du
+parent. Les descripteurs correspondants de deux processus partagent
+l'attribut (\fImq_flags\fP) qui est associé à la description de la file de
+messages ouverte.
+
+Chaque message contient une \fIpriorité\fP associée, et les messages sont
+toujours délivrés au processus de réception par ordre de
+priorité. L'intervalle de priorité des messages va de 0 (faible) à
+\fIsysconf(_SC_MQ_PRIO_MAX)\ \-\ 1\fP (haute). Sur Linux,
+\fIsysconf(_SC_MQ_PRIO_MAX)\fP renvoie 32768, mais POSIX.1\-2001 ne demande
+qu'une implémentation gérant des priorités allant de 0 à 31. Certaines
+implémentations ne proposent que cet intervalle.
+.PP
+Le reste de cette section décrit certains détails spécifiques à
+l'implémentation Linux des queues de messages POSIX.
+.SS "Interfaces de bibliothèque et appels système"
+Dans la plupart des cas, les interfaces de bibliothèque \fBmq_*\fP() sont
+implémentées autour d'appels système du même nom. Les exceptions à cette
+règle sont indiquées dans le tableau ci\(hydessous\ :
+.in +4n
+.TS
+lB lB
+l l.
+Fonction de bibliothèque	Appel système
+mq_close(3)	close(2)
+mq_getattr(3)	mq_getsetattr(2)
+mq_notify(3)	mq_notify(2)
+mq_open(3)	mq_open(2)
+mq_receive(3)	mq_timedreceive(2)
+mq_send(3)	mq_timedsend(2)
+mq_setattr(3)	mq_getsetattr(2)
+mq_timedreceive(3)	mq_timedreceive(2)
+mq_timedsend(3)	mq_timedsend(2)
+mq_unlink(3)	mq_unlink(2)
+.TE
+.in
+.SS Versions
+Les files de messages POSIX ne sont gérées par Linux que depuis le noyau
+2.6.6. La gestion n'a été ajoutée à Glibc que depuis la version\ 2.3.4.
+.SS "Configuration du noyau"
+La gestion des files de messages POSIX est configurable via l'option de
+configuration du noyau \fBCONFIG_POSIX_MQUEUE\fP. Cette option est activée par
+défaut.
+.SS Persistance
+Les files de messages POSIX persistent dans le noyau\ : si une file de
+messages n'est pas supprimée avec \fBmq_unlink\fP(3), elle existera jusqu'à
+l'extinction du système.
+.SS "Édition des liens"
+Les programmes utilisant l'API des files de messages POSIX doivent être
+compilés avec \fIcc \-lrt\fP pour être liés à la bibliothèque temps réel
+\fIlibrt\fP.
+.SS "Interfaces /proc"
+Les interfaces suivantes peuvent être utilisées pour limiter la quantité de
+mémoire du noyau utilisée par les files de messages POSIX\ :
+.TP 
+\fI/proc/sys/fs/mqueue/msg_max\fP
+Ce fichier peut être utilisé pour visualiser et changer la valeur limite
+pour le nombre maximum de messages dans une file. Cette valeur agit comme
+une borne pour le paramètre \fIattr\->mq_maxmsg\fP indiqué à
+\fBmq_open\fP(3). La valeur par défaut de \fImsg_max\fP vaut 10. La valeur
+minimale est de 1 (10 pour les noyaux antérieurs à 2.6.28). La valeur
+maximale vaut \fBHARD_MAX\fP\ : \fI(131072\ /\ sizeof(void\ *))\fP (32768 sur
+Linux/86). Cette limite est ignorée pour les processus privilégiés
+(\fBCAP_SYS_RESOURCE\fP), mais la limite \fBHARD_MAX\fP reste néanmoins imposée.
+.TP 
+\fI/proc/sys/fs/mqueue/msgsize_max\fP
+Ce fichier peut être utilisé pour visualiser et modifier la limite de la
+taille maximale des messages. Cette valeur agit comme une borne pour le
+paramètre \fIattr\->mq_msgsize\fP indiqué à \fBmq_open\fP(3). La valeur par
+défaut de \fImsgsize_max\fP est de 8192 octets. La valeur minimale est de 128
+(8192 pour les noyaux antérieurs à 2.6.28). La valeur maximale de
+\fImsgsize_max\fP est de 1\ 048\ 576 octets (dans les noyaux antérieurs à 2.6.28,
+la valeur maximale était de \fBINT_MAX\fP, c'est\-à\-dire 2\ 147\ 483\ 647 sur
+Linux/86). Cette limite est ignorée pour les processus privilégiés
+(\fBCAP_SYS_RESOURCE\fP).
+.TP 
+\fI/proc/sys/fs/mqueue/queues_max\fP
+Ce fichier peut être utilisé pour visualiser et modifier la limite au niveau
+du système du nombre de files de messages qui peuvent être créées. Seuls les
+processus privilégiés (\fBCAP_SYS_RESOURCE\fP) peuvent créer de nouvelles files
+de messages une fois que la limite a été atteinte. La valeur par défaut de
+\fIqueues_max\fP vaut 256, elle peut être remplacée par n'importe quelle valeur
+entre 0 et INT_MAX.
+.SS "Limitation des ressources"
+La limitation des ressources \fBRLIMIT_MSGQUEUE\fP, qui indique une limite sur
+la quantité d'espace qui peut être utilisée par toutes les files de messages
+appartenant à l'identifiant utilisateur réel du processus, est décrite dans
+\fBgetrlimit\fP(2).
+.SS "Monter le système de fichiers des files de messages"
+Sous Linux, les files de messages sont créées dans un système de fichiers
+virtuel. (D'autres implémentation peuvent également fournir une telle
+fonctionnalité, mais les détails sont probablement différents.) Ce système
+de fichiers peut être monté (par le superutilisateur) en utilisant les
+commandes suivantes\ :
+.in +4n
+.nf
+
+#\fB mkdir /dev/mqueue\fP
+#\fB mount \-t mqueue none /dev/mqueue\fP
+
+.fi
+.in
+Le «\ sticky bit\ » est automatiquement activé sur le répertoire de montage.
+
+Une fois le système de fichiers monté, les files de messages sur le système
+peuvent être visualisées et manipulées avec les commandes utilisées
+habituellement pour les fichiers (par exemple, \fBls\fP(1) et \fBrm\fP(1)).
+
+Le contenu de chaque fichier dans le répertoire est composé d'une seule
+ligne contenant les informations sur la file\ :
+.in +4n
+.nf
+
+$\fB cat /dev/mqueue/mymq\fP
+QSIZE:129     NOTIFY:2    SIGNO:0    NOTIFY_PID:8260
+
+.fi
+.in
+Ces champs ont les caractéristiques suivantes\ :
+.TP 
+\fBQSIZE\fP
+Nombre d'octets de données dans tous les messages de la file.
+.TP 
+\fBNOTIFY_PID\fP
+Si différent de zéro, alors le processus avec cet identifiant a utilisé
+\fBmq_notify\fP(3) pour s'enregistrer pour les avertissements asynchrones de
+messages, et les champs suivants décrivent comment ces avertissements se
+produisent.
+.TP 
+\fBNOTIFY\fP
+Méthode d'avertissement\ : 0 pour \fBSIGEV_SIGNAL\fP, 1 pour \fBSIGEV_NONE\fP et 2
+pour \fBSIGEV_THREAD\fP.
+.TP 
+\fBSIGNO\fP
+Numéro de signal à utiliser pour \fBSIGEV_SIGNAL\fP.
+.SS "Consultation des descripteurs de files de messages"
+Sous Linux, un descripteur de file de messages est en fait un descripteur de
+fichier, et peut être contrôlé avec \fBselect\fP(2), \fBpoll\fP(2) ou
+\fBepoll\fP(7). Ceci n'est pas portable.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Les files de messages System\ V (\fBmsgget\fP(2), \fBmsgsnd\fP(2), \fBmsgrcv\fP(2),
+etc.) sont une ancienne API d'échange de messages entre les processus. Les
+files de messages POSIX fournissent une interface mieux conçue. Cependant,
+les files de messages POSIX sont moins disponibles (en particulier sur les
+anciens systèmes) que les files de messages System\ V.
+
+Actuellement (2.6.26), Linux ne gère pas l'utilisation des listes de
+contrôle d'accès (ACL\ : Access Control List) des files de messages POSIX.
+.SH EXEMPLE
+Un exemple d'utilisation des différentes fonctions des files de messages est
+disponible dans \fBmq_notify\fP(3).
+.SH "VOIR AUSSI"
+\fBgetrlimit\fP(2), \fBmq_getsetattr\fP(2), \fBpoll\fP(2), \fBselect\fP(2),
+\fBmq_close\fP(3), \fBmq_getattr\fP(3), \fBmq_notify\fP(3), \fBmq_open\fP(3),
+\fBmq_receive\fP(3), \fBmq_send\fP(3), \fBmq_unlink\fP(3), \fBepoll\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

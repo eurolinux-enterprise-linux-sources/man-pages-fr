@@ -1,0 +1,90 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified Sun Jul 25 10:14:13 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 15 April 1995 by Michael Chastain <mec@shell.portal.com>
+.\"   Update calling parameters to Linux 1.2.4 values.
+.\" Modified 10 June 1995 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 3 May 1996 by Martin Schulze <joey@infodrom.north.de>
+.\" Modified Wed Nov  6 04:05:28 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Sat Jan 29 01:08:23 2000 by aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SETUP 2 "3 décembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+setup \- Configurer les périphériques, les systèmes de fichiers et monter le
+système de fichiers racine
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBint setup(void);\fP
+.SH DESCRIPTION
+\fBsetup\fP() est appelé une fois dans \fIlinux/init/main.c\fP. Il appelle les
+fonctions d'initialisation des périphériques et des systèmes de fichiers
+configurés dans le noyau. Ensuite, il monte le système de fichiers racine.
+.PP
+Aucun processus ne peut appeler \fBsetup\fP(). Même un processus avec des
+privilèges superutilisateur déclenchera une erreur \fBEPERM\fP.
+.SH "VALEUR RENVOYÉE"
+\fBsetup\fP() renvoie toujours \-1 pour un processus utilisateur.
+.SH ERREURS
+.TP 
+\fBEPERM\fP
+Toujours déclenchée pour un processus utilisateur.
+.SH VERSIONS
+Depuis Linux 2.1.121, cette fonction n'existe plus.
+.SH CONFORMITÉ
+Cette fonction est spécifique à Linux et ne devrait pas être employée dans
+des programmes destinés à être portables, ou en fait dans n'importe quel
+programme.
+.SH NOTES
+Le prototype a varié avec le temps\ : à certains moments \fIsetup ()\fP avait un
+unique paramètre \fIvoid *BIOS\fP et à d'autre moment, un unique paramètre
+\fIint magic\fP.
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,94 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH AIO_SUSPEND 3 "14 novembre 2003" "" "Manuel du programmeur Linux"
+.SH NOM
+aio_suspend \- Attendre une opération d'E/S asynchrone ou un délai
+.SH SYNOPSIS
+.nf
+.sp
+\fB#include <aio.h>\fP
+.sp
+\fBint aio_suspend(const struct aiocb * const \fP\fIcblist\fP\fB[],\fP
+.br
+\fB                int \fP\fIn\fP\fB, const struct timespec *\fP\fItimeout\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP.
+.fi
+.SH DESCRIPTION
+La fonction \fBaio_suspend\fP() suspend le processus appelant jusqu'à ce qu'au
+moins une des requêtes d'E/S asynchrones de la liste \fIcblist\fP de longueur
+\fIn\fP soit achevée, qu'un signal ait été délivré, ou que le délai \fItimeout\fP
+ne soit pas NULL et que l'intervalle de temps qu'il indique soit dépassé.
+.LP
+Chaque élément de la liste doit être soit NULL (auquel cas il est ignoré),
+soit un pointeur vers un bloc de contrôle sur lequel a été initiée une E/S
+en utilisant \fBaio_read\fP(3), \fBaio_write\fP(3), ou \fBlio_listio\fP(3).
+.LP
+Si \fBCLOCK_MONOTONIC\fP est géré, cette horloge est utilisée pour mesurer
+l'intervalle de dépassement du délai.
+.SH "VALEUR RENVOYÉE"
+Si cette fonction se termine après l'achèvement de l'une des requêtes
+indiquées, elle renvoie 0. Autrement, elle renvoie \-1 et définit \fIerrno\fP en
+conséquence.
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+L'appel s'est achevé par un dépassement de délai avant qu'au moins une des
+opérations ne soit terminée.
+.TP 
+\fBEINTR\fP
+L'appel s'est achevé par un signal\ ; voir \fBsignal\fP(7). (Il est possible que
+ce soit un signal d'achèvement de l'une des opérations que l'on attendait).
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Il est possible d'effectuer une scrutation en utilisant un délai \fItimeout\fP
+non nul qui spécifie un intervalle de temps nul.
+.SH "VOIR AUSSI"
+\fBaio_cancel\fP(3), \fBaio_error\fP(3), \fBaio_fsync\fP(3), \fBaio_read\fP(3),
+\fBaio_return\fP(3), \fBaio_write\fP(3), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2004-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

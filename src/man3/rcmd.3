@@ -1,0 +1,168 @@
+.\"	$NetBSD: rcmd.3,v 1.9 1996/05/28 02:07:39 mrg Exp $
+.\"
+.\" Copyright (c) 1983, 1991, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)rcmd.3	8.1 (Berkeley) 6/4/93
+.\"
+.\" Contributed as Linux man page by David A. Holland, 970908
+.\" I have not checked whether the Linux situation is exactly the same.
+.\"
+.\" 2007-12-08, mtk, Converted from mdoc to man macros
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RCMD 3 "28 décembre 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+rcmd, rresvport, iruserok, ruserok \- Routines renvoyant un flux de données
+pour une commande invoquée à distance
+.SH SYNOPSIS
+.nf
+\fB#include <netdb.h> \ \ \fP/* Ou <unistd.h> sur certains systèmes */
+.sp
+\fBint rcmd(char **\fP\fIahost\fP\fB, int \fP\fIinport\fP\fB, const char *\fP\fIlocuser\fP\fB, \fP
+\fB         const char *\fP\fIremuser\fP\fB, const char *\fP\fIcmd\fP\fB, int *\fP\fIfd2p\fP\fB);\fP
+.sp
+\fBint rresvport(int *\fP\fIport\fP\fB);\fP
+.sp
+\fBint iruserok(uint32_t \fP\fIraddr\fP\fB, int \fP\fIsuperuser\fP\fB, \fP
+\fB             const char *\fP\fIruser\fP\fB, const char *\fP\fIluser\fP\fB);\fP
+.sp
+\fBint ruserok(const char *\fP\fIrhost\fP\fB, int \fP\fIsuperuser\fP\fB, \fP
+\fB            const char *\fP\fIruser\fP\fB, const char *\fP\fIluser\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBrcmd\fP(), \fBrresvport\fP(), \fBruserok\fP()\ : _BSD_SOURCE
+.SH DESCRIPTION
+La fonction \fBrcmd\fP() est utilisée par le superutilisateur pour exécuter une
+commande sur une machine distante, en utilisant un schéma d'identification
+basé sur des numéros de ports privilégiés. La fonction \fBrresvport\fP()
+renvoie un descripteur sur une socket se trouvant dans l'espace des numéros
+de ports privilégiés. Les fonctions \fBiruserok\fP() et \fBruserok\fP() sont
+utilisées par les serveurs pour identifier les clients demandant un service
+avec \fBrcmd\fP(). Les quatre fonctions sont déclarées dans le même fichier et
+sont utilisées par le serveur \fBrshd\fP(8) (entre autres).
+.PP
+La fonction \fBrcmd\fP() recherche l'hôte \fI*ahost\fP en utilisant
+\fBgethostbyname\fP(3), puis renvoie \-1 si cet hôte n'existe pas. Sinon
+\fI*ahost\fP est rempli avec le nom standard de cet hôte, et une connexion est
+établie avec un serveur se trouvant sur l'un des ports bien connus
+\fIinport\fP.
+.PP
+Si la connexion réussit, une socket dans le domaine Internet de type
+\fBSOCK_STREAM\fP est renvoyée à l'appelant, et est fournie à la commande
+distante en guise de \fIstdin\fP et \fIstdout\fP. Si \fIfd2p\fP est non nul, un canal
+auxiliaire est créé pour un processus de contrôle, et son descripteur sera
+placé dans \fI*fd2p\fP. Le processus de contrôle renverra les sorties de
+diagnostic (numéro 2) sur ce canal, et acceptera également des octets qu'il
+considérera comme des numéros de signal Unix à envoyer au groupe de
+processus de la commande. Si \fIfd2p\fP est nul, alors \fIstderr\fP (sortie numéro
+2 de la commande distante) sera renvoyée sur \fIstdout\fP et rien n'est prévu
+pour l'envoi de signaux arbitraires au processus distant, bien que vous
+puissiez y parvenir en utilisant des données hors\-bande.
+.PP
+Le protocole est décrit en détail dans \fBrshd\fP(8).
+.PP
+La fonction \fBrresvport\fP() est utilisée pour obtenir une socket attachée à
+une adresse privilégiée. Cette socket est utilisable ensuite pour \fBrcmd\fP()
+et plusieurs autres fonctions. Les numéros de ports Internet privilégiés se
+trouvent dans l'intervalle 0 à 1023. Seul le superutilisateur est autorisé à
+attacher une adresse de ce type à une socket.
+.PP
+Les fonctions \fBiruserok\fP() et \fBruserok\fP() prennent respectivement en
+argument une adresse IP et un nom d'hôte distant, deux noms d'utilisateurs
+et un drapeau indiquant si l'utilisateur local est superutilisateur
+«\ \fIsuperuser\fP\ ». Ainsi, si l'utilisateur n'est \fIpas\fP le superutilisateur,
+elles vérifient le fichier \fI/etc/hosts.equiv\fP. Si ceci échoue, le fichier
+\&\fI.rhosts\fP est recherché dans le répertoire personnel de l'utilisateur
+local, afin de voir si la requête est autorisée.
+.PP
+Si ce fichier n'existe pas, ou s'il ne s'agit pas d'un fichier régulier, ou
+s'il appartient à quelqu'un d'autre que l'utilisateur local ou le
+superutilisateur, ou encore s'il est accessible en écriture par quelqu'un
+d'autre que son propriétaire, le test échoue automatiquement. Si la machine
+est listée dans le fichier \fIhosts.equiv\fP, ou si les noms d'hôte et
+d'utilisateur distants sont trouvés dans le fichier \fI.rhosts\fP,
+\fBiruserok\fP() et \fBruserok\fP() renvoient zéro. Sinon elles renvoient \-1. Si
+le domaine local (obtenu par l'intermédiaire de \fBgethostname\fP(2)) est le
+même que le domaine distant, seul le nom de machine a besoin d'être indiqué.
+.PP
+Si l'adresse IP de l'hôte distant est connue, on utilisera de préférence
+\fBiruserok\fP() plutôt que \fBruserok\fP() qui nécessitent d'avoir un serveur DNS
+digne de confiance pour le domaine distant.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBrcmd\fP() renvoie un descripteur de socket valide si elle
+réussit, sinon elle renvoie \-1 et affiche un message de diagnostic sur sa
+sortie d'erreur standard.
+.PP
+La fonction \fBrresvport\fP() renvoie un descripteur de socket valide, attaché
+à une adresse privilégiée si elle réussit. Elle renvoie \-1 sinon, et
+\fIerrno\fP contient le code d'erreur. Le code d'erreur \fBEAGAIN\fP signifie en
+réalité «\ Tous les ports réseau sont déjà utilisés\ ».
+.SH CONFORMITÉ
+Pas dans POSIX.1\-2001. Présentes sur les BSD, Solaris et beaucoup d'autres
+systèmes. Ces fonctions sont apparues dans BSD\ 4.2.
+.SH BOGUES
+.\" Bug filed 25 Nov 2007:
+.\" http://sources.redhat.com/bugzilla/show_bug.cgi?id=5399
+\fBiruserok\fP() n'est pas déclarée dans les fichiers d'en\-tête de la glibc.
+.SH "VOIR AUSSI"
+\fBrlogin\fP(1), \fBrsh\fP(1), \fBintro\fP(2), \fBrexec\fP(3), \fBrexecd\fP(8),
+\fBrlogind\fP(8), \fBrshd\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

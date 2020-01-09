@@ -1,0 +1,110 @@
+.\" @(#)des_crypt.3	2.1 88/08/11 4.0 RPCSRC; from 1.16 88/03/02 SMI;
+.\"
+.\" Taken from libc4 sources, which say:
+.\" Copyright (C) 1993 Eric Young - can be distributed under GPL.
+.\"
+.\" However, the above header line suggests that this file in fact is
+.\" Copyright Sun Microsystems, Inc (and is provided for unrestricted use,
+.\" see other Sun RPC sources).
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH DES_CRYPT 3 "18 mai 2007" "" "Manuel du programmeur Linux"
+.SH NOM
+des_crypt, ecb_crypt, cbc_crypt, des_setparity, DES_FAILED \- Cryptage DES
+rapide
+.SH SYNOPSIS
+.nf
+.\" Sun version
+.\" .B #include <des_crypt.h>
+\fB#include <rpc/des_crypt.h>\fP
+.LP
+\fBint ecb_crypt(char *\fP\fIkey\fP\fB, char *\fP\fIdata\fP\fB, unsigned \fP\fIdatalen\fP\fB,\fP
+\fB              unsigned \fP\fImode\fP\fB);\fP
+.LP
+\fBint cbc_crypt(char *\fP\fIkey\fP\fB, char *\fP\fIdata\fP\fB, unsigned \fP\fIdatalen\fP\fB,\fP
+\fB              unsigned \fP\fImode\fP\fB, char *\fP\fIivec\fP\fB);\fP
+.LP
+\fBvoid des_setparity(char *\fP\fIkey\fP\fB);\fP
+.LP
+\fBint DES_FAILED(int \fP\fIstatus\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBecb_crypt\fP() et \fBcbc_crypt\fP() implémentent le standard NBS DES (Data
+Encryption Standard). Ces routines sont plus rapides et plus générales que
+la classique \fBcrypt\fP(3). Elles sont aussi capables d'utiliser une puce de
+cryptage DES si elle est disponible. \fBecb_crypt\fP() encrypte en mode ECB
+(Electronic Code Book), ce qui encode des blocs de données indépendamment
+les uns des autres. \fBcbc_crypt\fP() encrypte en mode CBC (Cipher Block
+Chaining), qui enchaîne le cryptage des blocs successifs. Le mode CBC
+protège contre les insertions, suppressions ou substitutions de blocs. De
+plus, les répétitions dans le texte en clair n'apparaîtront pas dans le
+texte chiffré.
+.LP
+Voici comment utiliser ces routines. Le premier paramètre, \fIkey\fP, est la
+clé de codage de 8 octets avec parité. Pour fixer la parité de la clé, qui
+pour DES est le bit de poids faible de chaque octet, utilisez
+\fBdes_setparity\fP(). Le second paramètre, \fIdata\fP, contient les données à
+crypter ou à décrypter. Le troisième paramètre, \fIdatalen\fP, est la longueur
+en octets de \fIdata\fP, qui doit être un multiple de 8. Le quatrième
+paramètre, \fImode\fP, est formé par un OU binaire entre différents
+attributs. Pour le sens de fonctionnement, il faut mettre \fBDES_ENCRYPT\fP ou
+\fBDES_DECRYPT\fP. Pour l'encryptage matériel ou logiciel, il faut ajouter
+\fBDES_HW\fP ou \fBDES_SW\fP. Si \fBDES_HW\fP est indiqué et qu'il n'y a pas de
+matériel spécialisé disponible, le cryptage est réalisé en mode logiciel et
+la routine renvoie \fBDESERR_NOHWDEVICE\fP. Pour \fBcbc_crypt\fP(), le paramètre
+\fIivec\fP est un vecteur d'initialisation de 8 octets pour le chaînage. Il est
+mis à jour avec le prochain vecteur d'initialisation au retour.
+.SH "VALEUR RENVOYÉE"
+.PD 0
+.TP  20
+\fBDESERR_NONE\fP
+Pas d'erreur.
+.TP 
+\fBDESERR_NOHWDEVICE\fP
+Cryptage réussi, mais en mode logiciel plutôt que matériel.
+.TP 
+\fBDESERR_HWERROR\fP
+Une erreur s'est produite dans le matériel ou le pilote.
+.TP 
+\fBDESERR_BADPARAM\fP
+Mauvais paramètre pour la routine.
+.PD
+.LP
+.\" .BR DES_FAILED\c
+.\" .BR ( stat )
+.\" So far the Sun page
+.\" Some additions - aeb
+Étant donné un résultat \fIstat\fP, la macro \fBDES_FAILED(\fP\fIstat\fP\fB)\fP est
+fausse pour les deux premiers états.
+.SH VERSIONS
+Ces routines sont présentes dans la libc\ 4.6.27 et ultérieures, et dans la
+glibc\ 2.1 et ultérieures.
+.SH CONFORMITÉ
+BSD\ 4.3. Absent de POSIX.1\-2001.
+.SH "VOIR AUSSI"
+\fBdes\fP(1), \fBcrypt\fP(3), \fBxcrypt\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

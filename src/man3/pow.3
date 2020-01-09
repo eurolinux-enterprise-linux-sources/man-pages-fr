@@ -1,0 +1,228 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified 1993-07-24 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 1995-08-14 by Arnt Gulbrandsen <agulbra@troll.no>
+.\" Modified 2002-07-27 by Walter Harms
+.\" 	(walter.harms@informatik.uni-oldenburg.de)
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH POW 3 "10 août 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+pow, powf, powl \- Fonction puissance
+.SH SYNOPSIS
+.nf
+\fB#include <math.h>\fP
+.sp
+\fBdouble pow(double \fP\fIx\fP\fB, double \fP\fIy\fP\fB);\fP
+.br
+\fBfloat powf(float \fP\fIx\fP\fB, float \fP\fIy\fP\fB);\fP
+.br
+\fBlong double powl(long double \fP\fIx\fP\fB, long double \fP\fIy\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBpowf\fP(), \fBpowl\fP()\ : _BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\
+600 || _ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.ad b
+.SH DESCRIPTION
+La fonction \fBpow\fP() renvoie la valeur de \fIx\fP élevé à la puissance \fIy\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient la valeur de \fIx\fP élevée à la
+puissance \fIy\fP.
+
+.\" The domain error is generated at least as far back as glibc 2.4
+Si \fIx\fP est une valeur finie négative et \fIy\fP une nombre fini non\-entier,
+une erreur de domaine se produit et un NaN est renvoyé.
+
+.\" The range error is generated at least as far back as glibc 2.4
+En cas de dépassement pour le résultat, une erreur d'intervalle se produit
+et les fonctions renvoient \fBHUGE_VAL\fP, \fBHUGE_VALF\fP ou \fBHUGE_VALL\fP,
+respectivement, avec le bon signe mathématique.
+
+.\" POSIX.1 does not specify the sign of the zero,
+.\" but http://sources.redhat.com/bugzilla/show_bug.cgi?id=2678
+.\" points out that the zero has the wrong sign in some cases.
+En cas de souspassement («\ underflow\ ») pour le résultat, et qu'il ne peut
+pas être représenté, une erreur d'intervalle se produit et 0 est renvoyé.
+
+Sauf dans les cas spécifiés ci\-dessous, si \fIx\fP ou \fIy\fP est un NaN, le
+résultat est un NaN.
+
+Si \fIx\fP vaut +1, le résultat est 1,0 (même si \fIy\fP est un NaN).
+
+Si \fIy\fP est nul, le résultat est 1,0 (même si \fIx\fP est un NaN).
+
+Si \fIx\fP vaut +0 (respectivement, \-0) et \fIy\fP est un nombre entier impair
+positif, le résultat est +0 (respectivement, \-0).
+
+Si \fIx\fP est nul et \fIy\fP positif et n'est pas un nombre entier impair, le
+résultat est +0.
+
+Si \fIx\fP vaut \-1 et \fIy\fP est une valeur infinie positive ou négative, le
+résultat est 1,0.
+
+Si la valeur absolue de \fIx\fP est inférieure à 1 et \fIy\fP est une valeur
+infinie négative, le résultat est l'infini positif.
+
+Si la valeur absolue de \fIx\fP est supérieure à 1 et \fIy\fP est une valeur
+infinie négative, le résultat est +0.
+
+Si la valeur absolue de \fIx\fP est inférieure à 1 et \fIy\fP est une valeur
+infinie positive, le résultat est +0.
+
+Si la valeur absolue de \fIx\fP est supérieure à 1 et \fIy\fP est une valeur
+infinie positive, le résultat est l'infini positif.
+
+Si \fIx\fP est une valeur infinie négative et \fIy\fP est un nombre entier impair
+négatif, le résultat est \-0.
+
+Si \fIx\fP est une valeur infinie négative et \fIy\fP est négatif et n'est pas un
+nombre entier impair, le résultat est +0.
+
+Si \fIx\fP est une valeur infinie négative et \fIy\fP est un nombre entier impair
+positif, le résultat est l'infini négatif.
+
+Si \fIx\fP est une valeur infinie négative et \fIy\fP est positif et n'est pas un
+nombre entier impair, le résultat est l'infini positif.
+
+Si \fIx\fP est une valeur infinie positive et \fIy\fP est négatif, le résultat est
++0.
+
+Si \fIx\fP est une valeur infinie positive et \fIy\fP est positif, le résultat est
+l'infini positif.
+
+Si \fIx\fP vaut +0 ou \-0 et \fIy\fP est une nombre entier impair négatif, une
+erreur de pôle se produit et \fBHUGE_VAL\fP, \fBHUGE_VALF\fP ou \fBHUGE_VALL\fP est
+renvoyé avec le même signe que \fIx\fP.
+
+.\" The pole error is generated at least as far back as glibc 2.4
+Si \fIx\fP vaut +0 ou \-0 et \fIy\fP est négatif et pas un nombre impair, une
+erreur de pôle se produit et +\fBHUGE_VAL\fP, +\fBHUGE_VALF\fP ou +\fBHUGE_VALL\fP
+est renvoyé.
+.SH ERREURS
+.\" FIXME . review status of this error
+.\" longstanding bug report for glibc:
+.\" http://sources.redhat.com/bugzilla/show_bug.cgi?id=369
+.\" For negative x, and -large and +large y, glibc 2.8 gives incorrect
+.\" results
+.\" pow(-0.5,-DBL_MAX)=nan
+.\" EDOM FE_INVALID nan; fail-errno fail-except fail-result;
+.\" FAIL (expected: range-error-overflow (ERANGE, FE_OVERFLOW); +INF)
+.\"
+.\" pow(-1.5,-DBL_MAX)=nan
+.\" EDOM FE_INVALID nan; fail-errno fail-except fail-result;
+.\" FAIL (expected: range-error-underflow (ERANGE, FE_UNDERFLOW); +0)
+.\"
+.\" pow(-0.5,DBL_MAX)=nan
+.\" EDOM FE_INVALID nan; fail-errno fail-except fail-result;
+.\" FAIL (expected: range-error-underflow (ERANGE, FE_UNDERFLOW); +0)
+.\"
+.\" pow(-1.5,DBL_MAX)=nan
+.\" EDOM FE_INVALID nan; fail-errno fail-except fail-result;
+.\" FAIL (expected: range-error-overflow (ERANGE, FE_OVERFLOW); +INF)
+Consultez \fBmath_error\fP(7) pour savoir comment déterminer qi une erreur est
+survenue lors de l'appel de ces fonctions.
+.PP
+Les erreurs suivantes peuvent se produire\ :
+.TP 
+Erreur de domaine\ : \fIx\fP est négatif et \fIy\fP est un nombre fini non entier
+\fIerrno\fP prend la valeur \fBEDOM\fP. Une exception indiquant une virgule
+flottante incorrecte (\fBFE_INVALID\fP) est levée.
+.TP 
+Erreur de pôle\ : \fIx\fP est nul et \fIy\fP est négatif
+.\" FIXME . glibc 2.8 gives EDOM
+\fIerrno\fP est configuré à la valeur \fBERANGE\fP (mais consultez la section
+BOGUES). Une exception de virgule flottante divide\-by\-zero
+(\fBFE_DIVBYZERO\fP).
+.TP 
+Erreur d'intervalle\ : dépassement pour le résultat
+\fIerrno\fP est configurée à \fBERANGE\fP. Une exception de dépassement en virgule
+flottante (\fBFE_OVERFLOW\fP) est levée.
+.TP 
+Erreur d'intervalle\ : souspassement («\ underflow\ ») du résultat
+\fIerrno\fP prend la valeur \fBERANGE\fP. Une exception en virgule flottante de
+souspassement (\fBFE_UNDERFLOW\fP) est levée.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001. La variante renvoyant un \fIdouble\fP est également conforme
+à SVr4, BSD\ 4.3 et C89.
+.SH BOGUES
+.\"
+.\" FIXME . this is as at glibc 2.8; check later if this bug is fixed
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6776
+Pour une erreur de pôle, \fIerrno\fP est configuré à la valeur \fBEDOM\fP\ ;
+POSIX.1 indique qu'elle devrait être configurée à \fBERANGE\fP.
+
+.\" see bug http://sources.redhat.com/bugzilla/show_bug.cgi?id=3866
+.\" and http://sources.redhat.com/bugzilla/show_bug.cgi?id=369
+Si \fIx\fP est négatif, alors des valeurs négatives ou positives importantes de
+\fIy\fP provoquent un NaN comme résultat de la fonction, avec \fIerrno\fP prenant
+la valeur \fBEDOM\fP et une exception de virgule flotante incorrecte
+(\fBFE_INVALID\fP). Par exemple, avec \fBpow\fP(), on peut rencontrer ce
+comportement quand la valeur absolue de \fIy\fP est supérieure à environ
+9,223373e18.
+
+.\" FIXME . Actually, 2.3.2 is the earliest test result I have; so yet
+.\" to confirm if this error occurs only in 2.3.2.
+Dans la version 2.3.2 et les suivante de la glibc, quand un dépassement ou
+un souspassement («\ underflow\ ») se produit, \fBpow\fP() génère à tord une
+exception de virgule flottante incorrecte (\fBFE_INVALID\fP) en plus de
+l'exception de dépassement ou de souspassement.
+.SH "VOIR AUSSI"
+\fBcbrt\fP(3), \fBcpow\fP(3), \fBsqrt\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

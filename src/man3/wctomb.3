@@ -1,0 +1,85 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single Unix specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH WCTOMB 3 "25 juillet 1999" GNU "Manuel du programmeur Linux"
+.SH NOM
+wctomb \- Convertir un caractère large en caractère multioctet
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBint wctomb(char *\fP\fIs\fP\fB, wchar_t \fP\fIwc\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Si \fIs\fP n'est pas NULL, la fonction \fBwctomb\fP() convertit le caractère large
+\fIwc\fP dans sa représentation multioctet et le stocke au début de la chaîne
+de caractères pointée par \fIs\fP. Elle met à jour l'état de décalage, variable
+statique anonyme connue uniquement de la fonction wctomb, et renvoie la
+longueur de la représentation multioctet, c'est\-à\-dire le nombre d'octets
+écrits dans \fIs\fP.
+.PP
+Le programmeur doit s'assurer qu'il y a assez de place pour au moins
+\fBMB_CUR_MAX\fP octets au moins dans \fIs\fP.
+.PP
+.\" The Dinkumware doc and the Single Unix specification say this, but
+.\" glibc doesn't implement this.
+Si \fIs\fP est NULL, la fonction \fBwctomb\fP() réinitialise l'état de décalage,
+connu seulement de cette fonction, à sa valeur initiale et renvoie une
+valeur non nulle si l'encodage a un état de décalage non trivial, ou zéro si
+l'encodage est sans état.
+.SH "VALEUR RENVOYÉE"
+Si \fIs\fP n'est pas NULL, la fonction \fBwctomb\fP() renvoie le nombre d'octets
+qui ont été écrits dans le tableau d'octets à l'adresse \fIs\fP. Si \fIwc\fP ne
+peut pas être représenté par une séquence multioctet (d'après la locale
+utilisée), elle renvoie \-1.
+.PP
+Si \fIs\fP est NULL, la fonction \fBwctomb\fP() renvoie une valeur non nulle si
+l'encodage a un état de décalage non trivial, ou zéro si l'encodage est sans
+état.
+.SH CONFORMITÉ
+C99.
+.SH NOTES
+Le comportement de \fBwctomb\fP() dépend de la catégorie \fBLC_CTYPE\fP de la
+locale utilisée.
+.PP
+Cette fonction ne doit pas être utilisée dans un environnement
+multithread. La routine \fBwcrtomb\fP(3) fournit une meilleure interface pour
+la même fonctionnalité.
+.SH "VOIR AUSSI"
+\fBMB_CUR_MAX\fP(3), \fBwcrtomb\fP(3), \fBwcstombs\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

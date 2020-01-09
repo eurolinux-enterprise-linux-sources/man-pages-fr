@@ -1,0 +1,95 @@
+.\" Copyright (C) 1999 Joseph Samuel Myers.
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PREAD 2 "3 décembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+pread, pwrite \- Lire ou écrire à une position donnée d'un descripteur de
+fichier
+.SH SYNOPSIS
+\fB#define _XOPEN_SOURCE 500\fP
+.sp
+\fB#include <unistd.h>\fP
+.sp
+\fBssize_t pread(int \fP\fIfd\fP\fB, void *\fP\fIbuf\fP\fB, size_t \fP\fIcount\fP\fB, off_t
+\fP\fIoffset\fP\fB);\fP
+.sp
+\fBssize_t pwrite(int \fP\fIfd\fP\fB, const void *\fP\fIbuf\fP\fB, size_t \fP\fIcount\fP\fB,
+off_t \fP\fIoffset\fP\fB);\fP
+.SH DESCRIPTION
+\fBpread\fP() lit au maximum \fIcount\fP octets depuis le descripteur \fIfd\fP, à la
+position \fIoffset\fP (mesurée depuis le début du fichier), et les place dans
+la zone commençant à l'adresse \fIbuf\fP. La position de la tête de lecture du
+fichier n'est pas modifiée par cet appel système.
+.PP
+\fBpwrite\fP() lit au maximum \fIcount\fP octets dans la zone mémoire pointée par
+\fIbuf\fP, et les écrit à la position \fIoffset\fP (mesurée depuis le début du
+fichier) dans le descripteur \fIfd\fP. La position de la tête d'écriture du
+fichier n'est pas modifiée.
+.PP
+Dans les deux cas, le fichier décrit par \fIfd\fP doit permettre le
+positionnement.
+.SH "VALEUR RENVOYÉE"
+S'ils réussissent, ces appels système renvoient le nombre d'octets lus ou
+écrits (0 indiquant que rien n'a été écrit dans le cas de \fBpwrite\fP(), ou la
+fin du fichier dans le cas de \fBpread\fP()). En cas d'échec, ils renvoient \-1,
+et remplissent \fIerrno\fP en conséquence.
+.SH ERREURS
+\fBpread\fP() peut échouer et fournir dans \fIerrno\fP n'importe quelle erreur
+indiquée par \fBread\fP(2) ou \fBlseek\fP(2). \fBpwrite\fP() peut échouer et fournir
+dans \fIerrno\fP n'importe quelle erreur indiquée par \fBwrite\fP(2) ou
+\fBlseek\fP(2).
+.SH VERSIONS
+Les appels système \fBpread\fP() et \fBpwrite\fP() ont été ajoutés dans le noyau
+Linux 2.1.60. Les points d'entrée dans la table des appels i386 furent
+instaurés dans la version 2.1.69. Le support par la bibliothèque C, y
+compris l'émulation utilisant \fBlseek\fP(2) sur les anciens noyaux sans ces
+appels système, fut ajouté dans la glibc 2.1.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH "VOIR AUSSI"
+\fBlseek\fP(2), \fBread\fP(2), \fBwrite\fP(2), \fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

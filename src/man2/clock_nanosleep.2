@@ -1,0 +1,192 @@
+.\" Copyright (c) 2008, Linux Foundation, written by Michael Kerrisk
+.\" <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CLOCK_NANOSLEEP 2 "9 juillet 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+clock_nanosleep \- Sommeil haute résolution avec horloge spécifique
+.SH SYNOPSIS
+\fB#include <time.h>\fP
+.nf
+.sp
+\fBint clock_nanosleep(clockid_t \fP\fIclock_id\fP\fB, int \fP\fIflags\fP\fB,\fP
+\fB                    const struct timespec *\fP\fIrequest\fP\fB,\fP
+\fB                    struct timespec *\fP\fIremain\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBclock_nanosleep\fP()\ : _XOPEN_SOURCE\ >=\ 600
+.SH DESCRIPTION
+Comme \fBnanosleep\fP(2), \fBclock_nanosleep\fP() permet à l'appelant de
+sommeiller pendant une durée indiquée avec une précision de la
+nanoseconde. Il diffère de \fBnanosleep\fP(2) dans le fait qu'il permet à
+l'appelant de choisir l'horloge avec laquelle la durée du sommeil sera
+mesurée et d'indiquer une valeur absolue ou relative pour la durée du
+sommeil.
+
+Les valeurs de temps passées à ou retournées par cet appel sont spécifiés
+dans des structures \fItimespec\fP définies comme suit\ :
+.sp
+.in +4n
+.nf
+struct timespec {
+    time_t tv_sec;        /* secondes */
+    long   tv_nsec;       /* nanosecondes [0 .. 999999999] */
+};
+.fi
+.in
+
+L'argument \fIclock_id\fP précise l'horloge avec laquelle sera mesurée la durée
+du sommeil. Cet argument doit être l'une des valeurs suivantes\ :
+.TP  17
+\fBCLOCK_REALTIME\fP
+Une horloge temps réel configurable à l'échelle du système.
+.TP 
+\fBCLOCK_MONOTONIC\fP
+.\" On Linux this clock measures time since boot.
+Une horloge monotonique, non configurable, mesurant le temps depuis un
+instant du passé non spécifié qui ne change pas après le démarrage du
+système.
+.TP 
+\fBCLOCK_PROCESS_CPUTIME_ID\fP
+.\" There is some trickery between glibc and the kernel
+.\" to deal with the CLOCK_PROCESS_CPUTIME_ID case.
+Une horloge configurable par processus mesurant le temps processeur consommé
+par tous les threads du processus.
+.PP
+Voir \fBclock_getres\fP(2) pour plus d'informations sur ces horloges.
+
+Si \fIflags\fP vaut 0, la valeur indiquée dans \fIrequest\fP est interprétée comme
+une durée relative à la valeur actuelle de l'horloge indiquée dans
+\fIclock_id\fP.
+
+Si \fIflags\fP vaut \fBTIMER_ABSTIME\fP, \fIrequest\fP est interprété comme un temps
+absolu tel qu'il est mesuré par l'horloge \fIclock_id\fP. Si \fIrequest\fP est
+inférieur ou égal à la valeur actuelle de l'horloge, \fBclock_nanosleep\fP()
+revient immédiatement sans suspendre le thread appelant.
+
+\fBclock_nanosleep\fP() suspend l'exécution du thread appelant jusqu'à ce que
+soit le temps indiqué dans \fIrequest\fP se soit écoulé, soit un signal a été
+délivré provoquant l'appel d'un gestionnaire de signal ou la fin du
+processus.
+
+Si l'appel a été interrompu par un gestionnaire de signal,
+\fBclock_nanosleep\fP() renvoie \-1 et renseigne \fIerrno\fP avec \fBEINTR\fP. De
+plus, si \fIremain\fP n'est pas NULL et si \fIflags\fP n'est pas \fBTIMER_ABSTIME\fP,
+il renvoie dans \fIremain\fP le temps de sommeil non consommé. Cette valeur
+peut être ensuite utilisée pour rappeler \fBclock_nanosleep\fP() et achever un
+sommeil (relatif).
+.SH "VALEUR RENVOYÉE"
+Après un sommeil complet de la durée souhaitée, \fBclock_nanosleep\fP() renvoie
+0. Si l'appel système est interrompu par un gestionnaire de signal ou
+rencontre une erreur, il renvoie un code d'erreur positif.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fIrequest\fP ou \fIremain\fP n'indique pas une adresse valide.
+.TP 
+\fBEINTR\fP
+Le sommeil a été interrompu par un gestionnaire de signal.
+.TP 
+\fBEINVAL\fP
+La valeur du champ \fItv_nsec\fP n'est pas dans l'intervalle 0 à 999\ 999\ 999
+ou \fItv_sec\fP est négatif.
+.TP 
+\fBEINVAL\fP
+\fIclock_id\fP n'est pas valide. (\fBCLOCK_THREAD_CPUTIME_ID\fP n'est pas une
+valeur permise pour \fIclock_id\fP.)
+.SH VERSIONS
+L'appel système \fBclock_nanosleep\fP() a été indroduit dans le noyau Linux
+dans sa version\ 2.6. La prise en charge dans la glibc est disponible depuis
+la version\ 2.1.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Si la durée indiquée dans \fIrequest\fP n'est pas un multiple exact de la
+granularité de l'horloge sous\-jacente (voir \fBtime\fP(7)), la durée sera alors
+arrondie au multiple supérieur. De plus, lorsque le sommeil sera achevé, il
+y a toujours un délai avant lequel le processeur redevienne libre pour
+exécuter le thread appelant.
+
+L'utilisation d'une temporisation absolue est utile pour prévenir les
+problèmes de dérive de temps du type de ceux décrits dans
+\fBnanosleep\fP(2). (De tels problèmes sont exacerbés dans les programmes qui
+essaient de relancer un sommeil relatif interrompu de manière répétitive par
+des signaux.) Pour réaliser un sommeil qui s'affranchisse de ces problèmes,
+appelez \fBclock_gettime\fP(2) pour l'horloge souhaitée, ajoutez la durée
+voulue à la valeur de temps renvoyée, appelez ensuite \fBclock_nanosleep\fP()
+avec l'attribut \fBTIMER_ABSTIME\fP.
+
+\fBclock_nanosleep\fP() n'est jamais relancé après avoir été interrompu par un
+gestionnaire de signal, que l'on ait ou non utilisé l'attribut
+\fBSA_SIGACTION\fP de \fBsigaction\fP(2).
+
+L'argument \fIremain\fP n'est pas utilisé et n'est pas nécessaire lorsque
+\fIflags\fP vaut \fBTIMER_ABSTIME\fP. (Un sommeil absolu peut être relancé en
+utilisant le même argument \fIrequest\fP.)
+
+POSIX.1 précise que \fBclock_nanosleep\fP() n'a aucun effet sur les
+dispositions de signaux ou sur le masque de signaux.
+
+POSIX.1 précise qu'après avoir modifié la valeur de l'horloge
+\fBCLOCK_REALTIME\fP avec \fBclock_settime\fP(2), la nouvelle valeur de l'horloge
+doit être utilisée pour déterminer l'heure à laquelle un thread bloqué avec
+un appel \fBclock_nanosleep\fP() absolu se réveillera\ ; si la nouvelle horloge
+fait que la durée du sommeil est dépassée, l'appel système
+\fBclock_nanosleep\fP() revient immédiatement.
+
+POSIX.1 précise que modifier la valeur de l'horloge \fBCLOCK_REALTIME\fP avec
+\fBclock_settime\fP(2) n'a pas d'effet sur un thread bloqué par un appel
+\fBclock_nanosleep\fP() absolu.
+.SH "VOIR AUSSI"
+\fBnanosleep\fP(2), \fBtimer_create\fP(2), \fBclock_getres\fP(2), \fBsleep\fP(3),
+\fBusleep\fP(3), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,75 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" Distributed under GPL
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH COMPLEX 7 "25 juillet 2009" "" "Manuel du programmeur Linux"
+.SH NOM
+complex \- Bases des mathématiques concernant les nombres complexes
+.SH SYNOPSIS
+\fB#include <complex.h>\fP
+.SH DESCRIPTION
+Les nombres complexes sont des nombres de la forme z = a+b*i, où a et b sont
+des nombres réels et i = sqrt(\-1), de sorte que i*i = \-1.
+.br
+Il y a d'autres manières de représenter ce nombre. La paire de nombres réels
+(a, b) peut être vue comme un point du plan, indiqué par ses coordonnées en
+X et Y. Le même point peut aussi être décrit par une paire de nombres réels
+(r, phi), où r est la distance à l'origine O et phi l'angle entre l'axe des
+X et la ligne Oz. Ce qui donne z\ = r*exp(i*phi)\ = r*(cos(phi)+i*sin(phi)).
+.PP
+Les opérations de base sur z = a+b*i et w = c+d*i sont définies comme suit\ :
+.TP 
+\fBaddition\ : z+w = (a+c) + (b+d)*i\fP
+.TP 
+\fBmultiplication\ : z*w = (a*c \- b*d) + (a*d + b*c)*i\fP
+.TP 
+\fBdivision\ : z/w = ((a*c + b*d)/(c*c + d*d)) + ((b*c \- a*d)/(c*c + d*d))*i\fP
+.PP
+Presque toutes les fonctions mathématiques ont leur équivalent complexe mais
+il existe aussi des fonctions qui ne s'appliquent qu'aux nombres complexes.
+.SH EXEMPLE
+Votre compilateur C peut traiter les nombres complexes s'il est conforme à
+la norme C99. Effectuez l'édition de liens avec \fI\-lm\fP. La partie imaginaire
+est représentée par I.
+.sp
+.nf
+/* vérifier que exp(i * pi) == \-1 */
+#include <math.h>        /* pour atan */
+#include <stdio.h>
+#include <complex.h>
+
+int
+main(void)
+{
+    double pi = 4 * atan(1.0);
+    double complex z = cexp(I * pi);
+    printf("%f + %f * i\en", creal(z), cimag(z));
+}
+.fi
+.SH "VOIR AUSSI"
+\fBcabs\fP(3), \fBcarg\fP(3), \fBcexp\fP(3), \fBcimag\fP(3), \fBcreal\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

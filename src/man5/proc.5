@@ -1,0 +1,2105 @@
+.\" Copyright (C) 1994, 1995 by Daniel Quinlan (quinlan@yggdrasil.com)
+.\" and Copyright (C) 2002-2008 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" with networking additions from Alan Cox (A.Cox@swansea.ac.uk)
+.\" and scsi additions from Michael Neuffer (neuffer@mail.uni-mainz.de)
+.\" and sysctl additions from Andries Brouwer (aeb@cwi.nl)
+.\" and System V IPC (as well as various other) additions from
+.\" Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified 1995-05-17 by faith@cs.unc.edu
+.\" Minor changes by aeb and Marty Leisner (leisner@sdsp.mc.xerox.com).
+.\" Modified 1996-04-13, 1996-07-22 by aeb@cwi.nl
+.\" Modified 2001-12-16 by rwhron@earthlink.net
+.\" Modified 2002-07-13 by jbelton@shaw.ca
+.\" Modified 2002-07-22, 2003-05-27, 2004-04-06, 2004-05-25
+.\"    by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" 2004-11-17, mtk -- updated notes on /proc/loadavg
+.\" 2004-12-01, mtk, rtsig-max and rtsig-nr went away in 2.6.8
+.\" 2004-12-14, mtk, updated 'statm', and fixed error in order of list
+.\" 2005-05-12, mtk, updated 'stat'
+.\" 2005-07-13, mtk, added /proc/sys/fs/mqueue/*
+.\" 2005-09-16, mtk, Added /proc/sys/fs/suid_dumpable
+.\" 2005-09-19, mtk, added /proc/zoneinfo
+.\" 2005-03-01, mtk, moved /proc/sys/fs/mqueue/* material to mq_overview.7.
+.\" 2008-06-05, mtk, Added /proc/[pid]/oom_score, /proc/[pid]/oom_adj,
+.\"     /proc/[pid]/limits, /proc/[pid]/mountinfo, /proc/[pid]/mountstats,
+.\"     and /proc/[pid]/fdinfo/*.
+.\" 2008-06-19, mtk, Documented /proc/[pid]/status.
+.\" 2008-07-15, mtk, added /proc/config.gz
+.\"
+.\" FIXME 2.6.13 seems to have /proc/vmcore implemented
+.\" in the source code, but there is no option available under
+.\" 'make xconfig'; eventually this should be fixed, and then info
+.\" from the patch-2.6.13 and change log could be used to write an
+.\" entry in this man page.
+.\" Needs CONFIG_VMCORE
+.\"
+.\" FIXME cross check against Documentation/filesystems/proc.txt
+.\" to see what information could be imported from that file
+.\" into this file.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PROC 5 "30 septembre 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+proc \- Pseudo\-système de fichiers d'informations sur les processus.
+.SH DESCRIPTION
+Le système de fichiers \fIproc\fP est un pseudo\-système de fichiers qui est
+utilisé comme interface avec les structures de données du noyau. Il est
+généralement monté sur \fI/proc\fP. La plupart des fichiers sont en lecture
+seule, mais quelques uns permettent la modification de variables du noyau.
+.LP
+La description suivante fournit un aperçu de la hiérarchie de \fI/proc\fP.
+.PD 1
+.TP 
+\fI/proc/[pid]\fP
+.\" FIXME Describe /proc/[pid]/attr and
+.\"       /proc/[pid]/task/[tid]/attr
+.\"	  This is a directory
+.\"       Added in ???
+.\"	  CONFIG_SECURITY
+.\"
+Il existe un sous\-répertoire pour chaque processus actif. Le sous\-répertoire
+prend comme nom le PID du processus. Chaque sous\-répertoire contient les
+pseudo\-fichiers et pseudo\-répertoires suivants.
+.TP 
+\fI/proc/[pid]/auxv\fP (depuis le noyau 2.6.0\-test7)
+.\" FIXME Describe /proc/[pid]/cgroup and
+.\"       /proc/[pid]/task/[tid]/cgroup
+.\" 	  Info in Documentation/cgroups.txt
+.\"       Added in 2.6.24
+.\"	  CONFIG_CGROUPS
+.\"
+.\" FIXME Describe /proc/[pid]/clear_refs
+.\"       Added in 2.6.22
+.\"       "Clears page referenced bits shown in smaps output"
+.\"       write-only
+.\"       CONFIG_PROC_PAGE_MONITOR
+Il comporte le contenu des informations passées par l'interpréteur ELF au
+processus lors de son exécution. Le format est constitué, pour chacune des
+entrées, d'un identifiant \fIunsigned long\fP suivi d'une valeur \fIunsigned
+long\fP. La dernière entrée comporte deux zéros.
+.TP 
+\fI/proc/[pid]/cmdline\fP
+.\" In 2.3.26, this also used to be true if the process was swapped out.
+Ce fichier contient la ligne de commande complète du processus, sauf s'il
+s'agit d'un zombie. Dans ce dernier cas, il n'y a rien dans ce fichier\ :
+c'est\-à\-dire qu'une lecture de ce fichier ne retournera aucun caractère. Les
+paramètres de la ligne de commande apparaissent dans ce fichier comme un
+ensemble de chaînes séparées par le caractère «\ NULL\ » (0 binaire), avec un
+octet nul («\ \e0\ ») supplémentaire après la dernière chaîne.
+.TP 
+\fI/proc/[pid]/coredump_filter\fP (depuis le noyau 2.6.23)
+Consultez \fBcore\fP(5).
+.TP 
+\fI/proc/[pid]/cpuset\fP (depuis le noyau 2.6.12)
+.\" and/proc/[pid]/task/[tid]/cpuset
+Consultez \fBcpuset\fP(7).
+.TP 
+\fI/proc/[pid]/cwd\fP
+Lien symbolique vers le répertoire de travail actuel du processus. Pour
+obtenir le répertoire de travail du processus 20 par exemple, vous pouvez
+faire ceci\ :
+
+.in +4n
+.nf
+$\fB cd /proc/20/cwd; /bin/pwd\fP
+.fi
+.in
+
+Notez que la commande directe \fBpwd\fP est souvent une commande interne de
+l'interpréteur de commandes, et qu'elle risque de ne pas fonctionner
+correctement. Avec \fBbash\fP(1), vous pouvez utiliser \fIpwd\ \-P\fP.
+
+.\" The following was still true as at kernel 2.6.13
+Dans un traitement multiprocessus (multithreaded), le contenu de ce lien
+symbolique n'est pas disponible si le processus principal est déjà terminé
+(typiquement par un appel à \fBpthread_exit\fP(3).
+.TP 
+\fI/proc/[pid]/environ\fP
+Ce fichier contient l'environnement du processus. Les entrées sont séparées
+par des caractères nuls («\ \e0\ »), et il devrait y en avoir un à la fin du
+fichier. Ainsi, pour afficher l'environnement du processus numéro 1, vous
+pouvez utiliser\ :
+.in +4n
+.nf
+
+$\fB (cat /proc/1/environ; echo) | tr \(aq\e000\(aq \(aq\en\(aq\fP
+.fi
+.in
+.TP 
+\fI/proc/[pid]/exe\fP
+.\" The following was still true as at kernel 2.6.13
+Sous Linux 2.2 et ultérieur, ce fichier est un lien symbolique représentant
+le chemin réel de la commande en cours d'exécution. Ce lien symbolique peut
+être déréférencé normalement\ ; tenter de l'ouvrir ouvrira le fichier
+exécutable. Vous pouvez même entrer \fI/proc/[pid]/exe\fP pour lancer une autre
+instance du même processus [pid] indiqué. Pour les multiprocessus, le
+contenu de ce lien symbolique n'est pas disponible si le processus principal
+s'est déjà terminé (typiquement par l'appel de \fBpthread_exit\fP(3)).
+
+Sous Linux 2.0 et précédents, \fI/proc/[pid]/exe\fP était un pointeur sur le
+fichier binaire exécuté, qui apparaissait sous forme de lien symbolique. Un
+appel système \fBreadlink\fP(2) sur ce fichier renvoyait une chaîne de la
+forme\ :
+
+    [périphérique]:inode
+
+Par exemple, [0301]:1502 correspond à l'inode 1502 du périphérique ayant le
+numéro majeur 03 (disque IDE, MFM, etc.) et mineur 01 (première partition du
+premier disque).
+
+On peut utiliser \fBfind\fP(1) avec l'option \fI\-inum\fP pour retrouver le fichier
+exécutable à partir du numéro d'inode.
+.TP 
+\fI/proc/[pid]/fd\fP
+Il s'agit d'un sous\-répertoire contenant une entrée pour chaque fichier
+ouvert par le processus. Chaque entrée a le descripteur du fichier pour nom,
+et est représentée par un lien symbolique vers le vrai fichier. Ainsi, 0
+correspond à l'entrée standard, 1 à la sortie standard, 2 à la sortie
+d'erreur, etc.
+
+.\" The following was still true as at kernel 2.6.13
+Dans un traitement multiprocessus (multithreaded), le contenu de ce
+répertoire n'est pas disponible si le processus principal est déjà terminé
+(typiquement par l'appel de \fBpthread_exit\fP(3).
+
+Les programmes qui prennent un nom de fichier comme paramètre de la ligne de
+commande mais qui ne lisent pas l'entrée standard si aucun paramètre n'est
+fourni, ou qui écrivent dans un fichier indiqué par un paramètre de la ligne
+de commande sans écrire sur la sortie standard si aucun paramètre n'est
+fourni, peuvent néanmoins utiliser l'entrée standard et la sortie standard
+par l'intermédiaire de \fI/proc/[pid]/fd\fP. Par exemple, en supposant que
+l'option \fI\-i\fP indique le nom du fichier d'entrée et l'option \fI\-o\fP le nom
+du fichier de sortie\ :
+.in +4n
+.nf
+
+$\fB tototiti \-i /proc/self/fd/0 \-o /proc/self/fd/1 ...\fP
+.fi
+.in
+
+.\" The following is not true in my tests (MTK):
+.\" Note that this will not work for
+.\" programs that seek on their files, as the files in the fd directory
+.\" are not seekable.
+et vous avez alors réalisé un filtre.
+
+\fI/proc/self/fd/N\fP est approximativement identique à \fI/dev/fd/N\fP sur
+certains systèmes Unix et pseudo\-Unix. D'ailleurs la plupart des scripts
+MAKEDEV de Linux lient symboliquement en fait \fI/dev/fd\fP à \fI/proc/self/fd\fP.
+
+La plupart des systèmes fournissent les liens symboliques \fI/dev/stdin\fP,
+\fI/dev/stdout\fP et \fI/dev/stderr\fP, qui sont respectivement liés aux fichiers
+\fI0\fP, \fI1\fP et \fI2\fP de \fI/proc/self/fd\fP. Par conséquent, l'exemple précédent
+peut être écrit de la façon suivante\ :
+.in +4n
+.nf
+
+$\fB foobar \-i /dev/stdin \-o /dev/stdout ...\fP
+.fi
+.in
+.\" FIXME Describe /proc/[pid]/loginuid
+.\"       Added in 2.6.11; updating requires CAP_AUDIT_CONTROL
+.\"       CONFIG_AUDITSYSCALL
+.TP 
+\fI/proc/[pid]/fdinfo/\fP (depuis le noyau 2.6.22)
+Il s'agit d'un sous\-répertoire contenant une entrée pour chaque fichier
+ouvert par le processus, nommé par son descripteur de fichier. Le contenu de
+chaque fichier peut être lu afin d'obtenir des informations sur le
+descripteur de fichier correspondant, par exemple\ :
+.in +4n
+.nf
+
+$\fB cat /proc/12015/fdinfo/4\fP
+pos:    1000
+flags:  01002002
+.fi
+.in
+
+Le champ \fIpos\fP est un nombre décimal indiquant la position de la tête de
+lecture. Le champ \fIflags\fP est un nombre octal indiquant les modes d'accès
+au fichier ainsi que ses attributs d'état (voir \fBopen\fP(2)).
+
+.\" FIXME document /proc/[pid]/io
+.\" .TP
+.\" .IR /proc/[pid]/io " (since kernel 2.6.20)"
+Les fichiers de ce répertoire ne sont accessibles en lecture que par le
+propriétaire du processus.
+.TP 
+\fI/proc/[pid]/limits\fP (depuis le noyau 2.6.24)
+Ce fichier indique les limites souples et strictes ainsi que les unités de
+mesure de chaque limite de ressources du processus (voir
+\fBgetrlimit\fP(2)). Le fichier est protégé de telle sorte que seul l'UID réel
+du processus puisse le lire.
+.TP 
+\fI/proc/[pid]/maps\fP
+Fichier contenant les régions de la mémoire actuellement projetées et leurs
+autorisations d'accès.
+
+Le format est\ :
+
+.nf
+\f(CWaddress           perms offset  dev   inode   pathname
+08048000\-08056000 r\-xp 00000000 03:0c 64593   /usr/sbin/gpm
+08056000\-08058000 rw\-p 0000d000 03:0c 64593   /usr/sbin/gpm
+08058000\-0805b000 rwxp 00000000 00:00 0
+40000000\-40013000 r\-xp 00000000 03:0c 4165    /lib/ld\-2.2.4.so
+40013000\-40015000 rw\-p 00012000 03:0c 4165    /lib/ld\-2.2.4.so
+4001f000\-40135000 r\-xp 00000000 03:0c 45494   /lib/libc\-2.2.4.so
+40135000\-4013e000 rw\-p 00115000 03:0c 45494   /lib/libc\-2.2.4.so
+4013e000\-40142000 rw\-p 00000000 00:00 0
+bffff000\-c0000000 rwxp 00000000 00:00 0\fP
+.fi
+
+Où «\ adresses\ » correspond à l'espace d'adressage du processus qui l'occupe,
+«\ perm\ » est un ensemble d'autorisations\ :
+
+.nf
+.in +5
+r = lecture
+w = écriture
+x = exécution
+s = partage
+p = privé (copie lors de l'écriture)
+.fi
+.in
+
+Le «\ décalage\ » est le décalage dans le fichier ou autre, «\ périph\ »
+correspond à la paire (majeur:mineur), et l'«\ inode\ » est l'inode sur ce
+périphérique. 0 signifie qu'aucun inode n'est associé avec cette zone
+mémoire, comme c'est le cas avec BSS (données non initialisées).
+
+Sous Linux 2.0, il n'y a pas de champ indiquant le chemin d'accès.
+.TP 
+\fI/proc/[pid]/mem\fP
+Ce fichier peut être utilisé pour accéder à la mémoire d'un processus au
+travers de \fBopen\fP(2), \fBread\fP(2), et \fBlseek\fP(2).
+.TP 
+\fI/proc/[pid]/mountinfo\fP (depuis Linux 2.6.26)
+.\" This info adapted from Documentation/filesystems/proc.txt
+Ce fichier contient des informations relatives aux points de montage. Il
+contient des lignes de la forme\ :
+.nf
+
+\f(CW36 35 98:0 /mnt1 /mnt2 rw,noatime master:1 \- ext3 /dev/root rw,errors=continue
+(1)(2)(3)   (4)   (5)      (6)      (7)   (8) (9)   (10)         (11)\fP
+.fi
+.IP
+Les nombres entre paranthèses sont des étiquettes pour les descriptions
+suivantes\ :
+.RS 7
+.TP  5
+(1)
+mount ID\ : identifiant unique du montage (peut être réutilisé après un
+\fBumount\fP(2)).
+.TP 
+(2)
+parent ID\ : identifiant du montage parent (ou de lui\-même pour le sommet de
+la hiérarchie).
+.TP 
+(3)
+major:minor\ : valeur de \fIst_dev\fP pour les fichiers sur le système de
+fichiers (voir \fBstat\fP(2)).
+.TP 
+(4)
+root\ : racine du montage dans le système de fichiers.
+.TP 
+(5)
+mount point\ : point de montage relatif à la racine du processus.
+.TP 
+(6)
+mount options\ : options par montage.
+.TP 
+(7)
+optional fields\ : zéro ou plusieurs champs de la forme «\ tag[:value]\ ».
+.TP 
+(8)
+separator\ : indique la fin des champs optionnels.
+.TP 
+(9)
+file system type\ : nom du système de fichiers de la forme
+«\ type[.subtype]\ ».
+.TP 
+(10)
+mount source\ : informations spécifiques au système de fichiers ou «\ none\ ».
+.TP 
+(11)
+super options\ : options par super bloc.
+.RE
+.IP
+Les outils d'analyse devraient ignorer les champs optionnels non
+reconnus. Les champs optionnels actuellement disponibles sont\ :
+.RS 12
+.TP  18
+shared:X
+le montage est partagé par le groupe pair X
+.TP 
+master:X
+le montage est esclave pour le groupe pair X
+.TP 
+propagate_from:X
+le montage est esclave et reçoit des propagations provenant du groupe pair X
+(*)
+.TP 
+unbindable
+le point de montage ne peut pas être lié
+.RE
+.IP
+(*) X est le group pair dominant le plus proche sous la racine du
+processus. Si X est le maître immédiat du montage ou s'il n'y a pas de group
+pair dominant sous la même racine, alors seul le champ «\ master:X\ » est
+présent et pas le champ «\ propagate_from:X\ ».
+
+Pour plus d'informations sur les propagations de montage, voir
+\fIDocumentation/filesystems/sharedsubtree.txt\fP dans l'arborescence des
+sources du noyau.
+.TP 
+\fI/proc/[pid]/mounts\fP (depuis Linux 2.6.17)
+C'est une liste de tous les systèmes de fichiers montés dans l'espace de
+noms de montage du processus. Le format de ce fichier est documenté dans
+\fBfstab\fP(5). Depuis la version 2.6.15 du noyau, ce fichier peut être
+pollué\ : après avoir ouvert le fichier en lecture, une modification de ce
+fichier (par exemple, le montage ou le démontage d'un système de fichiers)
+provoque le marquage par \fBselect\fP(2) du descripteur de fichier comme étant
+lisible, et \fBpoll\fP(2) et \fBepoll_wait\fP(2) marquent le fichier comme étant
+en erreur.
+.TP 
+\fI/proc/[pid]/mountstats\fP (depuis Linux 2.6.17)
+Ce fichier exporte des informations (statistiques, configuration) relatives
+aux points de montage dans l'espace de noms du processus. Les lignes de ce
+fichier sont de la forme\ :
+.nf
+
+device /dev/sda7 mounted on /home with fstype ext3 [statistics]
+(       1      )            ( 2 )             (3 ) (4)
+.fi
+.IP
+Les champs de chaque ligne sont\ :
+.RS 7
+.TP  5
+(1)
+Le nom du périphérique monté (ou «\ nodevice\ » s'il n'y a pas de
+périphérique correspondant).
+.TP 
+(2)
+Le point de montage dans l'arborescence du système de fichiers.
+.TP 
+(3)
+Le type du système de fichiers.
+.TP 
+(4)
+Statistiques optionnelles et informations de configuration. Actuellement
+(Linux\ 2.6.26), seuls les systèmes de fichiers NFS exportent des
+informations à travers ce champ.
+.RE
+.IP
+Ce fichier n'est accessible en lecture que par le propriétaire du processus.
+.TP 
+\fI/proc/[pid]/numa_maps\fP (depuis Linux 2.6.14)
+Consultez \fBnuma\fP(7).
+.TP 
+\fI/proc/[pid]/oom_adj\fP (depuis Linux 2.6.11)
+Ce fichier est utilisé pour ajuster la notation utilisée pour sélectionner
+le processus qui sera tué dans une situation de mémoire saturée. Le noyau
+utilise cette valeur pour une opération de décalage sur la valeur
+\fIoom_score\fP du processus\ : les valeurs valables sont dans l'intervalle de
+\-16 à +15 plus la valeur spéciale \-17, qui désactive complètement la mise à
+mort sur mémoire saturée du processus. Une notation négative diminue la
+probabilité. La valeur par défaut de ce fichier est 0\ ; un nouveau processus
+hérite de la valeur \fIoom_adj\fP de son père. Un processus doit être
+privilégié (\fBCAP_SYS_RESOURCE\fP) pour mettre à jour ce fichier.
+.TP 
+\fI/proc/[pid]/oom_score\fP (depuis Linux 2.6.11)
+.\" See mm/oom_kill.c::badness() in the 2.6.25 sources
+.\" See mm/oom_kill.c::badness() in the 2.6.25 sources
+Ce fichier indique la notation actuelle donnée par le noyau pour
+sélectionner un processus pour une mise à mort sur mémoire saturée. Une
+notation élevée signifie que le processus a plus de chance d'être
+sélectionné pour une mise à mort sur mémoire saturée. La base de cette
+notation est la quantité de mémoire utilisée par le processus. Cette
+notation peut augmenter (+) ou diminuer (\-) en fonction des facteurs
+suivants\ :
+.RS
+.IP * 2
+le processus crée beaucoup d'enfants avec \fBfork\fP(2) (+)\ ;
+.IP *
+le processus s'exécute depuis longtemps ou a consommé beaucoup de temps
+processeur (\-)\ ;
+.IP *
+le processeur a une faible valeur de courtoisie (c'est\-à\-dire positive)
+(+)\ ;
+.IP *
+.\" More precisely, if it has CAP_SYS_ADMIN or CAP_SYS_RESOURCE
+le processus est privilégié (\-)\ ; et
+.IP *
+.\" More precisely, if it has CAP_SYS_RAWIO
+le processus effectue des accès matériels directs (\-).
+.RE
+.IP
+.\" FIXME Describe /proc/[pid]/pagemap
+.\"       Added in 2.6.25
+.\"       CONFIG_PROC_PAGE_MONITOR
+\fIoom_score\fP reflète également l'ajustement de décalage de bit du processus
+indiqué dans \fIoom_adj\fP.
+.TP 
+\fI/proc/[pid]/root\fP
+Unix et Linux gèrent une notion de racine du système de fichiers par
+processus, configurée avec l'appel système \fBchroot\fP(2). Ce fichier est un
+lien symbolique qui pointe vers le répertoire racine du processus, et se
+comporte comme le font exe, fd/*, etc.
+
+.\" The following was still true as at kernel 2.6.13
+.\" FIXME Describe /proc/[pid]/seccomp
+.\"       Added in 2.6.12
+.\" FIXME Describe /proc/[pid]/sessionid
+.\"       Added in 2.6.25; read-only; only readable by real UID
+.\"       CONFIG_AUDITSYSCALL
+.\" FIXME Describe /proc/[pid]/sched
+.\"       Added in 2.6.23
+.\"       CONFIG_SCHED_DEBUG, and additional fields if CONFIG_SCHEDSTATS
+.\"       Displays various scheduling parameters
+.\"       This file can be written, to reset stats
+.\" FIXME Describe /proc/[pid]/schedstats and
+.\"       /proc/[pid]/task/[tid]/schedstats
+.\"       Added in 2.6.9
+.\"       CONFIG_SCHEDSTATS
+Dans un traitement multiprocessus (multithreaded), le contenu de ce lien
+symbolique n'est pas disponible si le processus principal est déjà terminé
+(typiquement par un appel à \fBpthread_exit\fP(3).
+.TP 
+\fI/proc/[pid]/smaps\fP (depuis Linux 2.6.14)
+.\"       CONFIG_PROC_PAGE_MONITOR
+Ce fichier affiche la mémoire utilisée par les cartes de chacun des
+processus. Pour chacune des cartes, il y a une série de lignes comme les
+suivantes\ :
+.in +4n
+.nf
+
+08048000\-080bc000 r\-xp 00000000 03:02 13130      /bin/bash
+Size:               464 kB
+Rss:                424 kB
+Shared_Clean:       424 kB
+Shared_Dirty:         0 kB
+Private_Clean:        0 kB
+Private_Dirty:        0 kB
+
+.fi
+.in
+La première de ces lignes montre les mêmes informations que celles qui sont
+affichées pour la cartographie mémoire dans \fI/proc/[pid]/maps\fP. Les lignes
+qui suivent montrent la taille des cartes, la taille mémoire actuellement
+résidente en mémoire vive, le nombre de pages partagées de la carte
+«\ propres\ » ou «\ sales\ », et le nombre de cartes privées propres ou sales.
+
+Ce fichier n'est présent que si l'option de configuration du noyau
+\fBCONFIG_MMU\fP a été validée.
+.TP 
+\fI/proc/[pid]/stat\fP
+Informations sur l'état du processus. Ceci est utilisé par \fBps\fP(1). La
+définition se trouve dans \fI/usr/src/linux/fs/proc/array.c\fP.
+
+Les champs sont, dans l'ordre, et avec leur propre spécificateur de format
+de type \fBscanf\fP(3)\ :
+.RS
+.TP  12
+\fIpid\fP %d
+Identifiant du processus.
+.TP 
+\fIcomm\fP %s
+Nom du fichier exécutable entre parenthèses. Il est visible que l'exécutable
+ait été déchargé sur l'espace d'échange («\ swappé\ ») ou pas.
+.TP 
+\fIstate\fP %c
+Un caractère parmi «\ RSDZTW\ » ou R signifie que le processus est en cours
+d'exécution, S endormi dans un état non interruptible, D en attente de
+disque de manière non interruptible, Z zombie, T qu'il est suivi pour une
+trace ou arrêté par un signal et W qu'il effectue une pagination vers
+l'espace d'échange.
+.TP 
+\fIppid\fP %d
+PID du processus parent.
+.TP 
+\fIpgrp\fP %d
+Identifiant de groupe de processus du processus.
+.TP 
+\fIsession\fP %d
+Identifiant de session du processus.
+.TP 
+\fItty_nr\fP %d
+Le terminal de contrôle du processus. (Le numéro mineur de périphérique dans
+la combinaison des bits 31 à 20 et 7 à 0\ ; le numéro majeur est dans les
+bits 15 à 8.)
+.TP 
+\fItpgid\fP %d
+.\" This field and following, up to and including wchan added 0.99.1
+L'identifiant du groupe de processus d'arrière\-plan du terminal de contrôle
+du processus.
+.TP 
+\fIflags\fP %u (était %lu avant Linux 2.6.22)
+Mot contenant les indicateur du noyau pour le processus. Pour en savoir plus
+sur la signification des bits, voir les définitions de PF_* dans
+\fI<linux/sched.h>\fP. Les détails dépendent de la version du noyau.
+.TP 
+\fIminflt\fP %lu
+Nombre de fautes mineures que le processus a déclenchées et qui n'ont pas
+nécessité le chargement d'une page mémoire depuis le disque.
+.TP 
+.\" field 11
+\fIcminflt\fP %lu
+Nombre de fautes mineures que les enfants en attente du processus ont
+déclenchées.
+.TP 
+\fImajflt\fP %lu
+Nombre de fautes majeures que le processus a déclenchées et qui ont
+nécessité un chargement de page mémoire depuis le disque.
+.TP 
+\fIcmajflt\fP %lu
+Nombre de fautes majeures que les enfants en attente du processus ont
+déclenchées.
+.TP 
+\fIutime\fP %ld
+Le temps passé en mode utilisateur par le processus, mesuré en tops
+d'horloge (divisé par \fIsysconf(_SC_CLK_TCK)\fP. Cela inclut le temps
+d'invité, \fIguest_time\fP (temps passé à exécuter un processeur virtuel, voir
+plus loin), de sorte que les applications qui ne sont pas au courant du
+champ «\ temps d'invité\ » ne perdent pas ce temps dans leurs calculs.
+.TP 
+\fIstime\fP %ld
+Le temps passé en mode noyau par le processus, mesuré en tops d'horloge
+(divisé par \fIsysconf(_SC_CLK_TCK)\fP.
+.TP 
+\fIcutime\fP %ld
+Le temps passé en mode utilisateur par le processus et ses descendants,
+mesuré en tops d'horloge (divisé par \fIsysconf(_SC_CLK_TCK)\fP. Voir aussi
+\fBtimes\fP(2).) Cela inclut le temps d'invité, \fIcguest_time\fP (temps passé à
+exécuter un processeur virtuel, voir plus loin).
+.TP 
+\fIcstime\fP %ld
+Le temps passé en mode noyau par le processus et ses descendants, mesuré en
+tops d'horloge (divisé par \fIsysconf(_SC_CLK_TCK)\fP.
+.TP 
+\fIpriority\fP %ld
+(Explications pour Linux 2.6) Pour les processus s'exécutant sous une
+politique d'ordonnancement temps réel (\fIpolicy\fP plus loin\ ; voir
+\fBsched_setscheduler\fP(2)), il s'agit de la valeur négative de la politique
+d'ordonnancement, moins un\ ; c'est\-à\-dire un nombre dans l'intervalle \-2 à
+\-100, correspondant aux priorités temps réel 1 à 99. Pour les processus
+s'exécutant sous une politique d'ordonnancement qui ne soit pas temps réel,
+il s'agit de la valeur brute de courtoisie (\fBsetpriority\fP(2)) comme
+représentée dans le noyau. Le noyau enregistre les valeurs de courtoisie
+sous forme de nombre de l'intervalle 0 (haute) à 39 (faible), correspondant
+à un intervalle de courtoisie visible par l'utilisateur de \-20 à 19.
+
+.\" And back in kernel 1.2 days things were different again.
+Avant Linux\ 2.6, c'était une valeur d'échelle basée sur la pondération de
+l'ordonnanceur fournie au processus.
+.TP 
+\fInice\fP %ld
+.\" Back in kernel 1.2 days things were different.
+La valeur de courtoisie (voir \fBsetpriority\fP(2)), une valeur dans
+l'intervalle 19 (faible priorité) à \-19 (haute priorité).
+.TP 
+.\" .TP
+.\" \fIcounter\fP %ld
+.\" The current maximum size in jiffies of the process's next timeslice,
+.\" or what is currently left of its current timeslice, if it is the
+.\" currently running process.
+.\" .TP
+.\" \fItimeout\fP %u
+.\" The time in jiffies of the process's next timeout.
+.\" timeout was removed sometime around 2.1/2.2
+\fInum_threads\fP %ld
+Nombre de threads dans ce processus (depuis Linux 2.6). Avant le noyau 2.6,
+ce champ était codé en dur à 0 pour remplacer un champ supprimé auparavant.
+.TP 
+.\" field 21
+\fIitrealvalue\fP %lu
+Nombre de jiffies avant que le signal \fBSIGALRM\fP suivant soit envoyé au
+processus par un temporisateur interne. Depuis le noyau 2.6.17, ce champ
+n'est plus maintenu et est codé en dur à 0.
+.TP 
+\fIstarttime\fP %llu (était %lu avant Linux 2.6)
+Instant en jiffies auquel le processus a démarré après le démarrage du
+système.
+.TP 
+\fIvsize\fP %lu
+Taille de la mémoire virtuelle en octets.
+.TP 
+\fIrss\fP %lu
+Taille de l'ensemble résident (Resident Set Size)\ : nombre de pages dont le
+processus dispose en mémoire réelle. Il ne s'agit que des pages contenant
+les espaces de code, donnée et pile. Ceci n'inclut ni les pages en attente
+de chargement ni celles qui ont été déchargées.
+.TP 
+\fIrsslim\fP %lu
+Limite souple actuelle en octets du RSS du processus\ ; voir la description
+de \fBRLIMIT_RSS\fP dans \fBgetpriority\fP(2).
+.TP 
+\fIstartcode\fP %lu
+Adresse au\-dessus de laquelle le code du programme peut s'exécuter.
+.TP 
+\fIendcode\fP %lu
+Adresse en\-dessous de laquelle le code du programme peut s'exécuter.
+.TP 
+\fIstartstack\fP %lu
+Adresse de début (c'est\-à\-dire le bas) de la pile.
+.TP 
+\fIkstkesp\fP %lu
+Valeur actuelle du pointeur de pile (ESP), telle qu'on la trouve dans la
+page de pile du noyau pour ce processus.
+.TP 
+\fIkstkeip\fP %lu
+EIP actuel (Pointeur d'instructions).
+.TP 
+.\" field 31
+\fIsignal\fP %ld
+Masque des signaux en attente, affiché sous forme d'un nombre
+décimal. Obsolète car il ne fournit pas d'informations sur les signaux temps
+réel\ ; utilisez plutôt \fI/proc/[pid]/status\fP.
+.TP 
+\fIblocked\fP %ld
+Masque des signaux bloqués, affiché sous forme d'un nombre décimal. Obsolète
+car il ne fournit pas d'information sur les signaux temps réel\ ; utilisez
+plutôt \fI/proc/[pid]/status\fP.
+.TP 
+\fIsigignore\fP %ld
+Masque des signaux ignorés, affiché sous forme d'un nombre décimal. Obsolète
+car il ne fournit pas d'informations sur les signaux temps réel\ ; utilisez
+plutôt \fI/proc/[pid]/status\fP.
+.TP 
+\fIsigcatch\fP %ld
+Masque des signaux interceptés, affiché sous forme d'un nombre
+décimal. Obsolète car il ne fournit pas d'informations sur les signaux temps
+réel\ ; utilisez plutôt \fI/proc/[pid]/status\fP.
+.TP 
+\fIwchan\fP %lu
+Il s'agit du «\ canal\ » sur lequel le processus est en attente. C'est
+l'adresse d'un appel système, dont on peut retrouver le nom dans une table
+si besoin. (Si vous avez le fichier \fI/etc/psdatabase\fP à jour, et essayé
+\fIps \-l\fP pour voir le champs WCHAN en action).
+.TP 
+\fInswap\fP %lu
+.\" nswap was added in 2.0
+Nombre de pages déplacées sur l'espace d'échange (non maintenu).
+.TP 
+\fIcnswap\fP %lu
+.\" cnswap was added in 2.0
+Champ \fInswap\fP cumulé pour les processus enfants (non maintenu).
+.TP 
+\fIexit_signal\fP %d (depuis Linux 2.1.22)
+Signal à envoyer au parent lors de la mort du processus.
+.TP 
+\fIprocessor\fP %d (depuis Linux 2.2.8)
+Numéro du processeur utilisé lors de la dernière exécution.
+.TP 
+\fIrt_priority\fP %u (depuis Linux 2.5.19\ ; était %lu avant Linux 2.6.22)
+Priorité d'ordonnancement temps réel, un nombre dans l'intervalle 1 à 99
+pour les processus ordonnancés sous une politique temps réel, ou 0 pour les
+processus non temps réel (voir \fBsched_setscheduler\fP(2)).
+.TP 
+.\" field 41
+\fIpolicy\fP %u (depuis Linux 2.5.19\ ; était %lu avant Linux 2.6.22)
+Politique d'ordonnancement (voir \fBsched_setscheduler\fP(2)). Décoder avec les
+constantes SCHED_* de \fIlinux/sched.h\fP.
+.TP 
+\fIdelayacct_blkio_ticks\fP %llu (depuis Linux 2.6.18)
+Cumul des délais d'entrées\-sorties, mesuré en tic horloge (centièmes de
+secondes).
+.TP 
+\fIguest_time\fP %lu (depuis Linux 2.6.24)
+Temps d'invité du processus (temps passé à exécuter un processeur virtuel
+pour un système d'exploitation invité), mesuré en tops d'horloge (divisé par
+\fIsysconf(_SC_CLK_TCK)\fP.
+.TP 
+\fIcguest_time\fP %ld (depuis Linux 2.6.24)
+Temps d'invité des fils du processus, mesuré en tops d'horloge (divisé par
+\fIsysconf(_SC_CLK_TCK)\fP.
+.RE
+.TP 
+\fI/proc/[pid]/statm\fP
+Donne des informations sur l'utilisation de la mémoire, mesurée en
+pages. Les colonnes représentent\ :
+.in +4n
+.nf
+
+.\" (not including libs; broken, includes data segment)
+.\" (including libs; broken, includes library text)
+size       taille totale du programme
+           (comme pour VmSize dans \fI/proc/[pid]/status\fP)
+resident   taille résidant en mémoire
+           (comme pour VmRSS dans \fI/proc/[pid]/status\fP)
+share      pages partagées (des projections partagées)
+text       texte (code)
+lib        bibliothèque (non utilisé dans Linux\ 2.6)
+data       données + pile
+dt         pages touchées (dirty, non utilisé dans Linux 2.6)
+.fi
+.in
+.TP 
+\fI/proc/[pid]/status\fP
+Fournit l'essentiel des informations de \fI/proc/[pid]/stat\fP et
+\fI/proc/[pid]/statm\fP dans un format plus facile à lire pour les
+humains. Voici un exemple\ :
+.in +4n
+.nf
+
+$\fB cat /proc/$$/status\fP
+Name:   bash
+State:  S (sleeping)
+Tgid:   3515
+Pid:    3515
+PPid:   3452
+TracerPid:      0
+Uid:    1000    1000    1000    1000
+Gid:    100     100     100     100
+FDSize: 256
+Groups: 16 33 100
+VmPeak:     9136 kB
+VmSize:     7896 kB
+VmLck:         0 kB
+VmHWM:      7572 kB
+VmRSS:      6316 kB
+VmData:     5224 kB
+VmStk:        88 kB
+VmExe:       572 kB
+VmLib:      1708 kB
+VmPTE:        20 kB
+Threads:        1
+SigQ:   0/3067
+SigPnd: 0000000000000000
+ShdPnd: 0000000000000000
+SigBlk: 0000000000010000
+SigIgn: 0000000000384004
+SigCgt: 000000004b813efb
+CapInh: 0000000000000000
+CapPrm: 0000000000000000
+CapEff: 0000000000000000
+CapBnd: ffffffffffffffff
+Cpus_allowed:   00000001
+Cpus_allowed_list:      0
+Mems_allowed:   1
+Mems_allowed_list:      0
+voluntary_ctxt_switches:        150
+nonvoluntary_ctxt_switches:     545
+.fi
+.in
+.IP
+Les champs sont les suivants\ :
+.RS
+.IP * 2
+\fIName\fP\ : Commande lancée par ce processus.
+.IP *
+\fIState\fP\ : État actuel du processus parmi les valeurs\ : «\ R (running)\ », «\ S
+(sleeping)\ », «\ D (disk sleep)\ », «\ T (stopped)\ », «\ T (tracing stop)\ », «\ Z
+(zombie)\ » ou «\ X (dead)\ ».
+.IP *
+\fITgid\fP\ : Identifiant du groupe de threads (c'est\-à\-dire, identifiant du
+processus PID).
+.IP *
+\fIPid\fP\ : Identifiant de thread (voir \fBgettid\fP(2)).
+.IP *
+\fITracerPid\fP\ : PID du processus traçant ce processus (0 s'il n'est pas
+tracé).
+.IP *
+\fIUid\fP, \fIGid\fP\ : UID (et GID) réel, effectif, sauvé et de système de
+fichiers.
+.IP *
+\fIFDSize\fP\ : Nombre d'entrées de descripteurs de fichier actuellement
+alloués.
+.IP *
+\fIGroups\fP\ : Liste des groupes supplémentaires.
+.IP *
+\fIVmPeak\fP\ : Taille de pointe de mémoire virtuelle.
+.IP *
+\fIVmSize\fP\ : Taille de mémoire virtuelle.
+.IP *
+\fIVmLck\fP\ : Taille de mémoire verrouillée.
+.IP *
+\fIVmHWM\fP\ : Taille de pointe de mémoire résidente («\ High Water Mark\ »).
+.IP *
+\fIVmRSS\fP\ : Taille de mémoire résidente
+.IP *
+\fIVmData\fP, \fIVmStk\fP, \fIVmExe\fP\ : Taille des segments de données, de pile et
+de texte.
+.IP *
+\fIVmLib\fP\ : Taille du code de bibliothèque partagée.
+.IP *
+\fIVmPTE\fP\ : Taille des entrées de table de page (depuis Linux 2.6.10).
+.IP *
+\fIThreads\fP\ : Nombre de threads dans le processus contenant ce thread.
+.IP *
+\fISigPnd\fP, \fIShdPnd\fP\ : Nombre de signaux en attente du thread et du
+processus dans son ensemble (voir \fBpthreads\fP(7) et \fBsignal\fP(7)).
+.IP *
+\fISigBlk\fP, \fISigIgn\fP, \fISigCgt\fP\ : Masques indiquant les signaux bloqués,
+ignorés et interceptés (voir \fBsignal\fP(7)).
+.IP *
+\fICapInh\fP, \fICapPrm\fP, \fICapEff\fP\ : Masques des capacités actives dans les
+ensembles transmissibles, permis et effectifs (voir \fBcapabilities\fP(7)).
+.IP *
+\fICapBnd\fP\ : Ensemble de limitation de capacités (Capability Bounding set\ ;
+depuis le noyau\ 2.6.26, voir \fBcapabilities\fP(7)).
+.IP *
+\fICpus_allowed\fP\ : Masque des processeurs sur lesquels le processus peut
+s'exécuter (depuis Linux 2.6.24, voir \fBcpuset\fP(7)).
+.IP *
+\fICpus_allowed_list\fP\ : Pareil que précédemment, mais au format liste (depuis
+Linux 2.6.26, voir \fBcpuset\fP(7)).
+.IP *
+\fIMems_allowed\fP\ : Masque des n\[oe]uds mémoire autorisés pour ce processus
+(depuis Linux\ 2.6.24, voir \fBcpuset\fP(7)).
+.IP *
+\fIMems_allowed_list\fP\ : Pareil que précédemment, mais au format liste (depuis
+Linux 2.6.26, voir \fBcpuset\fP(7)).
+.IP *
+\fIvoluntary_context_switches\fP, \fInonvoluntary_context_switches\fP\ : Nombre de
+basculement de contexte, volontaire ou non (depuis Linux 2.6.23).
+.RE
+.TP 
+\fI/proc/[pid]/task\fP (depuis Linux 2.6.0\-test6)
+C'est un répertoire qui comporte un sous\-répertoire pour chacun des
+processus légers (threads) de la tâche. Le nom de chacun des sous\-répertoire
+est l'identifiant (\fI[tid]\fP) du thread (voir \fBgettid\fP(2). Dans chacun de
+ces sous\-répertoire se trouvent un ensemble de fichiers ayant le même nom et
+contenu que dans les répertoires \fI/proc/[pid]\fP. Pour les attributs qui sont
+partagés par tous les processus, le contenu de chacun des fichiers se
+trouvant dans le sous\-répertoire \fItask/[tid]\fP sera identique à celui qui se
+trouve dans le répertoire parent \fI/proc/[pid]\fP (par ex., pour une tâche
+multiprocessus, tous les fichiers \fItask/[tid]/cwd\fP auront le même contenu
+que le fichier \fI/proc/[pid]/cwd\fP dans le répertoire parent, puisque tous
+les processus d'une même tâche partage le même répertoire de travail. Pour
+les attributs qui sont distincts pour chacun des processus, les fichiers
+correspondants sous \fItask/[tid]\fP peuvent être différents (par ex., certains
+champs de chacun de fichiers \fItask/[tid]/status\fP peuvent être différents
+pour chaque processus).
+
+.\" The following was still true as at kernel 2.6.13
+Dans un traitement multiprocessus, le contenu du répertoire
+\fI/proc/[pid]/task\fP n'est pas disponible si le processus principal est déjà
+terminé (typiquement lors de l'appel \fBpthread_exit\fP(3).
+.TP 
+\fI/proc/apm\fP
+La version du système de gestion de puissance APM et les informations sur
+l'état de la batterie si la constante \fBCONFIG_APM\fP était définie à la
+compilation du noyau.
+.TP 
+\fI/proc/bus\fP
+Contient des sous\-répertoires pour les bus installés.
+.TP 
+\fI/proc/bus/pccard\fP
+Répertoire pour les périphériques PCMCIA si la constante \fBCONFIG_PCMCIA\fP
+était définie à la compilation du noyau.
+.TP 
+\fI/proc/bus/pccard/drivers\fP
+.TP 
+\fI/proc/bus/pci\fP
+Contient divers sous\-répertoires de bus, et des pseudo\-fichiers recélant des
+informations sur les bus PCI, les périphériques installés et leurs
+pilotes. Certains de ces fichiers ne sont pas en ASCII pur.
+.TP 
+\fI/proc/bus/pci/devices\fP
+Informations sur les périphériques PCI. Peut\-être consulté grâce à
+\fBlspci\fP(8) et \fBsetpci\fP(8).
+.TP 
+\fI/proc/cmdline\fP
+Arguments passés au noyau Linux lors du boot. Généralement par
+l'intermédiaire d'un gestionnaire de boot comme \fBlilo\fP(8) ou \fBgrub\fP(8).
+.TP 
+\fI/proc/config.gz\fP (depuis Linux 2.6)
+Ce fichier indique les options de configuration qui ont été utilisées pour
+construire le noyau actuel, dans le même format que celui utilisé pour le
+fichier \fI.config\fP résultant de la configuration du noyau (en utilisant
+\fImake xconfig\fP, \fImake config\fP, ou autre). Le contenu du fichier est
+compressé\ ; parcourez le ou effectuez vos recherches avec \fBzcat\fP(1),
+\fBzgrep\fP(1), etc. Tant qu'il n'y a pas de changement dans les fichiers qui
+suivent, le contenu de \fI/proc/config.gz\fP est identique à celui fournit
+par\ :
+.in +4n
+.nf
+
+cat /lib/modules/$(uname \-r)/build/.config
+.fi
+.in
+.IP
+\fI/proc/config.gz\fP n'est fourni que si le noyau est configuré avec l'option
+\fBCONFIG_IKCONFIG_PROC\fP.
+.TP 
+\fI/proc/cpuinfo\fP
+Il s'agit d'informations dépendantes de l'architecture et du processeur
+utilisé. Les deux seules entrées toujours présentes sont \fIprocessor\fP qui
+donne le nombre de processeurs et \fIbogomips\fP, une constante système
+calculée pendant l'initialisation du noyau. Les machines SMP ont une ligne
+d'information pour chaque processeur.
+.TP 
+\fI/proc/devices\fP
+Liste littérale des groupes de périphériques et des numéros majeurs. Ceci
+peut servir dans les scripts MAKEDEV pour rester cohérent avec le noyau.
+.TP 
+\fI/proc/diskstats\fP (depuis Linux 2.5.69)
+Ce fichier contient les statistiques d'entrées\-sorties du disque pour chaque
+périphérique disque. Voir le fichier fourni avec les sources du noyau
+\fIDocumentation/iostats.txt\fP pour plus d'information.
+.TP 
+\fI/proc/dma\fP
+Il s'agit d'une liste des canaux DMA (Direct Memory Acess) \fIISA\fP en cours
+d'utilisation.
+.TP 
+\fI/proc/driver\fP
+Sous\-répertoire vide.
+.TP 
+\fI/proc/execdomains\fP
+Liste des domaines d'exécution (personnalités).
+.TP 
+\fI/proc/fb\fP
+Information sur la mémoire d'écran Frame Buffer, lorsque la constante
+\fBCONFIG_FB\fP a été définie lors de la compilation du noyau.
+.TP 
+\fI/proc/filesystems\fP
+Liste textuelle des systèmes de fichiers qui sont pris en compte par le
+noyau, c'est\-à\-dire les systèmes de fichiers qui ont été compilés dans le
+noyau ou dont les modules du noyau sont actuellement chargés. (Voir aussi
+\fBfilesystems\fP(5)). Si un système de fichiers est marqué par «\ nodev\ », ceci
+signifie qu'il n'a pas besoin d'un périphérique de type bloc pour être monté
+(par exemple un système de fichiers virtuel, un système de fichiers réseau).
+
+Ce fichier peut éventuellement être utilisé par \fBmount\fP(8) lorsqu'aucun
+système de fichiers n'est indiqué et qu'il n'arrive pas à déterminer le type
+du système de fichiers. Alors, les systèmes de fichiers que comportent ce
+fichier sont essayés (à l'exception de ceux qui sont marqués par «\ nodev\ »).
+.TP 
+\fI/proc/fs\fP
+Sous\-répertoire vide.
+.TP 
+\fI/proc/ide\fP
+Le répertoire \fI/proc/ide\fP existe sur les systèmes ayant un bus IDE. Il y a
+des sous\-répertoires pour chaque canal IDE et les périphériques
+attachés. Les fichiers contiennent\ :
+
+.in +4n
+.nf
+cache              taille du tampon en ko
+capacity           nombre de secteurs
+driver             version du pilote
+geometry           géométries physique et logique
+identify           identification en hexadécimal
+media              type de support
+model              référence fournisseur
+settings           configuration du pilote
+smart_thresholds   seuils en hexadécimal
+smart_values       paramètres in hexadécimal
+.fi
+.in
+
+L'utilitaire \fBhdparm\fP(8) fournit un accès convivial à ces informations.
+.TP 
+\fI/proc/interrupts\fP
+Utilisé pour enregistrer le nombre d'interruptions par CPU et par
+périphérique d'entrées\-sorties. Depuis Linux 2.6.24, pour les architectures
+i386 et x86_64 au moins, il comprend également les interruptions internes au
+système (c'est à dire pas directement attachées à un périphérique), comme
+les NMI («\ nonmaskable interrupt\ », interruptions non masquable), LOC
+(«\ local timer interrupt\ », interruption timer local), et pour les systèmes
+SMP, TLB («\ TLB flush interrupt\ »), RES («\ rescheduling interrupt\ »), CAL
+(«\ remote function call interrupt\ »), et peut\-être d'autres. Le format est
+très facile à lire, en ASCII.
+.TP 
+\fI/proc/iomem\fP
+Projection des entrées\-sorties en mémoire, depuis Linux 2.4.
+.TP 
+\fI/proc/ioports\fP
+Il s'agit d'une liste des régions d'entrées\-sorties en cours d'utilisation.
+.TP 
+\fI/proc/kallsyms\fP (depuis Linux 2.5.71)
+Ce fichier contient les symboles exportés par le noyau et utilisés par les
+outils des \fBmodules\fP(X) pour assurer l'édition dynamique des liens des
+modules chargeables. Dans Linux 2.5.47 et précédents, un fichier similaire
+avec une syntaxe légèrement différente s'appelait \fIksyms\fP.
+.TP 
+\fI/proc/kcore\fP
+Ce fichier représente la mémoire physique du système sous forme de fichier
+ELF core. À l'aide de ce pseudo\-fichier et d'un binaire du noyau non
+\fIstrip\fPé (\fI/usr/src/linux/vmlinux\fP), gdb peut servir à inspecter l'état de
+n'importe quelle structure de données du noyau.
+
+La longueur totale de ce fichier est la taille de la mémoire RAM physique
+plus 4 Ko.
+.TP 
+\fI/proc/kmsg\fP
+Ce fichier peut être utilisé à la place de l'appel système \fBsyslog\fP(2)
+pour journaliser les messages du noyau. Un processus doit avoir les
+privilèges superutilisateur pour lire ce fichier, et un seul processus à la
+fois peut le lire. On NE DOIT PAS lire ce fichier si un processus syslogd
+tourne et utilise l'appel système \fBsyslog\fP(2) pour journaliser les messages
+du noyau.
+
+Les informations de ce fichier sont consultées par le programme \fBdmesg\fP(1).
+.TP 
+\fI/proc/ksyms\fP (Linux 1.1.23\-2.5.47)
+Voir \fI/proc/kallsyms\fP.
+.TP 
+\fI/proc/loadavg\fP
+Les trois premiers champs de ce fichier sont des valeurs de charge moyenne
+donnant le nombre de travaux dans la file d'exécution (état R) ou en attente
+d'E/S disque (état D) moyennés sur 1, 5 ou 15 minutes. Ils sont identiques
+aux valeurs de charge moyenne données par \fBuptime\fP(1) et d'autres
+programmes. Le quatrième champ consiste ne deux nombres séparés par un slash
+(/). Le premier d'entre\-eux est le nombre d'entités d'ordonnancement du
+noyau (tâches, processus) en cous d'exécution\ ; il sera inférieur ou égal au
+nombre de processeurs. La valeur qui suit le slash est le nombre d'entités
+d'ordonnancement du noyau qui existent actuellement sur le système. Le
+cinquième champ est le PID du processus le plus récemment créé sur le
+système.
+.TP 
+\fI/proc/locks\fP
+Ce fichier montre les verrouillages actuels des fichiers (\fBflock\fP(2) et
+\fBfcntl\fP(2)) et les baux (\fBfcntl\fP(2)).
+.TP 
+\fI/proc/malloc\fP (seulement jusqu'à Linux 2.2 inclu)
+.\" It looks like this only ever did something back in 1.0 days
+Ce fichier n'est présent que si \fBCONFIG_DEBUG_MALLOC\fP a été défini lors de
+la compilation du noyau.
+.TP 
+\fI/proc/meminfo\fP
+Ce fichier fourni des statistiques sur l'utilisation mémoire du système. Il
+sert au programme \fBfree\fP(1) pour indiquer les quantités de mémoires
+(physique et swap) libres et utilisées, ainsi que la mémoire partagée et les
+tampons utilisés par le noyau.
+.TP 
+\fI/proc/modules\fP
+Liste littérale des modules qui ont été chargés par le système. Voir
+\fBlsmod\fP(8).
+.TP 
+\fI/proc/mounts\fP
+Avant le noyau 2.4.19, ce fichier était une liste de tous les systèmes de
+fichiers actuellement monté sur le système. Avec l'introduction des espaces
+de noms de montage par processus dans Linux\ 2.4.19, ce fichier est devenu un
+lien vers \fI/proc/self/mounts\fP, qui liste les points de montage de l'espace
+de noms de montage du processus. Le format de ce fichier est documenté dans
+\fBfstab\fP(5).
+.TP 
+\fI/proc/mtrr\fP
+Memory Type Range Registers. Voir \fIDocumentation/mtrr.txt\fP dans les sources
+du noyau pour plus d'informations.
+.TP 
+\fI/proc/net\fP
+Ce répertoire regroupe divers pseudo\-fichiers relatifs aux fonctionnalités
+réseau. Chaque fichier fournit des informations concernant une couche
+particulière. Ces fichiers sont en ASCII et sont donc lisible grâce à
+\fBcat\fP(1), mais le programme standard \fBnetstat\fP(8) fournit un accès plus
+propre à ces données.
+.TP 
+\fI/proc/net/arp\fP
+Ce fichier contient un affichage ASCII lisible des tables ARP du noyau
+servant à la résolution d'adresse. Il indique à la fois les entrées apprises
+dynamiquement et celles préprogrammées. Le format est le suivant\ :
+
+.nf
+.in 8n
+\f(CWAdresse IP    Matériel  Attribut   Adresse matérielle Masque  Périph.
+192.168.0.50   0x1       0x2       00:50:BF:25:68:F3   *      eth0
+192.168.0.250  0x1       0xc       00:00:00:00:00:00   *      eth0\fP
+.fi
+.in
+
+Où «\ adresse IP\ » est l'adresse IPv4 de la machine, le type de matériel est
+issu de la RFC 826. L'attribut correspond aux attributs de la structure ARP
+(définie dans \fI/usr/include/linux/if_arp.h\fP) et l'adresse matérielle est
+celle de la couche physique de l'adaptateur correspondant à l'adresse IP (si
+elle est connue).
+.TP 
+\fI/proc/net/dev\fP
+Ce pseudo\-fichier contient des informations d'état sur les périphériques
+réseau. On y trouve les nombres de paquets émis et reçus, le nombre
+d'erreurs et de collisions, ainsi que d'autres données statistiques. Ce
+fichier est utilisé par le programme \fBifconfig\fP(8). Le format est le
+suivant\ :
+
+.nf
+.in 1n
+\f(CWInter\-|   Receive                                                |  Transmit
+ face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+    lo: 2776770   11307    0    0    0     0          0         0  2776770   11307    0    0    0     0       0          0
+  eth0: 1215645    2751    0    0    0     0          0         0  1782404    4324    0    0    0   427       0          0
+  ppp0: 1622270    5552    1    0    0     0          0         0   354130    5669    0    0    0     0       0          0
+  tap0:    7714      81    0    0    0     0          0         0     7714      81    0    0    0     0       0          0\fP
+.in
+.fi
+.\" .TP
+.\" .I /proc/net/ipx
+.\" No information.
+.\" .TP
+.\" .I /proc/net/ipx_route
+.\" No information.
+.TP 
+\fI/proc/net/dev_mcast\fP
+Définie dans \fI/usr/src/linux/net/core/dev_mcast.c\fP\ :
+.nf
+.in +5
+indx interface_name  dmi_u dmi_g dmi_address
+2    eth0            1     0     01005e000001
+3    eth1            1     0     01005e000001
+4    eth2            1     0     01005e000001
+.in
+.fi
+.TP 
+\fI/proc/net/igmp\fP
+Protocole Internet Group Management Protocol. Défini dans
+\fI/usr/src/linux/net/core/igmp.c\fP.
+.TP 
+\fI/proc/net/rarp\fP
+Ce fichier emploie le même format que le fichier \fIarp\fP, et contient la
+projection inverse de la base de données utilisée pour fournir les services
+de recherche inversée de \fBrarp\fP(8). Si RARP n'est pas configuré dans le
+noyau, ce fichier est absent.
+.TP 
+\fI/proc/net/raw\fP
+.\" .TP
+.\" .I /proc/net/route
+.\" No information, but looks similar to
+.\" .BR route (8).
+Fournit le contenu de la table des sockets RAW (brutes). La plupart des
+informations ne sert que pour le débogage. La valeur «\ sl\ » est
+l'emplacement de la socket dans la table de hachage du noyau. Le champ
+«\ local_address\ » contient l'adresse locale ainsi que la paire de numéros
+associée au protocole. «\ St\ » est l'état interne de la socket. «\ tx_queue\ »
+et «\ rx_queue\ » représentent les files d'attente en émission et en réception
+en ce qui concerne l'utilisation de la mémoire par le noyau. Les champs
+«\ tr\ », «\ tm\->when\ » et «\ rexmits\ » ne sont pas utilisés par «\ RAW\ ». Le
+champ uid contient l'identifiant d'utilisateur (UID) effectif du créateur de
+la socket.
+.TP 
+\fI/proc/net/snmp\fP
+Ce fichier contient les données ASCII nécessaires pour les bases
+d'information d'IP, ICMP, TCP et UDP pour un agent SNMP.
+.TP 
+\fI/proc/net/tcp\fP
+Fournit le contenu de la table des socket TCP. La plupart des informations
+ne sert que pour le débogage. La valeur «\ sl\ » est l'emplacement de la
+socket dans la table de hachage du noyau. Le champ «\ local_address\ »
+contient l'adresse locale ainsi que la pair de numéros de port. Le champ
+«\ rem_address\ » contient l'adresse distante et la paire de numéros de port
+(si la socket est connectée). «\ St\ » est l'état interne de la
+socket. «\ tx_queue\ » et «\ rx_queue\ » représentent les files d'attente en
+émission et en réception en ce qui concerne l'utilisation de la mémoire par
+le noyau. Les champs «\ tr\ », «\ tm\->when\ » et «\ rexmits\ » contiennent des
+données internes au noyau ne servant qu'au débogage. Le champ uid contient
+l'identifiant d'utilisateur (UID) effectif du créateur de la socket.
+.TP 
+\fI/proc/net/udp\fP
+Fournit le contenu de la table des socket UDP. La plupart des informations
+ne sert que pour le débogage. La valeur «\ sl\ » est l'emplacement de la
+socket dans la table de hachage du noyau. Le champ «\ local_address\ »
+contient l'adresse locale ainsi que la paire de numéros de port. Le champ
+«\ rem_address\ » contient l'adresse distante et la paire de numéros de port
+(si la socket est connectée). «\ St\ » est l'état interne de la
+socket. «\ tx_queue\ » et «\ rx_queue\ » représentent les files d'attente en
+émission et en réception en ce qui concerne l'utilisation de la mémoire par
+le noyau. Les champs «\ tr\ », «\ tm\->when\ » et «\ rexmits\ » ne sont pas
+utilisés par UDP. Le champ uid contient l'identifiant d'utilisateur (UID)
+effectif du créateur de la socket. Le format est\ :
+
+.nf
+.in 1n
+\f(CWsl  local_address rem_address   st tx_queue rx_queue tr rexmits  tm\->when uid
+ 1: 01642C89:0201 0C642C89:03FF 01 00000000:00000001 01:000071BA 00000000 0
+ 1: 00000000:0801 00000000:0000 0A 00000000:00000000 00:00000000 6F000100 0
+ 1: 00000000:0201 00000000:0000 0A 00000000:00000000 00:00000000 00000000 0\fP
+.in
+.fi
+.TP 
+\fI/proc/net/unix\fP
+Liste des sockets dans le domaine Unix présentes sur le système, et leurs
+états. Le format est\ :
+.nf
+.sp .5
+\f(CWNum RefCount Protocol Flags    Type St Path
+ 0: 00000002 00000000 00000000 0001 03
+ 1: 00000001 00000000 00010000 0001 01 /dev/printer\fP
+.sp .5
+.fi
+
+Où «\ Num\ » est l'emplacement dans la table du noyau. «\ Refcount\ » est le
+nombre d'utilisateurs de la socket. «\ Protocol\ » est toujours 0 pour le
+moment. «\ Flags\ » représente un attribut interne du noyau correspondant à
+l'état de la socket. Le type est toujours 1 pour le moment (Les sockets de
+datagrammes dans le domaine Unix ne sont pas encore supportés par le
+noyau). «\ St\ » est un état interne de la socket, et Path correspond à
+l'éventuel chemin d'accès de la socket.
+.TP 
+\fI/proc/partitions\fP
+Contient les numéros majeur et mineur de chaque partition, ainsi que le
+nombre de blocs et le nom de la partition.
+.TP 
+\fI/proc/pci\fP
+Il s'agit d'une liste de tous les périphériques PCI détectés pendant
+l'initialisation ainsi que leur configuration.
+
+.\" FIXME /proc/sched_debug
+.\" .TP
+.\" .IR /proc/sched_debug " (since Linux 2.6.23)"
+.\" See also /proc/[pid]/sched
+Ce fichiers a été déprécié au profit d'une nouvelle interface \fI/proc\fP pour
+le PCI (\fI/proc/bus/pci\fP). Il est devenu optionnel dans Linux 2.2
+(disponible par l'intermédiaire de \fBCONFIG_PCI_OLD_PROC\fP, défini à la
+compilation du noyau). Il est devenu non optionnel une fois de plus dans
+Linux 2.4. Ensuite, il a été déprécié dans Linux 2.6 (il reste disponible
+par l'intermédiaire du positionnement de \fBCONFIG_PCI_LEGACY_PROC\fP), et il a
+finalement été entièrement supprimé depuis Linux 2.6.17.
+.TP 
+\fI/proc/scsi\fP
+Répertoire regroupant les pseudo\-fichiers du niveau \fIscsi\fP intermédiaire et
+divers sous\-répertoires pour les pilotes SCSI de bas\-niveau. Ils contiennent
+un fichier pour chaque hôte SCSI du système, chacun d'entre\-eux donnant
+l'état d'une partie du sous\-système d'E/S SCSI. Les fichiers contiennent des
+structures sous forme ASCII, et sont donc lisibles avec \fBcat\fP(1).
+
+On peut également écrire dans certains fichiers pour reconfigurer le
+sous\-système SCSI, ou activer/désactiver certaines fonctionnalités.
+.TP 
+\fI/proc/scsi/scsi\fP
+Il s'agit d'une liste de tous les périphériques SCSI reconnus par le noyau.
+Cette liste est la même que celle affichée durant le démarrage. Le
+sous\-système SCSI n'accepte pour le moment que la commande
+\fIadd\-single\-device\fP qui permet au superutilisateur d'ajouter un
+périphérique branché à chaud à la liste des périphériques connus.
+
+La commande
+.in +4n
+.nf
+
+echo \(aqscsi add\-single\-device 1 0 5 0\(aq > /proc/scsi/scsi
+
+.fi
+.in
+fera examiner le canal SCSI 0 par l'hôte scsi1, à la recherche d'un
+périphérique identifié ID 5 LUN 0. S'il y a déjà un périphérique à cette
+adresse ou si l'adresse est inconnue, une erreur sera renvoyée.
+.TP 
+\fI/proc/scsi/[nom_de_pilote]\fP
+Le \fI[nom_de_pilote]\fP peut être actuellement\ : NCR53c7xx, aha152x, aha1542,
+aha1740, aic7xxx, buslogic, eata_dma, eata_pio, fdomain, in2000, pas16,
+qlogic, scsi_debug, seagate, t128, u15\-24f, ultrastore ou wd7000.  Ces
+répertoires correspondent à chaque pilote qui pilote au moins un HBA
+SCSI. Chaque répertoire contient un fichier par hôte enregistré. Chaque
+fichier hôte est baptisé avec le numéro assigné à l'hôte durant
+l'initialisation.
+
+La lecture de ces fichiers montrera en général la configuration de l'hôte et
+du pilote, des statistiques, etc.
+
+L'écriture dans ces fichiers permettra différentes choses suivant les
+hôtes. Par exemple, avec les commandes \fIlatency\fP et \fInolatency\fP, le
+superutilisateur peut activer ou inhiber le code de mesure de latence des
+commandes dans le pilote eata_dma. Avec les commandes \fIlockup\fP et
+\fIunlock\fP, il peut contrôler les verrouillages de bus simulés par le pilote
+scsi_debug.
+.TP 
+\fI/proc/self\fP
+Ce répertoire se rapporte au processus accédant au système de fichiers
+\fI/proc\fP, et est identique au sous\-répertoire de \fI/proc\fP ayant pour nom le
+PID du processus appelant.
+.TP 
+\fI/proc/slabinfo\fP
+Information concernant les caches du noyau. Depuis Linux 2.6.16, ce fichier
+n'est présent que si l'option de configuration du noyau \fBCONFIG_SLAB\fP est
+validée. Les colonnes de  \fI/proc/slabinfo\fP sont\ :
+.in +4n
+.nf
+
+nom\-du\-cache
+nombre\-d'objets\-actifs
+nombre\-total\-d'objets
+taille\-d\-'objet
+nombre\-de\-tampons\-actifs
+nombre\-total\-de\-tampons
+nombre\-de\-pages\-par\-tampon
+.fi
+.in
+
+Voir \fBslabinfo\fP(5) pour des détails.
+.TP 
+\fI/proc/stat\fP
+Statistiques du noyau, et du système. Varie avec l'architecture, les entrées
+communes sont\ :
+.RS
+.TP 
+\fIcpu  3357 0 4313 1362393\fP
+.\" 1024 on Alpha and ia64
+.\" FIXME Actually, the following info about the /proc/stat 'cpu' field
+.\"       does not seem to be quite right (at least in 2.6.12)
+Temps, mesuré en unités de USER_HZ (centièmes de seconde sur la plupart des
+architectures, utilisez \fIsysconf(_SC_CLK_TCK)\fP pour connaître la valeur
+correcte), que le système a passé en mode utilisateur, en mode utilisateur
+avec une basse priorité («\ courtoisie élevée\ »\ : nice), en mode système, et
+le temps d'inactivité. La dernière valeur devrait correspondre à 100 fois la
+deuxième entrée du pseudo\-fichier uptime.
+
+Avec Linux 2.6, cette ligne comporte trois colonnes supplémentaires\ :
+\fIiowait\fP \- temps à attendre pour que l'E/S se termine (depuis 2.5.41)\ ;
+\fIirq\fP \- délai pour prendre en compte l'interruption (depuis 2.6.0\-test4)\ ;
+\fIsoftirq\fP \- délai pour prendre en compte les interruptions logicielles
+(depuis 2.6.0\-test4).
+
+Depuis Linux 2.6.11, il y a une huitième colonne, \fIvolée\fP \- le temps volé,
+qui est le temps passé dans d'autres systèmes d'exploitation lorsqu'un
+environnement virtualisé est actif
+
+.\" See Changelog entry for 5e84cfde51cf303d368fcb48f22059f37b3872de
+Depuis Linux 2.6.14, il y a une neuvième colonne, \fIguest\fP, qui est le temps
+passé à exécuter un processeur virtuel pour des systèmes d'exploitation
+invités sous le contrôle du noyau Linux.
+.TP 
+\fIpage 5741 1808\fP
+Le nombre de pages que le système a paginé en entrée et en sortie.
+.TP 
+\fIswap 1 0\fP
+Le nombre de pages de swap que le système a échangé en entrée et en sortie.
+.TP 
+.\" FIXME The following is not the full picture for the 'intr' of
+.\"       /proc/stat on 2.6:
+\fIintr 1462898\fP
+Cette ligne contient le nombre d'interruptions qui ont été prises en compte
+depuis le démarrage du système, pour chacune des interruptions possibles. La
+première colonne est le total de toutes les interruptions ayant été prises
+en compte\ ; chacune des colonnes suivantes représente le total pour une
+interruption particulière.
+.TP 
+\fIdisk_io: (2,0):(31,30,5764,1,2) (3,0):\fP...
+(major,disk_idx):(noinfo, read_io_ops, blks_read, write_io_ops,
+blks_written)
+.br
+(Linux 2.4 seulement)
+.TP 
+\fIctxt 115315\fP
+Le nombre de changements de contexte effectués par le système.
+.TP 
+\fIbtime 769041601\fP
+La date de démarrage du système en secondes écoulées depuis le 1er janvier
+1970.
+.TP 
+\fIprocesses 86031\fP
+Le nombre de processus exécutés sur le système depuis le démarrage.
+.TP 
+\fIprocs_running 6\fP
+Nombre de processus dans un état exécutable. (à partir de Linux 2.5.45).
+.TP 
+\fIprocs_blocked 2\fP
+Nombre de processus bloqués en attente de fin d'E/S. (À partir de Linux
+2.5.45).
+.RE
+.TP 
+\fI/proc/swaps\fP
+Les zones de swap utilisées. Voir aussi \fBswapon\fP(8).
+.TP 
+\fI/proc/sys\fP
+Ce répertoire (présent depuis le noyau 1.3.57) contient un ensemble de
+fichiers et de sous\-répertoires correspondant à des variables internes du
+noyau. Celles\-ci peuvent être lues et parfois modifiées en utilisant le
+pseudo\-système de fichiers \fI/proc\fP, et en utilisant l'appel système
+(obsolète) \fBsysctl\fP(2). Actuellement, il existe les sous\-répertoires
+\fIabi\fP, \fIdebug\fP, \fIdev\fP, \fIfs\fP, \fIkernel\fP, \fInet\fP, \fIproc\fP, \fIrxrpc\fP,
+\fIsunrpc\fP et \fIvm\fP qui contiennent chacun des fichiers et d'autres
+sous\-répertoires.
+.TP 
+\fI/proc/sys/abi\fP (depuis Linux 2.4.10)
+.\" On some systems, it is not present.
+Ce répertoire peut contenir des fichiers d'informations sur l'exécutable de
+l'application Voir le fichier fourni avec les sources du noyau
+\fIDocumentation/sysctl/abi.txt\fP pour plus d'informations.
+.TP 
+\fI/proc/sys/debug\fP
+Ce répertoire peut être vide.
+.TP 
+\fI/proc/sys/dev\fP
+Ce répertoire contient des informations spécifiques sur les périphériques
+(par exemple \fIdev/cdrom/info\fP). Sur certains systèmes, il peut être vide.
+.TP 
+\fI/proc/sys/fs\fP
+On trouve ici les sous\-répertoires \fIbinfmt_misc\fP, \fIepoll\fP, \fIinotify\fP, and
+\fImqueue\fP, et les fichiers \fIdentry\-state\fP, \fIdir\-notify\-enable\fP,
+\fIdquot\-nr\fP, \fIfile\-max\fP, \fIfile\-nr\fP, \fIinode\-max\fP, \fIinode\-nr\fP,
+\fIinode\-state\fP, \fIlease\-break\-time\fP, \fIleases\-enable\fP, \fIoverflowgid\fP,
+\fIoverflowuid\fP, \fIsuid_dumpable\fP, \fIsuper\-max\fP et \fIsuper\-nr\fP.
+.TP 
+\fI/proc/sys/fs/binfmt_misc\fP
+La documentation concernant les fichiers de ce répertoire se trouve dans les
+sources du noyau, dans \fIDocumentation/binfmt_misc.txt\fP.
+.TP 
+\fI/proc/sys/fs/dentry\-state\fP (depuis Linux 2.2)
+Ce fichier contient des informations sur l'état du cache de répertoire
+(dcache). Ce fichier contient six nombres \fInr_dentry\fP, \fInr_unused\fP,
+\fIage_limit\fP (age en secondes), \fIwant_pages\fP (pages réclamées par le
+système) et deux valeurs inutiles.
+.RS
+.IP * 2
+\fInr_dentry\fP est le nombre d'entrées dcache allouées. Ce champ n'est pas
+utilisé dans Linux\ 2.2.
+.IP *
+\fInr_unused\fP est le nombre d'entrées de répertoire libres.
+.IP *
+.\" looks like this is unused in kernels 2.2 to 2.6
+\fIage_limit\fP est l'âge en seconde après lequel les entrées de cache peuvent
+être réclamées quand la mémoire libre diminue.
+.IP *
+.\" looks like this is unused in kernels 2.2 to 2.6
+\fIwant_pages\fP n'est pas nul quand le noyau a appelé shrink_dcache_pages() et
+que le cache de répertoire n'a pas encore été élagué.
+.RE
+.TP 
+\fI/proc/sys/fs/dir\-notify\-enable\fP
+ce fichier peut être utilisé pour activer ou inhiber l'interface \fIdnotify\fP
+décrite dans \fBfcntl\fP(2) au niveau système Une valeur nulle inhibe cette
+interface, et la valeur 1 l'active.
+.TP 
+\fI/proc/sys/fs/dquot\-max\fP
+Ce fichier montre le nombre maximal d'entrée de quota de disque en cache.
+Sur certains systèmes (2.4), il est absent. Si le nombre de quotas de disque
+libres est très bas, et si vous avez un nombre important d'utilisateurs
+simultanés, vous pouvez augmenter cette valeur.
+.TP 
+\fI/proc/sys/fs/dquot\-nr\fP
+Ce fichier montre le nombre d'entrées de quota de disque allouées et le
+nombre d'entrées libres.
+.TP 
+\fI/proc/sys/fs/epoll\fP (depuis Linux 2.6.28)
+Ce répertoire contient le fichier \fImax_user_watches\fP, qui peut être utilisé
+pour limiter la quantité de mémoire du noyau utilisée par l'interface
+\fIepoll\fP. Voir \fBepoll\fP(7) pour davantage d'informations.
+.TP 
+\fI/proc/sys/fs/file\-max\fP
+Ce fichier est la limite système du nombre de fichiers ouverts par un
+processus. (Voir aussi \fBsetrlimit\fP(2) qui peut servir à fixer la limite par
+processus, \fBRLIMIT_NOFILE\fP). Si vous avez beaucoup de messages d'erreurs
+indiquant un manque de descripteurs de fichiers, essayez d'augmenter cette
+valeur.
+.br
+
+.br
+.nf
+\f(CWecho 100000 > /proc/sys/fs/file\-max\fP
+.fi
+
+La constante \fBNR_OPEN\fP du noyau impose une limite supérieure à la valeur
+que l'on peut placer dans \fIfile\-max\fP.
+
+Si vous augmentez \fI/proc/sys/fs/file\-max\fP, assurez\-vous d'augmenter
+\fI/proc/sys/fs/inode\-max\fP jusqu'à 3 à 4 fois la nouvelle valeur de
+\fI/proc/sys/fs/file\-max\fP, ou vous serez à court d'inodes.
+.TP 
+\fI/proc/sys/fs/file\-nr\fP
+Ce fichier (en lecture seule) donne le nombre de fichiers actuellement
+ouverts. Il contient trois nombres\ : les descripteurs de fichiers allouées,
+les descripteurs de fichiers libres, et le maximum de descripteurs de
+fichiers. Le noyau alloue les descripteurs dynamiquement, mais il ne les
+libère pas. Si le nombre de descripteurs alloués est proche du maximum, vous
+pouvez envisager d'augmenter le maximum. Quand le nombre de descripteurs
+libres est très grand, vous avez rencontré dans le passé un pic
+d'utilisation et n'avez probablement pas besoin d'augmenter le maximum.
+.TP 
+\fI/proc/sys/fs/inode\-max\fP
+Ce fichier contient le nombre maximal d'inodes en mémoire. Sur certains
+systèmes (2.4) il peut être absent. Cette valeur devrait être 3 à 4 fois
+plus grande que le nombre \fIfile\-max\fP, car les descripteurs \fIstdin\fP,
+\fIstdout\fP, et les socket réseau nécessitent aussi un inode. Lorsque vous
+manquez régulièrement d'inode, augmentez cette valeur.
+.TP 
+\fI/proc/sys/fs/inode\-nr\fP
+Ce fichier contient les deux premières valeurs d'\fIinode\-state\fP.
+.TP 
+\fI/proc/sys/fs/inode\-state\fP
+Ce fichier contient sept nombres\ : \fInr_inodes\fP, \fInr_free_inodes\fP,
+\fIpreshrink\fP et quatre valeurs non significatives. \fInr_inodes\fP est le
+nombre d'inodes alloués par le système. Il peut être légèrement plus grand
+que \fIinode\-max\fP, car Linux les alloue par page complète. \fInr_free_inodes\fP
+représente le nombre d'inodes libres. \fIpreshrink\fP est non\-nul lorsque
+\fInr_inodes\fP > \fIinode\-max\fP et que le système doit purger la liste
+d'inodes plutôt qu'en allouer davantage.
+.TP 
+\fI/proc/sys/fs/inotify\fP (depuis Linux 2.6.13)
+Ce répertoire contient les fichiers \fImax_queued_events\fP,
+\fImax_user_instances\fP, et \fImax_user_watches\fP, qui peuvent être utilisés
+pour limiter la quantité de mémoire du noyau utilisée par l'interface
+\fIinotify\fP. Voir \fBinotify\fP(7) pour davantage d'informations.
+.TP 
+\fI/proc/sys/fs/lease\-break\-time\fP
+Ce fichier indique le délai de grâce que le noyau accorde à un processus
+détenant un blocage de fichier (file lease, voir \fBfcntl\fP(2)) après qu'il
+lui a envoyé un signal indiquant qu'un autre processus attend pour ouvrir le
+fichier. Si, durant le délai de grâce, le détenteur du blocage ne le
+supprime pas, en n'en diminue pas la portée, le noyau éliminera de force le
+blocage.
+.TP 
+\fI/proc/sys/fs/leases\-enable\fP
+Ce fichier permet d'activer ou d'inhiber les blocages de fichiers (file
+lease, voir \fBfcntl\fP(2)) pour tout le système.  Si ce fichier contient la
+valeur 0, les blocages sont désactivés, une valeur non\-nulle les active.
+.TP 
+\fI/proc/sys/fs/mqueue\fP (depuis Linux 2.6.6)
+Ce répertoire contient les fichiers \fImsg_max\fP, \fImsgsize_max\fP, et
+\fIqueues_max\fP, qui contrôlent les ressources utilisées par les files de
+messages POSIX. Voir \fBmq_overview\fP(7) pour davantage d'informations.
+.TP 
+\fI/proc/sys/fs/overflowgid\fP et \fI/proc/sys/fs/overflowuid\fP
+Ces fichiers contiennent des valeurs de GID et UID de débordement, par
+défaut 65534. Certains systèmes de fichiers ne supportent que des UID et GID
+sur 16 bits, bien que le noyau Linux les gère sur 32 bits. Lorsque l'un de
+ces systèmes de fichiers est monté en lecture\-écriture, tout UID ou GID
+dépassant 65535 est remplacé par la valeur de débordement avant l'écriture
+sur le disque.
+.TP 
+\fI/proc/sys/fs/suid_dumpable\fP (depuis Linux 2.6.13)
+.\" The following is based on text from Documentation/sysctl/kernel.txt
+La valeur de ce fichier détermine si des fichiers d'images mémoire ont été
+produit pour «\ set\-user\-ID\ » ou d'autre binaires protégés ou
+corrompus. Trois différentes valeurs entières peuvent être indiquées\ :
+.sp
+\fI0\ (défaut)\fP Ceci donne le comportement traditionnel (antérieur à Linux
+2.6.13). Une image mémoire ne sera pas produite pour un processus qui a
+modifié ses droits (en appelant \fBseteuid\fP(2), \fBsetgid\fP(2), ou autre, ou en
+exécutant un programme set\-user\-ID ou set\-group\-ID) ou dont le binaire n'a
+pas le droit de lecture actif.
+.sp
+\fI1\ («\ debug\ »)\fP Des images mémoire de tous les processus seront faites si
+possible. L'image mémoire appartient à l'identifiant d'utilisateur du
+système de fichiers du processus dont l'image a été créée et aucune mesure
+de sécurité n'est prise. Ceci n'est prévu que dans des situations où l'on
+souhaite déboguer le système. Ptrace n'est pas vérifié.
+.sp
+\fI2\ («\ suidsafe\ »)\fP L'image mémoire d'un binaire qui n'aurait normalement
+pas été effectuée (voir «\ 0\ » ci\-dessus) est prise lisible par le
+superutilisateur (root) seulement. Ceci permet à l'utilisateur de pourvoir
+supprimer l'image mémoire mais pas de la lire. Pour des raisons de sécurité,
+les images mémoires prises dans ce mode n'en écraseront pas une autre ou
+d'autres fichiers. Ce mode est adéquat lorsque l'administrateur essaie de
+déboguer des problèmes dans un environnement normal.
+.TP 
+\fI/proc/sys/fs/super\-max\fP
+Ce fichier indique le nombre maximal de superblocs, et donc le nombre
+maximal de systèmes de fichiers que le noyau peut monter. Vous n'avez besoin
+d'augmenter \fIsuper\-max\fP que si vous désirez monter plus de systèmes de
+fichiers que ce que la valeur actuelle de \fIsuper\-max\fP vous permet.
+.TP 
+\fI/proc/sys/fs/super\-nr\fP
+contient le nombre de systèmes de fichiers montés actuellement.
+.TP 
+\fI/proc/sys/kernel\fP
+Ce répertoire contient des fichiers contrôlant tout une série de paramètres,
+décrits ci\-dessous.
+.TP 
+\fI/proc/sys/kernel/acct\fP
+Ce fichier contient trois nombres\ : un \fIseuil haut\fP, un \fIseuil bas\fP et
+une \fIpériode\fP. Si la comptabilité des processus à la manière BSD est
+activée, ses valeurs déterminent son comportement. Si l'espace disque sur le
+système de fichiers accueillant les statistiques descend sous le \fIseuil
+bas\fP, (en pourcentage), la comptabilité est suspendue. Si l'espace remonte
+au\-dessus du \fIseuil haut\fP, elle reprend. La \fIpériode\fP (en seconde) est
+celle avec laquelle le noyau vérifie l'espace disque disponible. Les valeurs
+par défaut sont 4, 2 et 30. Cela signifie que la comptabilité est suspendue
+en\-dessous de 2% d'espace libre, elle reprend à partir de 4% et la
+vérification a lieu toutes les 30 secondes.
+.TP 
+\fI/proc/sys/kernel/cap\-bound\fP (de Linux 2.2 à 2.6.24)
+Ce fichier conserve la valeur de \fIlimitation de capacités\fP du noyau
+(exprimée comme un nombre décimal signé). Cet ensemble est filtré par un ET
+binaire avec les capacités du processus lors d'un \fBexecve\fP(2). À partir de
+Linux 2.6.25, la limitation de capacités à l'échelle du système a disparu
+pour être remplacé par une limitation au niveau des threads\ ; voir
+\fBcapabilities\fP(7).
+.TP 
+\fI/proc/sys/kernel/core_pattern\fP
+Consultez \fBcore\fP(5).
+.TP 
+\fI/proc/sys/kernel/core_uses_pid\fP
+Consultez \fBcore\fP(5).
+.TP 
+\fI/proc/sys/kernel/ctrl\-alt\-del\fP
+Ce fichier contrôle la gestion de la séquence Ctrl\-Alt\-Suppr du clavier.
+S'il contient la valeur zéro, Ctrl\-Alt\-Suppr est capturé et envoyé au
+programme \fBinit\fP(8) pour relancer le système correctement. Si la valeur est
+supérieure à zéro, la réaction de Linux à ce Coup\-de\-pied Au C.. est un
+redémarrage immédiat, sans même écrire le contenu des tampons en attente.
+Note\ : lorsqu'un programme (comme dosemu) utilise le clavier en mode «\
+raw\ » (brut), la séquence ctl\-alt\-suppr est interceptée par le programme
+avant même d'atteindre le gestionnaire de console du noyau, et c'est à ce
+programme de décider qu'en faire.
+.TP 
+\fI/proc/sys/kernel/hotplug\fP
+Ce fichier contient le chemin de l'agent du mécanisme de branchement à
+chaud. La valeur par défaut est \fI/sbin/hotplug\fP.
+.TP 
+\fI/proc/sys/kernel/domainname\fP et \fI/proc/sys/kernel/hostname\fP
+Ces fichiers servent à indiquer les noms NIS/YP de domaine et d'hôte,
+exactement de la même manière que les commandes \fBdomainname\fP(1) et
+\fBhostname\fP(1). C'est\-à\-dire\ :
+
+.in +4n
+.nf
+#\fB echo \(aqdarkstar\(aq > /proc/sys/kernel/hostname\fP
+#\fB echo \(aqmydomain\(aq > /proc/sys/kernel/domainname\fP
+.fi
+.in
+
+a exactement le même effet que
+
+.in +4n
+.nf
+#\fB hostname \(aqdarkstar\(aq\fP
+#\fB domainname \(aqmydomain\(aq\fP
+.fi
+.in
+
+Notez toutefois, que le classique darkstar.frop.org a le nom d'hôte darkstar
+et le nom de domaine DNS (Internet Domain Name Server) "frop.org", à ne pas
+confondre avec le nom de domaine NIS (Network Information Service) ou YP
+(Yellow Pages). Ces noms de domaines sont généralement différents. Pour plus
+de détail, voyez la page \fBhostname\fP(1).
+.TP 
+\fI/proc/sys/kernel/htab\-reclaim\fP
+(PowerPC seulement) Si ce fichier contient une valeur non\-nulle, la htab du
+PowerPC (voir le fichier \fIDocumentation/powerpc/ppc_htab.txt\fP du noyau) est
+parcourue chaque fois que le système atteint la boucle d'inactivité.
+.TP 
+\fI/proc/sys/kernel/l2cr\fP
+(Sur PowerPC seulement). Ce fichier contient un indicateur commandant le
+cache L2 des cartes à processeur G3. Le cache est désactivé si la valeur est
+nulle, activé sinon.
+.TP 
+\fI/proc/sys/kernel/modprobe\fP
+Ce fichier comporte le chemin du chargeur de modules du noyau. Sa valeur par
+défaut est \fI/sbin/modprobe\fP. Ce fichier n'est présent que si le noyau est
+construit avec l'option \fBCONFIG_KMOD\fP activée. Ceci est décrit dans le
+fichier du noyau \fIDocumentation/kmod.txt\fP (il n'est présent que dans les
+version de noyau 2.4 et antérieures).
+.TP 
+\fI/proc/sys/kernel/msgmax\fP
+Ce fichier est une limite pour l'ensemble du système précisant le nombre
+maximal d'octets par message écrit dans une file de message System\ V.
+.TP 
+\fI/proc/sys/kernel/msgmni\fP
+Ce fichier définit la limite pour le système du nombre d'identifiants de
+files de messages. (Ce fichier n'existe que depuis Linux 2.4).
+.TP 
+\fI/proc/sys/kernel/msgmnb\fP
+Ce fichier définit un paramètre valable pour l'ensemble du système utilisé
+pour initialiser la valeur \fImsg_qbytes\fP pour la création ultérieure de
+files de messages. La valeur \fImsg_qbytes\fP indique le nombre maximal
+d'octets qui pourront être écrits dans une file de messages.
+.TP 
+\fI/proc/sys/kernel/ostype\fP et \fI/proc/sys/kernel/osrelease\fP
+Ces fichiers donnent des sous\-chaînes de \fI/proc/version\fP.
+.TP 
+\fI/proc/sys/kernel/overflowgid\fP et \fI/proc/sys/kernel/overflowuid\fP
+Ces fichiers remplissent le même rôle que \fI/proc/sys/fs/overflowgid\fP et
+\fI/proc/sys/fs/overflowuid\fP.
+.TP 
+\fI/proc/sys/kernel/panic\fP
+Ce fichier donne un accès en lecture et écriture à la variable
+\fIpanic_timeout\fP du noyau. Si elle vaut zéro, le noyau se mettra en boucle
+en cas de panique\ ; sinon elle indique que le noyau devra redémarrer de
+lui\-même après le nombre de secondes qu'elle contient. Si vous utilisez le
+pilote logiciel de surveillance watchdog, la valeur recommandée est de 60.
+.TP 
+\fI/proc/sys/kernel/panic_on_oops\fP (depuis Linux 2.5.68)
+Ce fichier contrôle le comportement du noyau lorsqu'un Oops (défaut) ou un
+bogue est rencontré. Si ce fichier contient 0, alors le système tente de
+continuer à travailler. S'il contient 1, alors le système attend quelques
+secondes (pour laisser à klogd le temps d'enregistrer la sortie du Oops)
+puis déclenche une panique. Si le fichier \fI/proc/sys/kernel/panic\fP est
+également non nul alors la machine redémarrera.
+.TP 
+\fI/proc/sys/kernel/pid_max\fP (depuis Linux 2.5.34)
+.\" Prior to 2.6.10, pid_max could also be raised above 32768 on 32-bit
+.\" platforms, but this broke /proc/[pid]
+.\" See http://marc.theaimsgroup.com/?l=linux-kernel&m=109513010926152&w=2
+Ce fichier indique la valeur à partir de laquelle la numérotation des PID
+reprendra à sa valeur initiale (ce qui signifie que la valeur dans ce
+fichier est celle du PID maximum plus un). La valeur par défaut est 32768,
+ce qui correspond à la même plage de PID que sur les noyaux antérieurs. Pour
+les plates\-formes 32 bits, la valeur maximum de \fIpid_max\fP est de
+32768. Pour les systèmes 64 bits, \fIpid_max\fP peut avoir n'importe quelle
+valeur jusqu'à 2^22 (\fBPID_MAX_LIMIT\fP, approximativement 4 millions).
+.TP 
+\fI/proc/sys/kernel/powersave\-nap\fP (PowerPC seulement)
+Ce fichier contient un indicateur. S'il est non\-nul, Linux\-PPC utilisera le
+mode «\ nap\ » d'économie d'énergie, sinon il utilisera le mode «\ doze\ ».
+.TP 
+\fI/proc/sys/kernel/printk\fP
+Les quatre valeurs dans ce fichier sont nommées \fIconsole_loglevel\fP,
+\fIdefault_message_loglevel\fP, \fIminimum_console_level\fP et
+\fIdefault_console_loglevel\fP. Ces valeurs influencent le comportement de
+\fIprintk()\fP lors de l'affichage ou de la journalisation de message
+d'erreurs. Voir \fBsyslog\fP(2) pour plus d'information sur les différents
+niveaux. Les messages avec une priorité plus élevée que \fIconsole_loglevel\fP
+seront affichés sur la console. Les messages sans priorité explicite
+utiliseront la priorité
+\fIdefault_message_level\fP. \fIminimum_console_loglevel\fP est la valeur maximale
+à laquelle \fIconsole_loglevel\fP puisse être
+élevé. \fIdefault_console_loglevel\fP est la valeur par défaut pour
+\fIconsole_loglevel\fP.
+.TP 
+\fI/proc/sys/kernel/pty\fP (depuis Linux 2.6.4)
+Ce répertoire contient deux fichiers relatifs au nombre de pseudo\-terminaux
+Unix 98 (voir \fBpts\fP(4)) sur le système.
+.TP 
+\fI/proc/sys/kernel/pty/max\fP
+Ce fichier définit le nombre maximal de pseudo\-terminaux.
+.TP 
+\fI/proc/sys/kernel/pty/nr\fP
+Ce fichier, en lecture seule, indique le nombre de pseudo\-terminaux en cours
+d'utilisation.
+.TP 
+\fI/proc/sys/kernel/random\fP
+Ce répertoire contient divers paramètres contrôlant le fonctionnement du
+fichier \fI/dev/random\fP. Voir \fBrandom\fP(4) pour davantage d'informations.
+.TP 
+\fI/proc/sys/kernel/real\-root\-dev\fP
+Ce fichier est documenté dans le fichier \fIDocumentation/initrd.txt\fP des
+sources du noyau.
+.TP 
+\fI/proc/sys/kernel/reboot\-cmd\fP (Sparc seulement)  
+permet apparemment de fournir un argument au chargeur de boot ROM/Flash
+Sparc. Peut\-être indique\-t\-il que faire après redémarrage\ ?
+.TP 
+\fI/proc/sys/kernel/rtsig\-max\fP
+(Uniquement pour les noyaux jusqu'à 2.6.7 inclus\ ; voir \fBsetrlimit\fP(2)).Ce
+fichier peut être utilisé pour ajuster le nombre maximum de signaux POSIX
+temps\-réel (en file d'attente) pouvant se trouver en attente sur le système.
+.TP 
+\fI/proc/sys/kernel/rtsig\-nr\fP
+(Uniquement pour les noyaux de Linux jusqu'à 2.6.7 inclus). Ce fichier
+indique le nombre de signaux POSIX temps\-réel actuellement en file attente.
+.TP 
+\fI/proc/sys/kernel/sem\fP (disponible depuis Linux 2.4)
+contient 4 limites pour les sémaphores System\ V. Ces valeurs sont
+respectivement\ :
+.RS
+.IP SEMMSL 8
+Le nombre maximal de sémaphores par ensemble.
+.IP SEMMNS 8
+Une limite générale au système pour le nombre de sémaphores dans tous les
+ensembles.
+.IP SEMOPM 8
+Le nombre maximal d'opérations que l'on peut indiquer dans un appel
+\fBsemop\fP(2).
+.IP SEMNI 8
+Une limite générale sur le nombre maximal d'identifiants de sémaphores.
+.RE
+.TP 
+\fI/proc/sys/kernel/sg\-big\-buff\fP
+Ce fichier montre la taille du tampon pour le pilote SCSI générique (sg).
+Vous ne pourrez pas y écrire pour le moment, mais vous pouvez changer sa
+valeur à la compilation en éditant \fIinclude/scsi/sg.h\fP et en modifiant
+\fBSG_BIG_BUFF\fP. Toutefois, il ne devrait y avoir aucune raison de le
+modifier.
+.TP 
+\fI/proc/sys/kernel/shmall\fP
+Ce fichier contient le nombre maximal de pages de mémoire partagées (IPC
+System\ V) au niveau du système.
+.TP 
+\fI/proc/sys/kernel/shmmax\fP
+Ce fichier permet de lire ou modifier la taille maximale des segments de
+mémoire partagée (IPC System\ V) que l'on peut créer. Les segments de mémoire
+jusqu'à 1Go sont à présent autorisés par le noyau. La valeur par défaut est
+\fBSHMMAX\fP.
+.TP 
+\fI/proc/sys/kernel/shmmni\fP
+(disponible depuis Linux 2.4) Ce fichier indique le nombre maximal de
+segments de mémoire partagée System\ V que l'on peut créer.
+.TP 
+\fI/proc/sys/kernel/sysrq\fP
+Ce fichier contrôle les fonctions qui peuvent être appelées par les
+combinaisons SysRq. Par défaut, le fichier contient un «\ 1\ », ce qui
+signifie que toute demande SysRq est autorisée (dans les anciennes versions
+du noyau, SysRq était désactivé par défaut, et il fallait l'activer
+explicitement lors de l'exécution, mais ce n'est plus le cas). Les valeurs
+possibles dans ce fichier sont\ :
+
+   0 \- désactiver sysrq complètement
+   1 \- activer toutes les fonctions de sysrq
+  >1 \- masque de bits des sysrq autorisées, défini comme ceci\ :
+          2 \- active le contrôle du niveau de journalisation de la console
+          4 \- active le contrôle du clavier (SAK, unraw
+          8 \- active la production d'images de débogue des processus, etc.
+         16 \- active la commande sync
+         32 \- active le remontage en lecture seule
+         64 \- active l'envoi de signaux aux processus (term, kill, oom\-kill)
+        128 \- autorise reboot/poweroff
+        256 \- autorise la définition de la politesse de toutes les tâches temps réel
+
+Ce fichier n'est présent que si l'option de configuration du noyau
+\fBCONFIG_MAGIG_SYSRQ\fP a été validée. Pour plus d'informations, consultez
+\fIDocumentation/sysrq.txt\fP dans les sources du noyau.
+.TP 
+\fI/proc/sys/kernel/version\fP
+Ce fichier contient une chaîne du type\ :
+
+    #5 Wed Feb 25 21:49:24 MET 1998
+
+Le champ «\ #5\ » indique que c'est la cinquième compilation du noyau depuis
+ces sources, et la date correspond à celle de la compilation.
+.TP 
+\fI/proc/sys/kernel/threads\-max\fP (disponible depuis Linux 2.3.11)
+Ce fichier contient le nombre maximal de threads (tâches) qui peuvent être
+créés sur le système.
+.TP 
+\fI/proc/sys/kernel/zero\-paged\fP (PowerPC seulement)  
+Ce fichier contient un drapeau. S'il est activé (non\-nul), Linux\-PPC
+effacera les pages dans sa boucle d'inactivité, accélérant éventuellement
+get_free_pages.
+.TP 
+\fI/proc/sys/net\fP
+Ce répertoire contient des éléments relatif au réseau. Des explications pour
+certains des fichiers de ce répertoire peuvent être trouvées dans \fBtcp\fP(7)
+et \fBip\fP(7).
+.TP 
+\fI/proc/sys/net/core/somaxconn\fP
+Ce fichier défini une valeur plafond pour le paramètre \fIbacklog\fP de
+\fBlisten\fP(2)\ ; consultez la page de manuel \fBlisten\fP(2) pour des détails.
+.TP 
+\fI/proc/sys/proc\fP
+Ce répertoire peut être vide.
+.TP 
+\fI/proc/sys/sunrpc\fP
+Ce répertoire correspond aux appels de procédures à distance (RPC) sur un
+système de fichiers NFS. Sur certains systèmes, il est absent.
+.TP 
+\fI/proc/sys/vm\fP
+Ce répertoire contient des fichiers de paramétrage de la gestion de mémoire,
+des tampons, et du cache.
+.TP 
+\fI/proc/sys/vm/drop_caches\fP (depuis Linux 2.6.16)
+Écrire dans ce fichier fait libérer de la mémoire par le noyau, les caches,
+dentries et inodes propres, en libérant ainsi cette mémoire libre.
+
+Pour libérer les pagecache, utilisez \fIecho 1 >
+/proc/sys/vm/drop_caches\fP\ ; to libérer les dentries et les inodes, utilisez
+\fIecho 2 > /proc/sys/vm/drop_caches\fP\ ; pour libérer les pagecache,
+dentries et inodes, utilisez \fIecho 3 > /proc/sys/vm/drop_caches\fP.
+
+Parce que cette opération est non\-destructive, et que les objets sales ne
+sont pas libérables, l'utilisateur doit utiliser la commande \fBsync\fP(8) au
+préalable.
+.TP 
+\fI/proc/sys/vm/swappiness\fP
+.\" The following is from Documentation/sysctl/vm.txt
+La valeur dans ce fichier contrôle le niveau d'agressivité utilisé par le
+noyau pour déplacer des pages mémoire dans l'espace d'échange. Les valeurs
+élevées indique une agressivité plus importante. La valeur par défaut est de
+60.
+.TP 
+\fI/proc/sys/vm/legacy_va_layout\fP (depuis Linux 2.6.9)
+.\" The following is from Documentation/filesystems/proc.txt
+S'il est non nul, ceci désactive la nouvelle disposition de carte mémoire 32
+bit\ ; le noyau utilisera alors la disposition habituelle (legacy) (2.4) pour
+tous les processus.
+.TP 
+\fI/proc/sys/vm/oom_dump_tasks\fP (depuis Linux 2.6.25)
+.\" The following is from Documentation/sysctl/vm.txt
+Active la production d'une image des tâches du système (à l'exception des
+threads du noyau) lors des mises à mort sur mémoire saturée. L'image
+comprend les informations suivantes pour chaque tâche (thread ou
+processus)\ : identifiant de thread, identifiant d'utilisateur réel,
+identifiant du groupe de thread (identifiant du processus) taille de la
+mémoire virtuelle, taile de la mémoire résidante, CPU sur lequel la tâche
+était ordonnancée, valeur de oom_adj (voir la description de
+\fI/proc/[pid]/oom_adj\fP) et le nom de la commande. C'est utile pour trouver
+la raison de la mise à mort sur mémoire saturée et pour identifier la tâche
+défectueuse qui en est la cause.
+
+Avec la valeur zéro, l'information est supprimée. Sur les très gros système
+avec des milliers de tâches, il peut ne pas être faisable de créer l'image
+avec les informations sur chacune. Ces systèmes ne devraient pas être
+obligés de pénaliser leurs performances dans ces cas de pénurie de mémoire
+si ces informations ne sont pas désirées.
+
+Pour toute valeur non nulle, les informations sont présentées à chaque mise
+à mort sur mémoire saturée.
+
+La valeur par défaut est 0.
+.TP 
+\fI/proc/sys/vm/oom_kill_allocating_task\fP (depuis Linux 2.6.24)
+.\" The following is from Documentation/sysctl/vm.txt
+Ceci active ou désactive la mise à mort de la tâche qui produit l'erreur
+dans les situations de mémoire saturée.
+
+Avec une valeur de zéro, la liste des tâches sera parcourue et la tâche à
+tuer sera sélectionnée en fonction d'heuristiques. Ceci sélectionne
+normalement une tâche consommant une grosse quantité de mémoire qui libérera
+beaucoup de mémoire lorsqu'elle sera tuée.
+
+Avec une valeur non nulle, la tâche tuée sera celle qui échouera lors d'une
+allocation de mémoire. Ceci évite un parcours de la liste des tâches qui
+peut être coûteux.
+
+Si \fI/proc/sys/vm/panic_on_oom\fP est non nul, il est prioritaire sur toute
+valeur utilisée dans \fI/proc/sys/vm/oom_kill_allocating_task\fP.
+
+La valeur par défaut est 0.
+.TP 
+\fI/proc/sys/vm/overcommit_memory\fP
+Ce fichier contient le mode pour les statistiques de la mémoire virtuelle du
+noyau. Les valeurs sont\ :
+.RS
+.IP
+0: gestion heuristique du dépassement de l'allocation mémoire (c'est la
+valeur par défaut)
+.br
+1: pas de gestion du dépassement, ne jamais vérifier
+.br
+2: toujours vérifier, gestion stricte du dépassement
+.RE
+.IP
+Dans le mode 0, les appels à \fBmmap\fP(2) utilisant \fBMAP_NORESERVE\fP ne sont
+pas vérifiés et le niveau de vérification par défaut est très faible,
+laissant le risque d'avoir un processus «\ OOM\-killed\ ». Sous Linux 2.4,
+toute valeur non nulle implique le mode 1. Dans le mode 2 (disponible depuis
+Linux 2.6), l'espace d'adressage virtuel total sur le système est limité à
+(SS + RAM*(r/100)), où SS est la taille de l'espace d'échange («\ swap\ »),
+RAM la taille de la mémoire physique, et r le contenu du fichier
+\fI/proc/sys/vm/overcommit_ratio\fP.
+.TP 
+\fI/proc/sys/vm/overcommit_ratio\fP
+Voir la description de \fI/proc/sys/vm/overcommit_memory\fP.
+.TP 
+\fI/proc/sys/vm/panic_on_oom\fP (depuis Linux 2.6.18)
+.\" The following is adapted from Documentation/sysctl/vm.txt
+Ceci active ou désactive le déclenchement d'une panique dans les situations
+de mémoire saturée.
+
+Si ce fichier est configuré à la valeur 0, le noyau (le «\ OOM\-killer\ »)
+tuera un processus perturbateur. D'habitude, il peut tuer un processus
+perturbateur et le système survivra.
+
+Si ce fichier est configuré à la valeur 1, le noyau paniquera dans une
+situation de mémoire saturée. Cependant, si un processus limite les
+allocations que sur certains noeuds en utilisant des politiques mémoire
+(\fBMPOL_BIND\fP dans \fBmbind\fP(2)) ou des ensembles de processeurs
+(\fBcpuset\fP(7)), et si ces noeuds voient leur mémoire saturée, un processus
+peut être tué par le OOM\-killer. Aucune panique ne survient dans ce
+cas. Comme de la mémoire est disponible sur d'autres noeuds, le système n'a
+pas entièrement atteint une situation de mémoire saturée.
+
+Si ce fichier est configuré à la valeur 2, le noyau panique toujours dans
+une situation de mémoire saturée.
+
+La valeur par défaut est 0. Les valeurs 1 et 2 sont utilisées pour la
+récupération en cas d'erreur de groupements. Sélectionnez l'un ou l'autre en
+fonction de votre politique de récupération en cas d'erreur.
+.TP 
+\fI/proc/sysrq\-trigger\fP (depuis Linux 2.4.21)
+L'écriture d'un caractère dans ce fichier déclenche la même fonction SysRq
+que la combinaison ALT\-SysRq\-<caractère> (voir la description de
+\fI/proc/sys/kernel/sysrq\fP). Ce fichier est normalement accessible en
+écriture que pour \fIroot\fP. Pour plus d'informations, consultez le fichier
+\fIDocumentation/sysrq.txt\fP dans les sources du noyau.
+.TP 
+\fI/proc/sysvipc\fP
+Sous\-répertoire contenant les pseudo\-fichiers \fImsg\fP, \fIsem\fP and \fIshm\fP. Ces
+fichiers listent les objets d'IPC System\ V (soient les files de messages,
+les sémaphores, et la mémoire partagée) existant actuellement sur le
+système, en donnant les mêmes informations que celles disponibles par la
+commande \fBipcs\fP(1). Ces fichiers ont des en\-têtes et sont formatés (à
+raison d'un objet IPC par ligne) de façon à être lus facilement. La page
+\fBsvipc\fP(7) donne davantage d'informations concernant les données fournies
+par ces fichiers.
+.TP 
+\fI/proc/tty\fP
+Sous\-répertoire contenant les pseudo\-fichiers et les sous\-répertoires pour
+les pilotes de tty et la gestion de la ligne.
+.TP 
+\fI/proc/uptime\fP
+Ce fichier contient deux valeurs\ : la durée de fonctionnement (uptime) en
+secondes, et le temps écoulé à ne rien faire (idle), en secondes également.
+.TP 
+\fI/proc/version\fP
+Cette chaîne identifie la version du noyau en cours d'exécution. Elle inclue
+le contenu de \fI/proc/sys/kernel/ostype\fP, \fI/proc/sys/kernel/osrelease\fP et
+\fI/proc/sys/kernel/version\fP. Par exemple\ :
+.nf
+.in -2
+\f(CWLinux version 1.0.9 (quinlan@phaze) #1 Sat May 14 01:51:54 EDT 1994\fP
+.in +2
+.fi
+.\" FIXME Document /proc/timer_list
+.\" .TP
+.\" .IR /proc/timer_list " (since Linux 2.6.21)"
+.\" See the 2.6.21 Change log
+.\" FIXME Document /proc/timer_stats
+.\" .TP
+.\" .IR /proc/timer_stats " (since Linux 2.6.21)"
+.\" See the 2.6.21 Change log
+.TP 
+\fI/proc/vmstat\fP (depuis Linux 2.6)
+Ce fichier contient diverses statistiques sur la mémoire virtuelle.
+.TP 
+\fI/proc/zoneinfo\fP (depuis Linux 2.6.13)
+.\" FIXME more should be said about /proc/zoneinfo
+Ce fichier affiche des informations concernant les zones mémoire. C'est
+utile pour analyser le comportement de la mémoire virtuelle.
+.SH NOTES
+De nombreuses chaînes (par exemple, l'environnement et de la ligne de
+commande) sont affichées dans un format interne, ses champs terminés par un
+caractère nul. Il est parfois plus lisible d'utiliser \fIod \-c\fP ou \fItr
+"\e000" "\en"\fP pour les lire. En remplacement, la commande \fIecho `cat
+<file>`\fP fonctionne bien.
+
+.\" .SH ACKNOWLEDGEMENTS
+.\" The material on /proc/sys/fs and /proc/sys/kernel is closely based on
+.\" kernel source documentation files written by Rik van Riel.
+Cette page de manuel est incomplète, incertaine, et devrait être mise à jour
+très souvent.
+.SH "VOIR AUSSI"
+\fBcat\fP(1), \fBdmesg\fP(1), \fBfind\fP(1), \fBfree\fP(1), \fBps\fP(1), \fBtr\fP(1),
+\fBuptime\fP(1), \fBchroot\fP(2), \fBmmap\fP(2), \fBreadlink\fP(2), \fBsyslog\fP(2),
+\fBslabinfo\fP(5), \fBhier\fP(7), \fBtime\fP(7), \fBarp\fP(8), \fBhdparm\fP(8),
+\fBifconfig\fP(8), \fBinit\fP(8), \fBlsmod\fP(8), \fBlspci\fP(8), \fBmount\fP(8),
+\fBnetstat\fP(8), \fBprocinfo\fP(8), \fBroute\fP(8)
+.br
+Les fichiers source du noyau\ : \fIDocumentation/filesystems/proc.txt\fP,
+\fIDocumentation/sysctl/vm.txt\fP
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,189 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" This manpage is Copyright (C) 2006 Silicon Graphics, Inc.
+.\"                               Christoph Lameter
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" FIXME Should programs normally be using this API directly, or should
+.\" they rather be using interfaces in the numactl package?
+.\" (e.g., compare with recommendation in mbind(2)).
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MOVE_PAGES 2 "6 octobre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+move_pages \- Déplacer des pages individuelles d'un processus sur un autre
+noeud
+.SH SYNOPSIS
+.nf
+\fB#include <numaif.h>\fP
+.sp
+\fBlong move_pages(int \fP\fIpid\fP\fB, unsigned long count, void **\fP\fIpages\fP\fB,\fP
+\fB                const int *\fP\fInodes\fP\fB, int *\fP\fIstatus\fP\fB, int \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBmove_pages\fP() déplace les \fIpages\fP indiqué du processus \fIpid\fP dans les
+noeuds indiqués par \fInodes\fP. Le résultat du déplacement est reflété dans
+\fIstatus\fP. Les drapeaux \fIflags\fP indiquent des contraintes sur les pages à
+déplacer.
+
+\fIpid\fP est l'identifiant du processus dans lequel des pages doivent être
+déplacées. Pour déplacer des pages dans un autres processus, l'appelant doit
+être privilégié (\fBCAP_SYS_NICE\fP) ou l'identifiant utilisateur réel ou
+effectif du processus appelant doit correspondre à l'identifiant utilisateur
+réel ou sauvé du processus cible. Si \fIpid\fP vaut 0, alors \fBmove_pages\fP()
+déplace des pages du processus appelant.
+
+\fIcount\fP est le nombre de pages à déplacer. Il définit la taille des trois
+tableaux \fIpages\fP, \fInodes\fP et \fIstatus\fP.
+
+.\" FIXME what if they are not aligned?
+\fIpages\fP est un tableau de pointeurs vers des pages à déplacer. Ces
+pointeurs doivent être alignés sur des limites de pages. Les adresses sont
+indiquées comme elles sont vues par le processus indiqué par \fIpid\fP.
+
+\fInodes\fP est un tableau d'entiers qui indiquent les emplacements voulus pour
+chaque page. Chaque élément du tableau est un numéro de noeud. \fInodes\fP peut
+aussi être NULL, auquel cas \fBmove_pages\fP() ne déplace aucune page mais
+renvoie dans \fIstatus\fP le noeud où chaque page réside actuellement. Obtenir
+l'état de chaque page peut être nécessaire pour trouver les pages qui
+doivent être déplacées.
+
+\fIstatus\fP est un tableau d'entiers qui renvoie l'état de chaque page. Le
+tableau ne contient des valeurs correctes que si \fBmove_pages\fP() n'a pas
+renvoyé d'erreur.
+
+\fIflags\fP indique quels types de page déplacer. \fBMPOL_MF_MOVE\fP signifie que
+seules les pages qui ne peuvent être utilisées qu'exclusivement par le
+processus sont à déplacer. \fBMPOL_MF_MOVE_ALL\fP signifie que les pages
+partagées entre plusieurs processus peuvent aussi être déplacée. Le
+processus doit être privilégié (\fBCAP_SYS_NICE\fP) pour utiliser
+\fBMPOL_MF_MOVE_ALL\fP.
+.SH "États des pages dans le tableau array"
+Les valeurs suivantes peuvent être renvoyées dans chaque élément du tableau
+\fIstatus\fP.
+.TP 
+\fB0..MAX_NUMNODES\fP
+Indique le noeud sur lequel la page réside.
+.TP 
+\fB\-EACCES\fP
+La page est projetée par plusieurs processus et ne peut être déplacée que si
+\fBMPOL_MF_MOVE_ALL\fP est utilisé.
+.TP 
+\fB\-EBUSY\fP
+La page est actuellement occupée et ne peut être déplacée. Essayez plus
+tard. Ceci arrive si la page est utilisée pour des entrées/sorties ou si une
+autre partie du noyau conserve une référence sur la page.
+.TP 
+\fB\-EFAULT\fP
+C'est une page nulle ou la zone mémoire n'est pas projetée par le processus.
+.TP 
+\fB\-EIO\fP
+Impossible de ré\-écrire une page. La page doit être ré\-écrite pour la
+déplacer puisque la page est sale et que le système de fichiers ne fournit
+pas de fonction de migration qui permettrait le déplacement de pages sales.
+.TP 
+\fB\-EINVAL\fP
+Une page sale ne peut pas être déplacée. Le système de fichiers ne fournit
+pas de fonction de déplacement et n'a pas la possibilité de ré\-écrire la
+page.
+.TP 
+\fB\-ENOENT\fP
+La page n'est pas présente.
+.TP 
+\fB\-ENOMEM\fP
+Impossible d'allouer de la mémoire sur le noeud cible.
+.SH "VALEUR RENVOYÉE"
+.\" FIXME Is the following quite true: does the wrapper in numactl
+.\" do the right thing?
+S'il réussit, \fBmove_pages\fP() renvoie zéro. En cas d'erreur, il renvoie \-1
+et remplit \fIerrno\fP avec la valeur d'erreur.
+.SH ERREURS
+.TP 
+\fBE2BIG\fP
+Trop de pages à déplacer.
+.TP 
+\fBEACCES\fP
+.\" FIXME Clarify "current cpuset".  Is that the cpuset of the caller
+.\" or the target?
+Un des noeuds cibles n'est pas autorisés dans l'ensemble de processeurs en
+cours.
+.TP 
+\fBEFAULT\fP
+Impossible d'accéder à un tableau en paramètre.
+.TP 
+\fBEINVAL\fP
+Un drapeau autre que \fBMPOL_MF_MOVE\fP ou \fBMPOL_MF_MOVE_ALL\fP a été indiqué ou
+on a essayé de déplacer des pages d'un thread noyau.
+.TP 
+\fBENODEV\fP
+Un des noeuds cibles n'est pas connecté.
+.TP 
+\fBENOENT\fP
+Aucune page nécessitant d'être déplacée n'a été trouvée. Toutes les pages
+sont déjà sur le noeud cible, absentes, avec une adresse non valable ou ne
+pouvaient être déplacées parce qu'elles étaient projetées par plusieurs
+processus.
+.TP 
+\fBEPERM\fP
+L'appelant a indiqué \fBMPOL_MF_MOVE_ALL\fP sans les privilèges suffisants
+(\fBCAP_SYS_NICE\fP). Ou bien l'appelant a essayé de déplacer des pages d'un
+processus appartenant à un autre utilisateur mais n'était pas autorisé à le
+faire (\fBCAP_SYS_NICE\fP).
+.TP 
+\fBESRCH\fP
+Le processus n'existe pas.
+.SH VERSIONS
+\fBmove_pages\fP() est apparu pour la première fois sous Linux avec le noyau
+2.6.18.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux.
+.SH NOTES
+Pour des informations sur la prise en charge par des bibliothèques,
+consultez \fBnuma\fP(7).
+
+.\" FIXME Clarify "current cpuset".  Is that the cpuset of the caller
+.\" or the target?
+Utilisez \fBget_mempolicy\fP(2) avec le drapeau \fBMPOL_F_MEMS_ALLOWED\fP pour
+obtenir l'ensemble des noeuds autorisés par l'ensemble de processeurs
+courant. Notez que cette information peut changer à tout instant d'une fait
+d'une reconfiguration manuelle ou automatique de l'ensemble de processeurs.
+
+L'utilisation de cette fonction peut causer des pages dont l'emplacement (le
+noeud) viole la politique mémoire établie pour les adresses indiquées (voir
+\fBmbind\fP(2)) ou pour le processus indiqué (voir \fBset_mempolicy\fP(2)). En
+d'autres termes, la politique mémoire ne restreint pas les noeuds de
+destination utilisés par \fBmove_pages\fP().
+.SH "VOIR AUSSI"
+\fBget_mempolicy\fP(2), \fBmbind\fP(2), \fBset_mempolicy\fP(2), \fBnuma\fP(3),
+\fBnuma_maps\fP(5), \fBcpuset\fP(7), \fBnuma\fP(7), \fBmigratepages\fP(8),
+\fBnuma_stat\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

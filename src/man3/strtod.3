@@ -1,0 +1,154 @@
+.\" Copyright (c) 1990, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" This code is derived from software contributed to Berkeley by
+.\" the American National Standards Committee X3, on Information
+.\" Processing Systems.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)strtod.3	5.3 (Berkeley) 6/29/91
+.\"
+.\" Modified Sun Aug 21 17:16:22 1994 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sat May 04 19:34:31 MET DST 1996 by Michael Haardt
+.\"   (michael@cantor.informatik.rwth-aachen.de)
+.\" Added strof, strtold, aeb, 2001-06-07
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STRTOD 3 "26 juillet 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+strtod, strtof, strtold \- Convertir une chaîne ASCII en nombre a virgule
+flottante
+.SH SYNOPSIS
+\fB#include <stdlib.h>\fP
+.sp
+\fBdouble strtod(const char *\fP\fInptr\fP\fB, char **\fP\fIendptr\fP\fB);\fP
+.br
+\fBfloat strtof(const char *\fP\fInptr\fP\fB, char **\fP\fIendptr\fP\fB);\fP
+.br
+\fBlong double strtold(const char *\fP\fInptr\fP\fB, char **\fP\fIendptr\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBstrtof\fP(), \fBstrtold\fP()\ : _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE\ ;
+ou \fIcc\ \-std=c99\fP
+.SH DESCRIPTION
+Les fonctions \fBstrtod\fP(), \fBstrtof\fP() et \fBstrtold\fP() convertissent la
+portion initiale de la chaîne pointée par \fInptr\fP en un réel de type
+\fIdouble\fP, \fIfloat\fP, et \fIlong double\fP respectivement.
+
+La (portion initiale de la) chaîne attendue est de la forme suivante\ : des
+espaces éventuels en tête, ou des caractères interprétés comme tels par
+\fBisspace\fP(3), un éventuel signe plus («\ +\ ») ou moins («\ \-\ »), et
+ensuite soit (i) un nombre décimal, soit (ii) un nombre hexadécimal, soit
+(iii) un infini, soit (iv) un non nombre NAN (not\-a\-number).
+.LP
+Un \fInombre décimal\fP consiste en une séquence non vide de chiffres décimaux,
+pouvant contenir un point décimal (dépendant de la localisation, mais
+habituellement «\ .\ »), suivi éventuellement d'un exposant décimal. Ce
+dernier est constitué d'un «\ E\ » ou «\ e\ » suivi éventuellement du signe
+plus ou du signe moins, puis une séquence non vide de chiffres décimaux,
+indiquant la multiplication par une puissance de 10.
+.LP
+Un \fInombre hexadécimal\fP commence «\ 0x\ » ou «\ 0X\ », suivi d'une séquence
+non vide de chiffres hexadécimaux, pouvant contenir un point décimal suivi
+éventuellement d'un exposant binaire. Ce dernier est constitué d'un «\ P\ »
+ou «\ p\ » suivi éventuellement du signe plus ou du signe moins, puis une
+séquence non vide de de chiffres décimaux, indiquant la multiplication par
+une puissance de 2. Il ne peut y avoir plus d'un point ou d'un exposant
+binaire.
+.LP
+Un \fIinfini\fP est soit «\ INF\ », soit «\ INFINITY\ », sans tenir compte des
+différences entre majuscules et minuscules.
+.LP
+.\" From glibc 2.8's stdlib/strtod_l.c:
+.\"     We expect it to be a number which is put in the
+.\"     mantissa of the number.
+Un \fInon\-nombre\fP est «\ NAN\ » (sans différences majuscules/minuscules)
+suivi éventuellement par «\ (\ », une séquence de caractères, et «\ )\ ». La
+chaîne de caractères indique le type de non nombre de manière dépendant de
+l'implémentation.
+.SH "VALEUR RENVOYÉE"
+Ces fonctions renvoient la valeur convertie si c'est possible.
+
+Si \fIendptr\fP n'est pas NULL, un pointeur sur le caractère suivant le dernier
+caractère converti est stocké dans l'emplacement pointé par \fIendptr\fP.
+
+Si aucune conversion n'est possible, la fonction renvoie zéro, et la valeur
+de \fInptr\fP est stockée dans \fIendptr\fP.
+
+Si la valeur convertie déclenche un débordement (overflow), la fonction
+renvoie plus ou moins \fBHUGE_VAL\fP (\fBHUGE_VALF\fP, \fBHUGE_VALL\fP) et \fIerrno\fP
+contient le code d'erreur \fBERANGE\fP. Si la valeur convertie déclenche un
+débordement inférieur (underflow), la fonction renvoie 0, et \fIerrno\fP
+contient le code d'erreur \fBERANGE\fP.
+.SH ERREURS
+.TP 
+\fBERANGE\fP
+Débordement.
+.SH CONFORMITÉ
+C89 décrit \fBstrtod\fP(). C99 décrit les deux autres fonctions.
+.SH NOTES
+Comme la valeur 0 peut légitimement être renvoyée à la fois en cas de succès
+et d'échec, le programme appelant doit positionner \fIerrno\fP à 0 avant
+l'appel, et déterminer si une erreur s'est produite en regardant si \fIerrno\fP
+a une valeur non nulle après l'appel.
+.SH EXEMPLE
+Voyez l'exemple dans la page de manuel \fBstrtol\fP(3)\ ; l'utilisation des
+fonctions décrites dans cette page de manuel est identique.
+.SH "VOIR AUSSI"
+\fBatof\fP(3), \fBatoi\fP(3), \fBatol\fP(3), \fBstrtol\fP(3), \fBstrtoul\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

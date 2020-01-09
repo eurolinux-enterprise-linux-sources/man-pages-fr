@@ -1,0 +1,139 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified 1993-07-21 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1994-08-21 by Michael Chastain <mec@shell.portal.com>
+.\" Modified 1996-06-13 by aeb
+.\" Modified 1996-11-06 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1997-08-21 by Joseph S. Myers <jsm28@cam.ac.uk>
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CHROOT 2 "23 juin 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+chroot \- Modifier le répertoire racine
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBint chroot(const char *\fP\fIpath\fP\fB);\fP
+.SH DESCRIPTION
+\fBchroot\fP() remplace le répertoire racine du processus appelant par celui
+spécifié par le chemin \fIpath\fP. Ce répertoire sera utilisé comme origine des
+chemins commençant par \fI/\fP. Le répertoire racine est hérité par tous les
+enfants du processus appelant.
+
+Seul un processus privilégié (sous Linux\ : un processus ayant la capacité
+\fBCAP_SYS_CHROOT\fP) peut appeler \fBchroot\fP().
+
+Cette fonction change un des ingrédients de l'algorithme de résolution des
+chemins, et ne modifie rien d'autre.
+
+Notez que cet appel système ne modifie pas le répertoire de travail, aussi
+«\ \fI.\fP\ » peut se retrouver en\(hydehors de l'arbre dont la racine est «\
+\fI/\fP\ ». En particulier, le superutilisateur peut s'évader d'un «\ piège
+chroot\ » en faisant\ :
+.nf
+
+    mkdir foo; chroot foo; cd ..
+.fi
+
+Cet appel ne ferme aucun descripteur de fichier, et de tels descripteurs
+peuvent permettre un accès à des fichiers hors de l'arbre dont la racine est
+le nouveau «\ /\ ».
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+Suivant le type de système de fichiers, plusieurs erreurs peuvent être
+renvoyées. Les plus courantes sont les suivantes\ :
+.TP 
+\fBEACCES\fP
+.\" Also search permission is required on the final component,
+.\" maybe just to guarantee that it is a directory?
+L'accès à un élément du chemin est interdit. (Voir aussi
+\fBpath_resolution\fP(7).)
+.TP 
+\fBEFAULT\fP
+\fIpath\fP pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEIO\fP
+Une erreur d'entrée\-sortie s'est produite.
+.TP 
+\fBELOOP\fP
+\fIpath\fP contient une référence circulaire (à travers un lien symbolique)
+.TP 
+\fBENAMETOOLONG\fP
+\fIpath\fP est trop long.
+.TP 
+\fBENOENT\fP
+Le fichier n'existe pas.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.TP 
+\fBENOTDIR\fP
+Un élément du chemin d'accès \fIpath\fP n'est pas un répertoire.
+.TP 
+\fBEPERM\fP
+L'appelant n'a pas les privilèges suffisants.
+.SH CONFORMITÉ
+.\" SVr4 documents additional EINTR, ENOLINK and EMULTIHOP error conditions.
+.\" X/OPEN does not document EIO, ENOMEM or EFAULT error conditions.
+SVr4, BSD\ 4.4, SUSv2 (considéré comme historique). Cette fonction n'est pas
+décrite dans POSIX.1\-2001.
+.SH NOTES
+Un processus fils créé avec \fBfork\fP(2) hérite du répertoire racine de son
+père. Le répertoire racine n'est pas modifié par un \fBexecve\fP(2).
+
+.\" FIXME . eventually say something about containers,
+.\" virtual servers, etc.?
+FreeBSD a un appel système \fBjail\fP() plus solide.
+.SH "VOIR AUSSI"
+\fBchdir\fP(2), \fBpath_resolution\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

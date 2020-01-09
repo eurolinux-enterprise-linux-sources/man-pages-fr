@@ -1,0 +1,79 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" Distributed under GPL
+.\" Heavily based on glibc infopages, copyright Free Software Foundation
+.\"
+.\" aeb, 2003, polished a little
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MEMPCPY 3 "12 août 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+mempcpy, wmempcpy \- Copier une zone mémoire
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP
+.br
+\fB#include <string.h>\fP
+.sp
+\fBvoid *mempcpy(void *\fP\fIdest\fP\fB, const void *\fP\fIsrc\fP\fB, size_t \fP\fIn\fP\fB);\fP
+.sp
+\fB#define _GNU_SOURCE\fP
+.br
+\fB#include <wchar.h>\fP
+.sp
+\fBwchar_t *wmempcpy(wchar_t *\fP\fIdest\fP\fB, const wchar_t *\fP\fIsrc\fP\fB, size_t \fP\fIn\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBmempcpy\fP() est quasiment identique à la fonction
+\fBmemcpy\fP(3). Elle copie \fIn\fP octets à partir de l'objet commençant à \fIsrc\fP
+dans l'objet pointé par \fIdest\fP. Mais plutôt que de retourner la valeur de
+\fIdest\fP, elle retourne un pointeur sur l'octet suivant le dernier octet
+écrit.
+.PP
+Cette fonction est pratique dans les situations où plusieurs objets doivent
+être copiés dans des positions consécutives en mémoire.
+.PP
+La fonction \fBwmempcpy\fP() est identique mais prend des arguments de type
+\fIwchar_t\fP et copie \fIn\fP caractères larges.
+.SH "VALEUR RENVOYÉE"
+\fIdest\fP + \fIn\fP.
+.SH VERSIONS
+\fBmempcpy\fP() a été introduites dans la glibc dans sa version\ 2.1.
+.SH CONFORMITÉ
+Cette fonction est une extension GNU.
+.SH EXEMPLE
+.nf
+void *
+combine(void *o1, size_t s1, void *o2, size_t s2)
+{
+    void *result = malloc(s1 + s2);
+    if (result != NULL)
+        mempcpy(mempcpy(result, o1, s1), o2, s2);
+    return result;
+}
+.fi
+.SH "VOIR AUSSI"
+\fBmemccpy\fP(3), \fBmemcpy\fP(3), \fBmemmove\fP(3), \fBwmemcpy\fP(3),
+\fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2004-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

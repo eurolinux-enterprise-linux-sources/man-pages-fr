@@ -1,0 +1,177 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" License.
+.\"
+.\" Modified Sat Jul 24 19:10:00 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Aug 21 17:51:50 1994 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sat Sep  2 21:52:01 1995 by Jim Van Zandt <jrv@vanzandt.mv.com>
+.\" Modified Mon May 27 22:55:26 1996 by Martin Schulze (joey@linux.de)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ISALPHA 3 "15 mars 2009" GNU "Manuel du programmeur Linux"
+.SH NOM
+isalpha, isalnum, isascii, isblank, iscntrl, isdigit, isgraph, islower,
+isprint, ispunct, isspace, isupper, isxdigit \- Routines de classification de
+caractères
+.SH SYNOPSIS
+.nf
+\fB#include <ctype.h>\fP
+.sp
+\fBint isalnum(int \fP\fIc\fP\fB);\fP
+.br
+\fBint isalpha(int \fP\fIc\fP\fB);\fP
+.br
+\fBint isascii(int \fP\fIc\fP\fB);\fP
+.br
+\fBint isblank(int \fP\fIc\fP\fB);\fP
+.br
+\fBint iscntrl(int \fP\fIc\fP\fB);\fP
+.br
+\fBint isdigit(int \fP\fIc\fP\fB);\fP
+.br
+\fBint isgraph(int \fP\fIc\fP\fB);\fP
+.br
+\fBint islower(int \fP\fIc\fP\fB);\fP
+.br
+\fBint isprint(int \fP\fIc\fP\fB);\fP
+.br
+\fBint ispunct(int \fP\fIc\fP\fB);\fP
+.br
+\fBint isspace(int \fP\fIc\fP\fB);\fP
+.br
+\fBint isupper(int \fP\fIc\fP\fB);\fP
+.br
+\fBint isxdigit(int \fP\fIc\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBisascii\fP()\ : _BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE
+.br
+\fBisblank\fP()\ : _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE\ ; ou \fIcc\
+\-std=c99\fP
+.ad b
+.SH DESCRIPTION
+Ces fonctions vérifient si le caractère \fIc\fP, qui doit avoir la valeur d'un
+\fIunsigned char\fP ou valoir \fBEOF\fP, rentre dans une catégorie donnée, en
+accord avec la localisation en cours.
+.TP 
+\fBisalnum\fP()
+vérifie si l'on a un caractère alphanumérique. C'est équivalent à
+\fB(isalpha(\fP\fIc\fP\fB) || isdigit(\fP\fIc\fP\fB))\fP.
+.TP 
+\fBisalpha\fP()
+vérifie si l'on a un caractère alphabétique. Dans la localisation \fB"C"\fP
+standard, c'est équivalent à \fB(isupper(\fP\fIc\fP\fB) || islower(\fP\fIc\fP\fB))\fP. Dans
+certaines localisations, il peut y avoir des caractères supplémentaires pour
+lesquels \fBisalpha\fP() est vrai, c'est\-à\-dire pour des lettres qui ne sont ni
+majuscules ni minuscules.
+.TP 
+\fBisascii\fP()
+vérifie si \fIc\fP est un \fIunsigned char\fP sur 7 bits, entrant dans le jeu de
+caractères ASCII.
+.TP 
+\fBisblank\fP()
+vérifie si le caractère est blanc, c'est\-à\-dire une espace ou une
+tabulation.
+.TP 
+\fBiscntrl\fP()
+vérifie si l'on a un caractère de contrôle.
+.TP 
+\fBisdigit\fP()
+vérifie si l'on a un chiffre (0 à 9).
+.TP 
+\fBisgraph\fP()
+vérifie s'il s'agit d'un caractère imprimable, à l'exception de l'espace.
+.TP 
+\fBislower\fP()
+vérifie si l'on a un caractère minuscule.
+.TP 
+\fBisprint\fP()
+vérifie s'il s'agit d'un caractère imprimable, y compris l'espace.
+.TP 
+\fBispunct\fP()
+vérifie s'il s'agit d'un caractère imprimable, qui ne soit ni un espace, ni
+un caractère alphanumérique.
+.TP 
+\fBisspace\fP()
+vérifie si l'on a un caractère blanc, d'espacement. Dans les localisations
+\fB"C"\fP et \fB"POSIX"\fP il s'agit de\ : espace, saut de page (form\-feed,
+\fB\(aq\ef\(aq\fP), saut de ligne (newline, \fB\(aq\en\(aq\fP), retour chariot
+(carriage return, \fB\(aq\er\(aq\fP), tabulation horizontale (\fB\(aq\et\(aq\fP),
+et tabulation verticale (\fB\(aq\ev\(aq\fP).
+.TP 
+\fBisupper\fP()
+vérifie si l'on a une lettre majuscule.
+.TP 
+\fBisxdigit\fP()
+vérifie s'il s'agit d'un chiffre hexadécimal, c'est\-à\-dire
+.br
+\fB0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F\fP.
+.SH "VALEUR RENVOYÉE"
+Les valeurs renvoyées sont non nulles si le caractère \fIc\fP entre dans la
+catégorie testée, et zéro sinon.
+.SH CONFORMITÉ
+C99, BSD\ 4.3. C89 spécifie toutes ces fonctions sauf \fBisascii\fP() et
+\fBisblank\fP(). \fBisascii\fP() est une extension BSD et aussi une extension
+SVr4. \fBisblank\fP() est conforme à POSIX.1\-2001 et C99\ 7.4.1.3. POSIX.1\-2008
+marque \fBisascii\fP() comme étant obsolète et remarque qu'elle ne peut pas
+être utilisée dans des applications localisées portables.
+.SH NOTES
+L'appartenance d'un caractère à une catégorie dépend de la localisation en
+cours. Par exemple \fBisupper\fP() ne reconnaîtra pas un E\-accent\-aigu comme
+une majuscule dans la localisation \fBC\fP par défaut.
+.SH "VOIR AUSSI"
+\fBiswalnum\fP(3), \fBiswalpha\fP(3), \fBiswblank\fP(3), \fBiswcntrl\fP(3),
+\fBiswdigit\fP(3), \fBiswgraph\fP(3), \fBiswlower\fP(3), \fBiswprint\fP(3),
+\fBiswpunct\fP(3), \fBiswspace\fP(3), \fBiswupper\fP(3), \fBiswxdigit\fP(3),
+\fBsetlocale\fP(3), \fBtoascii\fP(3), \fBtolower\fP(3), \fBtoupper\fP(3), \fBascii\fP(7),
+\fBlocale\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

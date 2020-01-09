@@ -1,0 +1,112 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) Tom Bjorkholm & Markus Kuhn, 1996
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" 1996-04-01 Tom Bjorkholm <tomb@mydata.se>
+.\"            First version written
+.\" 1996-04-10 Markus Kuhn <mskuhn@cip.informatik.uni-erlangen.de>
+.\"            revision
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SCHED_GET_PRIORITY_MAX 2 "23 mars 2006" Linux "Manuel du programmeur Linux"
+.SH NOM
+sched_get_priority_max, sched_get_priority_min \- Obtenir l'intervalle de
+priorités statiques de l'ordonnanceur.
+.SH SYNOPSIS
+\fB#include <sched.h>\fP
+.sp
+\fBint sched_get_priority_max(int \fP\fIpolicy\fP\fB);\fP
+.sp
+\fBint sched_get_priority_min(int \fP\fIpolicy\fP\fB);\fP
+.SH DESCRIPTION
+\fBsched_get_priority_max\fP() renvoie la valeur maximale de priorité qui
+puisse être utilisée avec la politique d'ordonnancement identifiée par
+\fIpolicy\fP. \fBsched_get_priority_min\fP() renvoie la valeur minimale de
+priorité qui puisse être utilisée avec la politique d'ordonnancement
+identifiée par \fIpolicy\fP. Les valeurs de \fIpolicy\fP pour les politiques
+d'ordonnancement proposées sont\ : \fBSCHED_FIFO\fP, \fBSCHED_RR\fP,
+\fBSCHED_OTHER\fP et \fBSCHED_BATCH\fP. Pour plus de détails sur ces politiques,
+voir \fBsched_setscheduler\fP(2).
+
+Les processus ayant des valeurs de priorité hautes sont sélectionnés avant
+les processus de basse priorité. Ainsi, la valeur renvoyée par
+\fBsched_get_priority_max\fP() sera supérieure à celle renvoyée par
+\fBsched_get_priority_min\fP().
+
+Linux offre un intervalle de priorités statiques allant de 1 à 99 pour les
+politiques d'ordonnancements \fBSCHED_FIFO\fP et \fBSCHED_RR\fP et une priorité
+statique 0 pour \fBSCHED_OTHER\fP et \fBSCHED_BATCH\fP. Les intervalles de
+priorités des différents algorithmes ne sont pas modifiables.
+
+Les intervalles peuvent varier suivant les systèmes POSIX, et il est
+conseillé pour une application portable d'utiliser un intervalle de priorité
+virtuel, que l'on associera avec l'intervalle donné par
+\fBsched_get_priority_max\fP() et \fBsched_get_priority_min\fP(). POSIX.1\-2001
+réclame une distance d'au moins 32 entre les valeurs maximale et minimale
+des politiques \fBSCHED_FIFO\fP et \fBSCHED_RR\fP.
+
+Les systèmes POSIX sur lesquels \fBsched_get_priority_max\fP() et
+\fBsched_get_priority_min\fP() sont disponibles définissent
+\fB_POSIX_PRIORITY_SCHEDULING\fP dans \fI<unistd.h>\fP.
+.SH "VALEUR RENVOYÉE"
+\fBsched_get_priority_max\fP() et \fBsched_get_priority_min\fP() renvoient les
+valeurs de priorités maximale/minimale s'ils réussissent. En cas d'échec \-1
+est renvoyé, et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+le paramètre \fIpolicy\fP ne correspond pas à une politique d'ordonnancement
+supportée.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH "VOIR AUSSI"
+\fBsched_getaffinity\fP(2), \fBsched_getparam\fP(2), \fBsched_getscheduler\fP(2),
+\fBsched_setaffinity\fP(2), \fBsched_setparam\fP(2), \fBsched_setscheduler\fP(2)
+.PP
+\fIProgramming for the real world \- POSIX.4\fP de Bill O. Gallmeister, O'Reilly
+& Associates, Inc., ISBN 1\-56592\-074\-0
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

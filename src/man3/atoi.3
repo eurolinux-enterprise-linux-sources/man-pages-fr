@@ -1,0 +1,108 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Mon Mar 29 22:39:41 1993, David Metcalfe
+.\" Modified Sat Jul 24 21:38:42 1993, Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Dec 17 18:35:06 2000, Joseph S. Myers
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ATOI 3 "26 juillet 2007" GNU "Manuel du programmeur Linux"
+.SH NOM
+atoi, atol, atoll, atoq \- Convertir une chaîne en entier
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBint atoi(const char *\fP\fInptr\fP\fB);\fP
+.br
+\fBlong atol(const char *\fP\fInptr\fP\fB);\fP
+.br
+\fBlong long atoll(const char *\fP\fInptr\fP\fB);\fP
+.br
+\fBlong long atoq(const char *\fP\fInptr\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBatoll\fP()\ : _BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600 ||
+_ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.ad b
+.SH DESCRIPTION
+La fonction \fBatoi\fP() convertit le début de la chaîne pointée par \fInptr\fP en
+entier de type \fIint\fP. Le résultat est identique à un appel à
+.sp
+.in +4n
+strtol(nptr, (char **) NULL, 10);
+.in
+.sp
+à la différence que \fBatoi\fP() ne détecte pas d'erreur.
+.PP
+Les fonctions \fBatol\fP() et \fBatoll\fP() se comportent comme \fBatoi\fP(), sauf
+qu'elles convertissent la portion initiale de la chaîne dans leur type de
+retour \fIlong\fP ou \fIlong long\fP. \fBatoq\fP() est un nom obsolète pour
+\fBatoll\fP().
+.SH "VALEUR RENVOYÉE"
+Le résultat de la conversion.
+.SH CONFORMITÉ
+SVr4, POSIX.1\-2001, BSD\ 4.3, C99. C89 et POSIX.1\-1996 n'incluent que les
+fonctions \fBatoi\fP() et \fBatol\fP(). \fBatoq\fP() est une extension GNU.
+.SH NOTES
+La fonction non standard \fBatoq\fP() n'est pas présente dans la libc\ 4.6.27
+ni dans la glibc2, mais est présente dans libc5 et libc\ 4.7 (bien que ce ne
+soit qu'une fonction «\ inline\ » dans \fI<stdlib.h>\fP jusqu'à la
+libc\ 5.4.44). La fonction \fBatoll\fP() est présente dans la glibc2 depuis la
+version\ 2.0.2, mais pas dans libc4 ou libc5.
+.SH "VOIR AUSSI"
+\fBatof\fP(3), \fBstrtod\fP(3), \fBstrtol\fP(3), \fBstrtoul\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

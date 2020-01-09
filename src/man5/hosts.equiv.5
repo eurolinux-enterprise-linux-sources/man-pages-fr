@@ -1,0 +1,85 @@
+.\" Copyright (c) 1995 Peter Tobias <tobias@et-inf.fho-emden.de>
+.\" This file may be distributed under the GNU General Public License.
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH HOSTS.EQUIV 5 "24 août 2003" Linux "Manuel du programmeur Linux"
+.SH NOM
+/etc/hosts.equiv \- Liste d'hôtes et d'utilisateurs ayant l'autorisation
+d'accéder à votre système par une commande «\ \fBr\fP\ » avec des privilèges «\ de
+confiance\ » .
+.SH DESCRIPTION
+Le fichier \fBhosts.equiv\fP autorise ou interdit à des ordinateurs et à des
+utilisateurs l'utilisation des commandes «\ \fBr\fP\ » (telles que \fBrlogin\fP,
+\fBrsh\fP ou \fBrcp\fP) sans donner de mot de passe.
+.PP
+Le fichier possède le format suivant\ :
+.TP 
+\fI[ + | \- ]\fP \fI[hôte]\fP \fI[utilisateur]\fP
+.PP
+L'\fIhôte\fP est le nom d'un hôte logiquement équivalent à l'hôte local. Les
+utilisateurs connectés à cet ordinateur sont autorisés à accéder aux comptes
+du même nom sans fournir de mot de passe. \fIhôte\fP peut être, de manière
+optionnelle, précédé d'un signe plus («\ +\ »). Si le signe est indiqué seul,
+toutes les machines seront autorisées à se connecter au système. Vous pouvez
+en interdire explicitement l'accès par un ordinateur particulier en
+précédant \fIhôte\fP d'un signe moins («\ \-\ »). Les utilisateurs de ces
+ordinateurs auront toujours à fournir un mot de passe. Pour des raisons de
+sécurité, vous devriez toujours utiliser le nom d'hôte pleinement qualifié
+de l'ordinateur (FQDN) et pas son nom court.
+.PP
+Le champ \fIutilisateur\fP permet de donner l'accès à tous les comptes (à
+l'exception de root), sans mot de passe, à un utilisateur particulier. Cela
+signifie que cet utilisateur n'est pas limité au compte du même nom. Le
+champ \fIutilisateur\fP peut être, optionnellement, précédé d'un signe plus
+«\ +\ ». Vous pouvez aussi explicitement interdire l'accès à un utilisateur
+particulier en précédant \fIutilisateur\fP d'un signe moins «\ \-\ ». Cela
+signifie que cet utilisateur n'est pas déclaré comme étant de confiance
+indépendamment des autres entrées relatives à cette machine.
+.PP
+Des groupes de réseau («\ netgroup\ ») peuvent être indiqués en les précédent
+d'un signe «\ @\ ».
+.PP
+Soyez très attentifs quand vous employez le signe plus «\ +\ ». Une simple
+erreur typographique pour vous faire placer un signe plus sur une ligne
+vide. Un signe plus isolé est un caractère de remplacement qui signifie
+«\ tous les hôtes\ »\ !
+.SH FICHIERS
+\fI/etc/hosts.equiv\fP
+.SH NOTES
+Certains systèmes ne tiennent compte du contenu de ce fichier que lorsque
+que le propriétaire en est root et que personne d'autre ne peut y
+écrire. Certains systèmes particulièrement paranoïaques exigent même qu'il
+n'y ait aucun autre lien physique sur le fichier.
+.PP
+Les systèmes modernes utilisent la bibliothèque «\ Pluggable Authentication
+Modules\ » (PAM). Avec PAM, un signe plus isolé est considéré comme un
+caractère de remplacement qui signifie «\ n'importe quel hôte\ » lorsque le
+mot \fIpromiscuous\fP est ajouté à la ligne «\ auth\ » de votre fichier PAM pour
+un service particulier (par exemple \fBrlogin\fP).
+.SH "VOIR AUSSI"
+\fBrhosts\fP(5), \fBrlogind\fP(8), \fBrshd\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

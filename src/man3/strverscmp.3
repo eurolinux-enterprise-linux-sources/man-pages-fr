@@ -1,0 +1,96 @@
+.\" Copyright (C) 2001 Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STRVERSCMP 3 "19 décembre 2001" GNU "Manuel du programmeur Linux"
+.SH NOM
+strverscmp \- Comparaison de chaînes de version.
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP
+.br
+\fB#include <string.h>\fP
+.sp
+\fBint strverscmp(const char *\fP\fIs1\fP\fB, const char *\fP\fIs2\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+.\" classical solution: "rename jan jan0 jan?"
+On a souvent des fichiers \fIjan1\fP, \fIjan2\fP, ..., \fIjan9\fP, \fIjan10\fP, ... et
+il est malvenu que \fBls\fP(1) les classe dans l'ordre \fIjan1\fP, \fIjan10\fP, ...,
+\fIjan2\fP, ..., \fIjan9\fP. Afin de remédier à ceci, GNU a introduit l'option
+\fB\-v\fP à \fBls\fP(1), option implémentée en utilisant \fBversionsort\fP(3), qui
+utilise lui\-même \fBstrverscmp\fP().
+
+Ainsi, la tâche de \fBstrverscmp\fP() consiste à comparer deux chaînes et à
+déterminer le «\ bon\ » ordre, alors que \fBstrcmp\fP(3) détermine seulement
+l'ordre lexicographique. Cette fonction n'utilise pas la catégorie de
+localisation \fBLC_COLLATE\fP, elle vise donc principalement les situations
+dans lesquelles les chaînes sont supposées être en ASCII.
+
+Cette fonction travaille comme détaillé ci\-dessous. Si les deux chaînes sont
+égales, elle renvoie 0. Sinon, elle recherche une position entre deux octets
+ayant la propriété suivante\ : avant cette position, les deux chaînes sont
+égales, alors qu'immédiatement après, elles diffèrent. Elle détermine alors
+les plus longues chaînes de chiffres consécutifs contenant (ou commençant à,
+ou se finissant à) cette position. Si l'une des chaînes ou bien les deux
+chaînes sont vides, alors elles renvoient ce que \fBstrcmp\fP(3) aurait renvoyé
+(classement numérique des valeurs d'octets). Sinon, elle compare
+numériquement les deux chaînes de chiffres, où les chaînes de chiffres
+commençant par un ou plusieurs zéro sont interprétées comme si elles avaient
+une virgule en en\-tête (de telle sorte que les chaînes de chiffres
+particulières commençant par davantage de zéro viennent avant les chaînes de
+chiffres avec moins de zéro en en\-tête). Ainsi, le classement est \fI000\fP,
+\fI00\fP, \fI01\fP, \fI010\fP, \fI09\fP, \fI0\fP, \fI1\fP, \fI9\fP, \fI10\fP.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBstrverscmp\fP() renvoie un entier inférieur, égal ou supérieur à
+zéro si \fIs1\fP est déterminée comme étant respectivement plus récente que,
+égale à, ou postérieure à \fIs2\fP.
+.SH CONFORMITÉ
+Cette fonction est une extension GNU.
+.SH "VOIR AUSSI"
+\fBrename\fP(1), \fBstrcasecmp\fP(3), \fBstrcmp\fP(3), \fBstrcoll\fP(3),
+\fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

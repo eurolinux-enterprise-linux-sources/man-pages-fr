@@ -1,0 +1,78 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de),
+.\"     Thu May 20 20:45:48 MET DST 1993
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified Sat Jul 24 17:11:07 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Nov 21 10:49:38 1993 by Michael Haardt
+.\" Modified Sun Feb 26 15:09:15 1995 by Rik Faith (faith@cs.unc.edu)
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SHELLS 5 "21 novembre 1993" "" "Manuel du programmeur Linux"
+.SH NOM
+shells \- Chemins d'accès vers les interpréteurs de commandes initiaux
+valables.
+.SH DESCRIPTION
+\fI/etc/shells\fP est un fichier texte contenant les chemins d'accès complets
+aux interpréteurs de commandes de connexion valables. Ce fichier est
+consulté par \fBchsh\fP(1) et peut être également lu par d'autres programmes.
+.PP
+Soyez conscient que certaines applications consultent ce fichier pour
+vérifier si un utilisateur donné est un utilisateur normal. Par exemple, les
+démons ftp interdisent traditionnellement l'accès aux utilisateurs dont
+l'interpréteur de commandes de connexion ne se trouve pas dans ce fichier.
+.SH FICHIERS
+\fI/etc/shells\fP
+.SH EXEMPLE
+\fI/etc/shells\fP peut contenir les chemins suivants\ :
+.sp
+.RS
+\fI/bin/sh\fP
+.br
+\fI/bin/csh\fP
+.RE
+.SH "VOIR AUSSI"
+\fBchsh\fP(1), \fBgetusershell\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

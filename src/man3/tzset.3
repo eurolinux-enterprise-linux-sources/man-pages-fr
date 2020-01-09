@@ -1,0 +1,214 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sun Jul 25 11:01:58 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 2001-11-13, aeb
+.\" Modified 2004-12-01 mtk and Martin Schulze <joey@infodrom.org>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TZSET 3 "29 août 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+tzset, tzname, timezone, daylight \- Initialiser des données pour les
+conversions de temps
+.SH SYNOPSIS
+.nf
+\fB#include <time.h>\fP
+.sp
+\fBvoid tzset (void);\fP
+.sp
+\fBextern char *\fP\fItzname\fP\fB[2]\fP
+\fBextern long \fP\fItimezone\fP\fB;\fP
+\fBextern int \fP\fIdaylight\fP\fB;\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBtzset\fP()\ : _POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE || _POSIX_SOURCE
+.br
+\fItzname\fP\ : _POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE || _POSIX_SOURCE
+.br
+\fItimezone\fP\ : _SVID_SOURCE || _XOPEN_SOURCE
+.br
+\fIdaylight\fP\ : _SVID_SOURCE || _XOPEN_SOURCE
+.SH DESCRIPTION
+La fonction \fBtzset\fP() initialise la variable \fItzname\fP en utilisant la
+variable d'environnement \fBTZ\fP. Cette fonction est appelée automatiquement
+par les autres fonctions de conversion dépendant du fuseau horaire. Dans un
+environnement type System\ V, elle remplira également les variables
+\fItimezone\fP (secondes à l'ouest de Greenwich) et \fIdaylight\fP (0 si le fuseau
+n'a pas de changement d'heure saisonnier, une valeur non nulle s'il y a des
+périodes durant l'année où le changement horaire s'applique).
+.PP
+Si la variable \fBTZ\fP n'apparaît pas dans l'environnement, \fItzname\fP est
+initialisée avec la meilleure approximation possible de l'heure locale,
+comme indiqué dans le fichier \fIlocaltime\fP, au format \fBtzfile\fP(5), se
+trouvant dans le répertoire système des fuseaux horaires (voir plus
+bas). (on utilise souvent \fI/etc/localtime\fP ici, en tant que lien symbolique
+vers le répertoire système des fuseaux horaires).
+.PP
+Si la variable \fBTZ\fP est présente dans l'environnement, mais que sa valeur
+est vide, ou si sa valeur ne peut pas être interprétée en utilisant le
+format indiqué plus bas, l'heure TU (temps universel, ou UTC) est utilisée.
+.PP
+La valeur de \fBTZ\fP peut prendre trois formats différents. Le premier
+correspond à un endroit où il n'y a pas de décalage heure d'hiver/heure
+d'été\ :
+.sp
+.RS
+\fIstd offset\fP
+.RE
+.sp
+la chaîne \fIstd\fP indique le nom du fuseau horaire, constitué d'au moins
+trois caractères alphabétiques. La chaîne \fIoffset\fP suivant immédiatement
+\fIstd\fP indique la valeur à ajouter à l'heure locale pour obtenir l'heure
+TU. La valeur \fIoffset\fP est positive si l'emplacement est à l'ouest du
+méridien 0, et négative si elle est à l'est. L'heure doit être entre 0 et
+24, les minutes et les secondes entre 0 et 59.
+.PP
+Le deuxième format est utilisé lorsqu'il existe des heures d'hiver et d'été
+différentes\ :
+.sp
+.RS
+\fIstd offset dst [offset],start[/time],end[/time]\fP
+.RE
+.sp
+Les champs \fIstd\fP et \fIoffset\fP initiaux indiquent le fuseau horaire comme
+précisé ci\-dessus. Les chaînes \fIdst\fP et \fIoffset\fP indiquent le fuseau et le
+décalage de la zone correspondant à l'heure d'été. Si l'offset est omis, une
+valeur par défaut est utilisée, correspondant à une heure de décalage vers
+l'avant.
+.PP
+Le champ \fIstart\fP indique la date de début de l'heure d'été, et \fIend\fP
+indique la date de retour à l'heure d'hiver. Ces deux champs utilisent l'un
+des formats suivants\ :
+.TP 
+J\fIn\fP
+Indique le jour julien, avec \fIn\fP compris entre 1 et 365. Le 29 février
+n'est jamais compté, même pendant les années bissextiles.
+.TP 
+\fIn\fP
+Indique le jour julien, avec \fIn\fP compris entre 1 et 366. Le 29 février est
+compté pendant les années bissextiles.
+.TP 
+M\fIm\fP.\fIs\fP.\fIj\fP
+Indique le jour \fIj\fP (0 <= \fIj\fP <= 6) de la semaine \fIs\fP (1 <=
+\fIs\fP <= 5) du mois \fIm\fP (1 <= \fIm\fP <= 12). La semaine 1 est la
+première semaine du mois dans laquelle le jour \fIj\fP apparaît, et la semaine
+5 la dernière où le jour \fIj\fP apparaît. Le jour 0 est Dimanche.
+.PP
+Le champ \fItime\fP indique l'heure du changement, sous forme d'heure locale
+courante. Par défaut, la valeur est 02h00m00s.
+
+L'exemple suivant correspond à la Nouvelle\-Zélande. Son fuseau horaire
+(NZST) est 12\ heures en avance sur le temps universel (UTC). L'heure d'été
+(NZDT) est 13\ heures en avance sur UTC et débute le premier dimanche
+d'octobre pour finir le troisième dimanche de mars. Le changement d'heure
+s'effectue à 02h00m00s.
+.nf
+
+    TZ="NZST\-12.00:00NZDT\-13:00:00,M10.1.0,M3.3.0"
+.fi
+.PP
+Le troisième format est utilisé pour indiquer que les informations de fuseau
+horaire doivent être lues depuis un fichier\ :
+.sp
+.RS
+:[filespec]
+.RE
+.sp
+Si le fichier \fIfilespec\fP n'est pas indiqué, les informations sont lues dans
+le fichier \fIlocaltime\fP se trouvant dans le répertoire système des fuseaux
+horaires, habituellement \fI/usr/share/zoneinfo\fP. Ce fichier est au format
+\fBtzfile\fP(5). Si \fIfilespec\fP est indique, il doit correspondre à un autre
+fichier au format \fBtzfile\fP(5) où on lira les informations. Si \fIfilespec\fP
+ne commence pas par un «\ /\ », le chemin d'accès est considéré à partir du
+répertoire système des fuseaux horaires.
+.PP
+Voici un exemple, encore une fois pour la Nouvelle\-Zélande\ :
+.nf
+
+    TZ=":Pacific/Auckland"
+.fi
+.SH FICHIERS
+Le répertoire système employé pour les fuseaux horaires dépend de la version
+de la bibliothèque C. Les libc4 et libc5 utilisaient \fI/usr/lib/zoneinfo\fP,
+puis, à partir de la libc\-5.4.6 le répertoire \fI/usr/share/zoneinfo\fP si le
+premier n'existait pas. La bibliothèque glibc 2 utilise le contenu de la
+variable d'environnement \fBTZDIR\fP lorsqu'elle existe. Par défaut, c'est
+normalement \fI/usr/share/zoneinfo\fP.
+.LP
+Les fichiers se trouvant dans le répertoire sont\ :
+.nf
+localtime      fichier d'information horaire locale
+posixrules     règles pour les TZ au format POSIX
+.fi
+.LP
+Souvent, \fI/etc/localtime\fP est un lien symbolique vers \fIlocaltime\fP ou vers
+le fichier correct dans le répertoire système des fuseaux horaires.
+.SH CONFORMITÉ
+SVr4, POSIX.1\-2001, BSD\ 4.3.
+.SH NOTES
+Remarquez que la variable \fIdaylight\fP n'indique pas si le changement d'heure
+saisonnier s'applique au moment de l'appel. Elle indique simplement le
+numéro d'un algorithme (voyez la variable \fItz_dsttime\fP dans
+\fBgettimeofday\fP(2)). C'est obsolète depuis longtemps, mais obligatoire avec
+SUSv2.
+.LP
+BSD\ 4.3 a une routine \fBchar *timezone(\fP\fIzone\fP\fB, \fP\fIdst\fP\fB)\fP qui renvoie
+le nom du fuseau horaire correspondant à son premier argument (minutes à
+l'ouest de Greenwich). Si le second argument est 0, le nom standard est
+fourni, sinon c'est le nom avec changement horaire saisonnier.
+.SH "VOIR AUSSI"
+\fBdate\fP(1), \fBgettimeofday\fP(2), \fBtime\fP(2), \fBctime\fP(3), \fBgetenv\fP(3),
+\fBtzfile\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

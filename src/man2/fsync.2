@@ -1,0 +1,163 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright 1993 Rickard E. Faith (faith@cs.unc.edu) and
+.\" and Copyright 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified 21 Aug 1994 by Michael Chastain <mec@shell.portal.com>:
+.\"   Removed note about old libc (pre-4.5.26) translating to 'sync'.
+.\" Modified 15 Apr 1995 by Michael Chastain <mec@shell.portal.com>:
+.\"   Added `see also' section.
+.\" Modified 13 Apr 1996 by Markus Kuhn <mskuhn@cip.informatik.uni-erlangen.de>
+.\"   Added remarks about fdatasync.
+.\" Modified 31 Jan 1997 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 18 Apr 2001 by Andi Kleen
+.\"   Fix description to describe what it really does; add a few caveats.
+.\" 2006-04-28, mtk, substantial rewrite of various parts.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FSYNC 2 "7 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+fsync, fdatasync \- Synchroniser un fichier en mémoire avec le disque
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBint fsync(int \fP\fIfd\fP\fB);\fP
+.sp
+\fBint fdatasync(int \fP\fIfd\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBfsync\fP()\ : _BSD_SOURCE || _XOPEN_SOURCE
+.br
+.\" _POSIX_C_SOURCE\ >=\ 200112L only since glibc 2.8
+         || /* depuis la glibc\ 2.8\ : */ _POSIX_C_SOURCE\ >=\ 200112L
+.br
+\fBfdatasync\fP()\ : _POSIX_C_SOURCE\ >=\ 199309L || _XOPEN_SOURCE\ >=\
+500
+.SH DESCRIPTION
+\fBfsync\fP() transfère toutes les données modifiées du fichier correspondant
+au descripteur \fIfd\fP sur le disque (ou autre périphérique de stockage
+permanent) où ce fichier se trouve. L'appel bloque jusqu'à ce que le
+périphérique indique que le transfert est terminé. Il transfère aussi les
+informations d'état du fichier (voir \fBstat\fP(2)).
+
+Un appel à \fBfsync\fP() ne s'assure pas obligatoirement que les informations
+concernant le répertoire aient atteint le disque. Pour cela, un appel
+explicite de \fBfsync\fP() sur le descripteur de fichier du répertoire est
+nécessaire.
+
+\fBfdatasync\fP() est similaire à \fBfsync\fP(), mais ne transfère pas les
+méta\(hydonnées, sauf si ces informations sont nécessaires à une
+récupération ultérieure de données. Par exemple, les modifications de
+\fIst_atime\fP ou \fIst_mtime\fP (heures de dernier accès et de dernière
+modification, respectivement\ ; voir \fBstat\fP(2)) ne sont pas transférées,
+car elles ne sont pas nécessaires à une lecture de données
+ultérieurement. En revanche, une modification de la taille du fichier
+(\fIst_size\fP), par exemple effectuée par \fBftruncate\fP(2), nécessite un
+transfert des méta\(hydonnées.
+
+Le but de \fBfdatasync\fP() est de réduire l'activité disque pour les
+applications qui n'ont pas besoin d'une parfaite synchronisation des
+méta\(hydonnées avec le disque.
+.SH "VALEUR RENVOYÉE"
+Ces appels système renvoient 0 en cas de succès, ou \-1 en cas d'échec,
+auquel cas \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier valable ouvert en écriture.
+.TP 
+\fBEIO\fP
+Une erreur s'est produite pendant la synchronisation.
+.TP 
+\fBEROFS\fP, \fBEINVAL\fP
+\fIfd\fP est associé à un type de fichier spécial qui ne permet pas de
+synchronisation.
+.SH CONFORMITÉ
+BSD\ 4.3, POSIX.1\-2001.
+.SH DISPONIBILITÉ
+.\" POSIX.1-2001: It shall be defined to -1 or 0 or 200112L.
+.\" -1: unavailable, 0: ask using sysconf().
+.\" glibc defines them to 1.
+Sur les systèmes POSIX sur lesquels \fBfdatasync\fP() est disponible, la
+constante symbolique \fB_POSIX_SYNCHRONIZED_IO\fP est définie dans
+\fI<unistd.h>\fP comme étant une valeur supérieure à 0. (Voir aussi
+\fBsysconf\fP(3).)
+.SH NOTES
+Les applications accédant à des bases de données ou des fichiers journaux
+écrivent souvent de petits fragments de données (une ligne de texte par
+exemple) et appellent \fBfsync\fP() immédiatement pour être sûr du stockage sur
+disque. Malheureusement, \fBfsync\fP() va déclencher deux écritures\ : une pour
+les données et une pour mettre à jour la date de modification enregistrée
+dans l'i\-noeud. Si la date de modification n'est pas importante pour
+l'application, alors \fBfdatasync\fP peut être invoquée pour éviter l'accès
+inutile à l'i\-noeud.
+
+.\" See
+.\" .BR hdparm (8)
+.\" for how to disable that cache for IDE disks.
+Si le disque dur dispose d'un tampon en écriture, les données ne sont
+peut\(hyêtre pas enregistrées définitivement lorsque \fBfsync\fP() ou
+\fBfdatasync\fP() se termine.
+.LP
+Lorsqu'un système de fichiers ext2 est monté avec l'option \fIsync\fP, les
+entrées de répertoires sont également synchronisées lors de l'appel à
+\fBfsync\fP().
+.LP
+Sur les noyaux antérieurs au 2.4, \fBfsync\fP() peut être sensiblement
+inefficace sur les gros fichiers. Une autre solution peut être l'utilisation
+de l'attribut \fBO_SYNC\fP lors de l'invocation de \fBopen\fP(2).
+
+Sous Linux 2.2 et précédents, \fBfdatasync\fP() est équivalent à \fBfsync\fP(), et
+n'apporte donc aucun avantage en performance.
+.SH "VOIR AUSSI"
+\fBbdflush\fP(2), \fBopen\fP(2), \fBsync\fP(2), \fBsync_file_range\fP(2), \fBhdparm\fP(8),
+\fBmount\fP(8), \fBsync\fP(8), \fBupdate\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

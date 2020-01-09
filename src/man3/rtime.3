@@ -1,0 +1,130 @@
+.\" Copyright 2003 walter harms (walter.harms@informatik.uni-oldenburg.de)
+.\" Distributed under GPL
+.\" Modified 2003-04-04 Walter Harms
+.\" <walter.harms@informatik.uni-oldenburg.de>
+.\"
+.\" Slightly polished, aeb, 2003-04-06
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RTIME 3 "12 juillet 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+rtime \- Lire l'heure sur un serveur distant.
+.SH SYNOPSIS
+.nf
+\fB#include <rpc/des_crypt.h>\fP
+.sp
+\fBint rtime(struct sockaddr_in *\fP\fIaddrp\fP\fB, struct rpc_timeval *\fP\fItimep\fP\fB,\fP
+\fB          struct rpc_timeval *\fP\fItimeout\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Cette fonction utilise le protocole Time Serveur décrit dans la RFC\ 868
+pour lire l'heure sur une machine distante.
+.LP
+Le protocole Time Serveur donne l'heure en secondes écoulées depuis le 1er
+janvier 1900 à 00:00:00 UTC, et cette fonction soustrait la constante
+nécessaire pour convertir le résultat en secondes écoulées depuis le 1er
+janvier 1970 à 00:00:00 UTC, début des dates de l'ère Unix (Epoch).
+.LP
+Si \fItimeout\fP est non NULL, le port UDP/time (37) est utilisé, sinon le port
+TCP/time (37) est utilisé.
+.SH "VALEUR RENVOYÉE"
+Si elle réussit, cette fonction renvoie zéro et la valeur 32\ bits obtenue
+est stockée dans \fItimep\->tv_sec\fP. En cas d'échec, elle renvoie \-1 et
+\fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+Toutes les erreurs pour les fonctions sous\-jacentes (\fBsendto\fP(2),
+\fBpoll\fP(2), \fBrecvfrom\fP(2), \fBconnect\fP(2), \fBread\fP(2)) peuvent se produire,
+avec en outre\ :
+.TP 
+\fBEIO\fP
+Le nombre d'octets reçus n'est pas 4.
+.TP 
+\fBETIMEDOUT\fP
+Le délai indiqué en second argument a expiré.
+.SH NOTES
+Seul IPv4 est supporté.
+.LP
+Certaines versions de \fIin.timed\fP supportent uniquement TCP. Essayez le
+programme d'exemple avec \fIuse_tcp\fP fixé à 1.
+.LP
+La libc5 utilise le prototype
+.br
+int rtime(struct sockaddr_in *, struct timeval *, struct timeval *);
+.br
+et requiert \fI<sys/time.h>\fP à la place de
+\fI<rpc/auth_des.h>\fP.
+.SH BOGUES
+\fBrtime\fP() dans la glibc 2.2.5 et les précédentes ne fonctionne pas
+correctement sur les machines 64\ bits.
+.SH EXEMPLE
+Cet exemple demande que le port 37 soit ouvert et actif. Vérifiez que
+l'entrée time dans \fI/etc/inetd.conf\fP ne soit pas commentée.
+.br
+Le programme se connecte sur un hôte nommé «\ linux\ ». Utiliser «\
+localhost\ » ne fonctionne pas. Le résultat est l'heure locale de
+l'ordinateur «\ linux\ ».
+.sp
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+#include <time.h>
+#include <rpc/auth_des.h>
+#include <netdb.h>
+
+int use_tcp = 0;
+char *servername = "linux";
+
+int
+main(void)
+{
+    struct sockaddr_in name;
+    struct rpc_timeval time1 = {0,0};
+    struct rpc_timeval timeout = {1,0};
+    struct hostent *hent;
+    int ret;
+
+    memset((char *) &name, 0, sizeof(name));
+    sethostent(1);
+    hent = gethostbyname(servername);
+    memcpy((char *) &name.sin_addr, hent\->h_addr, hent\->h_length);
+
+    ret = rtime(&name, &time1, use_tcp ? NULL : &timeout);
+    if (ret < 0)
+        perror("rtime error");
+    else
+        printf("%s\en", ctime((time_t *) &time1.tv_sec));
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+.\" .BR netdate (1),
+.\" .BR rdate (1),
+\fBntpdate\fP(1), \fBinetd\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

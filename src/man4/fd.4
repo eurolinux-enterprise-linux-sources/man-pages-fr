@@ -1,0 +1,222 @@
+.\" t
+.\" Copyright (c) 1993 Michael Haardt (michael@cantor.informatik.rwth-aachen.de)
+.\" and 1994,1995 Alain Knaff (Alain.Knaff@imag.fr)
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified, Sun Feb 26 15:00:02 1995, faith@cs.unc.edu
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FD 4 "29 janvier 1995" Linux "Manuel du programmeur Linux"
+.SH NOM
+fd \- Lecteurs de disquettes
+.SH CONFIGURATION
+Les lecteurs de disquettes sont des périphériques bloc ayant un numéro
+majeur 2. Typiquement, ils sont la propriété de root.floppy (c'est\-à\-dire
+l'utilisateur root, et le groupe floppy) et ont la permission d'accès 0660
+(accès par le groupe) ou 0666 (accès pour tous). Le numéro mineur contient
+le type de périphérique, le numéro de lecteur et le numéro de
+contrôleur. Pour chaque type de périphérique (c'est à dire les combinaisons
+de densité et de nombre de pistes), il existe un numéro mineur de base. À ce
+numéro de base s'ajoute le numéro du lecteur (sur son contrôleur), et la
+valeur 128 si le lecteur est sur le second contrôleur. Dans les tables de
+périphériques indiquées ci\-dessous, \fIn\fP représente le numéro de lecteur.
+.PP
+\fBAttention\ : Si vous utilisez un format disposant d'un nombre plus élevé
+de pistes que celles effectivement gérées par votre lecteur, vous pouvez
+l'endommager physiquement.\fP Essayer une seule fois de voir si le lecteur
+supporte plus que les 40/80 pistes habituelles ne devrait pas l'endommager,
+mais aucune garantie n'en est fournie. Ne créez pas de fichiers spéciaux de
+périphériques pour ces formats si vous n'êtes pas sûr de vous.
+.PP
+Fichier de périphérique indépendant du lecteur, détectant automatiquement le
+format et la capacité\ :
+.TS
+l l.
+Nom	Num base mineure
+_
+\fBfd\fP\fIn\fP	0
+.TE
+.PP
+Fichiers de périphérique 5.25" double densité\ :
+.TS
+lw(1i) l l l l l.
+Nom	Capac.	Cyl.	Sect.	Têtes	Num mineur base
+_
+\fBfd\fP\fIn\fP\fBd360\fP	360K	40	9	2	4
+.TE
+.PP
+Fichiers de périphériques 5.25" haute densité\ :
+.TS
+lw(1i) l l l l l.
+Nom	Capac.	Cyl.	Sect.	Têtes	Num mineur base
+_
+\fBfd\fP\fIn\fP\fBh360\fP	360K	40	9	2	20
+\fBfd\fP\fIn\fP\fBh410\fP	410K	41	10	2	48
+\fBfd\fP\fIn\fP\fBh420\fP	420K	42	10	2	64
+\fBfd\fP\fIn\fP\fBh720\fP	720K	80	9	2	24
+\fBfd\fP\fIn\fP\fBh880\fP	880K	80	11	2	80
+\fBfd\fP\fIn\fP\fBh1200\fP	1200K	80	15	2	8
+\fBfd\fP\fIn\fP\fBh1440\fP	1440K	80	18	2	40
+\fBfd\fP\fIn\fP\fBh1476\fP	1476K	82	18	2	56
+\fBfd\fP\fIn\fP\fBh1494\fP	1494K	83	18	2	72
+\fBfd\fP\fIn\fP\fBh1600\fP	1600K	80	20	2	92
+.TE
+.PP
+Fichiers de périphériques 3.5" double densité\ :
+.TS
+lw(1i) l l l l l.
+Nom	Capac.	Cyl.	Sect.	Têtes	Num mineur base
+_
+\fBfd\fP\fIn\fP\fBD360\fP	360K	80	9	1	12
+\fBfd\fP\fIn\fP\fBD720\fP	720K	80	9	2	16
+\fBfd\fP\fIn\fP\fBD800\fP	800K	80	10	2	120
+\fBfd\fP\fIn\fP\fBD1040\fP	1040K	80	13	2	84
+\fBfd\fP\fIn\fP\fBD1120\fP	1120K	80	14	2	88
+.TE
+.PP
+Fichiers de périphériques 3.5" haute densité\ :
+.TS
+lw(1i) l l l l l.
+Nom	Capac.	Cyl.	Sect.	Têtes	Num mineur base
+_
+\fBfd\fP\fIn\fP\fBH360\fP	360K	40	9	2	12
+\fBfd\fP\fIn\fP\fBH720\fP	720K	80	9	2	16
+\fBfd\fP\fIn\fP\fBH820\fP	820K	82	10	2	52
+\fBfd\fP\fIn\fP\fBH830\fP	830K	83	10	2	68
+\fBfd\fP\fIn\fP\fBH1440\fP	1440K	80	18	2	28
+\fBfd\fP\fIn\fP\fBH1600\fP	1600K	80	20	2	124
+\fBfd\fP\fIn\fP\fBH1680\fP	1680K	80	21	2	44
+\fBfd\fP\fIn\fP\fBH1722\fP	1722K	82	21	2	60
+\fBfd\fP\fIn\fP\fBH1743\fP	1743K	83	21	2	76
+\fBfd\fP\fIn\fP\fBH1760\fP	1760K	80	22	2	96
+\fBfd\fP\fIn\fP\fBH1840\fP	1840K	80	23	2	116
+\fBfd\fP\fIn\fP\fBH1920\fP	1920K	80	24	2	100
+.TE
+.PP
+Fichiers de périphériques 3.5" extra densité
+.TS
+lw(1i) l l l l l.
+Nom	Capac.	Cyl.	Sect.	Têtes	Num mineur base
+_
+\fBfd\fP\fIn\fP\fBE2880\fP	2880K	80	36	2	32
+\fBfd\fP\fIn\fP\fBCompaQ\fP	2880K	80	36	2	36
+\fBfd\fP\fIn\fP\fBE3200\fP	3200K	80	40	2	104
+\fBfd\fP\fIn\fP\fBE3520\fP	3520K	80	44	2	108
+\fBfd\fP\fIn\fP\fBE3840\fP	3840K	80	48	2	112
+.TE
+.SH DESCRIPTION
+Les fichiers \fBfd\fP accèdent aux disquettes en mode direct. Les appels
+\fIioctl\fP(2)  suivants sont supportés par les périphériques \fBfd\fP\ :
+.IP \fBFDCLRPRM\fP
+efface les informations sur le médium (la géométrie du disque dans le
+lecteur).
+.IP \fBFDSETPRM\fP
+fixe les informations sur le médium (la géométrie du disque dans le
+lecteur). Ces informations seront perdues au changement de disquette.
+.IP \fBFDDEFPRM\fP
+fixe les informations sur le médium (la géométrie du disque dans le
+lecteur). Ces informations seront conservées lors du changement de
+disquette. Cela désactive l'auto\-détection. Pour la réactiver, il faut
+effectuer un appel \fBFDCLRPRM\fP.
+.IP \fBFDGETDRVTYP\fP
+renvoie le type de lecteur (nom). Pour les formats qui fonctionnent avec
+plusieurs types de lecteurs, \fBFDGETDRVTYP\fP renverra le nom du plus ancien
+type de lecteur supportant le format.
+.IP \fBFDFLUSH\fP
+désactiver le tampon cache pour le lecteur.
+.IP \fBFDSETMAXERRS\fP
+fixe le seuil d'erreur pour les rapports d'erreurs, les abandons, le
+recalibrage, la réinitialisation, et la lecture secteur par secteur.
+.IP \fBFDSETMAXERRS\fP
+récupère le seuil d'erreur actuel.
+.IP \fBFDGETDRVTYP\fP
+récupère le nom interne du lecteur.
+.IP \fBFDWERRORCLR\fP
+efface les statistiques sur les erreurs d'écriture.
+.IP \fBFDWERRORGET\fP
+récupère les statistiques sur les erreurs d'écriture. Celles\-ci incluent le
+nombre total d'erreurs d'écriture, l'emplacement et le disque de la première
+erreur, et l'emplacement et le disque de la dernière. Les disques sont
+identifiés par un numéro qui augmente à (presque) chaque changement de
+disquette.
+.IP \fBFDTWADDLE\fP
+éteint pendant quelques micro\-secondes le moteur du lecteur. Ceci peut être
+nécessaire pour accéder à un disque dont les secteurs sont trop rapprochés.
+.IP \fBFDSETDRVPRM\fP
+fixe plusieurs paramètres du lecteur.
+.IP \fBFDGETDRVPRM\fP
+récupère ces mêmes paramètres.
+.IP \fBFDGETDRVSTAT\fP
+récupère l'état caché du lecteur (disque changé, protection écriture,..)
+.IP \fBFDPOLLDRVSTAT\fP
+récupère l'état réel du lecteur (disque changé, protection écriture,..)
+.IP \fBFDGETFDCSTAT\fP
+récupère l'état du contrôleur.
+.IP \fBFDRESET\fP
+réinitialise le contrôleur sous certaines conditions.
+.IP \fBFDRAWCMD\fP
+envoie une commande directe au contrôleur.
+.PP
+Pour plus d'informations, consulter aussi les fichier d'en\-tête
+\fI<linux/fd.h>\fP et \fI<linux/fdreg.h>\fP ainsi que
+\fBfloppycontrol\fP(1).
+.SH FICHIERS
+\fI/dev/fd*\fP
+.SH NOTES
+.\" .SH AUTHORS
+.\" Alain Knaff (Alain.Knaff@imag.fr), David Niemi
+.\" (niemidc@clark.net), Bill Broadhurst (bbroad@netcom.com).
+Les divers formats permettent la lecture et l'écriture sur de nombreux
+disques. Néanmoins, si le disque est formaté avec un espace entre secteurs
+trop petit, les performances peuvent diminuer, nécessitant plusieurs
+secondes pour accéder à une piste entière. Pour éviter ceci, utiliser des
+formats entrelacés. Il n'est pas possible de lire des disquettes formatées
+en GCR (group code recording), utilisées par l'Apple\ II et les MacIntosh
+(disquettes 800\ Ko). La lecture des disques avec sectorisation matérielle
+(un trou par secteur, avec un trou d'index légèrement décalé) n'est par
+supportée. Ceci était surtout utilisé avec les vieilles disquettes\ 8".
+.SH "VOIR AUSSI"
+\fBchown\fP(1), \fBfloppycontrol\fP(1), \fBgetfdprm\fP(1), \fBmknod\fP(1),
+\fBsuperformat\fP(1), \fBmount\fP(8), \fBsetfdprm\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2007).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,119 @@
+.\" This man page is Copyright (C) 2006 Andi Kleen <ak@muc.de>.
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" 2008, mtk, various edits
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETCPU 2 "3 juin 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+getcpu \- Déterminer le processeur et le n\[oe]ud NUMA sur lesquels le thread
+appelant est en cours d'exécution
+.SH SYNOPSIS
+.nf
+\fB#include <linux/getcpu.h>\fP
+.sp
+\fBint getcpu(unsigned *\fP\fIcpu\fP\fB, unsigned *\fP\fInode\fP\fB, struct getcpu_cache *\fP\fItcache\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+L'appel système \fBgetcpu\fP() identifie le processeur et le n\[oe]ud sur
+lesquels le thread ou processus appelant est en cours d'exécution et écrit
+le résultat dans les entiers pointés par les arguments \fIcpu\fP et \fInode\fP. Le
+processeur est un petit entier unique identifiant une CPU. Le n\[oe]ud est
+un petit entier unique identifiant un n\[oe]ud NUMA. Si \fIcpu\fP ou \fInode\fP
+est NULL, rien n'est écrit dans leur pointeur respectif.
+
+Le troisième argument de cet appel système est aujourd'hui inutilisé.
+
+L'information placée dans \fIcpu\fP n'est garantie d'être exacte qu'au moment
+de l'appel\ : à moins que l'affinité CPU n'ait été définie avec
+\fBsched_setaffinity\fP(2), le noyau peut changer de processeur à tout
+moment. (Normalement, cela n'arrive pas car l'ordonnaceur essaie de
+minimiser les mouvements entre CPU et cache, mais c'est possible.)
+L'appelant doit être prêt à gérer la situation où \fIcpu\fP et \fInode\fP ne sont
+plus les CPU et n\[oe]ud actuels.
+.SH VERSIONS
+\fBgetcpu\fP() a été ajouté au noyau dans sa version\ 2.6.19 pour les
+architectures x86_64 et i386.
+.SH CONFORMITÉ
+\fBgetcpu\fP() est spécifique à Linux.
+.SH NOTES
+Linux fait de gros efforts pour rendre cet appel aussi rapide que
+possible. Le but de \fBgetcpu\fP() est de permettre aux programmes de réaliser
+des optimisations de données propres à chaque processeur et pour
+l'optimisation NUMA.
+
+La glibc ne fournit pas de fonction autour de cet appel système\ ; utilisez
+\fBsyscall\fP(2) pour l'appeler\ ; ou utilisez \fBsched_getcpu\fP(3) à la place.
+
+.\" commit 4307d1e5ada595c87f9a4d16db16ba5edb70dcb1
+.\" Author: Ingo Molnar <mingo@elte.hu>
+.\" Date:   Wed Nov 7 18:37:48 2007 +0100
+.\" x86: ignore the sys_getcpu() tcache parameter
+.\"
+.\" ===== Before kernel 2.6.24: =====
+.\" .I tcache
+.\" is a pointer to a
+.\" .IR "struct getcpu_cache"
+.\" that is used as a cache by
+.\" .BR getcpu ().
+.\" The caller should put the cache into a thread-local variable
+.\" if the process is multithreaded,
+.\" because the cache cannot be shared between different threads.
+.\" .I tcache
+.\" can be NULL.
+.\" If it is not NULL
+.\" .BR getcpu ()
+.\" will use it to speed up operation.
+.\" The information inside the cache is private to the system call
+.\" and should not be accessed by the user program.
+.\" The information placed in the cache can change between kernel releases.
+.\"
+.\" When no cache is specified
+.\" .BR getcpu ()
+.\" will be slower,
+.\" but always retrieve the current CPU and node information.
+.\" With a cache
+.\" .BR getcpu ()
+.\" is faster.
+.\" However, the cached information is only updated once per jiffy (see
+.\" .BR time (7)).
+.\" This means that the information could theoretically be out of date,
+.\" although in practice the scheduler's attempt to maintain
+.\" soft CPU affinity means that the information is unlikely to change
+.\" over the course of the caching interval.
+Le paramètre \fItcache\fP n'est pas utilisé depuis la version\ 2.6.24 de
+Linux. Dans les noyaux antérieurs, si cet argument n'était pas NULL, il
+spécifiait un pointeur vers un tampon de l'appelant dans l'espace local de
+stockage du thread utilisé pour fournir un mécanisme de cache à
+\fBgetcpu\fP(). L'utilisation de ce cache pouvait accélérer les appels à
+\fBgetcpu\fP(), avec le faible risque que l'information renvoyée ne soit plus à
+jour. On a considéré que le mécanisme de cache entraînait des problèmes lors
+de la migration de threads entre processeurs, aussi, cet argument est
+aujourd'hui ignoré.
+.SH "VOIR AUSSI"
+\fBmbind\fP(2), \fBsched_setaffinity\fP(2), \fBset_mempolicy\fP(2),
+\fBsched_getcpu\fP(3), \fBcpuset\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,71 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STRTOIMAX 3 "28 novembre 2003" "" "Manuel du programmeur Linux"
+.SH NOM
+strtoimax, strtoumax \- Convertir une chaîne de caractères en entier.
+.SH SYNOPSIS
+.nf
+\fB#include <inttypes.h>\fP
+.sp
+\fBintmax_t strtoimax(const char *\fP\fInptr\fP\fB, char **\fP\fIendptr\fP\fB, int \fP\fIbase\fP\fB);\fP
+.br
+\fBuintmax_t strtoumax(const char *\fP\fInptr\fP\fB, char **\fP\fIendptr\fP\fB, int \fP\fIbase\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Ces fonctions sont similaires à \fBstrtol\fP(3) et \fBstrtoul\fP(3), excepté
+qu'elles retournent respectivement une valeur de type \fIintmax_t\fP et
+\fIuintmax_t\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, la valeur convertie est renvoyée. Si rien n'a pu être
+converti, zéro est renvoyé. En cas de débordement supérieur (overflow) ou
+inférieur (underflow), une des valeurs \fBINTMAX_MAX\fP, \fBINTMAX_MIN\fP ou
+\fBUINTMAX_MAX\fP est renvoyée, et \fIerrno\fP contient \fBERANGE\fP.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001.
+.SH "VOIR AUSSI"
+\fBimaxabs\fP(3), \fBimaxdiv\fP(3), \fBstrtol\fP(3), \fBstrtoul\fP(3), \fBwcstoimax\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2004-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

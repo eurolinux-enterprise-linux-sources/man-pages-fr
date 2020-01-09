@@ -1,0 +1,160 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\"
+.\" Modified 1993-07-24 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 2002-08-10 Walter Harms
+.\"	(walter.harms@informatik.uni-oldenburg.de)
+.\" Modified 2003-11-18, 2004-10-05 aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH REMAINDER 3 "4 février 2009" "" "Manuel du programmeur Linux"
+.SH NOM
+drem, dremf, dreml, remainder, remainderf, remainderl \- Fonction reste en
+virgule flottante
+.SH SYNOPSIS
+.nf
+\fB#include <math.h>\fP
+.sp
+/* Les versions C99 */
+\fBdouble remainder(double \fP\fIx\fP\fB, double \fP\fIy\fP\fB);\fP
+\fBfloat remainderf(float \fP\fIx\fP\fB, float \fP\fIy\fP\fB);\fP
+\fBlong double remainderl(long double \fP\fIx\fP\fB, long double \fP\fIy\fP\fB);\fP
+.sp
+/* Synonymes obsolètes */
+\fBdouble drem(double \fP\fIx\fP\fB, double \fP\fIy\fP\fB);\fP
+\fBfloat dremf(float \fP\fIx\fP\fB, float \fP\fIy\fP\fB);\fP
+\fBlong double dreml(long double \fP\fIx\fP\fB, long double \fP\fIy\fP\fB);\fP
+.sp
+.fi
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBremainder\fP()\ : _SVID_SOURCE || _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500
+|| _ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.br
+\fBremainderf\fP(), \fBremainderl\fP()\ : _SVID_SOURCE || _BSD_SOURCE ||
+_XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.br
+\fBdrem\fP(), \fBdremf\fP(), \fBdreml\fP()\ : _SVID_SOURCE || _BSD_SOURCE
+.ad b
+.SH DESCRIPTION
+La fonction \fBremainder\fP() calcule le reste de la division de \fIx\fP par
+\fIy\fP. La valeur renvoyée est \fIx\fP\-\fIn\fP*\fIy\fP, où \fIn\fP est la valeur \fIx\ /\
+y\fP, arrondie à l'entier le plus proche. Si la valeur absolue de
+\fIx\fP\-\fIn\fP*\fIy\fP vaut 0,5, un \fIn\fP pair est choisi.
+
+Ces fonctions ne sont pas affectées par le mode d'arrondis en cours (voir
+\fBfenv\fP(3)).
+.LP
+La fonction \fBdrem\fP() fait précisément la même chose.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient le reste en virgule flottante,
+\fIx\fP\-\fIn\fP*\fIy\fP. Si la valeur de retour est nulle, elle a le signe de \fIx\fP.
+
+Si \fIx\fP ou \fIy\fP est un NaN, un NaN est renvoyé.
+
+Si \fIx\fP est infini et \fIy\fP n'est pas un NaN, une erreur de domaine se
+produit et un NaN est renvoyé.
+
+.\" FIXME . Instead, glibc gives a domain error even if x is a NaN
+.\" Interestingly, remquo(3) does not have the same problem.
+Si \fIy\fP est nul et \fIx\fP n'est pas un NaN, une erreur de domaine se produit
+et un NaN est renvoyé.
+.SH ERREURS
+Consultez \fBmath_error\fP(7) pour savoir comment déterminer qi une erreur est
+survenue lors de l'appel de ces fonctions.
+.PP
+Les erreurs suivantes peuvent se produire\ :
+.TP 
+Erreur de domaine\ : \fIx\fP est infini et \fIy\fP n'est pas un NaN
+.\" .I errno
+.\" is set to
+.\" .BR EDOM .
+Une exception de virgule flottante incorrecte (\fBFE_INVALID\fP) est levée.
+.IP
+.\" FIXME . Is it intentional that these functions do not set errno?
+.\" They do set errno for the y == 0 case, below.
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6783
+Ces fonctions ne positionnent pas \fIerrno\fP dans ce cas.
+.TP 
+.\" [XXX see bug above] and \fIx\fP is not a NaN
+Erreur de domaine\ : \fIy\fP est nul.
+\fIerrno\fP prend la valeur \fBEDOM\fP. Une exception indiquant une virgule
+flottante incorrecte (\fBFE_INVALID\fP) est levée.
+.SH CONFORMITÉ
+.\" IEC 60559.
+Les fonctions \fBremainder\fP(), \fBremainderf\fP() et \fBremainderl\fP() sont
+spécifiées dans C99 et POSIX.1\-2001.
+
+La fonction \fBdrem\fP() vient de BSD\ 4.3. Les variantes \fIfloat\fP et \fIlong
+double\fP \fBdremf\fP() et \fBdreml\fP() existent sur certains systèmes, comme Tru64
+et glibc2. Évitez d'utiliser ces fonctions pour leur préférer \fBremainder\fP()
+etc.
+.SH BOGUES
+L'appel
+
+    remainder(nan(""), 0);
+
+.\" FIXME . this bug occurs as at glibc 2.8.
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6779
+renvoie un NaN, comme attendu, mais cause à tord une erreur de domaine\ ; il
+devrait juste renvoyer un NaN.
+.SH EXEMPLE
+L'appel «\ remainder(29.0, 3.0)\ » renvoie \-1.
+.SH "VOIR AUSSI"
+\fBdiv\fP(3), \fBfmod\fP(3), \fBremquo\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2004-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

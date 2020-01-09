@@ -1,0 +1,86 @@
+.\" t
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SEM_POST 3 "30 mars 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+sem_post \- Déverrouiller un sémaphore
+.SH SYNOPSIS
+.nf
+\fB#include <semaphore.h>\fP
+.sp
+\fBint sem_post(sem_t *\fP\fIsem\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP ou \fI\-pthread\fP.
+.SH DESCRIPTION
+\fBsem_post\fP() incrémente (déverrouille) le sémaphore pointé par \fIsem\fP. Si,
+à la suite de cet incrément, la valeur du sémaphore devient supérieure à
+zéro, un autre processus ou thread bloqué dans un appel \fBsem_wait\fP(3) sera
+réveillé et procédera au verrouillage du sémaphore.
+.SH "VALEUR RENVOYÉE"
+\fBsem_post\fP() renvoie 0 s'il réussit. S'il échoue, la valeur du sémaphore
+n'est pas modifiée, il renvoie \-1 et écrit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+\fIsem\fP n'est pas un sémaphore valide.
+.TP 
+\fBEOVERFLOW\fP
+.\" Added in POSIX.1-2008 TC1 (Austin Interpretation 213)
+La valeur maximale autorisée pour un sémaphore serait dépassée.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+\fBsem_post\fP() est sûr du point de vue des signaux asynchrones\ : il peut
+être utilisé sûrement dans un gestionnaire de signaux.
+.SH EXEMPLE
+Voir \fBsem_wait\fP(3).
+.SH "VOIR AUSSI"
+\fBsem_getvalue\fP(3), \fBsem_wait\fP(3), \fBsem_overview\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

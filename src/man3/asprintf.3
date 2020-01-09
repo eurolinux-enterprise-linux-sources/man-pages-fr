@@ -1,0 +1,80 @@
+.\" Copyright (C) 2001 Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Text fragments inspired by Martin Schulze <joey@infodrom.org>.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ASPRINTF 3 "18 décembre 2001" GNU "Manuel du programmeur Linux"
+.SH NOM
+asprintf, vasprintf \- Écriture formatée dans une chaîne allouée
+.SH SYNOPSIS
+\fB#define _GNU_SOURCE\fP
+.br
+\fB#include <stdio.h>\fP
+.sp
+\fBint asprintf(char **\fP\fIstrp\fP\fB, const char *\fP\fIfmt\fP\fB, ...);\fP
+.sp
+\fBint vasprintf(char **\fP\fIstrp\fP\fB, const char *\fP\fIfmt\fP\fB, va_list
+\fP\fIap\fP\fB);\fP
+.SH DESCRIPTION
+Les fonctions \fBasprintf\fP() et \fBvasprintf\fP() sont similaires à
+\fBsprintf\fP(3) et \fBvsprintf\fP(3), si ce n'est qu'elles allouent une chaîne de
+caractères de taille suffisante pour contenir la sortie, y compris l'octet
+de terminaison NULL et qu'elles renvoient un pointeur vers cette chaîne via
+le premier paramètre. Ce pointeur devra être passé en paramètre à \fBfree\fP(3)
+afin de libérer la zone allouée lorsqu'elle ne sera plus nécessaire.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, ces fonctions renvoient le nombre de caractères imprimés,
+tout comme \fBsprintf\fP(3). Si l'allocation mémoire n'a pas été possible, ou
+qu'une autre erreur est survenue, ces fonctions renvoient \-1 et la valeur de
+\fIstrp\fP est indéfinie.
+.SH CONFORMITÉ
+Ces fonctions sont des extensions GNU et sont absentes des standards C et
+POSIX. Elles sont également disponibles sous BSD. L'implémentation FreeBSD
+affecte à \fIstrp\fP la valeur NULL en cas d'erreur.
+.SH "VOIR AUSSI"
+\fBfree\fP(3), \fBmalloc\fP(3), \fBprintf\fP(3), \fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

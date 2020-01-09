@@ -1,0 +1,305 @@
+.\" This page is in the public domain
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ZIC 8 "18 mai 2007" "" "Manuel de l'administrateur Linux"
+.SH NOM
+zic \- Compilation des informations de fuseau horaire.
+.SH SYNOPSIS
+\fBzic\fP [ \fB\-v\fP ] [ \fB\-d\fP \fIrépertoire\fP ] [ \fB\-l\fP \fIheure_locale\fP ] [ \fB\-p\fP
+\fIrègles_posix\fP ] [ \fB\-L\fP \fIfichier_secondes_rattrapage\fP ] [ \fB\-s\fP ] [ \fB\-y\fP
+\fIcommande\fP ] [ \fIfichier\fP \&... ]
+.SH DESCRIPTION
+.if  t .ds lq ``
+.if  t .ds rq ''
+.if  n .ds lq \&"\"
+.if  n .ds rq \&"\"
+.de  q
+\\$3\*(lq\\$1\*(rq\\$2
+..
+\fBZic\fP lit le texte dans les fichiers indiqués sur la ligne de commande et
+crée les fichiers d'information pour les conversions horaires indiquées dans
+ces fichiers. Si un nom de \fIfichier\fP est \fB\-\fP, l'entrée standard est lue.
+.PP
+Les options disponibles sont\ :
+.TP 
+\fB\-d\fP \fIrépertoire\fP
+Crée les fichiers d'informations pour les conversions horaires dans le
+répertoire indiqué plutôt que dans le répertoire standard indiqué plus bas.
+.TP 
+\fB\-l\fP \fIfuseau_horaire\fP
+Utiliser le fuseau horaire indiqué comme heure locale. \fIZic\fP agira comme si
+l'entrée contenait une ligne de lien de la forme\ :
+.sp
+.ti +.5i
+Link	\fIfuseau_horaire\fP		heure_locale
+.TP 
+\fB\-p\fP \fIfuseau_horaire\fP
+Utiliser les règles de conversions horaires du fuseau indiqué lors de la
+gestion des variables d'environnement horaires POSIX. \fIZic\fP agira comme si
+l'entrée contenait une ligne de lien de la forme\ :
+.sp
+.ti +.5i
+Link	\fIfuseau_horaire\fP		règles_posix
+.TP 
+\fB\-L\fP \fIfichier_secondes_rattrapage\fP
+Lire les informations concernant les secondes de rattrapage périodique à
+partir du fichier indiqué. Si cette option n'est pas indiquée, aucune
+seconde de rattrapage ne sera prise en compte dans les fichiers de sortie.
+.TP 
+\fB\-v\fP
+Refuser qu'une année indiquée dans le fichier de données soit en dehors de
+l'intervalle représentable par les valeurs de \fBtime\fP(2).
+.TP 
+\fB\-s\fP
+Limiter les valeurs de temps stockées dans les fichiers de sortie aux
+valeurs qui sont identiques en stockage signé et non signé. Cette option
+permet de générer des fichiers compatibles SVVS.
+.TP 
+\fB\-y\fP \fIcommande\fP
+Utiliser la \fIcommande\fP plutôt que \fByearistype\fP pour vérifier les types
+d'années (voir plus bas).
+.PP
+Les lignes d'entrées sont composées de champs, séparés les uns des autres
+par un nombre quelconque de caractères blancs. Les espaces en début et fin
+de ligne sont ignorées. Un caractère dièse «\ #\ » non protégé en entrée
+introduit un commentaire qui s'étend jusqu'à la fin de la ligne où il
+apparaît. Les caractères blancs et les dièses peuvent être inclus entre
+guillemets «\ "\ » lorsqu'ils doivent faire partie d'un champ. Toute ligne
+vide (après suppression des commentaires) est ignorée. Les lignes non vides
+peuvent être de trois types\ : les lignes de règle, de zone, et de lien.
+.PP
+Une ligne de règle est de la forme\ :
+.nf
+.ti +.5i
+.ta \w'Rule\0\0'u +\w'NAME\0\0'u +\w'FROM\0\0'u +\w'1973\0\0'u +\w'TYPE\0\0'u +\w'Apr\0\0'u +\w'lastSun\0\0'u +\w'2:00\0\0'u +\w'SAVE\0\0'u
+.sp
+Rule	NAME	FROM	TO	TYPE	IN	ON	AT	SAVE	LETTER/S
+.sp
+Par exemple\ :
+.ti +.5i
+.sp
+Rule	US	1967	1973	\-	Apr	lastSun	2:00	1:00	D
+.sp
+.fi
+Les champs composant une ligne de règle sont\ :
+.TP  "\w'LETTER/S'u"
+\fBNAME\fP
+Indique le nom (arbitraire) du jeu de règles dont celle\-ci fait partie.
+.TP 
+\fBFROM\fP
+Indique la première année pour laquelle la règle s'applique. Tout nombre
+entier correspondant à une année peut être utilisé. On suppose qu'il s'agit
+du calendrier grégorien. Le mot \fIminimum\fP (ou une abréviation) correspond à
+la plus petite année représentable par un entier. Le mot \fImaximum\fP (ou une
+abréviation) correspond à la plus grande année représentable par un
+entier. Les règles peuvent décrire des dates qui ne sont pas représentables
+par des valeurs de \fItime\fP(2). Ceci permet aux règles d'être générales quels
+que soient les types de données employés par la machine hôte.
+.TP 
+\fBTO\fP
+Indique l'année finale pour laquelle la règle s'applique. En plus des
+symboles \fIminimum\fP et \fImaximum\fP (comme précédemment), le mot \fIonly\fP (ou
+une abréviation) permet de réutiliser la valeur du champ \fBFROM\fP.
+.TP 
+\fBTYPE\fP
+Indique le type des années où la règle s'applique. Si le \fBTYPE\fP est
+«\ \fB\-\fP\ », la règle s'applique pour toutes les années entre \fBFROM\fP et \fBTO\fP
+comprises. Si le \fBTYPE\fP a une autre valeur, \fBzic\fP exécute la commande\ :
+.ti +.5i
+\fByearistype\fP \fIannée\fP \fItype\fP
+.br
+pour vérifier le type de l'année\ : un code de sortie nul indique que l'année
+indiquée est du type considéré, un code de sortie valant 1 signifie que
+l'année n'est pas de ce type.
+.TP 
+\fBIN\fP
+Indique le mois auquel la règle prend effet. Les noms de mois peuvent être
+abrégés.
+.TP 
+\fBON\fP
+Indique le jour auquel la règle prend effet. Les formes acceptées
+comprennent\ :
+.nf
+.in +.5i
+.sp
+.ta \w'Sun<=25\0\0'u
+5	Le 5 du mois
+lastSun	Le dernier dimanche du mois
+lastMon	Le dernier lundi du mois
+Sun>=8	Le premier dimanche après le 8
+Sun<=25	Le dernier dimanche avant le 25
+.fi
+.in -.5i
+.sp
+Les noms des jours de la semaine peuvent être abrégés. Il ne doit pas y
+avoir d'espace au sein du champ \fBON\fP.
+.TP 
+\fBAT\fP
+Indique l'heure à laquelle la règle prend effet. Diverses formes sont
+acceptées\ :
+.nf
+.in +.5i
+.sp
+.ta \w'1:28:13\0\0'u
+2	l'heure
+2:00	l'heure et les minutes
+15:00	un format sur 24 heures
+1:28:14	heure, minutes et secondes
+\-	équivalent à 0
+.fi
+.in -.5i
+.sp
+L'heure vaut 0 à minuit au début de la journée, ou 24 à minuit à la fin de
+la journée. N'importe quelle forme ci\-dessus peut être suivie des lettres
+\fIw\fP si l'heure est locale («\ wall clock\ », c'est\-à\-dire la pendule), \fIs\fP
+s'il s'agit de l'heure locale standard, \fIu\fP (ou \fIg\fP ou \fIz\fP) s'il s'agit
+de l'heure universelle. Sans indicateur, on suppose que c'est l'heure
+locale.
+.TP 
+\fBSAVE\fP
+Indique la quantité horaire à ajouter à l'heure locale lorsque la règle
+prend effet. Ce champ a le même format que le champ \fBAT\fP (sauf que les
+suffixes \fIw\fP et \fIs\fP ne sont évidemment pas utilisés).
+.TP 
+\fBLETTER/S\fP
+Indique la «\ partie variable\ » de l'abréviation du fuseau horaire (par
+exemple, «\ S\ » ou «\ D\ » dans «\ EST\ » ou «\ EDT\ ») lorsque la règle est en
+fonction. Si ce champ vaut «\ \fB\-\fP\ », la partie variable est nulle.
+.PP
+Une ligne de zone est de la forme\ :
+.sp
+.nf
+.ti +.5i
+.ta \w'Zone\0\0'u +\w'Australia/Adelaide\0\0'u +\w'GMTOFF\0\0'u +\w'RULES/SAVE\0\0'u +\w'FORMAT\0\0'u
+Zone	NAME	GMTOFF	RULES/SAVE	FORMAT	[UNTIL]
+.sp
+Par exemple\ :
+.sp
+.ti +.5i
+Zone	Australia/Adelaide	9:30	Aus	CST	1971 Oct 31 2:00
+.sp
+.fi
+Les champs constituant une ligne de zone sont les suivants\ :
+.TP  "\w'GMTOFF'u"
+\fBNAME\fP
+Le nom du fuseau horaire. Il s'agit du nom utilisé pour la création du
+fichier de données de conversions horaires pour cette zone.
+.TP 
+\fBGMTOFF\fP
+La quantité de temps à ajouter au temps universel pour obtenir l'heure
+standard dans la zone. Ce champ a le même format que les champs \fBAT\fP et
+\fBSAVE\fP des lignes de règles. On peut commencer le champ avec un signe moins
+«\ \-\ » si la quantité doit être soustraite de l'UTC.
+.TP 
+\fBRULES/SAVE\fP
+Les noms des règles qui s'appliquent dans cette zone, ou bien la quantité
+horaire à ajouter au temps local standard de la zone. Si ce champ est
+«\ \fB\-\fP\ », l'heure standard s'applique toujours dans cette zone.
+.TP 
+\fBFORMAT\fP
+Le format pour l'abréviation du fuseau horaire dans cette zone. Les deux
+caractères \fB%s\fP servent à indiquer où placer la «\ partie variable\ » de
+l'abréviation du fuseau. Éventuellement, une barre oblique «\ /\ » peut
+séparer les abréviations standard et d'heure d'été.
+.TP 
+\fBUNTIL\fP
+Le moment où changent le décalage par rapport à l'UTC ou les règles pour le
+lieu. Ce moment est indiqué sous la forme d'une année, un mois, un jour, et
+une heure. Si elles sont spécifiées, les informations pour le fuseau horaire
+seront créées à partir de la règle ou du décalage UTC jusqu'au moment
+indiqué. Les valeurs doivent avoir le même format que pour les colonnes IN,
+ON, et AT d'une règle. Les colonnes suivantes peuvent être omises, la valeur
+par défaut étant le plus tôt possible pour les colonnes manquantes.
+.IP
+La ligne suivante doit être une ligne de «\ continuation\ » qui a la même
+forme qu'une ligne de zone, sauf que la chaîne «\ Zone\ » et le nom sont
+absents. Cette ligne de continuation va placer les informations commençant
+au moment précisé dans le champ \fBUNTIL\fP de la ligne précédente dans le
+fichier utilisé par cette dernière. Les lignes de continuation peuvent avoir
+un champ \fBUNTIL\fP, comme les lignes de zones, pour montrer que la ligne
+suivante est également une future continuation.
+.PP
+Une ligne de lien est de la forme\ :
+.sp
+.nf
+.ti +.5i
+.ta \w'Link\0\0'u +\w'Europe/Istanbul\0\0'u
+Link	LINK\-FROM	LINK\-TO
+.sp
+Par exemple\ :
+.sp
+.ti +.5i
+Link	Europe/Istanbul	Asia/Istanbul
+.sp
+.fi
+Le champ \fBLINK\-FROM\fP doit exister sous forme de champ \fBNAME\fP quelque part
+dans une ligne de zone. Le champ \fBLINK\-TO\fP sert de lien alternatif pour la
+zone.
+.PP
+À l'exception des lignes de continuation, toutes les autres lignes peuvent
+apparaître dans n'importe quel ordre.
+.PP
+Les lignes dans le fichier décrivant les secondes de rattrapage périodique
+doivent avoir la forme\ :
+.nf
+.ti +.5i
+.ta \w'Leap\0\0'u +\w'YEAR\0\0'u +\w'MONTH\0\0'u +\w'DAY\0\0'u +\w'HH:MM:SS\0\0'u +\w'CORR\0\0'u
+.sp
+Leap	YEAR	MONTH	DAY	HH:MM:SS	CORR	R/S
+.sp
+Par exemple\ :
+.ti +.5i
+.sp
+Leap	1974	Dec	31	23:59:60	+	S
+.sp
+.fi
+.\" There's no need to document the following, since it's impossible for more
+.\" than one leap second to be inserted or deleted at a time.
+.\" The C Standard is in error in suggesting the possibility.
+.\" See Terry J Quinn, The BIPM and the accurate measure of time,
+.\" Proc IEEE 79, 7 (July 1991), 894-905.
+.\"	or
+.\"	.q ++
+.\"	if two seconds were added
+.\"	or
+.\"	.q --
+.\"	if two seconds were skipped.
+Les champs \fBYEAR\fP, \fBMONTH\fP, \fBDAY\fP et \fBHH:MM:SS\fP indiquent le moment où
+la seconde de rattrapage apparaît. Le champ \fBCORR\fP doit contenir un «\ +\ »
+si une seconde est ajoutée ou un «\ \-\ » si une seconde est enlevée. Le champ
+\fBR/S\fP doit être un \fBS\fP (abréviation de \fIStationary\fP) si l'instant indiqué
+par les autres champs doit être interprété comme une heure UTC, ou bien \fBR\fP
+(abréviation de \fIRolling\fP) si l'instant est en heure locale.
+.SH FICHIERS
+/usr/local/etc/zoneinfo	Répertoire standard pour les fichiers créés
+.SH NOTES
+Pour les zones ayant plus de deux types d'heure locale, il peut être
+nécessaire d'utiliser l'heure locale standard dans le champ \fBAT\fP de la
+première règle de transition pour s'assurer que la première heure de
+transition du fichier compilé soit correcte.
+.SH "VOIR AUSSI"
+.\" @(#)zic.8	7.19
+\fBtzfile\fP(5), \fBzdump\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1999-2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

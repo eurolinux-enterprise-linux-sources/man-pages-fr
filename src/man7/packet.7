@@ -1,0 +1,309 @@
+.\" This man page is Copyright (C) 1999 Andi Kleen <ak@muc.de>.
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" $Id: packet.7,v 1.13 2000/08/14 08:03:45 ak Exp $
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PACKET 7 "8 août 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+packet, AF_PACKET \- Interface par paquet au niveau périphérique.
+.SH SYNOPSIS
+.nf
+\fB#include <sys/socket.h>\fP
+.br
+\fB#include <netpacket/packet.h>\fP
+.br
+\fB#include <net/ethernet.h> /* protocoles L2 */\fP
+.sp
+\fBpacket_socket = socket(AF_PACKET, int \fP\fIsocket_type\fP\fB, int \fP\fIprotocol\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Les sockets packets sont utilisées pour envoyer ou recevoir des paquets de
+données bruts au pilote de périphérique (Niveau OSI 2). Elles permettent
+d'implémenter des modules protocoles dans l'espace utilisateur au dessus du
+niveau physique.
+
+L'argument \fIsocket_type\fP est soit \fBSOCK_RAW\fP pour les paquets incluant
+l'en\-tête du niveau liaison, soit \fBSOCK_DGRAM\fP pour les paquets préparés
+sans l'en\-tête de la couche liaison. Les informations de l'en\-tête du niveau
+liaison sont disponibles dans un format commun, par l'intermédiaire d'un
+\fIsockaddr_ll\fP. \fIprotocol\fP est un numéro de protocole IEEE 802.3 dans
+l'ordre des octets du réseau. Voir le fichier d'en\-tête
+\fI<linux/if_ether.h>\fP pour avoir une liste des protocoles
+autorisés. Lorsque le numéro demandé est \fBhtons(ETH_P_ALL)\fP alors tous les
+protocoles sont reçus. Tous les paquets entrants du protocole indiqué seront
+passés à la socket packet avant d'être transmis aux protocoles implémentés
+dans le noyau.
+
+Seuls les processus avec un UID effectif nul ou la capacité \fBCAP_NET_RAW\fP
+peuvent ouvrir des sockets packet.
+
+Les paquets des sockets \fBSOCK_RAW\fP sont transmis depuis et vers le pilote
+de périphérique sans aucune modification des données des paquets. Lors de la
+réception, l'adresse est toujours examinée et fournie dans une structure
+standard \fIsockaddr_ll\fP. Lors de l'émission d'un paquet, le tampon fourni
+par l'utilisateur doit contenir l'en\-tête du niveau physique. Le paquet est
+alors mis en file sans modification à l'attention du pilote de périphérique
+correspondant à l'interface définie par l'adresse de destination. Certains
+pilotes de périphérique ajoutent toujours d'autres en\-têtes. \fBSOCK_RAW\fP est
+similaire mais non compatible avec l'ancien \fBAF_INET/SOCK_PACKET\fP de Linux
+2.0.
+
+\fBSOCK_DGRAM\fP opère à un niveau légèrement plus élevé. L'en\-tête du niveau
+physique est supprimé avant que le paquet ne soit transmis à
+l'utilisateur. Les paquets envoyés par une socket packet \fBSOCK_DGRAM\fP
+reçoivent un en\-tête de niveau physique correct, en fonction des
+informations dans l'adresse destination \fIsockaddr_ll\fP avant d'être mis en
+file.
+
+Par défaut, tous les paquets du type de protocole indiqué sont passés à la
+socket packet. Pour ne recevoir que les paquets d'une interface donnée,
+utilisez \fBbind\fP(2) en indiquant une adresse dans une \fIstruct sockaddr_ll\fP
+pour attacher la socket à une interface. Seuls les champs d'adresse
+\fIsll_protocol\fP et \fIsll_ifindex\fP sont utilisés pour l'attachement.
+
+L'opération \fBconnect\fP(2) n'est pas prise en charge avec les sockets packet.
+
+Lorsque l'attribut \fBMSG_TRUNC\fP est transmis à \fBrecvmsg\fP(2), \fBrecv\fP(2),
+\fBrecvfrom\fP(2) la véritable longueur du paquet sur le réseau est toujours
+renvoyée, même si elle est plus grande que le tampon.
+.SS "Types d'adresses"
+La structure sockaddr_ll est une adresse du niveau physique dépendant du
+périphérique.
+
+.in +4n
+.nf
+struct sockaddr_ll {
+    unsigned short sll_family;   /* Toujours AF_PACKET */
+    unsigned short sll_protocol; /* Protocole niveau physique */
+    int            sll_ifindex;  /* Numéro d'interface */
+    unsigned short sll_hatype;   /* Type d'en\-tête */
+    unsigned char  sll_pkttype;  /* Type de paquet */
+    unsigned char  sll_halen;    /* Longueur de l'adresse */
+    unsigned char  sll_addr[8];  /* Adresse niveau physique */
+};
+.fi
+.in
+
+\fIsll_protocol\fP est le type de protocole standard ethernet, dans l'ordre des
+octets du réseau, comme défini dans le fichier d'en\-tête
+\fI<linux/if_ether.h>\fP. Par défaut il s'agit du protocole de la
+socket. \fIsll_ifindex\fP est le numéro de l'interface (voir \fBnetdevice\fP(7));
+0 correspond à n'importe quelle interface (autorisé uniquement pour
+l'attachement). \fIsll_hatype\fP est un type ARP, comme défini dans le fichier
+d'en\-tête \fI<linux/if_arp.h>\fP. Le champ \fIsll_pkttype\fP contient le
+type de paquet. Les types valides sont \fBPACKET_HOST\fP pour un paquet destiné
+à l'hôte local, \fBPACKET_BROADCAST\fP pour un paquet broadcast du niveau
+physique, \fBPACKET_MULTICAST\fP pour un paquet envoyé à une adresse multicast
+du niveau physique, \fBPACKET_OTHERHOST\fP pour un paquet destiné à un autre
+hôte capturé par un pilote de périphérique en mode promiscuous, et
+\fBPACKET_OUTGOING\fP pour un paquet provenant de l'hôte local rebouclé sur une
+socket packet. Ceci n'a de signification qu'en réception. \fIsll_addr\fP et
+\fIsll_halen\fP contiennent l'adresse de niveau physique (par exemple IEEE
+802.3) et sa longueur. L'interprétation exacte dépend du périphérique.
+
+Lorsqu'on envoie des paquets, il suffit d'indiquer \fIsll_family\fP,
+\fIsll_addr\fP, \fIsll_halen\fP, \fIsll_ifindex\fP. Les autres champs devraient être
+à zéro. \fIsll_hatype\fP et \fIsll_pkttype\fP sont remplis en réception pour
+information. Pour l'attachement, seuls \fIsll_protocol\fP et \fIsll_ifindex\fP
+sont utilisés.
+.SS "Options de sockets"
+Les options des sockets packets permettent de configurer le multicasting du
+niveau physique et le mode promiscuous. Cela fonctionne en appelant
+\fBsetsockopt\fP(2) sur une socket packet avec \fBSOL_PACKET\fP et l'option
+\fBPACKET_ADD_MEMBERSHIP\fP pour ajouter un attachement ou
+\fBPACKET_DROP_MEMBERSHIP\fP pour en supprimer un. Toutes les deux attendent
+une structure \fBpacket_mreq\fP en argument\ :
+
+.in +4n
+.nf
+struct packet_mreq {
+    int            mr_ifindex;    /* Numéro d'interface */
+    unsigned short mr_type;       /* Action */
+    unsigned short mr_alen;       /* Longueur d'adresse */
+    unsigned char  mr_address[8]; /* Adresse niveau physique */
+};
+.fi
+.in
+
+\fBmr_ifindex\fP contient le numéro de l'interface dont le statut doit être
+modifié. Le paramètre \fBmr_type\fP indique l'action à
+effectuer. \fBPACKET_MR_PROMISC\fP valide la réception de tous les paquets
+circulant sur le segment de réseau commun (souvent appelé «\ mode
+promiscuous\ »), \fBPACKET_MR_MULTICAST\fP attache la socket au groupe
+multicast de niveau physique indiqué dans \fBmr_address\fP et \fBmr_alen\fP, et
+\fBPACKET_MR_ALLMULTI\fP demande à la socket de recevoir tous les paquets
+multicast arrivant sur l'interface.
+
+De plus, les ioctls classiques \fBSIOCSIFFLAGS\fP, \fBSIOCADDMULTI\fP et
+\fBSIOCDELMULTI\fP peuvent donner les mêmes résultats.
+.SS Ioctls
+\fBSIOCGSTAMP\fP peut servir à obtenir l'horodatage du dernier paquet
+reçu. L'argument est une structure \fIstruct timeval\fP.
+
+De plus, les ioctls standards définis dans \fBnetdevice\fP(7) et \fBsocket\fP(7)
+sont valides sur les sockets packets.
+.SS "Traitement des erreurs"
+Les sockets packets ne gèrent pas d'autres erreurs que celles se produisant
+durant la transmission des paquets au pilote de périphérique. Elles ne
+traitent pas le concept de file d'erreurs.
+.SH ERREURS
+.TP 
+\fBEADDRNOTAVAIL\fP
+Adresse de groupe multicast inconnue.
+.TP 
+\fBEFAULT\fP
+Adresse mémoire invalide.
+.TP 
+\fBEINVAL\fP
+Argument invalide.
+.TP 
+\fBEMSGSIZE\fP
+Le paquet est plus grand que le MTU de l'interface.
+.TP 
+\fBENETDOWN\fP
+L'interface n'est pas en marche.
+.TP 
+\fBENOBUFS\fP
+Pas assez de mémoire pour le paquet.
+.TP 
+\fBENODEV\fP
+Le nom du prériphérique ou l'index interface spécifié dans l'adresse de
+l'interface est inconnu.
+.TP 
+\fBENOENT\fP
+Pas de paquet reçu.
+.TP 
+\fBENOTCONN\fP
+Aucune adresse d'interface n'a été passée.
+.TP 
+\fBENXIO\fP
+Numéro d'interface non valable.
+.TP 
+\fBEPERM\fP
+L'utilisateur n'a pas les privilèges nécessaires pour l'opération.
+
+De plus, d'autres erreurs peuvent être engendrées par le pilote bas\-niveau.
+.SH VERSIONS
+\fBAF_PACKET\fP est une nouveauté de Linux 2.2. Les versions Linux précédentes
+ne prenaient en charge que \fBSOCK_PACKET\fP.
+.PP
+Le fichier d'inclusion \fI<netpacket/packet.h>\fP existe depuis glibc
+2.1. Les systèmes plus anciens ont besoin de\ :
+.sp
+.in +4n
+.nf
+#include <asm/types.h>
+#include <linux/if_packet.h>
+#include <linux/if_ether.h>  /* Les protocoles L2 */
+.fi
+.in
+.SH NOTES
+Pour la portabilité, il est conseillé d'utiliser les fonctionnalités
+\fBAF_PACKET\fP par l'intermédiaire de l'interface \fBpcap\fP(3); bien que cela ne
+couvre qu'un sous\-ensembles des possibilités de \fBAF_PACKET\fP.
+
+Les sockets packet \fBSOCK_DGRAM\fP n'essayent pas de créer ou de traiter les
+en\-têtes IEEE 802.2 LLC pour une trame IEEE 802.3. Lorsque le protocole
+\fBETH_P_802_3\fP est indiqué en émission, le noyau crée la trame 802.3 et
+remplit le champ de longueur. L'utilisateur doit fournir l'en\-tête LLC pour
+obtenir un paquet entièrement conforme. Les paquets 802.3 entrants ne sont
+pas multiplexés sur les champs du protocole DSAP/SSAP. À la place, ils sont
+fournis à l'utilisateur sous le protocole \fBETH_P_802_2\fP avec un en\-tête LLC
+ajouté. Il n'est donc pas possible de faire d'attachement \fBETH_P_802_3\fP\ ;
+l'attachement \fBETH_P_802_2\fP doit être réalisé à la place, et le
+multiplexage de protocole doit être réalisé manuellement. Le comportement
+par défaut en émission est l'encapsulation Ethernet DIX standard, avec le
+protocole renseigné.
+
+Les sockets packets ne sont pas soumises aux chaînes de firewall en entrée
+ou sortie.
+.SS Compatibilité
+Sous Linux 2.0, la seule manière d'obtenir une socket packet était l'appel
+\fBsocket(AF_INET, SOCK_PACKET, \fP\fIprotocol\fP\fB)\fP. Ceci est encore pris en
+charge mais fortement déconseillé. La principale différence entre les deux
+méthodes est que \fBSOCK_PACKET\fP utilise l'ancienne \fIstruct sockaddr_pkt\fP
+pour indiquer l'interface, ce qui ne fournit aucune indépendance vis\-à\-vis
+du niveau physique.
+
+.in +4n
+.nf
+struct sockaddr_pkt {
+    unsigned short spkt_family;
+    unsigned char  spkt_device[14];
+    unsigned short spkt_protocol;
+};
+.fi
+.in
+
+\fIspkt_family\fP contient le type de périphérique, \fIspkt_protocol\fP est le
+type de protocole IEEE 802.3 comme défini dans \fI<sys/if_ether.h>\fP
+et \fIspkt_device\fP est le nom du périphérique sous forme de chaîne terminée
+par un caractère nul, par exemple eth0.
+
+Cette structure est obsolète et ne doit pas être employée dans des nouveaux
+programmes.
+.SH BOGUES
+La GlibC 2.1 ne définit pas la constante symbolique \fBSOL_PACKET\fP. Pour
+contourner ce problème, il est conseillé d'écrire\ :
+.in +4n
+.nf
+
+#ifndef SOL_PACKET
+#define SOL_PACKET 263
+#endif
+
+.fi
+.in
+Ceci est corrigé dans les dernières versions de la GlibC et ne se produit
+pas sur les LibC5.
+
+La gestion des en\-têtes LLC IEEE 802.2/802.3 devrait être considérée comme
+un bogue.
+
+Les filtres des sockets ne sont pas documentés.
+
+.\" .SH CREDITS
+.\" This man page was written by Andi Kleen with help from Matthew Wilcox.
+.\" AF_PACKET in Linux 2.2 was implemented
+.\" by Alexey Kuznetsov, based on code by Alan Cox and others.
+L'extension \fBMSG_TRUNC\fP de \fBrecvmsg\fP(2) est une bidouille horrible et
+devrait être remplacée par un message de commande. Il n'y a actuellement
+aucun moyen d'obtenir l'adresse de destination originale des paquets via
+\fBSOCK_DGRAM\fP.
+.SH "VOIR AUSSI"
+\fBsocket\fP(2), \fBpcap\fP(3), \fBcapabilities\fP(7), \fBip\fP(7), \fBraw\fP(7),
+\fBsocket\fP(7).
+
+RFC\ 894 pour l'encapsulation IP standard Ethernet.
+
+RFC\ 1700 pour l'encapsulation IP IEEE 802.3.
+
+Le fichier d'en\-tête \fI<linux/if_ether.h>\fP pour les protocoles du
+niveau physique.
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,201 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified Sat Jul 24 17:28:34 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Sun Jun 01 17:16:34 1997 by Jochen Hein
+.\"   <jochen.hein@delphi.central.de>
+.\" Modified Thu Apr 25 00:43:19 2002 by Bruno Haible <bruno@clisp.org>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LOCALE 7 "5 décembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+locale \- Description de la gestion multilingue
+.SH SYNOPSIS
+.nf
+\fB#include <locale.h>\fP
+.fi
+.SH DESCRIPTION
+Les paramètres régionaux (ou \fIlocale\fP, en anglais) constituent un ensemble
+de règles linguistiques et culturelles. Ceci couvre des aspects tels que la
+langue utilisée pour les messages, le jeu de caractères, les conventions
+lexicographiques, etc. Un programme doit être capable de déterminer les
+paramètres de l'utilisateur et d'agir en conséquence pour être portable dans
+divers environnements culturels.
+.PP
+Le fichier d'en\-tête \fI<locale.h>\fP déclare les types de données, les
+fonctions et les macros utilisés pour ces tâches.
+.PP
+Les fonctions déclarées sont \fBsetlocale\fP(3) pour définir les paramètres
+actuels et \fBlocaleconv\fP(3) pour obtenir des informations sur la mise en
+forme des nombres.
+.PP
+Il existe différentes catégories de paramètres régionaux qui peuvent être
+utiles à un programme. Elles sont déclarées en tant que macros. En les
+utilisant comme premier argument de la fonction \fBsetlocale\fP(3), il devient
+possible de définir l'une de ces catégories à la locale désirée\ :
+.TP 
+\fBLC_COLLATE\fP
+est utilisée pour modifier le comportement des fonctions \fBstrcoll\fP(3) et
+\fBstrxfrm\fP(3), qui permettent les comparaisons de chaînes dans l'alphabet
+local. Par exemple, le eszett allemand est ordonné comme «\ ss\ ».
+.TP 
+\fBLC_CTYPE\fP
+permet de modifier le comportement des fonctions de manipulation et
+classification de caractères, telles que \fBisupper\fP(3) et \fBtoupper\fP(3), et
+celui des fonctions travaillant sur des caractères multioctets comme
+\fBmblen\fP(3) ou \fBwctomb\fP(3).
+.TP 
+\fBLC_MONETARY\fP
+modifie les informations renvoyées par \fBlocaleconv\fP(3) pour décrire la mise
+en forme habituelle des nombres, en accord avec des détails comme le point
+décimal ou la virgule décimale. Ces informations sont utilisées en interne
+par la fonction \fBstrfmon\fP(3).
+.TP 
+\fBLC_MESSAGES\fP
+configure la langue utilisée pour afficher les messages, et la saisie de
+réponses affirmatives ou négatives. La bibliothèque C GNU contient les
+fonctions \fBgettext\fP(3), \fBngettext\fP(3) et \fBrpmatch\fP(3) pour faciliter
+l'utilisation de ces données. Les fonctions de la famille GNU gettext
+obéissent aussi à la variable d'environnement \fBLANGUAGE\fP (contenant une
+liste de locales séparées par des deux\-points) si la catégorie est une
+locale valable autre que «\ \fBC\fP\ ».
+.TP 
+\fBLC_NUMERIC\fP
+modifie les informations utilisées par les fonctions des familles
+\fBprintf\fP(3) et \fBscanf\fP(3), lorsqu'elles doivent respecter les paramètres
+régionaux de l'utilisateur. Ces données peuvent également être obtenues avec
+la fonction \fBlocaleconv\fP(3).
+.TP 
+\fBLC_TIME\fP
+modifie le comportement de la fonction \fBstrftime\fP(3) pour afficher l'heure
+dans un format adéquat. Par exemple, la plupart des pays d'Europe utilisent
+un format horaire sur 24 heures, alors que les États\-Unis utilisent un
+format sur 12 heures.
+.TP 
+\fBLC_ALL\fP
+.\" FIXME glibc 2.2.2 added new non-standard locale categories:
+.\" LC_ADDRESS, LC_IDENTIFICATION, LC_MEASUREMENT, LC_NAME,
+.\" LC_PAPER, LC_TELEPHONE.  These need to be documented.
+regroupe toutes les catégories ci\-dessus.
+.PP
+Si le second argument de la fonction \fBsetlocale\fP(3) est une chaîne de
+caractères vide, \fB""\fP, la locale par défaut est déterminée selon les étapes
+suivantes\ :
+.IP 1.
+Si la variable d'environnement \fBLC_ALL\fP n'est pas nulle, sa valeur est
+utilisée.
+.IP 2.
+Si une variable d'environnement ayant le même nom que les catégories
+mentionnées ci\-dessus est non nulle, sa valeur est utilisée pour la
+catégorie en question.
+.IP 3.
+Si la variable d'environnement \fBLANG\fP est non nulle, sa valeur est
+utilisée.
+.PP
+Les valeurs concernant la mise en forme numérique sont disponibles dans une
+structure \fIlconv\fP renvoyée par la fonction \fBlocaleconv\fP(3), déclarée de la
+manière suivante\ :
+.in +2n
+.nf
+
+struct lconv {
+
+    /* Informations numériques (non monétaires) */
+
+    char *decimal_point;     /* Séparateur décimal */
+    char *thousands_sep;     /* Séparateur des milliers */
+    char *grouping; /* Chaque élément représente le nombre de
+                       chiffres dans un groupe\ ; les éléments avec
+                       les indices les plus hauts sont placés à gauche.
+                       Un élément ayant la valeur CHAR_MAX signifie
+                       qu'aucun regroupage ne peut plus être fait.
+                       Un élément avec la valeur 0 signifie que
+                       l'élément précédent est utilisé pour tous les
+                       groupes restant à gauche. */
+
+    /* Les champs restants sont pour les informations monétaires */
+
+    char *int_curr_symbol;   /* Les trois premiers caractères
+                                correspondent au symbol monétaire
+                                ISO 4217. Le quatrième est le
+                                séparateur, le cinquième vaut «\ \0\ ». */
+    char *currency_symbol;   /* Symbole monétaire local */
+    char *mon_decimal_point; /* Séparateur décimal */
+    char *mon_thousands_sep; /* Identique à \fIthousands_sep\fP ci\-dessus */
+    char *mon_grouping;      /* Identique à \fIgrouping\fP ci\-dessus */
+    char *positive_sign;     /* Signe des valeurs positives */
+    char *negative_sign;     /* Signe des valeurs négatives */
+    char  int_frac_digits;   /* Chiffres fractionnaires internat. */
+    char  frac_digits;       /* Chiffres fractionnaires locaux */
+    char  p_cs_precedes;     /* 1 si currency_symbol précède une
+                                valeur positive, 0 s'il la suit */
+    char  p_sep_by_space;    /* 1 si une espace sépare currency_symbol
+                                d'une valeur positive */
+    char  n_cs_precedes;     /* 1 si currency_symbol précède une
+                                valeur négative, 0 s'il la suit */
+    char  n_sep_by_space;    /* 1 si une espace sépare currency_symbol
+                                d'une valeur négative */
+    /* Positions des signes positifs et négatifs\ :
+       0 Parenthèses entourant la quantité et currency_symbol.
+       1 Le signe précède la quantité et currency_symbol.
+       2 Le signe suit la quantité et currency_symbol.
+       3 Le signe précède immédiatement currency_symbol.
+       4 Le signe suit immédiatement currency_symbol. */
+    char  p_sign_posn;
+    char  n_sign_posn;
+};
+.fi
+.in
+.SH CONFORMITÉ
+POSIX.1\-2001.
+
+Les fonctions de la bibliothèque GNU gettext sont décrites dans le document
+LI18NUX2000.
+.SH "VOIR AUSSI"
+\fBlocale\fP(1), \fBlocaledef\fP(1), \fBgettext\fP(3), \fBlocaleconv\fP(3),
+\fBngettext\fP(3), \fBnl_langinfo\fP(3), \fBrpmatch\fP(3), \fBsetlocale\fP(3),
+\fBstrcoll\fP(3), \fBstrfmon\fP(3), \fBstrftime\fP(3), \fBstrxfrm\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

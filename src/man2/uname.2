@@ -1,0 +1,136 @@
+.\" Copyright (C) 2001 Andries Brouwer <aeb@cwi.nl>.
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" 2007-07-05 mtk: Added details on underlying system call interfaces
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UNAME 2 "3 décembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+uname \- Obtenir des informations à propos du noyau.
+.SH SYNOPSIS
+\fB#include <sys/utsname.h>\fP
+.sp
+\fBint uname(struct utsname *\fP\fIbuf\fP\fB);\fP
+.SH DESCRIPTION
+\fBuname\fP() renvoie les informations dans le tampon \fIbuf\fP. La structure
+\fIutsname\fP est définie dans \fI<sys/utsname.h>\fP comme suit\ :
+.in +4n
+.nf
+
+struct utsname {
+    char sysname[];    /* Nom du système d'exploitation
+                          (par exemple, "Linux") */
+    char nodename[];   /* Nom dans "des réseaux définis
+                          par l'implémentation" */
+    char release[];    /* release de l'OS (e.g., "2.6.28") */
+    char version[];    /* version de l'OS */
+    char machine[];    /* Identifiant du matériel */
+#ifdef _GNU_SOURCE
+    char domainname[]; /* nom de domaine NIS ou YP */
+#endif
+};
+
+.fi
+.in
+La longueur des chaînes de la \fIstruct utsname\fP n'est pas spécifiée
+(consultez la section NOTES), les champs se terminent par un caractère nul
+(\(aq\e0\(aq).
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fIbuf\fP pointe en dehors de l'espace d'adressage accessible
+.SH CONFORMITÉ
+SVr4, POSIX.1\-2001. Il n'y a pas d'appel \fBuname\fP() dans BSD\ 4.3.
+.PP
+Le champ \fIdomainname\fP (nom de domaine NIS ou YP) est une extension Gnu.
+.SH NOTES
+Ceci est un appel système, et le système d'exploitation est supposé
+connaître son nom, et ses numéros de version et de mise à jour. Il connaît
+également le matériel sur lequel il tourne, ainsi les quatre premiers champs
+de la structure sont significatifs. En revanche, le champ \fInodename\fP n'est
+pas significatif\ : il donne le nom de la machine dans un réseau non
+précisé, mais généralement les machines sont connectées à plusieurs réseaux
+et ont plusieurs noms. De plus, le noyau n'a pas de moyen de connaître ces
+informations, et on doit les lui fournir. Ceci est vrai aussi pour le champ
+supplémentaire \fIdomainname\fP.
+.LP
+À cette fin, Linux utilise les appels système \fBsethostname\fP(2) et
+\fBsetdomainname\fP(2). Notez qu'aucun standard ne dit que le nom d'hôte fixé
+par \fBsethostname\fP(2) représente la même chaîne que le champ \fInodename\fP de
+la structure renvoyée par \fBuname\fP() (de fait, certains systèmes autorisent
+un nom d'hôte de 256 octets et un nom de noeud sur 8 octets), mais c'est le
+cas sous Linux. La même chose est vraie pour \fBsetdomainname\fP(2) et le champ
+\fIdomainname\fP.
+.LP
+La longueur des champs de la structure varie. Certains systèmes
+d'exploitation ou bibliothèques utilisent des valeurs en dur de 9, 33, 65,
+ou 257. D'autres systèmes utilisent \fBSYS_NMLN\fP, \fB_SYS_NMLN\fP, \fBUTSLEN\fP ou
+\fB_UTSNAME_LENGTH\fP. Clairement, il faut éviter d'utiliser ces constantes,
+employez plutôt sizeof(...). On choisit souvent la valeur 257 qui permet de
+stocker un nom d'hôte Internet entier.
+.LP
+Une partie des informations utsname est aussi accessible par
+\fI/proc/sys/kernel/\fP{\fIostype\fP, \fIhostname\fP, \fIosrelease\fP, \fIversion\fP,
+\fIdomainname\fP}.
+.SS "Interface noyau sous\-jacente"
+.LP
+.\" That was back before Linux 1.0
+.\" That was also back before Linux 1.0
+Avec le temps, l'augmentation de la taille de la structure \fIutsname\fP a
+conduit à 3 versions successives de \fBuname\fP()\ : \fIsys_olduname\fP() (entrée
+\fI__NR_oldolduname\fP), \fIsys_uname\fP() (entrée \fI__NR_olduname\fP) et
+\fIsys_newuname\fP() (entrée \fI__NR_uname\fP). La première utilisait une longueur
+de 9 pour tous les champs\ ; la seconde utilisait 65\ ; et la troisième une
+longueur de 65 également mais avec un champ \fIdomainname\fP supplémentaire. La
+fonction \fBuname\fP() de la glibc cache ces détails aux applications, en
+appelant la version la plus récente de ces appels système fournie par le
+noyau.
+.SH "VOIR AUSSI"
+\fBuname\fP(1), \fBgetdomainname\fP(2), \fBgethostname\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

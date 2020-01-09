@@ -1,0 +1,157 @@
+.\" Copyright (c) 2006 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" 2008-06-24, mtk: added some details about where jiffies come into
+.\"     play; added section on high-resolution timers.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TIME 7 "10 février 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+time \- Panorama des fonctions liées au temps et aux temporisations
+.SH DESCRIPTION
+.SS "Temps réel et temps processus"
+Le \fItemps réel\fP est défini comme le temps mesuré à partir d'un point fixe,
+soit un point standard dans le passe (voir la définition du point Epoch et
+du temps calendaire ci\(hydessous), soit un point (p.ex. le démarrage) dans
+la vie d'un processus (\fItemps écoulé\fP).
+
+Le \fItemps processus\fP est défini comme le temps CPU utilisé par un
+processus. Il est parfois divisé entre une partie \fIutilisateur\fP et une
+partie \fIsystème\fP. Le temps CPU utilisateur est le temps passé à exécuter du
+code en mode utilisateur. Le temps CPU système est le temps passé par le
+noyau en mode système pour le processus (p.ex. pendant des appels
+système). La commande \fBtime\fP(1) peut être utilisée pour déterminer le temps
+CPU utilisé pendant l'exécution du programme. Un programme peut déterminer
+le temps CPU qu'il a utilisé avec les fonctions \fBtimes\fP(2), \fBgetrusage\fP(2)
+et \fBclock\fP(3).
+.SS "L'horloge matérielle"
+La plupart des ordinateurs ont une horloge matérielle (alimentée par une
+pile) que le noyau lit au démarrage du système pour initialiser l'horloge
+logicielle. Pour plus de détails, voir \fBrtc\fP(4) et \fBhwclock\fP(8).
+.SS "L'horloge logicielle, HZ, et les Jiffies"
+.\" semtimedop(), mq_timedwait(), io_getevents(), poll() are the same
+.\" futexes and thus sem_timedwait() seem to use high-res timers.
+La précision de divers appels système qui définissent des délais (par
+exemple \fBselect\fP(2), \fBsigtimedwait\fP(2)) ou qui mesurent le temps
+processeur (par exemple \fBgetrusage\fP(2)) est limitée par la résolution de
+l'\fIhorloge logicielle\fP, une horloge maintenue par le noyau qui mesure le
+temps en \fIjiffies\fP. La durée d'un jiffy est déterminée par la valeur de la
+constante noyau \fIHZ\fP.
+
+La précision de nombreux appels système et horodatages est limitée par la
+résolution de l'\fIhorloge logicielle\fP, une horloge maintenue par le noyau
+qui mesure le temps en \fIjiffies\fP. La taille d'un jiffy est déterminée par
+la valeur de la constante du noyau \fIHZ\fP. La valeur de \fIHZ\fP varie d'une
+version du noyau et d'une architecture à une autre. Sur i386, la situation
+est la suivante\ : pour les noyaux jusqu'à 2.4.x inclus, HZ vaut 100, ce qui
+donne une valeur de jiffy de 10 millisecondes\ ; à partir de 2.6.0, HZ a été
+augmenté à 1000, ainsi un jiffy était équivalent à 1 milliseconde. Depuis le
+noyau 2.6.13, la valeur de HZ est un paramètre de configuration du noyau, et
+peut valoir 100, 250 (la valeur par défaut), ou 1000, donnant des valeurs de
+10, 4 et 1 millisecondes, respectivement, pour un jiffy. Depuis le noyau
+2.6.20, il est aussi possible d'utiliser 300\ ; cette valeur est divisible
+par les fréquences des formats vidéos les plus courants (PAL, 25\ Hz\ ;
+NTSC, 30\ Hz).
+
+.\" glibc gets this info with a little help from the ELF loader;
+.\" see glibc elf/dl-support.c and kernel fs/binfmt_elf.c.
+.\"
+L'appel système \fBtimes\fP(2) est un cas particulier. Il renvoie le temps avec
+une granularité définie par la constante du noyau \fIUSER_HZ\fP. Les
+applications utilisateur peuvent obtenir la valeur de cette constante avec
+\fIsysconf(_SC_CLK_TCK)\fP.
+.SS "Temporisations haute résolution"
+Avant Linux\ 2.6.21, la précision des appels système gérant les
+temporisations et les sommeils (voir plus loin) était limitée par la taille
+du «\ jiffy\ ».
+
+Depuis la version\ 2.6.21, Linux gère les temporisations haute résolution
+(HRT\ : high\-resolution timers) de manière optionnelle en configurant
+\fBCONFIG_HIGH_RES_TIMERS\fP. Sur les systèmes gérant les temporisations haute
+résolution, la précision des appels système gérant les temporisations et les
+sommeils n'est plus limitée par le «\ jiffy\ » et peut être aussi fine que
+le système ne le permette (une précision d'une microseconde est typique sur
+les matériels actuels). Vous pouvez savoir si les temporisations haute
+résolution sont gérées en vérifiant la précision renvoyée par un appel à
+\fBclock_getres\fP(2) ou en regardant les entrées «\ resolution\ » du fichier
+\fI/proc/timer_list\fP.
+
+Les temporisations haute résolution ne sont pas gérées par toutes les
+architectures matérielles. Cette gestion est disponible sur x86, arm et
+powerpc parmi d'autres.
+.SS L'«\ Epoch\ »
+Les systèmes Unix représentent le temps depuis un point appelé \fIEpoch\fP, qui
+est défini comme 0:00:00 UTC, le matin du 1er janvier 1970.
+
+Un programme peut déterminer le \fItemps calendaire\fP avec \fBgettimeofday\fP(2),
+qui renvoie le temps (en secondes et microsecondes) écoulé depuis l'Epoch\ ;
+\fBtime\fP(2) fournit une information similaire, mais avec une précision d'une
+seconde. Le temps système peut être modifié avec \fBsettimeofday\fP(2).
+.SS "Temps décomposé"
+Certaines fonctions de bibliothèque utilisent une structure de type \fItm\fP
+pour représenter le \fItemps décomposé\fP, qui stocke le temps décomposé en
+composantes distinctes (année, mois, jour, heure, minute, seconde,
+etc.). Cette structure est décrite dans \fBctime\fP(3), qui décrit également
+les fonctions qui font la conversion entre temps calendaire et temps
+décomposé. Les fonctions permettant les conversions entre temps décomposé et
+représentation sous forme de chaîne de caractère sont décrites dans
+\fBctime\fP(3), \fBstrftime\fP(3) et \fBstrptime\fP(3).
+.SS "Dormir et placer des temporisations"
+Divers appels système et fonctions permettent à un programme de s'endormir
+(suspendre son exécution) pour une durée spécifiée. Voir \fBnanosleep\fP(2),
+\fBclock_nanosleep\fP(2) et \fBsleep\fP(3).
+
+Divers appels système permettent à un processus de placer une temporisation
+qui expirera à un point donné dans le futur, et éventuellement à des
+intervalles répétés. Voir \fBalarm\fP(2), \fBgetitimer\fP(2), \fBtimerfd_create\fP(2)
+et \fBtimer_create\fP(2).
+.SH "VOIR AUSSI"
+\fBdate\fP(1), \fBtime\fP(1), \fBadjtimex\fP(2), \fBalarm\fP(2), \fBclock_gettime\fP(2),
+\fBclock_nanosleep\fP(2), \fBgetitimer\fP(2), \fBgetrlimit\fP(2), \fBgetrusage\fP(2),
+\fBgettimeofday\fP(2), \fBnanosleep\fP(2), \fBstat\fP(2), \fBtime\fP(2),
+\fBtimer_create\fP(2), \fBtimerfd_create\fP(2), \fBtimes\fP(2), \fButime\fP(2),
+\fBadjtime\fP(3), \fBclock\fP(3), \fBclock_getcpuclockid\fP(3), \fBctime\fP(3),
+\fBpthread_getcpuclockid\fP(3), \fBsleep\fP(3), \fBstrftime\fP(3), \fBstrptime\fP(3),
+\fBtimeradd\fP(3), \fBusleep\fP(3), \fBrtc\fP(4), \fBhwclock\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

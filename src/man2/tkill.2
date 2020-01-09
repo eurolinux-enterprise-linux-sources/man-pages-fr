@@ -1,0 +1,106 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) 2008 Michael Kerrisk <tmk.manpages@gmail.com>
+.\" and Copyright 2003 Abhijit Menon-Sen <ams@wiw.org>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" 2004-05-31, added tgkill, ahu, aeb
+.\" 2008-01-15 mtk -- rewote DESCRIPTION
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TKILL 2 "1er octobre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+tkill, tgkill \- Envoyer un signal à un thread.
+.SH SYNOPSIS
+.nf
+\fBint tkill(int \fP\fItid\fP\fB, int \fP\fIsig\fP\fB);\fP
+.sp
+\fBint tgkill(int \fP\fItgid\fP\fB, int \fP\fItid\fP\fB, int \fP\fIsig\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBtgkill\fP() envoie le signal \fIsig\fP au thread qui a pour identifiant \fItid\fP
+dans le groupe \fItgid\fP. (Contrairement à \fBkill\fP(2) qui ne peut être utilisé
+que pour envoyer un signal à un processus (c'est\-à\-dire un groupe de
+thread)\ ; le signal étant envoyé à n'importe quel thread du processus)
+
+\fBtkill\fP() est l'ancienne version de \fBtgkill\fP() et est obsolète. Il ne
+permet que de préciser l'identifiant du thread cible, qui peut résulter en
+un envoi du signal au mauvais thread si le thread se termine et que son
+identifiant est ré\-utilisé. Évitez d'utiliser cet appel système.
+
+Si \fItgid\fP vaut \-1, \fBtgkill\fP() est équivalent à \fBtkill\fP().
+
+Ce sont des appels système bruts, conçus pour une utilisation dans la
+bibliothèque des threads.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+L'identifiant de thread ou l'identifiant de groupe de thread ou le numéro de
+signal n'est pas valable.
+.TP 
+\fBEPERM\fP
+Permission refusée. Pour les permissions nécessaires, voir \fBkill\fP(2).
+.TP 
+\fBESRCH\fP
+Il n'y a pas de processus avec le TID (et TGID) indiqué.
+.SH VERSIONS
+\fBtkill\fP() est supporté depuis Linux 2.4.19/2.5.4. \fBtgkill\fP() a été ajouté
+dans Linux 2.5.75.
+.SH CONFORMITÉ
+\fBtkill\fP() et \fBtgkill\fP() sont spécifiques à Linux et ne doivent pas être
+utilisés dans un programme conçu pour être portable.
+.SH NOTES
+Voir la description de \fBCLONE_THREAD\fP dans \fBclone\fP(2) pour une explication
+sur les groupes de threads.
+
+La glibc ne fournit pas de fonction autour de ces appels systène\ ; utilisez
+\fBsyscall\fP(2) pour les appeler.
+.SH "VOIR AUSSI"
+\fBclone\fP(2), \fBgettid\fP(2), \fBkill\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

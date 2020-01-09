@@ -1,0 +1,440 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 1993 by Thomas Koenig <ig25@rz.uni-karlsruhe.de>
+.\" and Copyright (c) 2004 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" License.
+.\"
+.\" Modified Sat Jul 24 13:30:06 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Sun Aug 21 17:42:42 1994 by Rik Faith <faith@cs.unc.edu>
+.\"          (Thanks to Koen Holtman <koen@win.tue.nl>)
+.\" Modified Wed May 17 15:54:12 1995 by Rik Faith <faith@cs.unc.edu>
+.\"           To remove *'s from status in macros (Thanks to Michael Shields).
+.\" Modified as suggested by Nick Duffek <nsd@bbc.com>, aeb, 960426
+.\" Modified Mon Jun 23 14:09:52 1997 by aeb - add EINTR.
+.\" Modified Thu Nov 26 02:12:45 1998 by aeb - add SIGCHLD stuff.
+.\" Modified Mon Jul 24 21:37:38 2000 by David A. Wheeler
+.\"          <dwheeler@dwheeler.com> - noted thread issues.
+.\" Modified 26 Jun 01 by Michael Kerrisk
+.\"          Added __WCLONE, __WALL, and __WNOTHREAD descriptions
+.\" Modified 2001-09-25, aeb
+.\" Modified 26 Jun 01 by Michael Kerrisk, <mtk.manpages@gmail.com>
+.\"	Updated notes on setting disposition of SIGCHLD to SIG_IGN
+.\" 2004-11-11, mtk
+.\"	Added waitid(2); added WCONTINUED and WIFCONTINUED()
+.\"	Added text on SA_NOCLDSTOP
+.\"	Updated discussion of SA_NOCLDWAIT to reflect 2.6 behavior
+.\"	Much other text rewritten
+.\" 2005-05-10, mtk, __W* flags can't be used with waitid()
+.\" 2008-07-04, mtk, removed erroneous text about SA_NOCLDSTOP
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH WAIT 2 "21 avril 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+wait, waitpid, waitid \- Attendre la fin d'un processus
+.SH SYNOPSIS
+\fB#include <sys/types.h>\fP
+.br
+\fB#include <sys/wait.h>\fP
+.sp
+\fBpid_t wait(int *\fP\fIstatus\fP\fB);\fP
+
+\fBpid_t waitpid(pid_t \fP\fIpid\fP\fB, int *\fP\fIstatus\fP\fB, int \fP\fIoptions\fP\fB);\fP
+
+\fBint waitid(idtype_t \fP\fIidtype\fP\fB, id_t \fP\fIid\fP\fB, siginfo_t *\fP\fIinfop\fP\fB,
+int \fP\fIoptions\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBwaitid\fP()\ : _SVID_SOURCE || _XOPEN_SOURCE
+.SH DESCRIPTION
+Tous ces appels système attendent qu'un des fils du processus appelant
+change d'état, et permettent d'obtenir des informations sur le fils en
+question. Un processus est considéré comme changeant d'état s'il termine,
+s'il est stoppé par un signal, ou s'il est relancé par un signal. Dans le
+cas d'un fils qui se termine, l'attendre permet au système de libérer les
+ressources qui lui étaient allouées\ ; si le processus n'est pas attendu, il
+reste en état de «\ zombie\ » (voir les NOTES plus bas).
+
+Si un fils a déjà changé d'état, ces appels système retournent
+immédiatement. Sinon, ils bloquent jusqu'à ce qu'un fils change d'état ou
+qu'un gestionnaire de signal interrompe l'appel (sauf si les appels système
+sont relancés automatiquement par l'option \fBSA_RESTART\fP de
+\fBsigaction\fP(2)). Dans la suite de cette page, un fils qui a changé d'état
+et qui n'a pas été attendu est appelé \fIprêt\fP (\fIwaitable\fP).
+.SS "wait() et waitpid()"
+L'appel système \fBwait\fP() suspend l'exécution du processus appelant jusqu'à
+ce que l'un de ses enfants se termine. L'appel \fIwait(&status)\fP est
+équivalent à\ :
+.nf
+
+    waitpid(\-1, &status, 0);
+.fi
+
+L'appel système \fBwaitpid\fP() suspend l'exécution du processus appelant
+jusqu'à ce qu'un fils spécifié par l'argument \fIpid\fP change d'état. Par
+défaut, \fBwaitpid\fP() n'attend que les fils terminés, mais ce comportement
+peut être modifié par l'argument \fIoptions\fP, de la façon décrite ci\-dessous.
+
+La valeur de \fIpid\fP peut être l'une des suivantes\ :
+.IP "< \-1"
+Attendre la fin de n'importe quel processus fils appartenant au groupe de
+processus d'ID \fI\-pid\fP.
+.IP \-1
+Attendre n'importe lequel des processus fils.
+.IP 0
+Attendre la fin de n'importe quel processus fils du même groupe que
+l'appelant.
+.IP "> 0"
+Attendre la fin du processus numéro \fIpid\fP.
+.PP
+La valeur de l'argument option \fIoptions\fP est un \fIOU\fP binaire entre les
+constantes suivantes\ :
+.TP  12
+\fBWNOHANG\fP
+Ne pas bloquer si aucun fils ne s'est terminé.
+.TP 
+\fBWUNTRACED\fP
+Recevoir l'information concernant également les fils bloqués (mais non
+suivis par \fBptrace\fP(2)) si on ne l'a pas encore reçue. L'état des fils
+suivis est fourni même sans cette option.
+.TP 
+\fBWCONTINUED\fP (Depuis Linux 2.6.10)
+Renvoyer également si un processus fils stoppé a été relancé par le signal
+\fBSIGCONT\fP.
+.PP
+(Pour les options spécifiques à Linux, voir plus bas.)
+.PP
+Si \fIstatus\fP n'est pas NULL, \fBwait\fP() et \fBwaitpid\fP() stockent l'état du
+fils dans la variable de type \fIint\fP pointée. Cet entier peut être évalué
+avec les macros suivantes (qui prennent l'entier lui\-même comme argument, et
+pas un pointeur vers celui\-ci, comme le font \fBwait\fP() et \fBwaitpid\fP()\ !)\
+:
+.TP 
+\fBWIFEXITED(\fP\fIstatus\fP\fB)\fP
+Vrai si le fils s'est terminé normalement, c'est\-à\-dire par un appel à
+\fBexit\fP(3) ou \fB_exit\fP(2), ou par un \fIreturn\fP depuis main().
+.TP 
+\fBWEXITSTATUS(\fP\fIstatus\fP\fB)\fP
+Donne le code de retour, consistant en les 8 bits de poids faibles du
+paramètre \fIstatus\fP fourni à \fBexit\fP(3) ou \fB_exit\fP(2) ou dans le \fIreturn\fP
+de la routine main(). Cette macro ne peut être évaluée que si \fBWIFEXITED\fP
+est non nul.
+.TP 
+\fBWIFSIGNALED(\fP\fIstatus\fP\fB)\fP
+Vrai si le fils s'est terminé à cause d'un signal non intercepté.
+.TP 
+\fBWTERMSIG(\fP\fIstatus\fP\fB)\fP
+Donne le numéro du signal qui a causé la fin du fils. Cette macro ne peut
+être évaluée que si \fBWIFSIGNALED\fP est non nul.
+.TP 
+\fBWCOREDUMP(\fP\fIstatus\fP\fB)\fP
+Vrai si le processus fils a produit une image mémoire («\ core dump\
+»). Cette macro ne doit être évaluée que si \fBWIFSIGNALED\fP a renvoyé une
+valeur non nulle. Cette macro n'est pas décrite par POSIX.1\-2001 et n'est
+pas disponible sur certaines variantes d'Unix (par exemple AIX ou
+SunOS). N'utilisez cette macro qu'entourée de #ifdef WCOREDUMP ... #endif.
+.TP 
+\fBWIFSTOPPED(\fP\fIstatus\fP\fB)\fP
+Vrai si le fils est actuellement arrêté. Cela n'est possible que si l'on a
+effectué l'appel avec l'option \fBWUNTRACED\fP ou si le fils est suivi (voir
+\fBptrace\fP(2)).
+.TP 
+\fBWSTOPSIG(\fP\fIstatus\fP\fB)\fP
+Donne le numéro du signal qui a causé l'arrêt du fils. Cette macro ne peut
+être évaluée que si \fBWIFSTOPPED\fP est non nul.
+.TP 
+\fBWIFCONTINUED(\fP\fIstatus\fP\fB)\fP
+(Depuis Linux 2.6.10) Vrai si le processus fils a été relancé par
+\fBSIGCONT\fP.
+.SS waitid()
+L'appel système \fBwaitid\fP(), disponible depuis Linux 2.6.9, fournit des
+moyens plus fins de contrôler quels changements d'états attendre.
+
+Les arguments \fIidtype\fP et \fIid\fP sélectionnent le(s) fils à attendre, comme
+suit\ :
+.IP "\fIidtype\fP == \fBP_PID\fP"
+Attendre la fin du processus numéro \fIid\fP.
+.IP "\fIidtype\fP == \fBP_PGID\fP"
+Attendre la fin de n'importe quel processus fils appartenant à un groupe de
+processus d'ID \fIid\fP.
+.IP "\fIidtype\fP == \fBP_ALL\fP"
+Attendre n'importe quel fils\ ; l'argument \fIid\fP est ignoré.
+.PP
+Les changements d'état à attendre sont indiqués par un OU binaire des
+attributs suivants dans le paramètre \fIoptions\fP\ :
+.TP  12
+\fBWEXITED\fP
+Attendre les fils qui se sont terminés.
+.TP 
+\fBWSTOPPED\fP
+Attendre les enfants qui ont été arrêtés par un signal.
+.TP 
+\fBWCONTINUED\fP
+Attendre les enfants précédemment arrêtés qui ont été relancés par le signal
+\fBSIGCONT\fP.
+.PP
+Les attributs suivants peuvent également être utilisés dans \fIoptions\fP\ :
+.TP  12
+\fBWNOHANG\fP
+Comme pour \fBwaitpid\fP().
+.TP 
+\fBWNOWAIT\fP
+Laisser le fils dans un état prêt\ ; un appel ultérieur à wait() pourra de
+nouveau fournir des informations sur l'état du fils.
+.PP
+Si l'appel réussit, \fBwaitid\fP() remplit les champs suivants de la structure
+\fIsiginfo_t\fP pointée par \fIinfop\fP\ :
+.TP  12
+\fIsi_pid\fP
+L'identifiant de processus du fils.
+.TP 
+\fIsi_uid\fP
+L'UID réel du fils. Ce champ n'est pas rempli par la plupart des autres
+implémentations.
+.TP 
+\fIsi_signo\fP
+Toujours \fBSIGCHLD\fP.
+.TP 
+\fIsi_status\fP
+Soit le code de retour du fils donné à \fB_exit\fP(2) ou \fBexit\fP(3), soit le
+signal ayant provoqué la terminaison, l'arrêt, ou la relance du fils. Le
+champ \fIsi_code\fP permet de savoir comment interpréter ce champ.
+.TP 
+\fIsi_code\fP
+L'un de \fBCLD_EXITED\fP (le fils a appelé \fB_exit\fP(2)), \fBCLD_KILLED\fP (le fils
+a été tué par un signal), \fBCLD_DUMPED\fP (le fils a été tué par un signal, et
+a produit une image (core dump)), \fBCLD_STOPPED\fP (le fils a été arrêté par
+un signal), \fBCLD_TRAPPED\fP (le fils suivi a été rattrapé) ou
+\fBCLD_CONTINUED\fP (le fils a été relancé par \fBSIGCONT\fP).
+.PP
+.\" POSIX.1-2001 leaves this possibility unspecified; most
+.\" implementations (including Linux) zero out the structure
+.\" in this case, but at at least one implementation (AIX 5.1)
+.\" does not -- MTK Nov 04
+Si \fBWNOHANG\fP est utilisé dans \fIoptions\fP et aucun fils n'est prêt,
+\fBwaitid\fP() renvoie 0 immédiatement et l'état de la structure \fIsiginfo_t\fP
+pointée par \fIinfop\fP n'est pas précisé. Pour différencier ce cas de celui où
+un des fils était prêt, fixez le champ \fIsi_pid\fP avant l'appel, et vérifiez
+sa valeur après le retour.
+.SH "VALEUR RENVOYÉE"
+\fBwait\fP()\ : en cas de réussite, l'identifiant du processus fils terminé est
+renvoyé\ ; en cas d'erreur, la valeur de retour est \-1.
+
+\fBwaitpid\fP()\ : s'il réussit, l'appel renvoie l'identifiant du processus
+fils dont l'état a changé\ ; si \fBWNOHANG\fP est utilisé et un fils (ou plus)
+spécifié par \fIpid\fP existe, mais n'a toujours pas changé d'état, la valeur
+de retour est 0. En cas d'erreur, \-1 est renvoyé.
+
+.\" FIXME: As reported by Vegard Nossum, if infop is NULL, then waitid()
+.\" returns the PID of the child.  Either this is a bug, or it is intended
+.\" behavior that needs to be documented.  See my Jan 2009 LKML mail
+.\" "waitid() return value strangeness when infop is NULL".
+\fBwaitid\fP()\ : renvoie 0 s'il réussit ou si \fBWNOHANG\fP est utilisé et aucun
+fils n'a changé d'état. En cas d'erreur, il renvoie \-1. Chacun de ces appels
+système positionne \fIerrno\fP à la valeur appropriée en cas d'erreur.
+.SH ERREURS
+.TP 
+\fBECHILD\fP
+(pour \fBwait\fP()) Le processus appelant n'a pas de fils qui n'ont pas été
+attendus.
+.TP 
+\fBECHILD\fP
+(pour \fBwaitpid\fP() ou \fBwaitid\fP()) Le processus indiqué par \fIpid\fP
+(\fBwaitpid\fP()) ou \fIidtype\fP et \fIid\fP (\fBwaitid\fP()) n'existe pas, ou n'est
+pas un fils du processus appelant. (Ceci peut arriver pour son propre fils
+si l'action de \fBSIGCHLD\fP est placé sur \fBSIG_IGN\fP, voir également le
+passage de la section \fINotes sur Linux\fP concernant les threads.)
+.TP 
+\fBEINTR\fP
+\fBWNOHANG\fP n'est pas indiqué, et un signal à intercepter ou \fBSIGCHLD\fP a été
+reçu\ ; voir \fBsignal\fP(7).
+.TP 
+\fBEINVAL\fP
+L'argument \fIoptions\fP est invalide.
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3, POSIX.1\-2001.
+.SH NOTES
+Un fils qui se termine mais n'a pas été attendu devient un «\ zombie\ ». Le
+noyau conserve des informations minimales sur le processus zombie
+(identifiant, code de retour, informations d'utilisation des ressources)
+pour permettre au parent de l'attendre plus tard et d'obtenir des
+informations sur le fils. Tant que le zombie n'est pas effacé du système par
+une attente, il prendra un emplacement dans la table des processus du noyau,
+et si cette table est remplie, il sera impossible de créer de nouveaux
+processus. Si un processus parent se termine, ses fils zombies sont adoptés
+par \fBinit\fP(8), qui les attend automatiquement pour les supprimer.
+
+POSIX.1\-2001 indique que si l'action pour \fBSIGCHLD\fP est fixée à \fBSIG_IGN\fP
+ou si l'attribut \fBSA_NOCLDWAIT\fP est indiqué pour \fBSIGCHLD\fP (voir
+\fBsigaction\fP(2)), les enfants qui se terminent ne deviennent pas des zombies
+et un appel à \fBwait\fP() ou \fBwaitpid\fP() sera bloquant jusqu'à ce que tous
+les fils soient terminés, et échouera ensuite en positionnant \fIerrno\fP à
+\fBECHILD\fP. (La norme POSIX originale ne décrivait pas le comportement si
+l'action pour \fBSIGCHLD\fP était \fBSIG_IGN\fP. Veuillez noter que même si la
+disposition par défaut de \fBSIGCHLD\fP est «\ ignore\ », la configuration
+explicite de la disposition de \fBSIG_IGN\fP entraîne un traitement différent
+des processus fils zombies.) Linux 2.6 se conforme à cette norme. Cependant,
+ce n'est pas le cas de Linux 2.4 et précédents\ : si un appel à \fBwait\fP() ou
+\fBwaitpid\fP() est fait alors que \fBSIGCHLD\fP est ignoré, l'appel se comporte
+comme si \fBSIGCHLD\fP n'était pas ignoré, ce qui veut dire qu'il attend
+jusqu'à ce que le prochain fils se termine, et renvoie l'identifiant et le
+code de retour de ce fils.
+.SS "Notes sur Linux"
+Dans le noyau Linux, un thread ordonnancé par le noyau n'est pas différent
+d'un simple processus. En fait, un thread est juste un processus qui est
+créé à l'aide de la routine \(em spécifique à Linux \(em \fBclone\fP(2). Les
+routines portables, comme \fBpthread_create\fP(3), sont implémentées en
+appelant \fBclone\fP(2). Avant Linux 2.4, un thread était simplement un cas
+particulier de processus, et en conséquence un thread ne pouvait pas
+attendre les enfants d'un autre thread, même si ce dernier appartenait au
+même groupe de threads. Toutefois, POSIX réclame une telle fonctionnalité,
+et depuis Linux 2.4 un thread peut, par défaut, attendre les enfants des
+autres threads du même groupe.
+.LP
+Les \fIoptions\fP suivantes sont spécifiques à Linux, et servent pour les
+enfants créés avec \fBclone\fP(2)\ ; elles ne peuvent pas être utilisées avec
+\fBwaitid\fP()\ :
+.TP 
+\fB__WCLONE\fP
+.\" since 0.99pl10
+Attendre uniquement des enfants clones. Sinon, attendre uniquement les
+enfants non\-clones (un enfant «\ clone\ » est un enfant qui n'envoie pas de
+signal, ou un autre signal que \fBSIGCHLD\fP à son père à sa
+terminaison). Cette option est ignorée si \fB__WALL\fP est aussi indiqué.
+.TP 
+\fB__WALL\fP (depuis Linux 2.4)
+.\" since patch-2.3.48
+Attendre tous les enfants, quel que soit leur type (clone ou non\-clone).
+.TP 
+\fB__WNOTHREAD\fP (Depuis Linux 2.4)
+.\" since patch-2.4.0-test8
+Ne pas attendre les enfants des autres threads du même groupe de
+threads. Ceci était le cas par défaut avant Linux 2.4.
+.SH EXEMPLE
+.\" fork.2 refers to this example program.
+Le programme suivant montre l'utilisation de \fBfork\fP(2) et de
+\fBwaitpid\fP(). Le programme crée un processus fils. Si aucun argument n'est
+fourni dans la ligne de commande du programme, le fils suspend son exécution
+avec \fBpause\fP(2), pour que l'utilisateur puisse lui envoyer des
+signaux. Sinon, le fils se termine immédiatement, en utilisant l'entier
+fourni sur la ligne de commande comme code de retour. Le processus père
+boucle en surveillant l'état du fils avec \fBwaitpid\fP(), et utilise les
+macros W*() décrites ci\-dessus pour analyser le code d'état du fils.
+
+La session interactive suivante montre l'utilisation de ce programme\ :
+.in +4n
+.nf
+
+$\fB ./a.out &\fP
+Le PID du fils est 32360
+[1] 32359
+$\fB kill \-STOP 32360\fP
+arrêté par le signal 19
+$\fB kill \-CONT 32360\fP
+relancé
+$\fB kill \-TERM 32360\fP
+tué par le signal 15
+[1]+  Done                    ./a.out
+$
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <sys/wait.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+
+int
+main(int argc, char *argv[])
+{
+    pid_t cpid, w;
+    int status;
+
+    cpid = fork();
+    if (cpid == \-1) {
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
+
+    if (cpid == 0) {            /* Code exécuté par le fils */
+        printf("Le PID du fils est %ld\(rsn", (long) getpid());
+        if (argc == 1)
+            pause();                    /* Attendre un signal */
+        _exit(atoi(argv[1]));
+
+    } else {                    /* Code exécuté par le père */
+        do {
+            w = waitpid(cpid, &status, WUNTRACED | WCONTINUED);
+            if (w == \-1) {
+                perror("waitpid");
+                exit(EXIT_FAILURE);
+            }
+
+            if (WIFEXITED(status)) {
+                printf("terminé, code=%d\(rsn", WEXITSTATUS(status));
+            } else if (WIFSIGNALED(status)) {
+                printf("tué par le signal %d\(rsn", WTERMSIG(status));
+            } else if (WIFSTOPPED(status)) {
+                printf("arrêté par le signal %d\(rsn", WSTOPSIG(status));
+            } else if (WIFCONTINUED(status)) {
+                printf("relancé\(rsn");
+            }
+        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+        exit(EXIT_SUCCESS);
+    }
+}
+.fi
+.SH "VOIR AUSSI"
+\fB_exit\fP(2), \fBclone\fP(2), \fBfork\fP(2), \fBkill\fP(2), \fBptrace\fP(2),
+\fBsigaction\fP(2), \fBsignal\fP(2), \fBwait4\fP(2), \fBpthread_create\fP(3),
+\fBcredentials\fP(7), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

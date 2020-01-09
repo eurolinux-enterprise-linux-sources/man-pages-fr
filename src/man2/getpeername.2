@@ -1,0 +1,116 @@
+.\" Copyright (c) 1983, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"     @(#)getpeername.2	6.5 (Berkeley) 3/10/91
+.\"
+.\" Modified Sat Jul 24 16:37:50 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Thu Jul 30 14:37:50 1993 by Martin Schulze <joey@debian.org>
+.\" Modified Sun Mar 28 21:26:46 1999 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 17 Jul 2002, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Added 'socket' to NAME, so that "man -k socket" will show this page.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETPEERNAME 2 "3 décembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+getpeername \- Obtenir le nom d'un correspondant connecté sur une socket
+.SH SYNOPSIS
+\fB#include <sys/socket.h>\fP
+.sp
+\fBint getpeername(int \fP\fIsockfd\fP\fB, struct sockaddr *\fP\fIaddr\fP\fB, socklen_t
+*\fP\fIaddrlen\fP\fB);\fP
+.SH DESCRIPTION
+La fonction \fBgetpeername\fP() renvoie l'adresse du correspondant connecté sur
+la socket \fIsockfd\fP, dans le tampon pointé par \fIaddr\fP. Le paramètre
+\fIaddrlen\fP doit être initialisé pour indiquer la taille de la zone pointée
+par \fIaddr\fP. En retour, il contiendra la longueur effective (en octets) du
+nom retourné. Le nom est tronqué si le tampon est trop petit.
+
+L'adresse renvoyée est tronquée si le tampon fourni est trop petit\ ; dans ce
+cas, \fIaddrlen\fP renverra une valeur supérieure à celle fournie lors de
+l'appel.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIsockfd\fP n'est pas un descripteur valable.
+.TP 
+\fBEFAULT\fP
+Le paramètre \fIaddr\fP pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEINVAL\fP
+\fIaddrlen\fP n'est pas valable (négatif, par exemple).
+.TP 
+\fBENOBUFS\fP
+Les ressources système disponibles sont insuffisantes.
+.TP 
+\fBENOTCONN\fP
+La socket n'est pas connectée.
+.TP 
+\fBENOTSOCK\fP
+Le paramètre \fIsockfd\fP est un fichier, pas une socket.
+.SH CONFORMITÉ
+SVr4, BSD\ 4.4 (la fonction \fBgetpeername\fP() est apparue dans BSD\ 4.2),
+POSIX.1\-2001.
+.SH NOTES
+Le troisième argument de \fBgetpeername\fP() est en fait un «\ \fIint *\fP\ » (et
+c'est ce qu'utilisent BSD\ 4.x, libc4 et libc5). Une certaine confusion
+POSIX a donné le «\ \fIsocklen_t\fP\ » actuel, également utilisé par la
+glibc. Pour plus de détails voir \fBaccept\fP(2).
+.SH "VOIR AUSSI"
+\fBaccept\fP(2), \fBbind\fP(2), \fBgetsockname\fP(2), \fBip\fP(7), \fBsocket\fP(7),
+\fBunix\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

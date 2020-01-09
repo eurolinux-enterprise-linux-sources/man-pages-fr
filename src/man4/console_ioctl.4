@@ -1,0 +1,572 @@
+.\" Copyright (c) 1995 Jim Van Zandt <jrv@vanzandt.mv.com> and aeb
+.\" Sun Feb 26 11:46:23 MET 1995
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified, Sun Feb 26 15:04:20 1995, faith@cs.unc.edu
+.\" Modified, Thu Apr 20 22:08:17 1995, jrv@vanzandt.mv.com
+.\" Modified, Mon Sep 18 22:32:47 1995, hpa@storm.net (H. Peter Anvin)
+.\" FIXME The following are not documented:
+.\"     KDFONTOP (since 2.1.111)
+.\"     KDGKBDIACRUC (since 2.6.24)
+.\"     KDSKBDIACR
+.\"     KDSKBDIACRUC (since 2.6.24)
+.\"     KDKBDREP (since 2.1.113)
+.\"     KDMAPDISP (not implemented as at 2.6.27)
+.\"     KDUNMAPDISP (not implemented as at 2.6.27)
+.\"     VT_LOCKSWITCH (since 1.3.47, needs CAP_SYS_TTY_CONFIG)
+.\"     VT_UNLOCKSWITCH (since 1.3.47, needs CAP_SYS_TTY_CONFIG)
+.\"     VT_GETHIFONTMASK (since 2.6.18)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CONSOLE_IOCTL 4 "28 février 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+ioctl de console \- ioctl pour les consoles et terminaux virtuels.
+.SH DESCRIPTION
+Les requêtes \fBioctl\fP(2) spécifiques à Linux suivants sont
+disponibles. Chacune d'entre elles nécessite un troisième paramètre, ici
+noté \fIargp\fP.
+.IP \fBKDGETLED\fP
+Récupère l'état des LED. \fIargp\fP pointe vers un \fIchar\fP. L'état des LED est
+enregistré dans les trois bits de poids le plus faible de \fI*argp\fP, comme
+indiqué ci\-dessous\ :
+
+    LED_CAP       0x04   led du verrouillage des majuscules
+    LEC_NUM       0x02   led du verrouillage du pavé numérique
+    LED_SCR       0x01   led du verrouillage du défilement
+.IP \fBKDSETLED\fP
+Configure l'état des LED. Les LED sont configurées suivant la valeur des
+trois bits de poids faible de \fI*argp\fP. Cependant, si un bit de poids plus
+fort est fixé à 1, les LED reviennent dans leur état normal, affichant
+l'état des fonctions du clavier\ : verrouillage des majuscules, verrouillage
+du pavé numérique et verrouillage du défilement.
+.LP
+Avant la version\ 1.1.54 du noyau, les LED reflétaient seulement l'état
+fonctionnel du clavier, modifiable par KDGETLED/KDSETLED. Depuis la version\
+1.1.54, les LED peuvent être utilisées pour afficher des informations
+arbitraires, mais affichent par défaut l'état fonctionnel du clavier. Les
+deux ioctl ci\-dessous permettent d'accéder à cet état\ :
+.IP \fBKDGKBLED\fP
+Récupère l'état du clavier (et non des LED)\ : verrouillage des majuscules,
+verrouillage du pavé numérique et verrouillage du défilement. \fIargp\fP pointe
+vers un char stockant l'état. Les trois bits de poids faible (masque 0x7)
+indiquent l'état actuel, alors que les trois bits de poids faible de l'autre
+demi\-octet (masque 0x70) indiquent l'état par défaut.
+.IP \fBKDSKBLED\fP
+Fixe l'état du clavier (et non des LED)\ : verrouillage des majuscules,
+verrouillage du pavé numérique et verrouillage du défilement. \fIargp\fP
+indique les états voulus. Les trois bits de poids faible (masque 0x7)
+indiquent les états et les trois bits de poids faible de l'autre demi\-octet
+suivant (masque 0x70) indiquent les états par défaut. (Depuis 1.1.54.)
+.IP \fBKDGKBTYPE\fP
+Récupère le type de clavier. Retourne la valeur KB_101, définie comme 0x02.
+.IP \fBKDADDIO\fP
+Ajoute un port aux ports d'entrée/sortie valables. Équivalent à
+\fIioperm(arg,1,1)\fP.
+.IP \fBKDDELIO\fP
+Supprime un port des ports d'entrée/sortie valables. Équivalent à
+\fIioperm(arg,1,0)\fP.
+.IP \fBKDENABIO\fP
+Active les entrées/sorties vers la carte vidéo. Équivalent à \fIioperm(0x3b4,
+0x3df\-0x3b4+1, 1)\fP.
+.IP \fBKDDISABIO\fP
+Désactive les entrées/sorties vers la carte vidéo. Équivalent à
+\fIioperm(0x3b4, 0x3df\-0x3b4+1, 0)\fP..
+.IP \fBKDSETMODE\fP
+Fixe le mode texte/graphique. \fIargp\fP peut valoir\ :
+
+    KD_TEXT       0x00
+    KD_GRAPHICS   0x01
+.IP \fBKDGETMODE\fP
+Récupère le mode texte/graphique. \fIargp\fP pointe vers un \fIlong\fP qui prend
+une des valeurs précédentes.
+.IP \fBKDMKTONE\fP
+Génère une note d'une durée donnée. Les 16 bits de poids faible de \fIargp\fP
+indiquent la période en nombre de cycles, et les 16 bits de poids fort
+indiquent la durée en millisecondes. Une durée nulle correspond à un son
+coupé. La ligne de commande est immédiatement rendue. Par exemple, \fIargp\fP =
+(125<<16) + 0x637 indiquerait le bip normalement associé à Ctrl\-G.
+.IP \fBKIOCSOUND\fP
+Démarre et arrête la génération du son. Les 16 bits de poids faible de
+\fIargp\fP indiquent la période en nombre de cycles (c'est\-à\-dire \fIargp\fP =
+1193180/fréquence). \fIargp\fP = 0 coupe le son. Dans les deux, le contrôle de
+la ligne de commande est rendu immédiatement.
+.IP \fBGIO_CMAP\fP
+Récupère du noyau la table de correspondance actuelle des couleurs par
+défaut. \fIargp\fP pointe vers un tableau de 48 octets. (Depuis 1.3.3.)
+.IP \fBPIO_CMAP\fP
+Modifie le plan par défaut des couleurs du mode texte. \fIargp\fP pointe vers
+un tableau de 48 octets contenant dans l'ordre les valeurs des 16 couleurs
+disponibles, en Rouge, Vert et Bleu\ : 0 pour aucune, 255 pour l'intensité
+maximale. Les couleurs par défaut sont dans l'ordre\ : le noir, le rouge
+foncé, le vert foncé, le marron, le bleu foncé, le violet foncé, le cyan
+foncé, le gris clair, le gris foncé, le rouge, le vert, le jaune, le bleu,
+le violet, le cyan et le blanc. (Depuis 1.3.3.)
+.IP \fBGIO_FONT\fP
+Récupère la fonte de l'écran de 256 caractères sous sa forme
+étendue. \fIargp\fP pointe vers un tableau de 8192 octets. Le code d'erreur
+\fBEINVAL\fP est renvoyé si la fonte alors chargée est définie sur 512
+caractères ou si la console n'est pas en mode texte.
+.IP \fBGIO_FONTX\fP
+Récupère la fonte de l'écran et ses informations relatives. \fIargp\fP pointe
+vers une \fIstruct consolefontdesc\fP (voir \fBPIO_FONTX\fP). Lors de l'appel, le
+champ \fIcharcount\fP devrait être configuré au nombre maximal de caractères
+correspondant à la taille du tampon vers lequel pointe \fIchardata\fP. Lors du
+retour, \fIcharcount\fP et \fIcharheight\fP sont remplis des données respectives
+de la fonte actuellement chargée, le tableau \fIchardata\fP contenant les
+données de la fonte si la valeur initiale de \fIcharcount\fP indique un espace
+disque suffisant, sinon le tampon reste intact et \fIerrno\fP contient
+\fBENOMEM\fP. (Depuis 1.3.3.)
+.IP \fBPIO_FONT\fP
+Fixe la fonte (de 256 caractères) de l'écran et charge la fonte dans le
+générateur de caractères EGA/VGA. \fIargp\fP pointe vers un tableau de
+correspondance de 8192 octets, comprenant 32 octets par caractère. Seuls
+\fIN\fP d'entre eux sont utilisés pour une fonte 8x\fIN\fP (0 < \fIN\fP <=
+32). Cet appel invalide également la correspondance Unicode.
+.IP \fBPIO_FONTX\fP
+Fixe la fonte de l'écran et les informations pour le rendu. \fIargp\fP pointe
+vers une structure de type\ :
+
+.in +4n
+.nf
+struct consolefontdesc {
+    unsigned short charcount;  /* nombre de caractères
+                                  (256 ou 512) */
+    unsigned short charheight; /* lignes par caractère
+                                  (1\-32) */
+    char          *chardata;   /* données de la fonte
+                                  forme étendue */
+};
+.fi
+.in
+
+Si nécessaire, la taille de l'écran sera modifiée et un signal \fBSIGWINCH\fP
+sera envoyé aux processus appropriés. Cet appel invalide également la
+correspondance Unicode. (Depuis 1.3.1.)
+.IP \fBPIO_FONTRESET\fP
+Rétablit la fonte, la taille et la correspondance Unicode de l'écran aux
+valeurs par défaut de démarrage (boot). \fIargp\fP n'est pas utilisé, mais ne
+doit pas valoir NULL pour la compatibilité avec les futures versions de
+Linux. (Depuis 1.3.28.)
+.IP \fBGIO_SCRNMAP\fP
+Récupère la correspondance de l'écran du noyau. \fIargp\fP pointe vers un
+espace de taille E_TABSZ, qui recevra les positions de la fonte utilisées
+pour afficher chaque caractère. Les informations renvoyées par cet appel ne
+seront sûrement pas intéressantes si la fonte chargée a plus de 256
+caractères.
+.IP \fBGIO_UNISCRNMAP\fP
+Récupère la correspondance Unicode complète du noyau. \fIargp\fP pointe vers un
+espace de taille E_TABSZ*sizeof(unsigned short), qui recevra la
+représentation Unicode de chaque caractère. Un jeu spécial d'Unicodes,
+démarrant à U+F000, est utilisé pour représentation les correspondances
+directes avec les fontes («\ direct to font mappings\ »). (Depuis 1.3.1.)
+.IP \fBPIO_SCRNMAP\fP
+Charge dans le noyau la table «\ définissable par l'utilisateur\ » (la
+quatrième), qui fait la correspondance entre octet et symboles à l'écran de
+la console. \fIargp\fP pointe vers un espace de taille E_TABSZ.
+.IP \fBPIO_UNISCRNMAP\fP
+Charge dans le noyau la table «\ définissable par l'utilisateur\ » (la
+quatrième), qui fait la correspondance entre octet et Unicodes, qui sont
+alors convertis en symboles à l'écran d'après la table de correspondance
+déjà chargée entre Unicode et fonte. Les Unicodes spéciaux, démarrant à
+U+F000, peuvent être utilisés pour une correspondance directe avec les
+symboles de la fonte. (Depuis 1.3.1.)
+.IP \fBGIO_UNIMAP\fP
+Récupère la correspondance Unicode/Fonte du noyau. \fIargp\fP pointe vers une
+structure de type\ :
+
+.in +4n
+.nf
+struct unimapdesc {
+    unsigned short  entry_ct;
+    struct unipair *entries;
+};
+.fi
+.in
+
+où \fIentries\fP pointe vers une structure de type\ :
+
+.in +4n
+.nf
+struct unipair {
+    unsigned short unicode;
+    unsigned short fontpos;
+};
+.fi
+.in
+
+(Depuis 1.1.92.)
+.IP \fBPIO_UNIMAP\fP
+Fixe l'association Unicode/Police du noyau.
+    \fIargp\fP pointe vers une \fIstruct unimapdesc\fP.
+(Depuis 1.1.92)
+.IP \fBPIO_UNIMAPCLR\fP
+Vide la table, éventuellement en informant l'algorithme de hachage. \fIargp\fP
+pointe vers une structure de type\ :
+
+.in +4n
+.nf
+struct unimapinit {
+    unsigned short advised_hashsize;  /* 0 si sans opinion */
+    unsigned short advised_hashstep;  /* 0 si sans opinion */
+    unsigned short advised_hashlevel; /* 0 si sans opinion */
+};
+.fi
+.in
+
+(Depuis 1.1.92.)
+.IP \fBKDGKBMODE\fP
+Récupère le mode courant du clavier. \fIargp\fP pointe vers un \fIlong\fP qui
+prend une de ces valeurs\ :
+
+    K_RAW         0x00
+    K_XLATE       0x01
+    K_MEDIUMRAW   0x02
+    K_UNICODE     0x03
+.IP \fBKDSKBMODE\fP
+Fixe le mode courant du clavier. \fIargp\fP est un \fIlong\fP égal à une des
+valeurs précédentes.
+.IP \fBKDGKBMETA\fP
+Récupère le mode de gestion des méta\-touches. \fIargp\fP pointe vers un \fIlong\fP
+qui prend une des valeurs suivantes\ :
+
+    K_METABIT     0x03   positionne le bit de poids fort
+    K_ESCPREFIX   0x04   préfixe pour les échappements
+.IP \fBKDSKBMETA\fP
+Fixe le mode de gestion des méta\-touches. \fIargp\fP est un \fIlong\fP égal à une
+des valeurs précédentes.
+.IP \fBKDGKBENT\fP
+Récupère une entrée dans la table de traduction des touches (code de touche
+vers code d'action). \fIargp\fP pointe vers une structure de type\ :
+
+.in +4n
+.nf
+struct kbentry {
+    unsigned char  kb_table;
+    unsigned char  kb_index;
+    unsigned short kb_value;
+};
+.fi
+.in
+
+dont les deux premiers membres sont renseignés\ : \fIkb_table\fP sélectionne la
+table de touches (0<= \fIkb_table\fP < MAX_NR_KEYMAPS), et \fIkb_index\fP
+est le code de touche (0 <= \fIkb_index\fP < NR_KEYS). \fIkb_value\fP est
+positionné avec le code d'action correspondant ou K_HOLE si la touche
+n'existe pas ou encore K_NOSUCHMAP si \fIkb_table\fP n'est pas valable.
+.IP \fBKDSKBENT\fP
+Fixe une entrée de la table de traduction. \fIargp\fP pointe vers une \fIstruct
+kbentry\fP.
+.IP \fBKDGKBSENT\fP
+Récupère la chaîne d'une touche fonction. \fIargp\fP pointe vers une structure
+de type\ :
+
+.in +4n
+.nf
+struct kbsentry {
+    unsigned char kb_func;
+    unsigned char kb_string[512];
+};
+.fi
+.in
+
+\fIkb_string\fP fournit la chaîne (terminée par un caractère nul) correspondant
+au code d'action de la \fIkb_func\fPième touche fonction.
+.IP \fBKDSKBSENT\fP
+Fixe la chaîne d'une touche fonction. \fIargp\fP pointe vers une \fIstruct
+kbsentry\fP.
+.IP \fBKDGKBDIACR\fP
+Lit la table des accents du noyau. \fIargp\fP pointe vers une structure de
+type\ :
+
+.in +4n
+.nf
+struct kbdiacrs {
+    unsigned int   kb_cnt;
+    struct kbdiacr kbdiacr[256];
+};
+.fi
+.in
+
+où \fIkb_cnt\fP est le nombre d'entrées dans le tableau, chaque entrée étant
+une structure de type\ :
+
+.in +4n
+.nf
+struct kbdiacr {
+    unsigned char diacr;
+    unsigned char base;
+    unsigned char result;
+};
+.fi
+.in
+.IP \fBKDGETKEYCODE\fP
+Lit une entrée de la table des codes touche du noyau («\ scan code\ » vers
+code touche). \fIargp\fP pointe vers une structure de type\ :
+
+.in +4n
+.nf
+struct kbkeycode {
+    unsigned int scancode;
+    unsigned int keycode;
+};
+.fi
+.in
+
+\fIkeycode\fP fournit le code touche correspondant à \fIscancode\fP. (89 <=
+\fIscancode\fP <= 255 seulement. Pour 1 <= \fIscancode\fP <= 88,
+\fIkeycode\fP==\fIscancode\fP.) (Depuis 1.1.63.)
+.IP \fBKDSETKEYCODE\fP
+Écrit une entrée de la table des codes touche du noyau. \fIargp\fP pointe vers
+une \fIstruct kbkeycode\fP. (Depuis 1.1.63.)
+.IP \fBKDSIGACCEPT\fP
+Le processus signale sa volonté d'accepter le signal \fIargp\fP quand il est
+généré en pressant une certaine combinaison de touches. (1 <= \fIargp\fP
+<= NSIG). (Consultez spawn_console() dans linux/drivers/char/keyboard.c)
+.IP \fBVT_OPENQRY\fP
+Renvoie la première console disponible (non ouverte). \fIargp\fP pointe vers un
+\fIint\fP auquel est affecté le numéro du terminal virtuel (1 <= \fI*argp\fP
+<= MAX_NR_CONSOLES).
+.IP \fBVT_GETMODE\fP
+Récupère le mode du terminal virtuel («\ vt\ ») actif. \fIargp\fP pointe vers
+une structure de type\ :
+
+.in +4n
+.nf
+struct vt_mode {
+    char  mode;    /* mode du terminal virtuel */
+    char  waitv;   /* si positionné, met les écritures en attente
+                      et permet les écritures, sinon */
+    short relsig;  /* signal à lever en cas de libération */
+    short acqsig;  /* signal à lever en cas d'acquisition */
+    short frsig;   /* pas utilisé (mis à 0) */
+};
+.fi
+.in
+
+qui indique le mode du terminal virtuel actif. \fImode\fP prend une des
+valeurs\ :
+
+    VT_AUTO       changement de vt automatique
+    VT_PROCESS    changement de vt contrôlé par un processus
+    VT_ACKACQ     changement de vt après confirmation
+.IP \fBVT_SETMODE\fP
+Fixe l'état du terminal virtuel actif. \fIargp\fP pointe vers une \fIstruct
+vt_mode\fP.
+.IP \fBVT_GETSTATE\fP
+Récupère l'information globale sur l'état du terminal virtuel. \fIargp\fP
+pointe vers une structure de type\ :
+
+.in +4n
+.nf
+struct vt_stat {
+    unsigned short v_active;  /* terminal virtuel actif */
+    unsigned short v_signal;  /* signal à envoyer */
+    unsigned short v_state;   /* masque de bits de terminaux virtuels */
+};
+.fi
+.in
+
+Pour chaque terminal virtuel utilisé, le bit correspondant de \fIv_state\fP est
+positionné. (noyaux 1.0 à 1.1.92.)
+.IP \fBVT_RELDISP\fP
+Libère un affichage.
+.IP \fBVT_ACTIVATE\fP
+Passe au terminal virtuel \fIargp\fP (1 <= \fIargp\fP <= MAX_NR_CONSOLES).
+.IP \fBVT_WAITACTIVE\fP
+Attend jusqu'à ce que le terminal virtuel \fIargp\fP soit activé.
+.IP \fBVT_DISALLOCATE\fP
+Libère la mémoire associée au terminal virtuel \fIargp\fP. (Depuis 1.1.54.)
+.IP \fBVT_RESIZE\fP
+Informe le noyau sur la taille de l'écran. \fIargp\fP pointe vers une structure
+de type\ :
+
+.in +4n
+.nf
+struct vt_sizes {
+    unsigned short v_rows;       /* # lignes */
+    unsigned short v_cols;       /* # colonnes */
+    unsigned short v_scrollsize; /* n'est plus utilisé */
+};
+.fi
+.in
+
+Notez que ça ne change pas le mode vidéo. Consultez
+\fBresizecons\fP(8). (Depuis 1.1.54.)
+.IP \fBVT_RESIZEX\fP
+Informe le noyau de divers paramètres de l'écran. \fIargp\fP pointe vers une
+structure de type\ :
+
+.in +4n
+.nf
+struct vt_consize {
+    unsigned short v_rows;  /* nombre de lignes */
+    unsigned short v_cols;  /* nombre de colonnes */
+    unsigned short v_vlin;  /* lignes de pixels
+                               sur l'écran */
+    unsigned short v_clin;  /* lignes de pixels
+                               par caractère */
+    unsigned short v_vcol;  /* colonnes de pixels
+                               sur l'écran */
+    unsigned short v_ccol;  /* colonnes de pixels
+                               par caractère */
+};
+.fi
+.in
+
+Tout paramètre peut être mis à zéro pour indiquer qu'aucun changement n'est
+souhaité. Si plusieurs paramètres sont positionnés, ils doivent être
+cohérents. Notez que ça ne change pas le mode vidéo. Consultez
+\fBresizecons\fP(8). (Depuis 1.3.3.)
+.PP
+Les actions des ioctls suivants dépendent du premier octet de la structure
+pointée par \fIargp\fP, qui sera appelé \fIsubcode\fP par la suite. Elles ne sont
+autorisées que pour le superutilisateur ou pour le propriétaire du tty
+courant.
+.IP "\fBTIOCLINUX, subcode=0\fP"
+Fait un cliché de l'écran. A disparu dans le noyau 1.1.92. (Avec les noyaux
+1.1.92 et suivants, lisez /dev/vcsN ou /dev/vcsaN à la place.)
+.IP "\fBTIOCLINUX, subcode=1\fP"
+Récupère les informations sur la tâche. A disparu dans 1.1.92.
+.IP "\fBTIOCLINUX, subcode=2\fP"
+Fixe la sélection. \fIargp\fP pointe vers une structure de type\ :
+.in +4n
+.nf
+
+struct {
+   char  subcode;
+   short xs, ys, xe, ye;
+   short sel_mode;
+};
+
+.fi
+.in
+\fIxs\fP et \fIys\fP sont la colonne et la ligne de début. \fIxe\fP et \fIye\fP la
+colonne et la ligne de fin. (Le coin en haut à gauche a pour coordonnées
+ligne=colonne=1.) \fIsel_mode\fP vaut 0 pour les sélections caractère par
+caractère, 1 pour les sélections mot à mot ou 2 pour les sélections ligne à
+ligne. Les caractères de l'écran indiqués sont surlignés et sauvés dans le
+tableau statique sel_buffer de devices/char/console.c.
+.IP "\fBTIOCLINUX, subcode=3\fP"
+Colle la sélection. Les caractères dans le tampon de la sélection sont
+écrits dans \fIfd\fP.
+.IP "\fBTIOCLINUX, subcode=4\fP"
+Arrête l'économiseur d'écran.
+.IP "\fBTIOCLINUX, subcode=5\fP"
+Fixe le contenu de la table de correspondance (de 256 bits) définissant les
+caractères d'un «\ mot\ » pour une sélection mot à mot. (Depuis 1.1.32.)
+.IP "\fBTIOCLINUX, subcode=6\fP"
+\fIargp\fP pointe vers un caractère qui prend la valeur de la variable
+\fIshift_state\fP du noyau. (Depuis 1.1.32.)
+.IP "\fBTIOCLINUX, subcode=7\fP"
+\fIargp\fP pointe vers un caractère qui prend la valeur de la variable
+\fIreport_mouse\fP du noyau. (Depuis 1.1.33.)
+.IP "\fBTIOCLINUX, subcode=8\fP"
+Fait un cliché de largeur et de la hauteur de l'écran, de la position du
+curseur et de toutes les paires caractère\-attribut. (Noyaux 1.1.67 à 1.1.91
+uniquement. Avec les noyaux 1.1.92 et suivants, lisez /dev/vcsa* à la
+place.)
+.IP "\fBTIOCLINUX, subcode=9\fP"
+Restaure la largeur et la hauteur de l'écran, la position du curseur et
+toutes les paires caractère\-attribut. (Noyaux 1.1.67 à 1.1.91
+uniquement. Avec les noyaux 1.1.92 et suivants, écrivez dans /dev/vcsa* à la
+place.)
+.IP "\fBTIOCLINUX, subcode=10\fP"
+Gère les fonctionnalités de gestion d'énergie de la nouvelle génération de
+moniteurs. Le mode de veille d'écran VESA est fixé à \fIargp\fP[1], qui défini
+ce que la veille produit\ :
+
+    \fI0\fP\ : La veille de l'écran est désactivée.
+
+    \fI1\fP\ : Les paramètres du registre de l'adaptateur vidéo sont enregistrés, puis le contrôleur est programmé pour couper les pulsations de synchronisation verticales. Ceci place le moniteur en mode «\ standby\ ». Si votre moniteur a un minuteur, il finira par s'éteindre de lui\-même.
+
+    \fI2\fP\ : Les paramètres courants sont enregistrés, puis les pulsations de synchronisation verticales et horizontales sont coupées. Ceci place votre moniteur en mode «\ off\ ». Si votre moniteur n'a pas de minuteur ou si vous souhaitez que votre moniteur s'éteigne immédiatement quand le minuteur de veille arrive à bout, vous devriez choisir cette option. (\fIPrudence\ :\fP Des extinctions fréquentes abîmeront votre moniteur.)
+
+(Depuis 1.1.76)
+.SH "VALEUR RENVOYÉE"
+En cas de succès, 0 est renvoyé. En cas d'erreur, \-1 est renvoyé, est
+\fIerrno\fP est positionné.
+.SH ERREURS
+\fIerrno\fP peut prendre une de ces valeurs\ :
+.TP 
+\fBEBADF\fP
+Le descripteur de fichier est invalide.
+.TP 
+\fBENOTTY\fP
+Le descripteur de fichier n'est pas associé avec un périphérique spécial de
+type caractère ou la requête spécifiée ne peut pas lui être appliquée.
+.TP 
+\fBEINVAL\fP
+Le descripteur de fichier ou \fIargp\fP est n'est pas valable.
+.TP 
+\fBEPERM\fP
+Droits insuffisants.
+.SH NOTES
+\fBAttention\fP\ : ne considérez pas cette page de manuel comme une
+documentation des ioctls des consoles Linux. Elle n'existe que pour
+satisfaire votre curiosité, et pour vous éviter de lire les sources. Les
+ioctls sont documentés à l'intérieur de Linux et peuvent changer à tout
+moment sans notification. (En réalité, cette page décrit la situation au
+moment du noyau 1.1.94\ ; il existe des différences mineures, voire plus
+importantes, avec les versions plus récentes.)
+
+Très souvent, les ioctls sont ajoutés pour la communication entre le noyau
+et un programme particulier assez connu (fdisk, hdparm, setserial, tunelp,
+loadkeys, selection, setfont, etc.), et leurs comportements changeront quand
+ce programme particulier le nécessite.
+
+Les programmes qui utilisent ces ioctls ne seront pas portables vers
+d'autres versions d'Unix, et ne fonctionneront pas avec des versions de
+Linux plus anciennes ou plus récentes.
+
+Utilisez les fonctions POSIX.
+.SH "VOIR AUSSI"
+\fBdumpkeys\fP(1), \fBkbd_mode\fP(1), \fBloadkeys\fP(1), \fBmknod\fP(1), \fBsetleds\fP(1),
+\fBsetmetamode\fP(1), \fBexecve\fP(2), \fBfcntl\fP(2), \fBioperm\fP(2), \fBtermios\fP(3),
+\fBconsole\fP(4), \fBconsole_codes\fP(4), \fBmt\fP(4), \fBsd\fP(4), \fBtty\fP(4),
+\fBtty_ioctl\fP(4), \fBttyS\fP(4), \fBvcs\fP(4), \fBvcsa\fP(4), \fBcharsets\fP(7),
+\fBmapscrn\fP(8), \fBresizecons\fP(8), \fBsetfont\fP(8), \fI/usr/include/linux/kd.h\fP,
+\fI/usr/include/linux/vt.h\fP
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Simon Paillard et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

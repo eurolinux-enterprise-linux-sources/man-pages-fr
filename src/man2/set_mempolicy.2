@@ -1,0 +1,196 @@
+.\" Copyright 2003,2004 Andi Kleen, SuSE Labs.
+.\" and Copyright 2007 Lee Schermerhorn, Hewlett Packard
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" 2006-02-03, mtk, substantial wording changes and other improvements
+.\" 2007-08-27, Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+.\"     more precise specification of behavior.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SET_MEMPOLICY 2 "15 août 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+set_mempolicy \- Configurer la politique de la mémoire NUMA par défaut pour
+un processus et ses fils
+.SH SYNOPSIS
+.nf
+\fB#include <numaif.h>\fP
+.sp
+\fBint set_mempolicy(int \fP\fImode\fP\fB, unsigned long *\fP\fInodemask\fP\fB,\fP
+\fB                  unsigned long \fP\fImaxnode\fP\fB);\fP
+.sp
+Lier avec \fI\-lnuma\fP
+.fi
+.SH DESCRIPTION
+\fBset_mempolicy\fP()  définit la politique de la mémoire NUMA du processus
+appelant, qui consiste en un mode de politique et zéro ou plusieurs nœuds,
+aux valeurs spécifiées dans les arguments \fImode\fP, \fInodemask\fP et
+\fImaxnode\fP.
+
+Une machine NUMA a différents contrôleurs mémoire à différentes distances de
+CPU particulières. La politique de la mémoire définit à partir de quel nœud
+la mémoire pour ce processus sera allouée.
+
+Cet appel système définit la politique par défaut pour le processus. La
+politique de processus gouverne l'allocation de page dans l'espace
+adressable du processus en dehors des plages mémoire contrôlées par une
+politique plus spécifique définie par \fBmbind\fP(2). La politique de processus
+par défaut contrôle également l'allocation de toute page pour les fichiers
+projetés de mémoire, projetés en utilisant l'appel système \fBmmap\fP(2)  avec
+l'attribut \fBMAP_PRIVATE\fP et qui ne sont seulement lus (chargés) par la
+tâche, et des fichiers projetés de mémoire, projetés en utilisant \fBmmap\fP(2)
+\fBMAP_SHARED\fP quel que soit le type d'accès. La polique n'est appliquée que
+lorsqu'une nouvelle page est allouée pour le processus. Pour la mémoire
+anonyme, cela est fait lorsque l'application accède pour la première fois à
+la page.
+
+L'argument \fImode\fP doit spécifier l'un des attributs parmi \fBMPOL_DEFAULT\fP,
+\fBMPOL_BIND\fP, \fBMPOL_INTERLEAVE\fP et \fBMPOL_PREFERRED\fP. Tous les modes sauf
+\fBMPOL_DEFAULT\fP nécessitent que l'appelant spécifie, dans le paramètre
+\fInodemask\fP, un ou plusieurs modes.
+
+L'argument \fImode\fP peut aussi contenir des attributs optionnels. Les valeurs
+possibles sont\ :
+.TP 
+\fBMPOL_F_STATIC_NODES\fP (depuis Linux 2.6.26)
+Une valeur non vide de \fInodemask\fP indique des identifiants de nœuds
+physiques. Linux ne va pas recalculer le \fInodemask\fP quand le processus est
+déplacé vers un contexte différent, ni quand l'ensemble des nœuds autorisés
+par le contexte du processus actuel est modifié.
+.TP 
+\fBMPOL_F_RELATIVE_NODES\fP (depuis Linux 2.6.26)
+Une valeur non vide de \fInodemask\fP indique des identifiants de nœuds qui
+sont relatifs par rapport à l'ensemble des identifiants de nœuds autorisés
+par le contexte du processus actuel.
+.PP
+\fInodemask\fP pointe vers un masque de bits d'identifiants de nœuds qui
+contient jusqu'à \fImaxnode\fP bits. La taille du masque de bits est arrondie
+au multiple supérieur de \fIsizeof(unsigned long)\fP, mais le noyau n'utilisera
+que jusqu'à \fImaxnode\fP bits. Une valeur NULL pour \fInodemask\fP ou une valeur
+\fImaxnode\fP de zéro indique un ensemble vide de nœuds. Si la valeur de
+\fImaxnode\fP est zéro, l'argument \fInodemask\fP est ignoré.
+
+Quand une valeur de \fInodemask\fP est nécessaire, elle doit contenir au moins
+un nœud actuellement disponible et autorisé par le contexte du processus
+actuel (à moins que l'attribut \fBMPOL_F_STATIC_NODES\fP ne soit spécifié), et
+qui contient de la mémoire. Si l'attribut \fBMPOL_F_STATIC_NODES\fP est mis
+dans \fImode\fP et si un \fInodemask\fP nécessaire ne contient aucun nœud autorisé
+par le contexte du processus actuel, la politique pour la mémoire est forcée
+à allocation locale (\fIlocal allocation\fP). La politique sera réellement
+modifiée, sauf si le contexte du processus actuel contient au moins un des
+nœuds spécifiés par \fInodemask.\fP
+
+Le mode \fBMPOL_DEFAULT\fP est le mode par défaut et signifie que l'on alloue
+la mémoire localement, c'est\-à\-dire dans le nœud de la CPU qui a déclenché
+l'allocation. \fInodemask\fP doit être spécifié comme NULL. Si le «\ nœud
+local\ » ne contient pas de mémoire, le système tentera d'allouer de la
+mémoire à partir d'un nœud «\ à proximité\ ».
+
+Le mode \fBMPOL_BIND\fP définit une politique stricte qui restreint
+l'allocation mémoire aux nœuds spécifiés dans \fInodemask\fP. Si \fInodemask\fP
+indique plus d'un nœud, les allocations de pages se feront d'abord à partir
+du nœud dont l'identifiant numérique est le plus petit jusqu'à ce que ce
+nœud ne contienne plus de mémoire libre. Les allocations se feront ensuite à
+partir du node dont l'identifiant est le prochain plus grand spécifié dans
+\fInodemask\fP et ainsi de suite jusqu'à ce que plus un seul nœud indiqué ne
+contienne de mémoire libre. Il n'y aura pas d'allocation de pages à partir
+de nœuds non indiqués dans \fInodemask\fP.
+
+.\" NOTE:  the following sentence doesn't make sense in the context
+.\" of set_mempolicy() -- no memory area specified.
+.\" To be effective the memory area should be fairly large,
+.\" at least 1MB or bigger.
+\fBMPOL_INTERLEAVE\fP entrelace les allocations de pages à travers les nœuds
+spécifiés dans \fInodemask\fP dans l'ordre de l'identifiant numérique de
+nœud. Cela optimise la bande passante au lieu de la latence en étalant les
+accès pages et mémoires à ces pages à travers plusieurs nœuds. Toutefois,
+les accès à une seule page seront limités à la bande passante d'un seul
+nœud.
+
+Le mode \fBMPOL_PREFERRED\fP définit le nœud préféré pour l'allocation. Le
+noyau essayera d'allouer des pages d'abord à partir de ce nœud et se
+repliera sur des nœuds voisins s'il ne reste que peu de mémoire libre sur le
+nœud préféré. Si \fInodemask\fP spécifie plus d'un identifiant de nœud, le
+premier nœud du masque sera choisi comme le nœud préféré. Si les arguments
+\fInodemask\fP et \fImaxnode\fP spécifient l'ensemble vide, la mémoire est allouée
+sur le nœud de la CPU qui a déclenché l'allocation (comme pour
+\fBMPOL_DEFAULT\fP).
+
+La politique mémoire de processus est préservée au travers d'un
+\fBexecve\fP(2), et est héritée par les processus fils créés avec \fBfork\fP(2)
+ou \fBclone\fP(2).
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBset_mempolicy\fP()  renvoie 0\ ; s'il échoue, il renvoie \-1 et
+écrit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+Une partie de la plage mémoire spécifiée par \fInodemask\fP et \fImaxnode\fP
+pointe en dehors de votre espace d'adressage accessible.
+.TP 
+\fBEINVAL\fP
+\fImode\fP n'est pas valide. Ou, \fImode\fP est \fBMPOL_DEFAULT\fP et \fInodemask\fP
+n'est pas vide, ou \fImode\fP est \fBMPOL_BIND\fP ou \fBMPOL_INTERLEAVE\fP et
+\fInodemask\fP est vide. Ou, \fImaxnode\fP spécifie plus qu'une page de bits. Ou,
+\fInodemask\fP spécifie un ou plusieurs identifiants de nœud qui sont plus
+grands que l'identifiant maximum de nœud pris en charge, ou qui ne sont pas
+autorisés dans le contexte de la tâche appelante. Ou aucun des identifiants
+de nœuds spécifiés par \fInodemask\fP ne sont connectés, ou aucun des nœuds
+spécifiés ne contient de mémoire.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.SH VERSIONS
+L'appel système \fBset_mempolicy\fP() a été ajouté au noyau Linux dans la
+version 2.6.7.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux.
+.SH NOTES
+La politique du processus n'est pas mémorisée si la page est
+délogée. Lorsqu'une telle page est réimportée en mémoire, elle utilisera la
+politique du processus ou de la plage mémoire qui était effective au moment
+où la page a été allouée.
+
+Pour des informations sur la prise en charge par la bibliothèque, voir
+\fBnuma\fP(7).
+.SH "VOIR AUSSI"
+\fBget_mempolicy\fP(2), \fBgetcpu\fP(2), \fBmbind\fP(2), \fBmmap\fP(2), \fBnuma\fP(3),
+\fBcpuset\fP(7), \fBnuma\fP(7), \fBnumactl\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006-2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

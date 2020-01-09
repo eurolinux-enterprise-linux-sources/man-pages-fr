@@ -1,0 +1,100 @@
+.\" Copyright 2001 John Levon <moz@compsoc.man.ac.uk>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Additions, aeb, 2001-10-17.
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CLEARENV 3 "26 juillet 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+clearenv \- Vider l'environnement
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBint clearenv(void);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBclearenv\fP()\ : _SVID_SOURCE || _XOPEN_SOURCE
+.SH DESCRIPTION
+La fonction \fBclearenv\fP() efface de l'environnement toutes les paires «\
+nom\-valeur\ » et définit la variable externe \fIenviron\fP à NULL.
+.SH "VALEUR RENVOYÉE"
+.\" Most versions of Unix return -1 on error, or do not even have errors.
+.\" Glibc info and the Watcom C library document "a non-zero value".
+La fonction \fBclearenv\fP() renvoie zéro en cas de succès et une valeur non
+nulle en cas d'échec.
+.SH VERSIONS
+Absente de la libc4 et de la libc5. Présente dans la glibc depuis la
+version\ 2.0.
+.SH CONFORMITÉ
+Diverses variantes d'Unix (DG/UX, HP\-UX, QNX, ...). POSIX.9 (binding pour
+FORTRAN77). POSIX.1\-1996 ne définissait pas \fBclearenv\fP() et \fBputenv\fP(3),
+mais, suite à un changement d'attitude, ces fonctions ont été programmées
+pour les versions futures de ce standard (cf. B.4.6.1). Néanmoins,
+POSIX.1\-2001 ajouta seulement \fBputenv\fP(3), et refusa \fBclearenv\fP().
+.SH NOTES
+Cette fonction est utilisée dans les applications sensibilisées à la
+sécurité. Si elle n'est pas disponible, l'affectation
+.nf
+
+    environ = NULL;
+
+.fi
+rendra sans doute le même service.
+.LP
+.\" .LP
+.\" HP-UX has a ENOMEM error return.
+Les pages de manuel DG/UX et Tru64 indiquent\ : si \fIenviron\fP a été modifiée
+par autre chose que les fonctions \fBputenv\fP(3), \fBgetenv\fP(3), et
+\fBclearenv\fP(), alors \fBclearenv\fP() renverra une erreur et l'environnement du
+processus sera inchangé.
+.SH "VOIR AUSSI"
+\fBgetenv\fP(3), \fBputenv\fP(3), \fBsetenv\fP(3), \fBunsetenv\fP(3), \fBenviron\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

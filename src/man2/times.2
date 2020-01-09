@@ -1,0 +1,171 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified by Michael Haardt (michael@moria.de)
+.\" Modified Sat Jul 24 14:29:17 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 961203 and 001211 and 010326 by aeb@cwi.nl
+.\" Modified 001213 by Michael Haardt (michael@moria.de)
+.\" Modified 13 Jun 02, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Added note on non-standard behavior when SIGCHLD is ignored.
+.\" Modified 2004-11-16, mtk, Noted that the non-conformance when
+.\"	SIGCHLD is being ignored is fixed in 2.6.9; other minor changes
+.\" Modified 2004-12-08, mtk, in 2.6 times() return value changed
+.\" 2005-04-13, mtk
+.\"	Added notes on non-standard behavior: Linux allows 'buf' to
+.\"	be NULL, but POSIX.1 doesn't specify this and it's non-portable.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TIMES 2 "25 juin 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+times \- Obtenir les statistiques temporelles du processus
+.SH SYNOPSIS
+\fB#include <sys/times.h>\fP
+.sp
+\fBclock_t times(struct tms *\fP\fIbuf\fP\fB);\fP
+.SH DESCRIPTION
+La fonction \fBtimes\fP() stocke les durées statistiques du processus en cours
+dans la structure \fIstruct tms\fP pointée par \fIbuf\fP. La structure \fIstruct
+tms\fP est définie ainsi dans \fI<sys/times.h>\fP\ :
+.sp
+.in +4n
+.nf
+struct tms {
+    clock_t tms_utime;  /* durée utilisateur          */
+    clock_t tms_stime;  /* durée système              */
+    clock_t tms_cutime; /* durée utilisateur des fils */
+    clock_t tms_cstime; /* durée système des fils     */
+.fi
+.in
+.LP
+Le champ \fItms_utime\fP contient le temps CPU écoulé en exécutant les
+instructions du processus appelant. Le champ \fItms_stime\fP contient le temps
+CPU passé dans les fonctions système exécutées pour le compte du processus
+appelant. Le champ \fItms_cutime\fP contient la somme des valeurs de
+\fItms_utime\fP et \fItms_cutime\fP pour tous les processus fils terminés ayant
+été attendus. Le champ \fItms_cstime\fP contient la somme des valeurs de
+\fItms_stime\fP et \fItms_cstime\fP pour tous les processus fils terminés ayant
+été attendus.
+.LP
+Les durées des processus fils terminés (et de leurs descendants) sont
+ajoutées au moment où \fBwait\fP(2) ou \fBwaitpid\fP(2) renvoient leur numéro de
+PID. En particulier, les durées des petits\-fils que le fils n'a pas attendu
+ne sont jamais vues.
+.LP
+Toutes les durées sont exprimées en tops d'horloge.
+.SH "VALEUR RENVOYÉE"
+.\" The only possible error is EFAULT.
+\fBtimes\fP() renvoie le nombre de tops d'horloge écoulés depuis un instant
+arbitraire dans le passé. Cette valeur peut déborder de l'intervalle contenu
+dans un \fIclock_t\fP. En cas d'erreur \fI(clock_t)\ \-1\fP est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3, POSIX.1\-2001.
+.SH NOTES
+Le nombre de tops d'horloge par seconde peut être obtenu en utilisant\ :
+.in +4n
+
+sysconf(_SC_CLK_TCK);
+.in
+.PP
+Dans POSIX.1\-1996, le symbole \fBCLK_TCK\fP (défini dans \fI<time.h>\fP)
+est indiqué en voie d'obsolescence. Il est désormais obsolète.
+.PP
+.\" See the description of times() in XSH, which says:
+.\"	The times of a terminated child process are included... when wait()
+.\"	or waitpid() returns the process ID of this terminated child.
+Sous les noyaux Linux antérieurs à 2.6.9, si le traitement de \fBSIGCHLD\fP est
+configuré avec \fBSIG_IGN\fP alors les durées des enfants terminés sont
+automatiquement incluses dans les champs \fItms_cstime\fP et \fItms_cutime\fP,
+bien que POSIX.1\-2001 précise que ceci ne doit se produire que si le
+processus appelant a fait un \fBwait\fP(2) pour ses enfants. Cette non
+conformité est corrigée depuis Linux 2.6.9.
+
+Sous Linux, l'argument \fIbuf\fP peut être NULL, auquel cas \fBtimes\fP() renvoie
+simplement son résultat. Cependant, ce comportement n'est pas spécifié par
+POSIX, et la plupart des implémentations requièrent une valeur non NULL de
+\fIbuf\fP.
+.LP
+Notez que \fBclock\fP(3) renvoie aussi des valeurs de type \fIclock_t\fP, mais
+cette valeur est mesurée en unités de \fBCLOCKS_PER_SEC\fP, pas en tops
+d'horloge utilisés par \fBtimes\fP().
+
+.\" .PP
+.\" On older systems the number of clock ticks per second is given
+.\" by the variable HZ.
+Sous Linux, «\ l'instant arbitraire dans le passé\ » à partir duquel la valeur
+renvoyée par \fBtimes\fP() est mesuré a varié suivant les versions du
+noyau. Sous Linux\ 2.4 et précédents, il s'agit du démarrage du
+système. Depuis Linux\ 2.6, cet instant est \fI(2^32/HZ) \- 300\fP (c'est\-à\-dire,
+à peu près 429\ millions) secondes avant le démarrage du système. Cette
+variabilité à travers les versions du noyau (et à travers les
+implémentations Unix) combinée avec le fait que la valeur renvoyée peut
+déborder de la plage de \fIclock_t\fP, signifie que les applications portables
+seraient avisées de ne pas utiliser cette valeur. Pour mesurer les
+modifications d'un temps écoulé, utilisez plutôt \fBgettimeofday\fP(2).
+.SS Historique
+SVr1\-3 renvoie un \fIlong\fP et les membres de la structure sont de type
+\fItime_t\fP bien qu'ils stockent des tops d'horloge et pas des secondes depuis
+le 1er janvier 1970. V7 utilisait des \fIlong\fP pour les membres des
+structures, car il n'avait pas encore de type \fItime_t\fP.
+.SH BOGUES
+.\" The problem is that a syscall return of -4095 to -1
+.\" is interpreted by glibc as an error, and the wrapper converts
+.\" the return value to -1.
+.\" http://marc.info/?l=linux-kernel&m=119447727031225&w=2
+.\" "compat_sys_times() bogus until jiffies >= 0"
+.\" November 2007
+Une limitation des conventions d'appel système Linux sur certaines
+architectures (notamment i386) fait que sous linux\ 2.6, il y a une petite
+fenêtre de temps (41\ secondes) après le démarrage où \fBtimes\fP() peut
+retourner \-1, indiquant à tort qu'une erreur est apparue. Le même problème
+peut survenir lorsque les enveloppes de valeurs renvoyées ont passé la
+valeur maximum qui puisse être stockée dans \fBclockid_t\fP.
+.SH "VOIR AUSSI"
+\fBtime\fP(1), \fBgetrusage\fP(2), \fBwait\fP(2), \fBclock\fP(3), \fBsysconf\fP(3),
+\fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

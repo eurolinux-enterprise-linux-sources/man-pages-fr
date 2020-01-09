@@ -1,0 +1,204 @@
+.\" Copyright 1993 Giorgio Ciucci (giorgio@crcc.it)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified Tue Oct 22 17:54:56 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1 Jan 2002, Martin Schulze <joey@infodrom.org>
+.\" Modified 4 Jan 2002, Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\" Modified, 11 Nov 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Language and formatting clean-ups
+.\"	Added notes on /proc files
+.\"	Rewrote BUGS note about semget()'s failure to initialize
+.\"		semaphore values
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SEMGET 2 "27 mai 2004" Linux "Manuel du programmeur Linux"
+.SH NOM
+semget \- Obtenir l'identifiant d'un ensemble de sémaphores.
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <sys/ipc.h>\fP
+\fB#include <sys/sem.h>\fP
+.fi
+.sp
+\fBint semget(key_t \fP\fIkey\fP\fB,\fP \fBint \fP\fInsems\fP\fB,\fP \fBint \fP\fIsemflg\fP\fB);\fP
+.SH DESCRIPTION
+L'appel système \fBsemget\fP() renvoie l'identifiant de l'ensemble de
+sémaphores associé à la valeur de clé \fIkey\fP. Un nouvel ensemble contenant
+\fInsems\fP sémaphores est créé si \fIkey\fP a la valeur \fBIPC_PRIVATE\fP ou si
+aucun ensemble n'est associé à \fIkey\fP, et si l'option \fBIPC_CREAT\fP est
+présente dans \fIsemflg\fP.
+.PP
+Si \fIsemflg\fP contient à la fois \fBIPC_CREAT\fP et \fBIPC_EXCL\fP et qu'un
+ensemble de sémaphores existe déjà pour la clé \fIkey\fP, \fBsemget\fP() échoue et
+\fIerrno\fP vaut \fBEEXIST\fP. (Ceci est analogue à l'effet de la combinaison
+\fBO_CREAT | O_EXCL\fP pour \fBopen\fP(2).)
+.PP
+Pendant la création, les 9 bits de poids faibles de l'argument \fIsemflg\fP
+définissent les permissions d'accès (pour le propriétaire, le groupe et les
+autres) au jeu de sémaphores, en utilisant le même format et la même
+signification que les droits d'accès dans \fBopen\fP(2). Les permissions
+d'exécution ne sont pas utilisées par le système, et pour un jeu de
+sémaphores, l'autorisation d'écriture signifie autorisation de modification.
+.PP
+.\" In truth, every one of the many implementations that I've tested sets
+.\" the values to zero, but I suppose there is/was some obscure
+.\" implementation out there that does not.
+Les valeurs des sémaphores dans un ensemble qui vient d'être créé sont
+indéterminées (POSIX.1\-2001 est explicite sur ce point). Même si Linux,
+comme de nombreuses autres implémentations, initialise les valeurs des
+sémaphores à 0, une application portable ne peut pas compter sur cette
+initialisation\ : elle doit initialiser explicitement les sémaphores à la
+valeur souhaitée.
+.PP
+Durant la création, la structure de données \fIsemid_ds\fP (voir \fBsemctl\fP(2))
+contrôlant le jeu de sémaphores est initialisée ainsi par \fBsemget\fP()\ :
+.IP
+\fIsem_perm.cuid\fP et \fIsem_perm.uid\fP contiennent l'UID effectif du processus
+appelant.
+.IP
+\fIsem_perm.cgid\fP et \fIsem_perm.gid\fP contiennent le GID effectif du processus
+appelant.
+.IP
+Les 9 bits de poids faibles de \fIsem_perm.mode\fP contiennent les 9 bits de
+poids faibles de \fIsemflg\fP.
+.IP
+\fIsem_nsems\fP reçoit la valeur \fInsems\fP.
+.IP
+\fIsem_otime\fP est mis à 0.
+.IP
+\fIsem_ctime\fP est rempli avec l'heure actuelle.
+.PP
+L'argument \fInsems\fP peut valoir 0 (ignore) si l'appel système n'est pas une
+création d'ensemble de sémaphores. Autrement \fInsems\fP doit être supérieur à
+0 et inférieur ou égal au nombre maximal de sémaphores par ensemble
+(\fBSEMMSL\fP).
+.PP
+.\" and a check is made to see if it is marked for destruction.
+Si le jeu de sémaphores existe déjà, les permissions d'accès sont
+contrôlées.
+.SH "VALEUR RENVOYÉE"
+Si l'appel réussit, il renvoie l'identifiant de l'ensemble (un entier
+positif), sinon il renvoie \-1 et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+En cas d'erreur, \fIerrno\fP prend l'une des valeurs suivantes\ :
+.TP 
+\fBEACCES\fP
+Le jeu de sémaphore associé à \fIkey\fP existe, mais le processus n'a aucun
+droit d'accès sur lui et n'a pas la capacité \fBCAP_IPC_OWNER\fP.
+.TP 
+\fBEEXIST\fP
+.\" .TP
+.\" .B EIDRM
+.\" The semaphore set is marked to be deleted.
+Le jeu de sémaphore associé a \fIkey\fP existe mais l'argument \fIsemflg\fP
+précise à la fois \fBIPC_CREAT\fP et \fBIPC_EXCL\fP.
+.TP 
+\fBEINVAL\fP
+\fInsems\fP est inférieur à zéro ou supérieur à la limite sur le nombre de
+sémaphores par ensemble, (\fBSEMMSL\fP), ou l'ensemble de sémaphores identifié
+par \fIkey\fP existe déjà, et \fInsems\fP est plus grand que le nombre de
+sémaphores par ensemble.
+.TP 
+\fBENOENT\fP
+Aucun jeu de sémaphore associé a \fIkey\fP n'existe et l'argument \fIsemflg\fP ne
+précise pas \fBIPC_CREAT\fP.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour créer les structures nécessaires.
+.TP 
+\fBENOSPC\fP
+Le nombre maximal de jeux de sémaphores sur le système (\fBSEMMNI\fP) est
+atteint, ou le nombre maximal de sémaphores sur le système est atteint
+(\fBSEMMNS\fP).
+.SH CONFORMITÉ
+.\" SVr4 documents additional error conditions EFBIG, E2BIG, EAGAIN,
+.\" ERANGE, EFAULT.
+SVr4, POSIX.1\-2001.
+.SH NOTES
+\fBIPC_PRIVATE\fP n'est pas une option, mais un objet de type \fIkey_t\fP. Si l'on
+utilise cette valeur spéciale dans l'argument \fIkey\fP, l'appel système ne se
+préoccupera que des 9 bits de poids faibles de \fIsemflg\fP et tentera de créer
+un nouveau jeu de sémaphores.
+.PP
+Les limites suivantes concernent l'appel système \fBsemget\fP()\ :
+.TP 
+\fBSEMMNI\fP
+.\" This /proc file is not available in Linux 2.2 and earlier -- MTK
+Nombre maximal de jeux de sémaphores sur le système\ : dépend de la
+politique (sous Linux, cette limite peut être lue et modifiée dans le
+quatrième champ de \fI/proc/sys/kernel/sem\fP).
+.TP 
+\fBSEMMSL\fP
+Nombre maximal de sémaphores par ensemble\ : dépendant de l'implémentation
+(sous Linux, cette limite peut être lue et modifiée dans le premier champ de
+\fI/proc/sys/kernel/sem\fP).
+.TP 
+\fBSEMMNS\fP
+Nombre maximal de sémaphores sur le système\ : dépend de la politique (sous
+Linux, cette limite peut être lue et modifiée dans le second champ de
+\fI/proc/sys/kernel/sem\fP). Les valeurs supérieures à \fBSEMMSL * SEMMNI\fP sont
+incorrectes.
+.SH BOGUES
+Le choix du nom \fBIPC_PRIVATE\fP est malheureux, \fBIPC_NEW\fP aurait mieux
+décrit sa fonction.
+.LP
+.\" In fact they are initialized to zero on Linux, but POSIX.1-2001
+.\" does not specify this, and we can't portably rely on it.
+Les sémaphores dans un ensemble ne sont pas initialisés par
+\fBsemget\fP(). Pour initialiser les sémaphores, il faut utiliser \fBsemctl\fP(2)
+pour effectuer une opération \fBSETVAL\fP ou \fBSETALL\fP sur l'ensemble de
+sémaphores. (Lorsque plusieurs pairs ne savent pas lequel initialisera
+l'ensemble en premier, un test pour une valeur non nulle de \fIsem_otime\fP
+dans la structure de données associée renvoyée par l'opération \fBIPC_STAT\fP
+de \fBsemctl\fP(2) peut être utilisée pour éviter les problèmes d'accès
+concurrents.)
+.SH "VOIR AUSSI"
+\fBsemctl\fP(2), \fBsemop\fP(2), \fBftok\fP(3), \fBcapabilities\fP(7),
+\fBsem_overview\fP(7), \fBsvipc\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

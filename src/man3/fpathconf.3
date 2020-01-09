@@ -1,0 +1,131 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" License.
+.\" Modified Wed Jul 28 11:12:26 1993 by Rik Faith (faith@cs.unc.edu)
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FPATHCONF 3 "4 avril 1993" GNU "Manuel du programmeur Linux"
+.SH NOM
+fpathconf, pathconf \- Obtenir des valeurs de configuration de fichiers
+.SH SYNOPSIS
+.nf
+\fB#include <unistd.h>\fP
+.sp
+\fBlong fpathconf(int \fP\fIfd\fP\fB, int \fP\fIname\fP\fB);\fP
+.br
+\fBlong pathconf(char *\fP\fIpath\fP\fB, int \fP\fIname\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBfpathconf\fP() récupère la valeur de l'option de configuration
+\fIname\fP du descripteur de fichier ouvert \fIfd\fP.
+.PP
+La fonction \fBpathconf\fP() récupère la valeur de l'option de configuration
+\fIname\fP du fichier \fIpath\fP.
+.PP
+Les macros correspondantes définies dans \fI<unistd.h>\fP sont à valeur
+minimale\ ; si une application désire tirer partie des valeurs qui peuvent
+évoluer, un appel à \fBfpathconf\fP() ou \fBpathconf\fP() peut être fait, et
+renvoie des résultats plus souples.
+.PP
+Définir \fIname\fP à l'une des constantes suivantes renvoie les options de
+configuration suivantes\ :
+.TP 
+\fB_PC_LINK_MAX\fP
+renvoie le nombre maximal de liens sur le fichier. Si \fIfd\fP ou \fIpath\fP
+correspondent à un répertoire, la valeur s'applique à l'ensemble du
+répertoire. La macro correspondante est \fB_POSIX_LINK_MAX\fP.
+.TP 
+\fB_PC_MAX_CANON\fP
+renvoie la longueur maximale des lignes de saisie formatée\ ; \fIfd\fP ou
+\fIpath\fP doit correspondre à un terminal. La macro correspondante est
+\fB_POSIX_MAX_CANON\fP.
+.TP 
+\fB_PC_MAX_INPUT\fP
+renvoie la longueur maximale d'une ligne de saisie\ ; \fIfd\fP ou \fIpath\fP doit
+correspondre à un terminal. La macro correspondante est \fB_POSIX_MAX_INPUT\fP.
+.TP 
+\fB_PC_NAME_MAX\fP
+renvoie la longueur maximale du nom d'un fichier que le processus a le droit
+de créer dans les répertoires \fIpath\fP ou \fIfd\fP. La macro correspondante est
+\fB_POSIX_NAME_MAX\fP.
+.TP 
+\fB_PC_PATH_MAX\fP
+renvoie la longueur maximale des chemins relatifs lorsque \fIpath\fP ou \fIfd\fP
+est le répertoire courant. La macro correspondante est \fB_POSIX_PATH_MAX\fP.
+.TP 
+\fB_PC_PIPE_BUF\fP
+renvoie la taille du tampon d'un tube\ ; \fIfd\fP doit correspondre à un tube
+ou une FIFO, et \fIpath\fP doit correspondre à une FIFO. La macro
+correspondante est \fB_POSIX_PIPE_BUF\fP.
+.TP 
+\fB_PC_CHOWN_RESTRICTED\fP
+renvoie une valeur non nulle si \fBchown\fP(2) ne peut pas être utilisé avec ce
+fichier. Si \fIfd\fP ou \fIpath\fP est un répertoire, ceci s'applique à tous les
+fichiers de ce répertoire. La macro correspondante est
+\fB_POSIX_CHOWN_RESTRICTED\fP.
+.TP 
+\fB_PC_NO_TRUNC\fP
+renvoie une valeur non nulle si l'accès à des noms de fichier plus long que
+\fB_POSIX_NAME_MAX\fP déclenche une erreur. La macro correspondante est
+\fB_POSIX_NO_TRUNC\fP.
+.TP 
+\fB_PC_VDISABLE\fP
+renvoie une valeur non nulle si la gestion des caractères spéciaux peut être
+désactivée. \fIfd\fP ou \fIpath\fP doit correspondre à un terminal.
+.SH "VALEUR RENVOYÉE"
+La limite est renvoyée si elle existe. Si le système n'a pas de limite pour
+la ressource demandée, \-1 est renvoyé et \fIerrno\fP est inchangé. S'il se
+produit une erreur, \-1 est renvoyé, et \fIerrno\fP contient le code d'erreur.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Les fichiers dont la longueur du nom excède la valeur renvoyée pour \fIname\fP,
+définie à \fB_PC_NAME_MAX\fP, peuvent exister dans le répertoire considéré.
+.PP
+Certaines valeurs renvoyées peuvent être énormes\ ; elles ne sont pas
+utilisables pour réaliser des allocations mémoires.
+.SH "VOIR AUSSI"
+\fBgetconf\fP(1), \fBopen\fP(2), \fBstatfs\fP(2), \fBsysconf\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,225 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) Markus Kuhn, 1996, 2001
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" 1995-11-26  Markus Kuhn <mskuhn@cip.informatik.uni-erlangen.de>
+.\"      First version written
+.\" 2001-05-11  Markus Kuhn <mgk25@cl.cam.ac.uk>
+.\"      Update
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UTF\-8 7 "11 mai 2001" GNU "Manuel du programmeur Linux"
+.SH NOM
+UTF\-8 \- Codage Unicode multioctet compatible ASCII
+.SH DESCRIPTION
+Le jeu de caractères \fBUnicode 3.0\fP est constitué d'un codage sur 16
+bits. Le codage Unicode le plus évident (connu sous le nom de \fBUCS\-2\fP)
+consiste en une séquence de mots de 16 bits. De telles chaînes peuvent
+contenir, comme fragments de caractère 16 bits, des octets comme «\ \e0\ »
+or «\ /\ » qui ont une signification particulière dans les noms de fichiers,
+et les paramètres de fonctions de bibliothèque C. De plus la majorité des
+outils Unix attendent des fichiers ASCII et ne peuvent pas lire des
+caractères représentés par des mots de 16 bits sans subir de modifications
+majeures. Pour ces raisons, l'\fBUCS\-2\fP n'est pas un codage externe de
+l'\fBUnicode\fP utilisable dans les noms de fichiers, les variables
+d'environnement, les fichiers textes, etc. Le surensemble d'Unicode \fBISO
+10646 Universal Character Set (UCS)\fP occupe même un espace de codage sur 31
+bits, et l'encodage évident \fBUCS\-4\fP (une séquence de mots sur 32 bits) a
+les mêmes inconvénients.
+
+Le codage \fBUTF\-8\fP de l'\fBUnicode\fP et de l'\fBUCS\fP n'a pas ces inconvénients
+et est un moyen d'utiliser le jeu de caractères \fBUnicode\fP sous les systèmes
+d'exploitation compatibles Unix.
+.SS Propriétés
+Le codage \fBUTF\-8\fP a les propriétés suivantes\ :
+.TP  0.2i
+*
+Les caractères \fBUCS\fP 0x00000000 à 0x0000007f (le jeu \fBUS\-ASCII\fP classique)
+sont codés simplement par les octets 0x00 à 0x7f (compatibilité ASCII). Ceci
+signifie que les fichiers et les chaînes qui contiennent uniquement des
+caractères du jeu ASCII 7 bits ont exactement le même codage en \fBASCII\fP et
+en \fBUTF\-8\fP.
+.TP 
+*
+Tous les caractères \fBUCS\fP supérieurs à 0x7F sont codés en séquences
+consistant uniquement en octets dans l'intervalle 0x80 a 0xfd, ainsi aucun
+octet ASCII n'apparaît en tant que partie d'un autre caractère, et il n'y a
+donc pas de problème avec «\ \e0\ » ou «\ /\ »).
+.TP 
+*
+L'ordre de tri lexicographique des chaînes \fBUCS\-4\fP est préservé.
+.TP 
+*
+Tous les 2^31 caractères de l'UCS peuvent être encodés en utilisant
+\fBUTF\-8\fP.
+.TP 
+*
+Les octets 0xfe et 0xff ne sont jamais utilisés dans le codage \fBUTF\-8\fP.
+.TP 
+*
+Le premier octet d'une séquence multioctet représentant un caractère \fBUCS\fP
+non ASCII est toujours dans l'intervalle 0xc0 à 0xfd et indique la longueur
+de la séquence multioctet. Tous les octets suivants de cette séquence sont
+dans l'intervalle 0x80 à 0xbf. Ceci permet une resynchronisation aisée et
+rend le codage robuste face aux octets manquants.
+.TP 
+*
+Les caractères \fBUCS\fP codés en \fBUTF\-8\fP peuvent avoir jusqu'à 6
+octets. Néanmoins le standard \fBUnicode\fP ne précise aucun caractère au\-delà
+de 0x10ffff, ainsi les caractères Unicode ne peuvent avoir que 4 octets en
+\fBUTF\-8\fP.
+.SS Codage
+Les séquences d'octets suivantes sont utilisées pour représenter un
+caractère. Les séquences utilisées dépendent du numéro de code UCS du
+caractère\ :
+.TP  0.4i
+0x00000000 \- 0x0000007F\ :
+0\fIxxxxxxx\fP
+.TP 
+0x00000080 \- 0x000007FF\ :
+110\fIxxxxx\fP 10\fIxxxxxx\fP
+.TP 
+0x00000800 \- 0x0000FFFF\ :
+1110\fIxxxx\fP 10\fIxxxxxx\fP 10\fIxxxxxx\fP
+.TP 
+0x00010000 \- 0x001FFFFF\ :
+11110\fIxxx\fP 10\fIxxxxxx\fP 10\fIxxxxxx\fP 10\fIxxxxxx\fP
+.TP 
+0x00200000 \- 0x03FFFFFF\ :
+111110\fIxx\fP 10\fIxxxxxx\fP 10\fIxxxxxx\fP 10\fIxxxxxx\fP 10\fIxxxxxx\fP
+.TP 
+0x04000000 \- 0x7FFFFFFF\ :
+1111110\fIx\fP 10\fIxxxxxx\fP 10\fIxxxxxx\fP 10\fIxxxxxx\fP 10\fIxxxxxx\fP 10\fIxxxxxx\fP
+.PP
+Les positions de bits \fIxxx\fP sont remplies avec les bits du numéro de code
+du caractère en représentation binaire. Seule la plus petite séquence
+multioctet permettant de représenter un numéro de code doit être utilisée.
+.PP
+Les codes \fBUCS\fP de valeur 0xd800\(en0xdfff (remplacements en UTF\-16) ainsi
+que 0xfffe et 0xffff (non\-caractères UCS) ne doivent pas apparaître dans un
+flux de données \fBUTF\-8\fP.
+.SS Exemple
+Le caractère \fBUnicode\fP 0xA9 = 1010 1001 (le symbole copyright) est codé en
+UTF\-8 de la manière suivante\ :
+.PP
+.RS
+11000010 10101001 = 0xc2 0xa9
+.RE
+.PP
+et le caractère 0x2260 = 0010 0010 0110 0000 (Le symbole «\ différent de\ »)
+est codé ainsi\ :
+.PP
+.RS
+11100010 10001001 10100000 = 0xe2 0x89 0xa0
+.RE
+.SS "Notes applicatives"
+Les utilisateurs doivent sélectionner une locale \fBUTF\-8\fP, par exemple en
+faisant
+.PP
+.RS
+export LANG=fr_FR.UTF\-8
+.RE
+.PP
+afin d'activer la gestion de l'\fBUTF\-8\fP dans les applications.
+.PP
+Les applications qui doivent connaître le codage de caractères utilisé
+doivent toujours définir la locale, en faisant par exemple
+.PP
+.RS
+setlocale(LC_CTYPE, "")
+.RE
+.PP
+et les programmeurs peuvent tester l'expression
+.PP
+.RS
+strcmp(nl_langinfo(CODESET), "UTF\-8") == 0
+.RE
+.PP
+pour savoir si une locale \fBUTF\-8\fP a été sélectionnée, et si les
+entrée\-sortie texte, les communications avec les terminaux, le contenu des
+fichiers texte, les noms de fichiers et les variables d'environnement sont
+codés en \fBUTF\-8\fP.
+.PP
+Les programmeurs habitués aux jeux de caractères mono\-octet comme
+\fBUS\-ASCII\fP ou \fBISO 8859\fP doivent savoir que deux hypothèses valables
+jusque là ne le sont plus dans les locales \fBUTF\-8\fP. D'abord, un octet seul
+ne correspond pas nécessairement à un unique caractère. Ensuite, comme les
+émulateurs de terminaux modernes en mode \fBUTF\-8\fP gèrent également les
+caractères \fBdouble largeur\fP du Chinois, du Japonais ou du Coréen et les
+\fBcaractères combinés\fP sans espacement, la sortie d'un unique caractère ne
+fait pas avancer obligatoirement le curseur d'une position comme c'était le
+cas en \fBASCII\fP. Les fonctions de bibliothèque comme \fBmbsrtowcs\fP(3) et
+\fBwcswidth\fP(3) doivent être désormais utilisées pour compter les caractères
+et les positions de curseur.
+.PP
+La séquence ESC officielle pour basculer d'un codage \fBISO 2022\fP (comme
+utilisé par exemple par les terminaux VT100) en \fBUTF\-8\fP est ESC % G («\
+\ex1b%G\ »). La séquence de retour depuis \fBUTF\-8\fP est ISO 2022 est ESC % @
+(«\ \ex1b%@\ »). D'autres séquences ISO 2022 (comme celle pour basculer
+entre les jeux G0 et G1) ne sont pas applicables en mode UTF\-8.
+.PP
+On peut espérer que dans un futur proche, \fBUTF\-8\fP remplacera \fBASCII\fP et
+\fBISO 8859\fP à tous les niveaux comme codage des caractères sur les systèmes
+POSIX, ce qui conduira à un environnement sensiblement plus riche pour
+traiter des textes.
+.SS Sécurité
+Les standards \fBUnicode\fP et \fBUCS\fP demandent que le fabricant utilisant
+\fBUTF\-8\fP utilise la forme la plus courte possible, par exemple, produire une
+séquence de deux octets avec un premier octet 0xc0 n'est pas
+conforme. \fBUnicode 3.1\fP a ajouté la nécessité pour les programmes conformes
+de ne pas accepter les formes non minimales en entrée. Il s'agit de raisons
+de sécurité\ : si une saisie est examinée pour des problèmes de sécurité, un
+programme doit rechercher seulement la version \fBASCII\fP de «\ /../\ » ou «\
+;\ » ou NUL. Il y a de nombreuses manières non\-\fBASCII\fP de représenter ces
+choses dans un codage \fBUTF\-8\fP non minimal.
+.SS Normes
+.\" .SH AUTHOR
+.\" Markus Kuhn <mgk25@cl.cam.ac.uk>
+ISO/IEC 10646\-1:2000, Unicode 3.1, RFC\ 2279, Plan 9.
+.SH "VOIR AUSSI"
+\fBnl_langinfo\fP(3), \fBsetlocale\fP(3), \fBcharsets\fP(7), \fBunicode\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

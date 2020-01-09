@@ -1,0 +1,440 @@
+.\" Copyright (c) 1991, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"	@(#)mdoc.7	8.2 (Berkeley) 12/30/93
+.\"	$Id: mdoc.7,v 1.8 1998/12/04 00:51:17 jkoshy Exp $
+.\"
+.\" The December 30, 1993 version
+.\" Modified by David A. Wheeler (dwheeler@ida.org) on 1999-07-11
+.\" to conform to Linux.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MDOC 7 "11 juillet 1999" "Linux" "Manuel d'informations diverses BSD"
+.Dd 11 juillet 1999
+.Dt MDOC 7
+.Os Linux
+.Sh NOM
+.Nm mdoc
+.Nd Guide de référence rapide pour l'ensemble de macros
+.Nm \-mdoc
+.Sh SYNOPSIS
+.Nm groff
+.Fl m Ns Ar doc
+.Ar fichiers ...
+.Sh DESCRIPTION
+.Nm \-mdoc
+est un ensemble de macros utilisées pour formater les pages de
+manuel
+.Bx
+et basées sur le contenu et sur le domaine. Les noms des
+macros et leur signification sont listés ci-dessous pour une référence
+rapide\ ; pour une explication détaillée de l'utilisation du paquet, voir la
+page
+.Xr groff_mdoc 7 .
+.Pp
+Notez que ceci n'est pas l'ensemble de macros usuel pour la documentation
+sous Linux, bien qu'il soit utilisé pour la documentation de nombreux
+programmes largement utilisés\ ; voir
+.Xr man 7 .
+.Pp
+Les macros sont décrites en deux groupes. Le premier inclut les macros de
+mise en page structurelle et physique. Le second contient les macros de
+domaine manuel et texte qui différencient le paquet
+.Nm \-mdoc
+d'autre
+systèmes de formatage
+.Xr troff .
+.Sh DOMAINE DE STRUCTURE DE PAGES
+.Ss Macros de titre
+Pour créer une page de manuel valide, les trois macros suivantes sont
+nécessaires, dans cet ordre\ :
+.Bl -tag -width "xxxx.Os OPERATINGxSYSTEM [version/release]" -compact
+.It Li "\&.Dd  " Ar "mois jour, année"
+Date du document.
+.It Li "\&.Dt  " Ar "TITRE_DOCUMENT [section] [volume]"
+Titre, en majuscules.
+.It Li "\&.Os  " Ar "SYSTÈME_D_EXPLOITATION [version/release]"
+Système d'exploitation
+.Pq Tn BSD .
+.El
+.Ss Macros de mise en page
+En\(hytêtes de section, changements de paragraphe, listes, affichage.
+.Bl -tag -width flag -compact
+.It Li \&.Sh
+En\(hytêtes de section. En\(hytêtes valides, par ordre de présentation\ :
+.Bl -tag -width "RETURN VALUE" -compact
+.It Ar NAME
+Section de nom, doit en général inclure les macros
+.Ql \&.Nm
+ou
+.Ql \&.Fn
+ainsi que
+.Ql \&.Nd .
+Ndt\ : à ce jour, le titre de cette section
+ne doit pas être traduit, sinon les en-têtes et pieds de page ne seront pas
+affichés.
+.It Ar SYNOPSIS
+Utilisation.
+.It Ar DESCRIPTION
+Description générale, devrait inclure les options et paramètres.
+.It Ar RETURN VALUE (VALEUR DE RETOUR)
+Sections 2 et 3, appels de fonctions.
+.It Ar ENVIRONMENT (ENVIRONNEMENT)
+Décrit les variables d'environnement.
+.It Ar FILES (FICHIERS)
+Les fichiers associés au thème de la page.
+.It Ar EXAMPLES (EXEMPLES)
+Exemples et suggestions.
+.It Ar DIAGNOSTICS (DIAGNOSTIQUE)
+Utilisé en général pour la section 4, interface avec les périphérique.
+.It Ar ERRORS (ERREURS)
+Sections 2 et 3, gestion des erreurs et signaux.
+.It Ar SEE ALSO (VOIR AUSSI)
+Références croisées et citations.
+.It Ar CONFORMING TO (CONFORMITÉ)
+Conformité aux normes, quand c'est le cas.
+.It Ar HISTORY (HISTORIQUE)
+Si une norme n'est pas applicable, un historique du sujet devrait être
+donné.
+.It Ar BUGS (BOGUES)
+Bogues et difficultés d'utilisation.
+.It Ar autres
+Des en\(hytêtes personnalisés peuvent être ajoutés, au choix des auteurs.
+.El
+.It Li \&.Ss
+En\(hytêtes de sous-section.
+.It Li \&.Pp
+Coupure de paragraphe. Espace vertical d'une ligne.
+.It Li \&.D1
+(D-un) «\ Display-one\ ». Indenter et afficher une ligne de texte.
+.It Li \&.Dl
+(D-ell) «\ Display-one literal\ ». Indenter et afficher une ligne de texte
+verbatim.
+.It Li \&.Bd
+Début de bloc d'affichage. Options d'affichage\ :
+.Bl -tag -width "xoffset string " -compact
+.It Fl ragged
+Non justifié.
+.It Fl filled
+Justifié.
+.It Fl literal
+Texte ou code verbatim.
+.It Fl file Ar nom
+Lire dans le
+.Ar fichier
+indiqué, et afficher le contenu.
+.It Fl offset Ar chaîne
+Afficher avec un décalage. Valeurs de
+.Ar chaîne
+autorisées\ :
+.Bl -tag -width indent-two -compact
+.It Ar left
+Aligner le bloc à gauche (par défaut)
+.It Ar center
+Marge centrale.
+.It Ar indent
+Indentation de six espaces (une tabulation).
+.It Ar indent-two
+Deux tabulations.
+.It Ar right
+Bloc aligné à gauche, à deux pouces de la limite droite.
+.It Ar xx Ns Cm n
+Où
+.Ar xx
+est un nombre entre
+.No \&4 Ns Cm n
+à
+.No \&9\&9 Ns Cm n .
+.It Ar Aa
+Où
+.Ar Aa
+est le nom d'une macro appelable.
+.It Ar chaîne
+La largeur de la
+.Ar string
+est utilisée.
+.El
+.El
+.It Li \&.Ed
+Fin de bloc d'affichage (correspond à \&.Bd).
+.It Li \&.Bl
+Début de liste. Crée des listes ou des colonnes. Options\ :
+.Bl -tag -width flag -compact
+.It Ar Types de liste
+.Bl -column xbullet -compact
+.It Fl bullet Ta "Liste Énumération par puces"
+.It Fl item Ta "Liste sans étiquette"
+.It Fl enum Ta "Énumération"
+.It Fl tag Ta "Liste avec étiquette"
+.It Fl diag Ta "Liste pour le diagnostique"
+.It Fl hang Ta "Liste avec étiquette suspendue"
+.It Fl ohang Ta "Liste avec étiquette surplombante"
+.It Fl inset Ta "Liste avec étiquette incrustée"
+.El
+.It Paramètres de liste
+.Bl -tag -width "xcompact " -compact
+.It Fl offset
+(Toutes les listes.) Voir
+.Ql \&.Bd
+ci-dessus.
+.It Fl width
+(Listes
+.Fl tag
+et
+.Fl hang
+seulement.) Voir
+.Ql \&.Bd .
+.It Fl compact
+(Toutes les listes.) Supprimer les lignes blanches.
+.El
+.El
+.It Li \&.El
+Fin de liste.
+.It Li \&.It
+Élément de liste.
+.El
+.Sh MACROS DES DOMAINES MANUEL ET TEXTE GÉNÉRIQUE
+Les macros de manuel et de texte générique sont spéciales, dans le sens où
+la plupart d'entre elles sont analysée à la recherche d'autres macros «\
+appelables\ », par exemple\ :
+.Bl -tag -width ".Op Fl s Ar filex" -offset indent
+.It Li "\&.Op Fl s Ar fichier"
+Produit
+.Op Fl s Ar fichier
+.El
+.Pp
+Dans cet exemple, la macro d'option
+.Ql \&.Op
+est parsée, et appelle la
+macro de contenu appelable
+.Ql \&Fl
+qui s'applique à l'argument
+.Ql s ,
+puis appelle la macro de contenu appelable
+.Ql \&Ar
+qui s'applique à
+l'argument
+.Ql fichier .
+Certaines macros sont appelables mais ne sont pas
+analysée, et vice-versa. Ces macros sont indiquées dans les colonnes
+.Em analysée
+et
+.Em appelable
+ci-dessous.
+.Pp
+Sauf exception notée, les macros de manuels ont toutes la même syntaxe\ :
+.Pp
+.Dl \&.Va argument [\ .\ ,\ ;\ :\ (\ )\ [\ ]\ argument ...\ ]
+.Pp
+.Sy Note
+\ : Les caractères de ponctuation ouvrants et fermants ne sont
+reconnus que s'ils sont présents un à la fois. La chaîne
+.Ql "),"
+n'est
+pas reconnue comme un signe de ponctuation, et est donc affichée précédée
+d'un espace, et dans la fonte utilisée par la macro appelante. La liste
+d'arguments
+.Ql "] ) ,"
+est reconnue comme trois caractères de
+ponctuation fermants, et n'est donc pas précédée d'un espace. La
+signification particulière d'un signe de ponctuation peut être supprimée en
+le précédant par
+.Ql \e& .
+Par exemple, la chaîne suivante
+.Bl -tag -width "&.Ar file1PO4A:VERY_IMPROBABLE_STRING_USEDFOR_NON-BREAKING-SPACES, file2PO4A:VERY_IMPROBABLE_STRING_USEDFOR_NON-BREAKING-SPACES, file3PO4A:VERY_IMPROBABLE_STRING_USEDFOR_NON-BREAKING-SPACES)PO4A:VERY_IMPROBABLE_STRING_USEDFOR_NON-BREAKING-SPACES." -offset indent
+.It Li "\&.Ar fichier1\ , fichier2\ , fichier3\ )\ ."
+Donne
+.Ar fichier1 , fichier2 , fichier3 ) .
+.El
+.ne 1i
+.Ss Macros du domaine manuel
+.Bl -column Name Parsed Callable\(dq -compact
+.It Em "Nom	Analysée	Appelable	Description"
+.It Li \&Ad Ta Oui Ta Oui Ta "Adresse (cette macro peut être obsolète)."
+.It Li \&An Ta Oui Ta Oui Ta "Nom de l'auteur."
+.It Li \&Ar Ta Oui Ta Oui Ta "Argument de ligne de commande."
+.It Li \&Cd Ta Non Ta Non Ta "Déclaration de configuration (uniquement section 4)."
+.It Li \&Cm Ta Oui Ta Oui Ta "Modificateur d'argument de ligne de commande."
+.It Li \&Dv Ta Oui Ta Oui Ta "Variable définie (code source)."
+.It Li \&Er Ta Oui Ta Oui Ta "Code d'erreur (code source)."
+.It Li \&Ev Ta Oui Ta Oui Ta "Variable d'environnement."
+.It Li \&Fa Ta Oui Ta Oui Ta "Argument d'une fonction."
+.It Li \&Fd Ta Oui Ta Oui Ta "Déclaration de fonction."
+.It Li \&Fn Ta Oui Ta Oui Ta "Appel de fonction (également .Fo et .Fc)."
+.It Li \&Ic Ta Oui Ta Oui Ta "Commande interactive."
+.It Li \&Li Ta Oui Ta Oui Ta "Texte verbatim."
+.It Li \&Nm Ta Oui Ta Oui Ta "Nom de commande."
+.It Li \&Op Ta Oui Ta Oui Ta "Option (également .Oo et .Oc)."
+.It Li \&Ot Ta Oui Ta Oui Ta "Type de fonction, ancien style (Fortran uniquement)."
+.It Li \&Pa Ta Oui Ta Oui Ta "Nom de fichier ou chemin."
+.It Li \&St Ta Oui Ta Oui Ta "Normes (\-p1003.2, \-p1003.1 ou \-ansiC)"
+.It Li \&Va Ta Oui Ta Oui Ta "Nom de variable."
+.It Li \&Vt Ta Oui Ta Oui Ta "Type de variable (Fortran)."
+.It Li \&Xr Ta Oui Ta Oui Ta "Référence à une page de manuel."
+.El
+.Ss Macros de texte génériques
+.Bl -column Name Parsed Callable\(dq -compact
+.It Em "Nom	Analysée	Appelable	Description"
+.It Li \&%A Ta Oui Ta Non Ta "Auteur de la référence."
+.It Li \&%B Ta Oui Ta Oui Ta "Titre du livre référencé."
+.It Li \&%\&C Ta Non Ta Non Ta "Lieu (ville) de publication de la référence."
+.It Li \&%\&D Ta Non Ta Non Ta "Date de la référence."
+.It Li \&%J Ta Oui Ta Oui Ta "Titre du journal de la référence."
+.It Li \&%N Ta Non Ta Non Ta "Numéro de la référence."
+.It Li \&%\&O Ta Non Ta Non Ta "Information optionnelle sur la référence."
+.It Li \&%P Ta Non Ta Non Ta "Numéro(s) de page de la référence."
+.It Li \&%R Ta Non Ta Non Ta "Nom du rapport référencé."
+.It Li \&%T Ta Oui Ta Oui Ta "Titre de l'article référencé."
+.It Li \&%V Ta Non Ta Non Ta "Volume de la référence."
+.It Li \&Ac Ta Oui Ta Oui Ta "Angle fermant."
+.It Li \&Ao Ta Oui Ta Oui Ta "Angle ouvrant."
+.It Li \&Ap Ta Oui Ta Oui Ta Apostrophe.
+.It Li \&Aq Ta Oui Ta Oui Ta "Met ses arguments entre deux angles."
+.It Li \&At Ta Non Ta Non Ta Tn "UNIX AT&T"
+.It Li \&Bc Ta Oui Ta Oui Ta "Crochet fermant."
+.It Li \&Bf Ta Non Ta Non Ta "Début de mode de police."
+.It Li \&Bo Ta Oui Ta Oui Ta "Crochet ouvrant."
+.It Li \&Bq Ta Oui Ta Oui Ta "Met ses arguments entre crochets."
+.It Li \&Bx Ta Oui Ta Oui Ta Bx .
+.It Li \&Db Ta Non Ta Non Ta "Débogage (par défaut, \*qoff\*q)"
+.It Li \&Dc Ta Oui Ta Oui Ta "Guillemet double fermant."
+.It Li \&Do Ta Oui Ta Oui Ta "Guillemet double ouvrant."
+.It Li \&Dq Ta Oui Ta Oui Ta "Guillemet double."
+.It Li \&Ec Ta Oui Ta Oui Ta "Fin d'entourage de chaîne."
+.It Li \&Ef Ta Non Ta Non Ta "Fin du mode police."
+.It Li \&Em Ta Oui Ta Oui Ta "Emphase (anglais traditionnel)."
+.It Li \&Eo Ta Oui Ta Oui Ta "Début d'entourage de chaîne."
+.It Li \&Fx Ta Non Ta Non Ta Tn "Système d'exploitation FreeBSD"
+.It Li \&No Ta Oui Ta Oui Ta "Texte normal (no-op)."
+.It Li \&Ns Ta Oui Ta Oui Ta "Pas d'espace."
+.It Li \&Pc Ta Oui Ta Oui Ta "Fermeture de parenthèse."
+.It Li \&Pf Ta Oui Ta Non Ta "Chaîne préfixe."
+.It Li \&Po Ta Oui Ta Oui Ta "Ouverture de parenthèse."
+.It Li \&Pq Ta Oui Ta Oui Ta "Parenthèses."
+.It Li \&Qc Ta Oui Ta Oui Ta "Guillemet double droit fermant."
+.It Li \&Ql Ta Oui Ta Oui Ta "Texte verbatim entre guillemets."
+.It Li \&Qo Ta Oui Ta Oui Ta "Guillemet double droit ouvrant."
+.It Li \&Qq Ta Oui Ta Oui Ta "Guillemets doubles droits."
+.It Li \&Re Ta Non Ta Non Ta "Fin de référence."
+.It Li \&Rs Ta Non Ta Non Ta "Début de référence."
+.It Li \&Rv Ta Non Ta Non Ta "Valeurs renvoyées (sections 2 et 3)."
+.It Li \&Sc Ta Oui Ta Oui Ta "Guillemet simple fermant."
+.It Li \&So Ta Oui Ta Oui Ta "Guillemet simple ouvrant."
+.It Li \&Sq Ta Oui Ta Oui Ta "Guillemet simple."
+.It Li \&Sm Ta Non Ta Non Ta "Mode espace (par défaut, \*qon\*q)"
+.It Li \&Sx Ta Oui Ta Oui Ta "Référence de section."
+.It Li \&Sy Ta Oui Ta Oui Ta "Symbolique (anglais traditionnel)."
+.It Li \&Tn Ta Oui Ta Oui Ta "Nom de marque ou de type (petites majuscules)."
+.It Li \&Ux Ta Oui Ta Oui Ta Ux
+.It Li \&Xc Ta Oui Ta Oui Ta "Fin de liste d'arguments."
+.It Li \&Xo Ta Oui Ta Oui Ta "Début de liste d'arguments."
+.El
+.\" .It Sy \&Hf Ta \&No Ta \&No Ta "Include file with header"
+.Pp
+Les macros dont le nom finit par
+.Ql q
+entourent les éléments restants
+dans la liste d'arguments. Les macros dont le nom finit par
+.Ql o
+commencent une citation qui peut prendre plusieurs lignes, et qui est
+terminée par la macro correspondante dont le nom finit par
+.Ql c .
+Les
+macros de ce type peuvent être imbriquées et sont limitées à huit arguments.
+.Pp
+Note\ : les macros de liste d'arguments étendues
+.Pf ( Ql \&.Xo ,
+.Ql \&.Xc )
+et les macros de fonction
+.Pf ( Ql \&.Fo ,
+.Ql \&.Fc )
+sont
+spéciales. Les macros de liste d'arguments étendues servent à dépasser la
+limite à neuf arguments imposée par
+.Xr troff .
+.Pp
+.\" The following does not apply on Linux:
+.\" .Sh CONFIGURATION
+.\" For site specific configuration of the macro package,
+.\" see the file
+.\" .Pa /usr/src/share/tmac/README .
+Les macros UR (qui ouvre une référence hypertexte vers une URI ou URL), UE
+(qui la ferme) et UN (qui identifie la cible d'une référence) sont également
+disponibles. Voir
+.Xr man 7
+pour plus d'informations sur ces macros.
+.Sh FICHIERS
+.Bl -tag -width tmac.doc-ditroff -compact
+.It Pa doc.tmac
+Macros des domaines manuel et texte générique.
+.It Pa tmac/doc-common
+Macros et définitions structurelles communes.
+.It Pa tmac/doc-nroff
+Fichier de style
+.Xr nroff
+local.
+.It Pa tmac/doc-ditroff
+Fichier de style
+.Xr troff
+local.
+.It Pa tmac/doc-syms
+Définitions spéciales (comme les macros courantes).
+.El
+.Sh "VOIR AUSSI"
+.Xr groff_mdoc 7 ,
+.Xr mdoc.samples 7 ,
+.Xr man 7 ,
+.Xr man-pages 7
+.Sh COLOPHON
+Cette page fait partie de la publication 3.23 du projet
+.Em man-pages
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'addresse
+http://www.kernel.org/doc/man-pages/.
+.Sh TRADUCTION
+Cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.Pp
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.Pp
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.Pp
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

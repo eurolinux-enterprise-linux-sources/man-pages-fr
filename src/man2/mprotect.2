@@ -1,0 +1,213 @@
+.\" -*- nroff -*-
+.\" Copyright (C) 2007 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" and Copyright (C) 1995 Michael Shields <shields@tembel.org>.
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and author of this work.
+.\"
+.\" Modified 1996-10-22 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1997-05-31 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 2003-08-24 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 2004-08-16 by Andi Kleen <ak@muc.de>
+.\" 2007-06-02, mtk: Fairly substantial rewrites and additions, and
+.\" a much improved example program.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MPROTECT 2 "6 août 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+mprotect \- Changer la protection d'une partie de la mémoire
+.SH SYNOPSIS
+.nf
+\fB#include <sys/mman.h>\fP
+.sp
+\fBint mprotect(const void *\fP\fIaddr\fP\fB, size_t \fP\fIlen\fP\fB, int \fP\fIprot\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBmprotect\fP() change la protection pour la (les) page(s) mémoire du
+processus appelant contenant tout ou une partie de l'intervalle [\fIaddr\fP,\
+\fIaddr\fP+\fIlen\fP\-1]. \fIaddr\fP doit être aligné sur une page.
+
+Si le processus appelant essaie d'accéder à la mémoire en violant la
+protection, le noyau génère un signal \fBSIGSEGV\fP pour ce processus.
+.PP
+\fIprot\fP soit \fBPROT_NONE\fP, soit un OU binaire «\ |\ » entre les valeurs
+suivantes\ :
+.TP  1.1i
+\fBPROT_NONE\fP
+On ne peut pas accéder du tout à la zone de mémoire.
+.TP 
+\fBPROT_READ\fP
+On peut lire la zone de mémoire.
+.TP 
+\fBPROT_WRITE\fP
+On peut modifier la zone de mémoire.
+.TP 
+\fBPROT_EXEC\fP
+.\" FIXME
+.\" Document PROT_GROWSUP and PROT_GROWSDOWN
+La zone de mémoire peut contenir du code exécutable.
+.SH "VALEUR RENVOYÉE"
+\fBmprotect\fP() renvoie 0 s'il réussit, ou \-1 s'il échoue, auquel cas \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+L'accès spécifié n'est pas possible sur ce type de mémoire. Ceci se produit
+par exemple si vous utilisez \fBmmap\fP(2) pour représenter un fichier en
+lecture seule en mémoire, et si vous demandez de marquer cette zone avec
+\fBPROT_WRITE\fP.
+.TP 
+\fBEINVAL\fP
+.\" Or: both PROT_GROWSUP and PROT_GROWSDOWN were specified in 'prot'.
+\fIaddr\fP n'est pas un pointeur valide, ou ce n'est pas un multiple de la
+taille de page du système.
+.TP 
+\fBENOMEM\fP
+Impossible d'allouer des structures internes au noyau.
+.TP 
+\fBENOMEM\fP
+Les adresses dans l'intervalle [\fIaddr\fP, \fIaddr\fP+\fIlen\fP] ne sont pas
+valables dans l'espace d'adressage du processus, ou l'intervalle s'étend sur
+des pages non projetées (dans les noyaux antérieurs à 2.4.19, l'erreur
+\fBEFAULT\fP était produite à tort dans ce cas).
+.SH CONFORMITÉ
+.\" SVr4 defines an additional error
+.\" code EAGAIN. The SVr4 error conditions don't map neatly onto Linux's.
+SVr4, POSIX.1\-2001. POSIX précise que le comportement de \fBmprotect\fP() n'est
+pas spécifié s'il est appliqué sur des zones de mémoire non obtenues avec
+\fBmmap\fP(2).
+.SH NOTES
+Sous Linux, il est toujours autorisé d'appeler \fBmprotect\fP() sur une adresse
+de l'espace d'adressage du processus (excepté pour la zone vsyscall du
+noyau). En particulier, il peut être utilisé pour rendre une projection de
+code existante accessible en écriture.
+
+La différence entre \fBPROT_EXEC\fP et \fBPROT_READ\fP dépend de l'architecture et
+de la version du noyau. Sur certaines architectures matérielles (par
+exemple, i386), \fBPROT_WRITE\fP implique \fBPROT_READ\fP.
+
+POSIX.1\-2001 indique qu'une implémentation peut autoriser un accès autre que
+celui donné dans \fIprot\fP, mais doit au minimum autoriser l'accès en écriture
+si \fBPROT_WRITE\fP était passé, et ne doit autoriser aucun accès si
+\fBPROT_NONE\fP était passé.
+.SH EXEMPLE
+.\" sigaction.2 refers to this example
+.PP
+Le programme ci\(hydessous alloue quatre pages de mémoire, rend la troisième
+accessible en lecture seule, puis exécute une boucle qui se déplace en
+avançant dans la région allouée et en modifiant son contenu.
+
+Voici un exemple d'exécution de ce programme\ :
+
+.in +4n
+.nf
+$\fB ./a.out\fP
+Début de la région\ :       0x804c000
+Reçu SIGSEGV à l'adresse\ : 0x804e000
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <unistd.h>
+#include <signal.h>
+#include <stdio.h>
+#include <malloc.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <sys/mman.h>
+
+#define handle_error(msg) \e
+    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+char *buffer;
+
+static void
+handler(int sig, siginfo_t *si, void *unused)
+{
+    printf("Reçu SIGSEGV à l'adresse\ : 0x%lx\en",
+            (long) si\->si_addr);
+    exit(EXIT_FAILURE);
+}
+
+int
+main(int argc, char *argv[])
+{
+    char *p;
+    int pagesize;
+    struct sigaction sa;
+
+    sa.sa_flags = SA_SIGINFO;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_sigaction = handler;
+    if (sigaction(SIGSEGV, &sa, NULL) == \-1)
+        handle_error("sigaction");
+
+    pagesize = sysconf(_SC_PAGE_SIZE);
+    if (pagesize == \-1)
+        handle_error("sysconf");
+
+    /* Allouer un tampon aligné sur une page\ ;
+       la protection initiale est PROT_READ | PROT_WRITE */
+
+    buffer = memalign(pagesize, 4 * pagesize);
+    if (buffer == NULL)
+        handle_error("memalign");
+
+    printf("Début de la région\ :       0x%lx\en", (long) buffer);
+
+    if (mprotect(buffer + pagesize * 2, pagesize,
+                PROT_NONE) == \-1)
+        handle_error("mprotect");
+
+    for (p = buffer ; ; )
+        *(p++) = \(aqa\(aq;
+
+    printf("Boucle terminée\en");     /* Ne devrait jamais arriver */
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBmmap\fP(2), \fBsysconf\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

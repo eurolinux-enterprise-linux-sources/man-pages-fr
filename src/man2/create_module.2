@@ -1,0 +1,76 @@
+.\" Copyright (C) 1996 Free Software Foundation, Inc.
+.\" This file is distributed according to the GNU General Public License.
+.\" See the file COPYING in the top level source directory for details.
+.\"
+.\" 2006-02-09, some reformatting by Luc Van Oostenryck; some
+.\" reformatting and rewordings by mtk
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CREATE_MODULE 2 "3 juin 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+create_module \- Créer une entrée de module chargeable
+.SH SYNOPSIS
+.nf
+\fB#include <linux/module.h>\fP
+.sp
+\fBcaddr_t create_module(const char *\fP\fIname\fP\fB, size_t \fP\fIsize\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBcreate_module\fP()  essaye de créer une entrée de module chargeable et
+réserve la mémoire noyau qui est nécessaire pour maintenir le module. Cet
+appel système nécessite des privilèges.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, il renvoie l'adresse noyau où le module résidera. S'il échoue,
+il renvoie \-1 et remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEEXIST\fP
+Un module du même nom existe déjà.
+.TP 
+\fBEFAULT\fP
+\fIname\fP est en dehors de l'espace d'adressage du programme.
+.TP 
+\fBEINVAL\fP
+La taille demandée est trop petite, même pour les informations de l'entête
+du module.
+.TP 
+\fBENOMEM\fP
+Le noyau ne peut pas allouer un bloc contigu de mémoire suffisamment grand
+pour le module.
+.TP 
+\fBENOSYS\fP
+\fBcreate_module\fP()  n'est pas pris en charge par cette version du noyau.
+.TP 
+\fBEPERM\fP
+L'appelant n'est pas privilégié (n'a pas la capacité \fBCAP_SYS_MODULE\fP).
+.SH VERSIONS
+.\" Removed in Linux 2.5.48
+Cet appel système n'est présent dans Linux que jusqu'au noyau\ 2.4\ ; il a
+été supprimé dans Linux\ 2.6.
+.SH CONFORMITÉ
+\fBcreate_module\fP()  est spécifique à Linux.
+.SH "VOIR AUSSI"
+\fBdelete_module\fP(2), \fBinit_module\fP(2), \fBquery_module\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006-2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

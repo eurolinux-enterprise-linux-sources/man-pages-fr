@@ -1,0 +1,116 @@
+.\" man2/inotify_add_watch.2 - inotify_add_watch man page
+.\"
+.\" Copyright (C) 2005 Robert Love
+.\" and Copyright, 2006 Michael Kerrisk
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" 2005-07-19 Robert Love <rlove@rlove.org> - initial version
+.\" 2006-02-07 mtk, various changes
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH INOTIFY_ADD_WATCH 2 "7 février 2006" Linux "Manuel du programmeur Linux"
+.SH NOM
+inotify_add_watch \- Ajouter une surveillance à une instance inotify déjà
+initialisée
+.SH SYNOPSIS
+\fB#include <sys/inotify.h>\fP
+.sp
+\fBint inotify_add_watch(int \fP\fIfd\fP\fB, const char *\fP\fIpathname\fP\fB, uint32_t
+\fP\fImask\fP\fB);\fP
+.SH DESCRIPTION
+\fBinotify_add_watch\fP() ajoute un surveillant, ou en modifie un existant, sur
+le fichier dont le chemin est fournit dans \fIpathname\fP\ ; l'appelant doit
+avoir la permission de lecture sur ce fichier. L'argument \fIfd\fP est un
+descripteur de fichier référençant l'instance inotify dont la liste de
+surveillance doit être modifiée. Les événements à surveiller sur \fIpathname\fP
+sont spécifiés dans l'argument masque de bits \fImask\fP. Voir \fBinotify\fP(7)
+pour une description des bits qui peuvent être positionnés dans \fImask\fP.
+
+Un appel réussi à \fBinotify_add_watch\fP() renvoie un descripteur de
+surveillance unique, associé avec \fIpathname\fP, pour cette instance
+inotify. Si \fIpathname\fP n'était pas déjà surveillé par cette instance
+inotify, le descripteur de surveillance est alloué par le noyau. Si
+\fIpathname\fP était déjà surveillé, le descripteur de la surveillance
+existante est renvoyé.
+
+Le descripteur de surveillance est renvoyé par des appels ultérieurs à
+\fBread\fP(2) sur le descripteur de fichier inotify. Ces lectures renvoient des
+structures \fIinotify_event\fP (voir \fBinotify\fP(7)) indiquant des événements
+sur le système de fichiers\ ; le descripteur de surveillance de cette
+structure identifie l'objet pour lequel cet événement a eu lieu.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBinotify_add_watch\fP() renvoie un descripteur de surveillance
+positif. En cas d'erreur, il renvoie \-1 et remplit \fIerrno\fP avec la valeur
+d'erreur.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+L'accès en lecture au fichier indiqué est interdit.
+.TP 
+\fBEBADF\fP
+Le descripteur de fichier est invalide.
+.TP 
+\fBEFAULT\fP
+\fIpathname\fP pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEINVAL\fP
+Le masque d'événements indiqué ne contient aucun événement valable, ou \fIfd\fP
+n'est pas un descripteur inotify.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.TP 
+\fBENOSPC\fP
+La limite sur le nombre total de surveillances inotify pour l'utilisateur
+est atteinte, ou le noyau n'a pas pu allouer une ressource système
+nécessaire.
+.SH VERSIONS
+Inotify a été intégré dans Linux 2.6.13.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux.
+.SH "VOIR AUSSI"
+\fBinotify_init\fP(2), \fBinotify_rm_watch\fP(2), \fBinotify\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

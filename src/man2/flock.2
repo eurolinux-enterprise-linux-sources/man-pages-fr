@@ -1,0 +1,170 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright 1993 Rickard E. Faith (faith@cs.unc.edu) and
+.\" and Copyright 2002 Michael Kerrisk
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified Fri Jan 31 16:26:07 1997 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Fri Dec 11 17:57:27 1998 by Jamie Lokier <jamie@imbolc.ucc.ie>
+.\" Modified 24 Apr 2002 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Substantial rewrites and additions
+.\" 2005-05-10 mtk, noted that lock conversions are not atomic.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FLOCK 2 "25 juillet 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+flock \- Placer ou enlever un verrou coopératif sur un fichier ouvert
+.SH SYNOPSIS
+\fB#include <sys/file.h>\fP
+.sp
+\fBint flock(int \fP\fIfd\fP\fB, int \fP\fIoperation\fP\fB);\fP
+.SH DESCRIPTION
+Place ou enlève un verrou consultatif sur un fichier ouvert dont le
+descripteur est \fIfd\fP. Le paramètre \fIoperation\fP est l'un des suivants\ :
+.RS 4
+.TP  9
+\fBLOCK_SH\fP
+Verrouillage partagé. Plusieurs processus peuvent disposer d'un verrouillage
+partagé simultanément sur un même fichier.
+.TP 
+\fBLOCK_EX\fP
+Verrouillage exclusif. Un seul processus dispose d'un verrouillage exclusif
+sur un fichier, à un moment donné.
+.TP 
+\fBLOCK_UN\fP
+Déverrouillage d'un verrou tenu par le processus.
+.RE
+.PP
+Un appel \fBflock\fP() peut bloquer si un verrou incompatible est tenu par un
+autre processus. Pour que la requête soit non\(hybloquante, il faut inclure
+\fBLOCK_NB\fP (par un \fIOU\fP binaire «\ |\ » ) avec la constante précisant
+l'opération.
+
+Un même fichier ne peut pas avoir simultanément des verrous partagés et
+exclusifs.
+
+Les verrous créés avec \fBflock\fP() sont associés à un fichier, ou plus
+précisément une entrée de la table des fichiers ouverts. Ainsi, les
+descripteurs de fichier dupliqués (par exemple avec \fBfork\fP(2) ou \fBdup\fP(2))
+réfèrent au même verrou, et celui\(hyci peut être relâché ou modifié à
+travers n'importe lequel des descripteurs. De plus, un verrou est relâché
+par une opération explicite \fBLOCK_UN\fP sur l'un quelconque des descripteurs,
+ou lorsqu'ils ont tous été fermés.
+
+Si un processus utilise \fBopen\fP(2) (ou équivalent) plusieurs fois pour
+obtenir plusieurs descripteurs sur le même fichier, ces descripteurs sont
+traités indépendamment par \fBflock\fP(). Une tentative de verrouiller le
+fichier avec l'un de ces descripteurs peut être refusée si le processus
+appelant a déjà placé un verrou en utilisant un autre descripteur.
+
+Un processus ne peut avoir qu'un seul type de verrou (partagé ou exclusif)
+sur un fichier. En conséquence un appel \fBflock\fP() sur un fichier déjà
+verrouillé modifiera le type de verrouillage.
+
+Les verrous créés par \fBflock\fP() sont conservé au travers d'un \fBexecve\fP(2).
+
+Un verrou partagé ou exclusif peut être placé sur un fichier quel que soit
+le mode d'ouverture du fichier.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier ouvert.
+.TP 
+\fBEINTR\fP
+Durant l'attente pour acquérir le verrou, l'appel a été interrompu par un
+signal capturé par un gestionnaire\ ; voir \fBsignal\fP(7).
+.TP 
+\fBEINVAL\fP
+\fIoperation\fP est invalide.
+.TP 
+\fBENOLCK\fP
+Le noyau n'a pas assez de mémoire pour les allocations de verrou.
+.TP 
+\fBEWOULDBLOCK\fP
+Le fichier est verrouillé et l'attribut \fBLOCK_NB\fP a été précisé.
+.SH CONFORMITÉ
+BSD\ 4.4 (l'appel système \fBflock\fP() est apparu dans BSD\ 4.2). Une version
+de \fBflock\fP() parfois implémenté à partir de \fBfcntl\fP(2), est apparue sur la
+plupart des systèmes Unix.
+.SH NOTES
+\fBflock\fP() ne verrouille par les fichiers à travers NFS. Utilisez
+\fBfcntl\fP(2) à la place\ : il fonctionne avec NFS si la version de Linux est
+suffisamment récente et si le serveur accepte les verrouillages.
+.PP
+Depuis le noyau 2.0, \fBflock\fP() est implémenté par un appel système plutôt
+que d'être émulé par une routine de la bibliothèque C invoquant
+\fBfcntl\fP(2). Ceci correspond à la véritable sémantique BSD\ : il n'y a pas
+d'interaction entre les verrous placés par \fBflock\fP() et \fBfcntl\fP(2), et
+\fBflock\fP() ne détecte pas les cas de blocage (deadlock).
+.PP
+\fBflock\fP() place uniquement des verrous coopératifs\ : suivant les
+permissions du fichier un processus peut ignorer l'utilisation de \fBflock\fP()
+et faire des entrées\-sorties sur le fichier.
+.PP
+Les sémantiques des verrous placés par \fBflock\fP() et \fBfcntl\fP(2) sont
+différentes en ce qui concerne \fBfork\fP(2) et \fBdup\fP(2). Sur les systèmes qui
+implémentent \fBflock\fP() en utilisant \fBfcntl\fP(2), la sémantique de
+\fBflock\fP() ne sera pas celle décrite ici.
+.PP
+.\" Kernel 2.5.21 changed things a little: during lock conversion
+.\" it is now the highest priority process that will get the lock -- mtk
+La conversion d'un verrou (de partagé à exclusif et vice versa) n'est pas
+toujours atomique\ : tout d'abord le verrou existant est supprimé, puis un
+nouveau verrou est établi. Entre ces deux étapes, un verrou demandé par un
+autre processus peut être accordé, ce qui peut causer soit un blocage de la
+conversion, soit son échec, si \fBLOCK_NB\fP était indiqué. (Ceci est le
+comportement BSD d'origine, et est partagé par de nombreuses
+implémentations.)
+.SH "VOIR AUSSI"
+\fBclose\fP(2), \fBdup\fP(2), \fBexecve\fP(2), \fBfcntl\fP(2), \fBfork\fP(2), \fBopen\fP(2),
+\fBlockf\fP(3)
+
+Voir aussi \fIDocumentation/filesystem/locks.txt\fP dans les sources du noyau
+(\fIDocumentation/locks.txt\fP pour les anciens noyaux).
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

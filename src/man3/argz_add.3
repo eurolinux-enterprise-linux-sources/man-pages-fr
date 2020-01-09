@@ -1,0 +1,148 @@
+.\" Copyright 2002 walter harms (walter.harms@informatik.uni-oldenburg.de)
+.\" Distributed under GPL
+.\" based on the description in glibc source and infopages
+.\"
+.\" Corrections and additions, aeb
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ARGZ_ADD 3 "18 mai 2007" "" "Manuel du programmeur Linux"
+.SH NOM
+argz_add, argz_add_sep, argz_append, argz_count, argz_create,
+argz_create_sep, argz_delete, argz_extract, argz_insert, argz_next,
+argz_replace, argz_stringify \- Fonctions pour manipuler les vecteurs argz
+.SH SYNOPSIS
+.nf
+\fB#include <argz.h>\fP
+.sp
+\fBerror_t argz_add(char **\fP\fIargz\fP\fB, size_t *\fP\fIargz_len\fP\fB, const char *\fP\fIstr\fP\fB);\fP
+.sp
+\fBerror_t argz_add_sep(char **\fP\fIargz\fP\fB, size_t *\fP\fIargz_len\fP\fB,\fP
+.ti 20n
+\fBconst char *\fP\fIstr\fP\fB, int \fP\fIdelim\fP\fB);\fP
+.sp
+\fBerror_t argz_append(char **\fP\fIargz\fP\fB, size_t *\fP\fIargz_len\fP\fB,\fP
+.ti 20n
+\fBconst char *\fP\fIbuf\fP\fB, size_t \fP\fIbuf_len\fP\fB);\fP
+.sp
+\fBsize_t argz_count(const char *\fP\fIargz\fP\fB, size_t \fP\fIargz_len\fP\fB);\fP
+.sp
+\fBerror_t argz_create(char * const \fP\fIargv\fP\fB[], char **\fP\fIargz\fP\fB,\fP
+.ti 20n
+\fBsize_t *\fP\fIargz_len\fP\fB);\fP
+.sp
+\fBerror_t argz_create_sep(const char *\fP\fIstr\fP\fB, int \fP\fIsep\fP\fB, char **\fP\fIargz\fP\fB,\fP
+.ti 20n
+\fBsize_t *\fP\fIargz_len\fP\fB);\fP
+.sp
+\fBerror_t argz_delete(char **\fP\fIargz\fP\fB, size_t *\fP\fIargz_len\fP\fB, char *\fP\fIentry\fP\fB);\fP
+.sp
+\fBvoid argz_extract(char *\fP\fIargz\fP\fB, size_t \fP\fIargz_len\fP\fB, char  **\fP\fIargv\fP\fB);\fP
+.sp
+\fBerror_t argz_insert(char **\fP\fIargz\fP\fB, size_t *\fP\fIargz_len\fP\fB, char *\fP\fIbefore\fP\fB,\fP
+.ti 20n
+\fBconst char *\fP\fIentry\fP\fB);\fP
+.sp
+\fBchar *argz_next(char *\fP\fIargz\fP\fB, size_t \fP\fIargz_len\fP\fB, const char *\fP\fIentry\fP\fB);\fP
+.sp
+\fBerror_t argz_replace(char **\fP\fIargz\fP\fB, size_t *\fP\fIargz_len\fP\fB, const char *\fP\fIstr\fP\fB,\fP
+.ti 20n
+\fBconst char *\fP\fIwith\fP\fB, unsigned int *\fP\fIreplace_count\fP\fB);\fP
+.sp
+\fBvoid argz_stringify(char *\fP\fIargz\fP\fB, size_t \fP\fIlen\fP\fB, int \fP\fIsep\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Ces fonctions sont spécifiques à la glibc.
+.LP
+Un vecteur argz est un pointeur sur un tampon de caractères associé à une
+longueur. L'interprétation voulue pour le tampon de caractères est un
+tableau de chaînes où les chaînes sont séparées par des octets nuls
+(«\ \e0\ »). Si la longueur est non nulle, le dernier octet du tampon doit
+être nul.
+.LP
+Ces fonctions servent à manipuler les vecteurs argz. La paire (NULL, 0)  est
+un vecteur argz et réciproquement les vecteurs argz de longueur zéro doivent
+avoir un pointeur NULL. L'allocation de vecteurs argz non nuls est faite
+avec \fBmalloc\fP(3) afin que \fBfree\fP(3) puisse être utilisée pour les libérer.
+.LP
+\fBargz_add\fP() ajoute la chaîne \fIstr\fP à la fin du tableau \fI*argz\fP et met à
+jour \fI*argz\fP et \fI*argz_len\fP.
+.LP
+\fBargz_add_sep\fP() est similaire, mais découpe la chaîne \fIstr\fP en
+sous\-chaînes séparées par le délimiteur \fIdelim\fP. Par exemple, on peut
+l'utiliser sur la liste de recherche des chemins Unix avec le délimiteur «\
+:\ ».
+.LP
+\fBargz_append\fP() ajoute le vecteur argz (\fIbuf\fP, \fIbuf_len\fP) après
+(\fI*argz\fP, \fI*argz_len\fP) et met à jour \fI*argz\fP et \fI*argz_len\fP (donc
+\fI*argz_len\fP sera augmenté de \fIbuf_len\fP).
+.LP
+\fBargz_count\fP() compte le nombre de chaînes, c'est\-à\-dire le nombre d'octets
+nuls («\ \e0\ ») dans le vecteur (\fIargz\fP,\ \fIargz_len\fP).
+.LP
+\fBargz_create\fP() convertit un vecteur de type Unix \fIargv\fP terminé par
+\fI(char *) 0\fP en un vecteur argz (\fI*argz\fP,\ \fI*argz_len\fP).
+.LP
+\fBargz_create_sep\fP() convertit la chaîne terminée par un caractère nul
+\fIstr\fP en un vecteur argz (\fI*argz\fP,\ \fI*argz_len\fP) en la découpant à chaque
+occurrence du séparateur \fIsep\fP.
+.LP
+\fBargz_delete\fP() retire la sous\-chaîne pointée par \fIentry\fP du vecteur argz
+(\fI*argz\fP,\ \fI*argz_len\fP) et met à jour \fI*argz\fP et \fI*argz_len\fP.
+.LP
+\fBargz_extract\fP() est l'inverse de \fBargz_create\fP(). Elle prend le vecteur
+argz (\fIargz\fP,\ \fIargz_len\fP) et remplit le tableau commençant à \fIargv\fP avec
+des pointeurs sur les sous\-chaînes et un NULL final en créant un vecteur de
+type Unix argv. Le tableau \fIargv\fP doit avoir assez de place pour
+\fIargz_count\fP(\fIargz\fP, \fIargz_len\fP) + 1 pointeurs.
+.LP
+\fBargz_insert\fP() est l'opposée de \fBargz_delete\fP(). Elle insère l'argument
+\fIentry\fP à la position \fIbefore\fP dans le vecteur argz (\fI*argz\fP,\
+\fI*argz_len\fP) et met à jour \fI*argz\fP et \fI*argz_len\fP. Si \fIbefore\fP est NULL,
+alors \fIentry\fP est insérée à la fin.
+.LP
+\fBargz_next\fP() est une fonction pour se déplacer dans le vecteur argz. Si
+\fIentry\fP est NULL, elle renvoie la première entrée. Sinon, l'entrée suivante
+est renvoyée. Elle renvoie NULL s'il n'y a pas d'entrée suivante.
+.LP
+\fBargz_replace\fP() remplace chaque occurrence de \fIstr\fP avec \fIwith\fP, en
+ré\-allouant argz si nécessaire. Si \fIreplace_count\fP est non NULL,
+\fI*replace_count\fP sera incrémenté du nombre de remplacements.
+.LP
+\fBargz_stringify\fP() est l'opposée de \fBargz_create_sep\fP(). Elle transforme
+le vecteur argz en une chaîne normale en remplaçant tous les octets nuls
+(«\ \e0\ ») sauf le dernier par \fIsep\fP.
+.SH "VALEUR RENVOYÉE"
+Toutes les fonctions argz qui font de l'allocation mémoire ont un type de
+retour \fIerror_t\fP, et renvoient 0 si elles réussissent et \fBENOMEM\fP si
+l'allocation échoue.
+.SH CONFORMITÉ
+Ces fonctions sont des extensions GNU. Utilisez\-les avec précaution.
+.SH BOGUES
+Les vecteurs argz sans caractère nul final conduisent à une erreur de
+segmentation.
+.SH "VOIR AUSSI"
+\fBenvz_add\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

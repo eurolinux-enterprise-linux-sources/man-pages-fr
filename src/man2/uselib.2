@@ -1,0 +1,112 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified 1993-07-24 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1996-10-22 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk16@ext.canterbury.ac.nz>
+.\" Modified 2005-01-09 by aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH USELIB 2 "9 janvier 2005" Linux "Manuel du programmeur Linux"
+.SH NOM
+uselib \- Sélectionner une bibliothèque partagée
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBint uselib(const char *\fP\fIlibrary\fP\fB);\fP
+.SH DESCRIPTION
+L'appel système \fBuselib\fP() permet de charger une bibliothèque partagée qui
+sera utilisée par le processus appelant. Il prend un chemin de fichier comme
+argument. L'adresse où charger la bibliothèque est trouvée dans la
+bibliothèque elle\-même. La bibliothèque peut avoir n'importe quel format de
+binaire reconnu.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+En plus de toutes les erreurs déclenchées par \fBopen\fP(2) et \fBmmap\fP(2), les
+erreurs suivantes peuvent se produire\ :
+.TP 
+\fBEACCES\fP
+La bibliothèque indiquée par \fIlibrary\fP n'est pas accessible en lecture ou
+en écriture, ou l'appelant n'a pas la permission de parcours pour l'un des
+répertoires du chemin. (Voir aussi \fBpath_resolution\fP(7).)
+.TP 
+\fBENFILE\fP
+La limite du nombre total de fichiers ouverts sur le système a été atteinte.
+.TP 
+\fBENOEXEC\fP
+Le fichier décrit par \fIlibrary\fP n'est pas un exécutable de type connu (par
+exemple n'a pas le bon nombre magique).
+.SH CONFORMITÉ
+\fBuselib\fP() est spécifique à Linux et ne devrait pas être employé dans des
+programmes destinés à être portables.
+.SH NOTES
+\fBuselib\fP() était utilisé par le code de démarrage d'anciennes versions de
+libc pour charger les bibliothèques partagées dont les noms se trouvaient
+dans un tableau dans le binaire.
+.LP
+.\" libc 4.3.1f - changelog 1993-03-02
+.\" libc 4.3.4 - changelog 1993-04-21
+Depuis libc 4.3.2, le code de démarrage essaie de préfixer ces noms avec
+"/usr/lib", "/lib" puis "" avant d'abandonner. À partir de la libc 4.3.4,
+ces noms sont recherchés dans les répertoires listés dans la variable
+\fBLD_LIBRARY_PATH\fP, et les préfixes "/usr/lib", "/lib" et "/" sont essayés
+ensuite si la bibliothèque n'a pas été trouvée.
+.LP
+À partir de la libc 4.4.4, seule la bibliothèque «\ /lib/ld.so\ » est
+chargée, afin que cette bibliothèque dynamique puisse charger les autres
+bibliothèques requises (à nouveau avec cette fonction). Ceci est également
+valable pour libc5.
+.LP
+glibc2 n'utilise pas cette fonction.
+.SH "VOIR AUSSI"
+\fBar\fP(1), \fBgcc\fP(1), \fBld\fP(1), \fBldd\fP(1), \fBmmap\fP(2), \fBopen\fP(2),
+\fBdlopen\fP(3), \fBcapabilities\fP(7), \fBld.so\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

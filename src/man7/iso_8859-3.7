@@ -1,0 +1,181 @@
+.\" t -*- coding: UTF-8 -*-
+.\" Copyright 2009  Lefteris Dimitroulakis (edimitro@tee.gr)
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ISO_8859\-3 7 "15 janvier 2009" Linux "Manuel du programmeur Linux"
+.nh
+.SH NOM
+iso_8859\-3 \- Le jeu de caractères ISO 8859\-3 en octal, décimal et
+hexadécimal
+.SH DESCRIPTION
+.\" (Though in my system with glibc-2.8-20080929
+.\" I found only mt_MT (Malta) using this charset).
+La norme ISO 8859 inclut plusieurs extensions 8 bits au jeu de caractères
+ASCII (également appelé ISO 646\-IRV). L'ISO 8859\-3 encode les caractères
+utilisés dans les langues d'Europe du sud.
+.SS "Alphabets ISO 8859"
+L'ensemble des alphabets ISO 8859 se compose de\ :
+.TS
+l l.
+ISO 8859\-1	Langues d'Europe de l'Ouest (Latin\-1)
+ISO 8859\-2	Langues d'Europe Centrale et d'Europe de l'Est (Latin\-2)
+ISO 8859\-3	Langues d'Europe du Sud\-Est et autres (Latin\-3)
+ISO 8859\-4	Langues scandinaves et baltes (Latin\-4)
+ISO 8859\-5	Latin/Cyrillique
+ISO 8859\-6	Latin/Arabe
+ISO 8859\-7	Latin/Grec
+ISO 8859\-8	Latin/Hébreu
+ISO 8859\-9	Latin\-1 modifié pour le turc (Latin\-5)
+ISO 8859\-10	Langues lapones, nordiques et esquimaudes (Latin\-6)
+ISO 8859\-11	Latin/Thaï
+ISO 8859\-13	Langues de la ceinture baltique (Latin\-7)
+ISO 8859\-14	Celte (Latin\-8)
+ISO 8859\-15	Langues d'Europe de l'Ouest (Latin\-9)
+ISO 8859\-16	Roumain (Latin\-10)
+.TE
+.SS "Caractères ISO 8859\-3"
+Le tableau suivant affiche les caractères de l'ISO 8859\-3 qui sont
+imprimables et non disponibles dans la page de manuel \fBascii\fP(7). La
+quatrième colonne affichera correctement les glyphes seulement dans un
+environnement configuré pour l'ISO 8859\-3.
+.TS
+l l l c lp-1.
+Oct	Déc	Hex	Car.	Description
+_
+240	160	a0	\ 	ESPACE INSÉCABLE
+241	161	a1	Ħ	LETTRE MAJUSCULE LATINE H BARRÉ
+242	162	a2	˘	BRÈVE
+243	163	a3	£	SYMBOLE LIVRE
+244	164	a4	¤	SYMBOLE MONÉTAIRE
+246	166	a6	Ĥ	LETTRE MAJUSCULE LATINE H ACCENT CIRCONFLEXE
+247	167	a7	§	PARAGRAPHE
+250	168	a8	¨	TRÉMA
+251	169	a9	İ	LETTRE MAJUSCULE LATINE I POINT EN CHEF
+252	170	aa	Ş	LETTRE MAJUSCULE LATINE S CÉDILLE
+253	171	ab	Ğ	LETTRE MAJUSCULE LATINE G BRÈVE
+254	172	ac	Ĵ	LETTRE MAJUSCULE LATINE J ACCENT CIRCONFLEXE
+255	173	ad	­	TRAIT D'UNION CONDITIONNEL
+257	175	af	Ż	LETTRE MAJUSCULE LATINE Z POINT EN CHEF
+260	176	b0	°	SYMBOLE DEGRÉ
+261	177	b1	ħ	LETTRE MINUSCULE LATINE H BARRÉ
+262	178	b2	²	EXPOSANT DEUX
+263	179	b3	³	EXPOSANT TROIS
+264	180	b4	´	ACCENT AIGU
+265	181	b5	µ	SYMBOLE MICRO
+266	182	b6	ĥ	LETTRE MINUSCULE LATINE H ACCENT CIRCONFLEXE
+267	183	b7	·	POINT MÉDIAN
+270	184	b8	¸	CÉDILLE
+271	185	b9	ı	LETTRE MINUSCULE LATINE I SANS POINT
+272	186	ba	ş	LETTRE MINUSCULE LATINE S CÉDILLE
+273	187	bb	ğ	LETTRE MINUSCULE LATINE G BRÈVE
+274	188	bc	ĵ	LETTRE MINUSCULE LATINE J ACCENT CIRCONFLEXE
+275	189	bd	½	FRACTION UN DEMI
+277	191	bf	ż	LETTRE MINUSCULE LATINE Z POINT EN CHEF
+300	192	c0	À	LETTRE MAJUSCULE LATINE A ACCENT GRAVE
+301	193	c1	Á	LETTRE MAJUSCULE LATINE A ACCENT AIGU
+302	194	c2	Â	LETTRE MAJUSCULE LATINE A ACCENT CIRCONFLEXE
+304	196	c4	Ä	LETTRE MAJUSCULE LATINE A TRÉMA
+305	197	c5	Ċ	LETTRE MAJUSCULE LATINE C POINT EN CHEF
+306	198	c6	Ĉ	LETTRE MAJUSCULE LATINE C ACCENT CIRCONFLEXE
+307	199	c7	Ç	LETTRE MAJUSCULE LATINE C CÉDILLE
+310	200	c8	È	LETTRE MAJUSCULE LATINE E ACCENT GRAVE
+311	201	c9	É	LETTRE MAJUSCULE LATINE E ACCENT AIGU
+312	202	ca	Ê	LETTRE MAJUSCULE LATINE E ACCENT CIRCONFLEXE
+313	203	cb	Ë	LETTRE MAJUSCULE LATINE E TRÉMA
+314	204	cc	Ì	LETTRE MAJUSCULE LATINE I ACCENT GRAVE
+315	205	cd	Í	LETTRE MAJUSCULE LATINE I ACCENT AIGU
+316	206	ce	Î	LETTRE MAJUSCULE LATINE I ACCENT CIRCONFLEXE
+317	207	cf	Ï	LETTRE MAJUSCULE LATINE I TRÉMA
+321	209	d1	Ñ	LETTRE MAJUSCULE LATINE N TILDE
+322	210	d2	Ò	LETTRE MAJUSCULE LATINE O ACCENT GRAVE
+323	211	d3	Ó	LETTRE MAJUSCULE LATINE O ACCENT AIGU
+324	212	d4	Ô	LETTRE MAJUSCULE LATINE O ACCENT CIRCONFLEXE
+325	213	d5	Ġ	LETTRE MAJUSCULE LATINE G POINT EN CHEF
+326	214	d6	Ö	LETTRE MAJUSCULE LATINE O TRÉMA
+327	215	d7	×	SIGNE MULTIPLICATION
+330	216	d8	Ĝ	LETTRE MAJUSCULE LATINE G ACCENT CIRCONFLEXE
+331	217	d9	Ù	LETTRE MAJUSCULE LATINE U ACCENT GRAVE
+332	218	da	Ú	LETTRE MAJUSCULE LATINE U ACCENT AIGU
+333	219	db	Û	LETTRE MAJUSCULE LATINE U ACCENT CIRCONFLEXE
+334	219	dc	Ü	LETTRE MAJUSCULE LATINE U TRÉMA
+335	220	dd	Ŭ	LETTRE MAJUSCULE LATINE U BRÈVE
+336	221	de	Ŝ	LETTRE MAJUSCULE LATINE S ACCENT CIRCONFLEXE
+337	222	df	ß	LETTRE MINUSCULE LATINE S DUR (allemand)
+340	223	e0	à	LETTRE MINUSCULE LATINE A ACCENT GRAVE
+341	224	e1	á	LETTRE MINUSCULE LATINE A ACCENT AIGU
+342	225	e2	â	LETTRE MINUSCULE LATINE A ACCENT CIRCONFLEXE
+344	227	e4	ä	LETTRE MINUSCULE LATINE A TRÉMA
+345	228	e5	ċ	LETTRE MINUSCULE LATINE C POINT EN CHEF
+346	229	e6	ĉ	LETTRE MINUSCULE LATINE C ACCENT CIRCONFLEXE
+347	230	e7	ç	LETTRE MINUSCULE LATINE C CÉDILLE
+350	231	e8	è	LETTRE MINUSCULE LATINE E ACCENT GRAVE
+351	232	e9	é	LETTRE MINUSCULE LATINE E ACCENT AIGU
+352	233	ea	ê	LETTRE MINUSCULE LATINE E ACCENT CIRCONFLEXE
+353	234	eb	ë	LETTRE MINUSCULE LATINE E TRÉMA
+354	235	ec	ì	LETTRE MINUSCULE LATINE I ACCENT GRAVE
+355	236	ed	í	LETTRE MINUSCULE LATINE I ACCENT AIGU
+356	237	ee	î	LETTRE MINUSCULE LATINE I ACCENT CIRCONFLEXE
+357	238	ef	ï	LETTRE MINUSCULE LATINE I TRÉMA
+361	240	f1	ñ	LETTRE MINUSCULE LATINE N TILDE
+362	241	f2	ò	LETTRE MINUSCULE LATINE O ACCENT GRAVE
+363	242	f3	ó	LETTRE MINUSCULE LATINE O ACCENT AIGU
+364	243	f4	ô	LETTRE MINUSCULE LATINE O ACCENT CIRCONFLEXE
+365	244	f5	ġ	LETTRE MINUSCULE LATINE G POINT EN CHEF
+366	245	f6	ö	LETTRE MINUSCULE LATINE O TRÉMA
+367	246	f7	÷	SIGNE DIVISION
+370	247	f8	ĝ	LETTRE MINUSCULE LATINE G ACCENT CIRCONFLEXE
+371	248	f9	ù	LETTRE MINUSCULE LATINE U ACCENT GRAVE
+372	249	fa	ú	LETTRE MINUSCULE LATINE U ACCENT AIGU
+373	250	fb	û	LETTRE MINUSCULE LATINE U ACCENT CIRCONFLEXE
+374	251	fc	ü	LETTRE MINUSCULE LATINE U TRÉMA
+375	252	fd	ŭ	LETTRE MINUSCULE LATINE U BRÈVE
+376	253	fe	ŝ	LETTRE MINUSCULE LATINE S ACCENT CIRCONFLEXE
+377	254	ff	˙	POINT EN CHEF
+				(cinquième ton du mandarin, léger ou neutre)
+.TE
+.SH NOTES
+ISO 8859\-3 est aussi connu sous le nom de Latin\-3.
+.SH "VOIR AUSSI"
+\fBascii\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,117 @@
+.\" Copyright (C) 1995 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Written 11 June 1995 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 22 July 1995 by Michael Chastain <mec@duracef.shout.net>:
+.\"   In 1.3.X, returns only one entry each time; return value is different.
+.\" Modified 2004-12-01, mtk, fixed headers listed in SYNOPSIS
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH READDIR 2 "2 octobre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+readdir \- Lire une entrée de répertoire
+.SH SYNOPSIS
+.nf
+.sp
+\fBint readdir(unsigned int \fP\fIfd\fP\fB, struct old_linux_dirent *\fP\fIdirp\fP\fB,\fP
+\fB            unsigned int \fP\fIcount\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Cette fonction n'est normalement pas intéressante pour les
+programmeurs. Utiliser \fBreaddir\fP(3) pour les fonctionnalités conformes
+POSIX. Cette page documente l'interface de l'appel système bas niveau, qui
+est remplacée par \fBgetdents\fP(2).
+.PP
+\fBreaddir\fP() lit une structure \fIold_linux_dirent\fP depuis le répertoire
+référencé par le descripteur de fichier \fIfd\fP et la place dans le tampon
+pointé par \fIdirp\fP. Le paramètre \fIcount\fP est ignoré, au plus une structure
+\fIold_linux_dirent\fP est lue.
+.PP
+La structure \fIold_linux_dirent\fP est déclarée comme ceci\ :
+.PP
+.in +4n
+.nf
+struct dirent {
+    long  d_ino;              /* numéro d'in\(oeud */
+    off_t d_off;              /* position de ce \fIold_linux_dirent\fP */
+    unsigned short d_reclen;  /* longueur de \fId_name\fP */
+    char  d_name[NAME_MAX+1]; /* nom du fichier (terminé par \(rs0) */
+}
+.fi
+.in
+.PP
+\fId_ino\fP est un numéro d'in\(oeud. \fId_off\fP est la distance entre le début
+du répertoire et cette structure \fIold_linux_dirent\fP. \fId_reclen\fP est la
+longueur de \fId_name\fP, sans compter le caractère nul final. \fId_name\fP est le
+nom de fichier terminé par un caractère nul.
+.SH "VALEUR RENVOYÉE"
+\fBreaddir\fP renvoie 1 s'il réussit, 0 en fin de répertoire, ou \-1 s'il
+échoue, auquel cas \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBEFAULT\fP
+L'argument pointe en dehors de l'espace d'adressage du processus appelant.
+.TP 
+\fBEINVAL\fP
+Le tampon de résultat est trop petit.
+.TP 
+\fBENOENT\fP
+Répertoire inexistant.
+.TP 
+\fBENOTDIR\fP
+Le descripteur de fichier ne pointe pas sur un répertoire.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux.
+.SH NOTES
+La glibc ne fournit pas de fonction autour de cet appel système\ ; utilisez
+\fBsyscall\fP(2) pour l'appeler. Vous devrez définir la structure
+\fIold_linux_dirent\fP vous\-même.
+.SH "VOIR AUSSI"
+\fBgetdents\fP(2), \fBreaddir\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,98 @@
+.\" This manpage copyright 1998 by Andi Kleen. Subject to the GPL.
+.\" Based on the original comments from Alexey Kuznetsov
+.\" $Id: netlink.3,v 1.1 1999/05/14 17:17:24 freitag Exp $
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH NETLINK 3 "14 mai 1999" GNU "Manuel du programmeur Linux"
+.SH NOM
+netlink \- Macros pour netlink
+.SH SYNOPSIS
+.nf
+.\" FIXME . what will glibc 2.1 use here?
+.\" May 2007: glibc 2.5, things look to be unchanged -- the header file
+.\" is still linux/netlink.h -- mtk
+\fB#include <asm/types.h>\fP
+.br
+\fB#include <linux/netlink.h>\fP
+.sp
+\fBint NLMSG_ALIGN(size_t \fP\fItaille\fP\fB);\fP
+.br
+\fBint NLMSG_LENGTH(size_t \fP\fItaille\fP\fB);\fP
+.br
+\fBint NLMSG_SPACE(size_t \fP\fItaille\fP\fB);\fP
+.br
+\fBvoid *NLMSG_DATA(struct nlmsghdr *\fP\fInlh\fP\fB);\fP
+.br
+\fBstruct nlmsghdr *NLMSG_NEXT(struct nlmsghdr *\fP\fInlh\fP\fB, int \fP\fItaille\fP\fB);\fP
+.br
+\fBint NLMSG_OK(struct nlmsghdr *\fP\fInlh\fP\fB, int \fP\fItaille\fP\fB);\fP
+.br
+\fBint NLMSG_PAYLOAD(struct nlmsghdr *\fP\fInlh\fP\fB, int \fP\fItaille\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fI<linux/netlink.h>\fP définit plusieurs macros standard pour accéder
+ou créer un datagramme netlink. Elles sont similaires dans leurs principes
+aux macros définies dans \fBcmsg\fP(3) pour les données auxiliaires. Le tampon
+passé à une socket netlink ne devrait pas être manipulé autrement que par
+ces macros.
+.TP 
+\fBNLMSG_ALIGN\fP()
+Arrondit la taille du message netlink pour avoir un alignement correct.
+.TP 
+\fBNLMSG_LENGTH\fP()
+Prend la taille du message, \fIlen\fP, comme argument et retourne la taille
+alignée à stocker dans le champ \fInlmsg_len\fP de \fInlmsghdr\fP.
+.TP 
+\fBNLMSG_SPACE\fP()
+Renvoie le nombre d'octets qu'un message netlink occuperait pour la quantité
+de données \fIlen\fP.
+.TP 
+\fBNLMSG_DATA\fP()
+Retourne un pointeur sur l'objet associé au \fInlmsghdr\fP passé.
+.TP 
+.\" this is bizarre, maybe the interface should be fixed.
+\fBNLMSG_NEXT\fP()
+Récupère la structure \fInlmsghdr\fP suivante d'un message multiple. L'appelant
+doit vérifier que le \fInlmsghdr\fP en cours n'a pas l'attribut \fBNLMSG_DONE\fP
+positionné \(em cette fonction ne retourne pas NULL à la fin. Le paramètre
+\fIlen\fP est une lvalue contenant la taille restante du tampon du message. La
+macro diminue cette taille de celle de l'en\-tête de message.
+.TP 
+\fBNLMSG_OK\fP()
+Renvoie vrai si le message netlink n'est pas tronqué et prêt à être traité.
+.TP 
+\fBNLMSG_PAYLOAD\fP()
+Renvoie la taille des données associées à \fInlmsghdr\fP.
+.SH CONFORMITÉ
+Ces macros sont des extensions de Linux non standard.
+.SH NOTES
+Il vaut souvent mieux utiliser la bibliothèque netlink via \fIlibnetlink\fP que
+par les interfaces de bas niveau du noyau.
+.SH "VOIR AUSSI"
+\fBnetlink\fP(7)
+.br
+et ftp://ftp.inr.ac.ru/ip\-routing/iproute2* pour libnetlink.
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

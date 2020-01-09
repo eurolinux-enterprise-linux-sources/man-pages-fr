@@ -1,0 +1,122 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright (C) 2004, 2007 Michael kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 18:20:58 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Fri Feb 14 21:47:50 1997 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified 9 Jun 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Changed unsetenv() prototype; added EINVAL error
+.\"     Noted non-standard behavior of setenv() if name contains '='
+.\" 2005-08-12, mtk, glibc 2.3.4 fixed the "name contains '='" bug
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SETENV 3 "20 septembre 2009" GNU "Manuel du programmeur Linux"
+.SH NOM
+setenv, unsetenv \- Change ou ajoute une variable d'environnement.
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBint setenv(const char *\fP\fIname\fP\fB, const char *\fP\fIvalue\fP\fB, int \fP\fIoverwrite\fP\fB);\fP
+.sp
+\fBint unsetenv(const char *\fP\fIname\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBsetenv\fP(), \fBunsetenv\fP()\ : _BSD_SOURCE || _POSIX_C_SOURCE\ >=\ 200112L
+|| _XOPEN_SOURCE\ >=\ 600
+.ad b
+.SH DESCRIPTION
+La fonction \fBsetenv\fP() ajoute la variable \fIname\fP dans l'environnement, en
+lui attribuant la valeur \fIvalue\fP, si \fIname\fP n'existe pas encore. Si
+\fIname\fP existe déjà dans l'environnement, alors sa valeur est modifiée en
+\fIvalue\fP si \fIoverwrite\fP est non nul\ ; si \fIoverwrite\fP vaut zéro, la valeur
+de \fIname\fP n'est pas modifiée. Cette fonction crée des copies des chaînes
+pointées par \fIname\fP et \fIvalue\fP (contrairement à \fBputenv\fP(3)).
+.PP
+La fonction \fBunsetenv\fP() efface la variable \fIname\fP de l'environnement. Si
+\fIname\fP n'existe pas dans l'environnement, la fonction réussit et
+l'environnement n'est pas modifié.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBsetenv\fP() renvoie zéro si elle réussit, et \-1 si elle échoue,
+auquel cas \fIerrno\fP contient le code de l'erreur.
+
+La fonction \fBunsetenv\fP() renvoie zéro si elle réussit, et \-1 si elle
+échoue, auquel cas \fIerrno\fP contient le code de l'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+\fIname\fP est NULL, pointe vers une chaîne de taille nulle ou contient un
+caractère «\ =\ ».
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour ajouter une nouvelle variable à l'environnement.
+.SH CONFORMITÉ
+BSD\ 4.3, POSIX.1\-2001.
+.SH NOTES
+POSIX.1\-2001 n'impose pas que \fBsetenv\fP() et \fBunsetenv\fP() soient
+réentrantes.
+
+Avant la glibc 2.2.2, \fBunsetenv\fP() était prototypée pour retourner \fIvoid\fP\
+; les versions de la glibc plus récentes suivent le prototype conforme à
+POSIX.1\-2001 comme montré dans le SYNOPSIS.
+.SH BOGUES
+POSIX.1\-2001 indique que si \fIname\fP contient un caractère «\ =\ », alors
+\fBsetenv\fP() devrait échouer avec l'erreur \fBEINVAL\fP\ ; toutefois, les
+versions antérieures à la glibc 2.3.4 autorisaient l'utilisation du
+caractère «\ =\ » dans \fIname\fP.
+.SH "VOIR AUSSI"
+\fBclearenv\fP(3), \fBgetenv\fP(3), \fBputenv\fP(3), \fBenviron\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

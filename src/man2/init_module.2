@@ -1,0 +1,105 @@
+.\" Copyright (C) 1996 Free Software Foundation, Inc.
+.\" This file is distributed according to the GNU General Public License.
+.\" See the file COPYING in the top level source directory for details.
+.\"
+.\" 2006-02-09, some reformatting by Luc Van Oostenryck; some
+.\" reformatting and rewordings by mtk
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH INIT_MODULE 2 "9 février 2006" Linux "Manuel du programmeur Linux"
+.SH NOM
+init_module \- Initialiser une entrée de module chargeable
+.SH SYNOPSIS
+.nf
+\fB#include <linux/module.h>\fP
+.sp
+\fBint init_module(const char *\fP\fIname\fP\fB, struct module *\fP\fIimage\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBinit_module\fP()  charge l'image du module relogé dans l'espace noyau et
+lance la fonction \fIinit\fP du module.
+.PP
+L'image du module commence avec une structure module suivie par du code et
+des données appropriés. La structure module est définie comme suit\ :
+.PP
+.in +4n
+.nf
+struct module {
+    unsigned long         size_of_struct;
+    struct module        *next;
+    const char           *name;
+    unsigned long         size;
+    long                  usecount;
+    unsigned long         flags;
+    unsigned int          nsyms;
+    unsigned int          ndeps;
+    struct module_symbol *syms;
+    struct module_ref    *deps;
+    struct module_ref    *refs;
+    int                 (*init)(void);
+    void                (*cleanup)(void);
+    const struct exception_table_entry *ex_table_start;
+    const struct exception_table_entry *ex_table_end;
+#ifdef __alpha__
+    unsigned long gp;
+#endif
+};
+.fi
+.in
+.PP
+On s'attend à ce que tous les champs pointeurs, à l'exception de \fInext\fP et
+\fIrefs\fP, pointent vers l'intérieur du corps du module et qu'ils puissent
+être initialisés de manière appropriée pour l'espace noyau, c'est\-à\-dire
+relogés avec le reste du module.
+.PP
+Cet appel système nécessite des privilèges.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, il renvoie 0. S'il échoue, il renvoie \-1 et remplit \fIerrno\fP
+en conséquence.
+.SH ERREURS
+.TP 
+\fBEBUSY\fP
+La routine d'initialisation du module a échoué.
+.TP 
+\fBEFAULT\fP
+\fIname\fP ou \fIimage\fP est en dehors de l'espace d'adressage accessible du
+programme.
+.TP 
+\fBEINVAL\fP
+Un emplacement \fIimage\fP n'est pas rempli de manière correcte,
+\fIimage\->name\fP ne correspond plus au nom original du module, une entrée
+\fIimage\->deps\fP ne correspond plus au module chargé ou autre incohérence
+simliaire.
+.TP 
+\fBENOENT\fP
+Il n'existe aucun module de ce nom.
+.TP 
+\fBEPERM\fP
+L'appelant n'est pas privilégié (n'a pas la capacité \fBCAP_SYS_MODULE\fP).
+.SH CONFORMITÉ
+\fBinit_module\fP()  est spécifique à Linux.
+.SH "VOIR AUSSI"
+\fBcreate_module\fP(2), \fBdelete_module\fP(2), \fBquery_module\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006-2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

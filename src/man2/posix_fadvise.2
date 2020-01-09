@@ -1,0 +1,147 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright 2003 Abhijit Menon-Sen <ams@wiw.org>
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" 2005-04-08 mtk, noted kernel version and added BUGS
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH POSIX_FADVISE 2 "14 février 2003" Linux "Manuel du programmeur Linux"
+.SH NOM
+posix_fadvise \- Prédéclarer des accès aux données d'un fichier
+.SH SYNOPSIS
+.nf
+\fB#define _XOPEN_SOURCE 600\fP
+\fB#include <fcntl.h>\fP
+.sp
+\fBint posix_fadvise(int \fP\fIfd\fP\fB, off_t \fP\fIoffset\fP\fB, off_t \fP\fIlen\fP\fB, int \fP\fIadvice\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Les programmes peuvent utiliser \fBposix_fadvise\fP() pour annoncer leur
+intention d'accéder aux données d'un fichier suivant un certain ordre,
+permettant ainsi au noyau de réaliser les optimisations appropriées.
+
+L'indication \fIadvice\fP s'applique à une région (pas nécessairement
+existante) débutant à \fIoffset\fP et s'étendant sur \fIlen\fP octets (ou jusqu'à
+la fin du fichier si \fIlen\fP vaut zéro) dans le fichier référencé par
+\fIfd\fP. L'indication n'oblige à rien, il s'agit seulement d'une supposition
+concernant le comportement futur de l'application.
+
+Les valeurs possibles pour \fIadvice\fP incluent\ :
+.TP 
+\fBPOSIX_FADV_NORMAL\fP
+Indique que l'application n'a pas d'indice particulier concernant les accès
+aux données du fichier. Le noyau appliquera son comportement par défaut.
+.TP 
+\fBPOSIX_FADV_SEQUENTIAL\fP
+L'application pense accéder aux données séquentiellement (dans l'ordre des
+offsets croissants).
+.TP 
+\fBPOSIX_FADV_RANDOM\fP
+Les accès se feront de manière aléatoire.
+.TP 
+\fBPOSIX_FADV_NOREUSE\fP
+Les données ne seront accédées qu'une seule fois.
+.TP 
+\fBPOSIX_FADV_WILLNEED\fP
+Les données seront accédées dans le futur proche.
+.TP 
+\fBPOSIX_FADV_DONTNEED\fP
+Les données ne seront pas accédées dans le futur proche.
+.SH "VALEUR RENVOYÉE"
+L'appel renvoie zéro s'il réussit. S'il échoue, il renvoie un code d'erreur.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+L'argument \fIfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBEINVAL\fP
+L'indication \fIadvice\fP est invalide.
+.TP 
+\fBESPIPE\fP
+Le descripteur correspond à un tube ou une FIFO. (Linux renvoie en fait
+\fBEINVAL\fP dans ce cas).
+.SH VERSIONS
+.\" Actually as fadvise64() -- MTK
+\fBposix_fadvise\fP() est apparu dans le noyau 2.5.60. La glibc le gère depuis
+la version 2.2.
+.SH CONFORMITÉ
+POSIX.1\-2001. Veuillez noter que le type du paramètre \fIlen\fP a été modifié
+de \fIsize_t\fP en \fIoff_t\fP dans la spécification POSIX.1\-2003 TC1.
+.SH NOTES
+Sous Linux, \fBPOSIX_FADV_NORMAL\fP configure la fenêtre de lecture anticipée à
+sa taille par défaut pour le périphérique concerné. \fBPOSIX_FADV_SEQUENTIAL\fP
+double cette taille, et \fBPOSIX_FADV_RANDOM\fP désactive la lecture
+anticipée. Ces modifications affectent le fichier entier, pas seulement la
+région indiquée (mais les autres descripteurs ouverts sur le même fichier ne
+sont pas modifiés).
+
+\fBPOSIX_FADV_WILLNEED\fP initie une lecture non bloquante de la région
+indiquée dans le cache. La quantité de données lues peut être diminuée
+suivant la charge mémoire (quelques méga\-octets seront en général
+disponibles et souvent suffisants).
+
+Sous les noyaux antérieurs à 2.6.18, \fBPOSIX_FADV_NOREUSE\fP avait la même
+sémantique que \fBPOSIX_FADV_WILLNEED\fP. Il s'agissait sans doute d'un bogue\
+; depuis Linux 2.6.18, cet attribut n'a aucun effet.
+
+\fBPOSIX_FADV_DONTNEED\fP essaye de libérer les pages de cache associées avec
+la région indiquée. Ceci est utile par exemple lors du parcours de très gros
+fichiers. Un programme peut ainsi demander régulièrement au noyau de libérer
+les pages déjà utilisées, pour éviter que des pages plus utiles ne soient
+éliminées à leur place.
+
+Les pages qui n'ont pas encore été écrites ne sont pas affectées, ainsi si
+une application veut s'assurer que les pages seront relâchées, elle devrait
+appeler \fBfsync\fP(2) ou \fBfdatasync\fP(2) d'abord.
+.SH BOGUES
+Dans les noyaux antérieurs à 2.6.6, si le paramètre \fIlen\fP était nul, la
+valeur était interprétée comme «\ zéro octets\ », et non comme «\ tous les
+octets jusqu'à la fin du fichier\ ».
+.SH "VOIR AUSSI"
+.\" FIXME . Write a posix_fadvise(3) page.
+\fBreadahead\fP(2), \fBposix_fallocate\fP(3), \fBposix_madvise\fP(3),
+\fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

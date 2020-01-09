@@ -1,0 +1,121 @@
+.\" Copyright (c) 2008, Linux Foundation, written by by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" License.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH END 3 "17 juillet 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+etext, edata, end \- Fin des segments de programme
+.SH SYNOPSIS
+.nf
+\fBextern\fP\fI etext\fP\fB;\fP
+\fBextern\fP\fI edata\fP\fB;\fP
+\fBextern\fP\fI end\fP\fB;\fP
+.fi
+.SH DESCRIPTION
+Les adresses de ces symboles indiquent la fin de différents segments du
+programme\ :
+.TP 
+\fIetext\fP
+La première adresse après la fin du segment de texte (le code du programme).
+.TP 
+\fIedata\fP
+La première adresse après la fin du segment des données initialisées.
+.TP 
+\fIend\fP
+La première adresse après la fin du segment des données non initialisées
+(également connu comme le segment BSS).
+.SH CONFORMITÉ
+Bien que ces symboles aient été fournis depuis longtemps par la plupart des
+systèmes Unix, ils ne sont pas standard\ ; utilisez les avec précaution.
+.SH NOTES
+Le programme doit déclarer explicitement ces symboles\ ; ils ne sont définis
+dans aucun fichier d'en\-têtes.
+
+Sur certains systèmes, les noms de ces symboles sont précédé d'un
+tiret\-bas\ : \fI_etext\fP, \fI_edata\fP et \fI_end\fP. Ces symboles sont également
+définis pour les programmes compilés sous Linux.
+
+Au début de l'exécution du programme, l’interruption de programme se trouve
+quelque part près de \fI&end\fP (peut\-être au début de la page qui
+suit). Cependant, l’interruption de programme se déplacera au fur et à
+mesure que de la mémoire est allouée avec \fBbrk\fP(2) ou
+\fBmalloc\fP(3). Utilisez \fBsbrk\fP(2) avec un paramètre nul pour trouver la
+valeur actuelle de l’interruption de programme.
+.SH EXEMPLE
+Lors de son exécution, le programme affiche les résultats suivants\ :
+.in +4n
+.nf
+
+$\fB ./a.out\fP
+First address past:
+    program text (etext)       0x8048568
+    initialized data (edata)   0x804a01c
+    uninitialized data (end)   0x804a024
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+
+extern char etext, edata, end; /* The symbols must have some type,
+                                   or "gcc \-Wall" complains */
+
+int
+main(int argc, char *argv[])
+{
+    printf("First address past:\en");
+    printf("    program text (etext)      %10p\en", &etext);
+    printf("    initialized data (edata)  %10p\en", &edata);
+    printf("    uninitialized data (end)  %10p\en", &end);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBobjdump\fP(1), \fBreadelf\fP(1), \fBsbrk\fP(2), \fBelf\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

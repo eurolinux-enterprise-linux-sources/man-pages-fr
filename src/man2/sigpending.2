@@ -1,0 +1,100 @@
+.\" Copyright (c) 2005 Michael Kerrisk
+.\" based on earlier work by faith@cs.unc.edu and
+.\" Mike Battersby <mib@deakin.edu.au>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" 2005-09-15, mtk, Created new page by splitting off from sigaction.2
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SIGPENDING 2 "4 octobre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+sigpending \- Examiner les signaux en attente
+.SH SYNOPSIS
+\fB#include <signal.h>\fP
+.sp
+\fBint sigpending(sigset_t *\fP\fIset\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBsigpending\fP()\ : _POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE ||
+_POSIX_SOURCE
+.ad b
+.SH DESCRIPTION
+.PP
+L'appel \fBsigpending\fP() permet l'examen des signaux en attente (qui se sont
+déclenchés en étant bloqués). Le masque de signaux en attente est stocké
+dans \fIset\fP.
+.SH "VALEUR RENVOYÉE"
+\fBsigpending\fP() renvoie 0 s'il réussit, et \-1 en cas d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fIset\fP pointe en\-dehors de l'espace d'adressage accessible.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Voir \fBsigsetops\fP(3) pour les détails concernant les ensembles de signaux.
+
+L'ensemble des signaux qui sont en attente pour un thread est l'union de
+l'ensemble des signaux qui sont en attente pour ce thread et de l'ensemble
+des signaux qui sont en attente pour le processus lui\-même\ ; voir
+\fBsignal\fP(7).
+
+Un fils créé par \fBfork\fP(2) commence avec un ensemble vide de signaux en
+attente vide\ ; l'ensemble des signaux en attente est conservé au travers
+d'un \fBexecve\fP(2).
+.SH BOGUES
+En raison d'un bogue dans la fonction enveloppe de \fBsigpending\fP() des
+versions de glibc jusqu'à 2.2.1 incluse, l'information concernant les
+signaux temps\(hyréel n'était pas renvoyée correctement.
+.SH "VOIR AUSSI"
+\fBkill\fP(2), \fBsigaction\fP(2), \fBsignal\fP(2), \fBsigprocmask\fP(2),
+\fBsigsuspend\fP(2), \fBsigsetops\fP(3), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

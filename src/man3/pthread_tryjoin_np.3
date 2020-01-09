@@ -1,0 +1,135 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_TRYJOIN_NP 3 "11 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_tryjoin_np, pthread_timedjoin_np \- Essayer de fusionner avec un
+thread ayant terminé son exécution
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP
+\fB#include <pthread.h>\fP
+
+\fBint pthread_tryjoin_np(pthread_t \fP\fIthread\fP\fB, void **\fP\fIretval\fP\fB);\fP
+
+\fBint pthread_timedjoin_np(pthread_t \fP\fIthread\fP\fB, void **\fP\fIretval\fP\fB,\fP
+\fB                         const struct timespec *\fP\fIabstime\fP\fB);\fP
+.fi
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.SH DESCRIPTION
+Ces fonctions opèrent de la même façon que \fBpthread_join\fP(3), à l'exception
+des différences décrites dans cette page.
+
+La fonction \fBpthread_tryjoin_np\fP() essaie de fusionner avec le thread
+\fIthread\fP si cela est possible sans attendre et renvoie le code de retour du
+thread dans \fI*retval\fP. Si le \fIthread\fP ne s'est toujours pas terminé, alors
+au lieu d'être bloquée (comme le fait \fBpthread_join\fP(3)), l'appel renvoie
+une erreur.
+
+La fonction \fBpthread_timedjoin_np\fP() essaie de fusionner avec un thread
+avec une limite de temps. Si le \fIthread\fP ne s'est toujours pas terminé,
+alors l'appel est bloqué pendant un temps maximum de \fIabstime\fP. Si le délai
+expire avant que \fIthread\fP ne se termine, l'appel renvoie une erreur. Le
+paramètre \fIabstime\fP est une structure de la forme suivante, qui indique un
+temps absolu mesuré depuis le 1er janvier 1970 («\ Epoch\ », consultez
+\fBtime\fP(2))\ :
+
+.in +4n
+.nf
+struct timespec {
+    time_t tv_sec;      /* Secondes */
+    long   tv_nsec;     /* Nanosecondes */
+};
+.fi
+.in
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonction renvoient 0\ ; en cas d'erreur, elles
+renvoient un numéro d'erreur.
+.SH ERREURS
+Ces fonction peuvent échouer avec les mêmes erreurs que
+\fBpthread_join\fP(3). \fBpthread_tryjoin_np\fP() peut de plus échouer avec
+l'erreur suivante\ :
+.TP 
+\fBEBUSY\fP
+L'exécution du \fIthread\fP n'était pas terminée au moment de l'appel.
+.PP
+\fBpthread_timedjoin_np\fP() peut également échouer avec les erreurs suivantes\
+:
+.TP 
+\fBETIMEDOUT\fP
+Le délai a expiré avant que \fIthread\fP ne se soit terminé.
+.PP
+\fBpthread_timedjoin_np\fP() ne renvoie jamais d'erreur \fBEINTR\fP.
+.SH VERSIONS
+Ces fonctions ont été introduites dans la glibc dans sa version\ 2.3.3.
+.SH CONFORMITÉ
+Ces fonctions sont des extensions non standard GNU\ ; c'est la raison du
+suffixe «\ _np\ » (non portable) dans leur nom.
+.SH EXEMPLE
+Le code suivant attend la fin d'exécution d'un thread pour fusionner pendant
+au plus 5 seconde\ :
+
+.nf
+    struct timespec ts;
+    int s;
+
+    ...
+
+    if (clock_gettime(CLOCK_REALTIME, &ts) == \-1) {
+	/* Handle error */
+    }
+
+    ts.tv_sec += 5;
+
+    s = pthread_timedjoin_np(thread, NULL, &ts);
+    if (s != 0) {
+        /* Handle error */
+    }
+.fi
+.SH "VOIR AUSSI"
+\fBclock_gettime\fP(2), \fBpthread_join\fP(3), \fBpthread_exit\fP(3), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

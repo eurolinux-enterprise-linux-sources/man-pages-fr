@@ -1,0 +1,214 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) 1996 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" FIXME There is much that is missing and/or out of date in this page.
+.\" (There is a quotactl.2 page in the quotactl package that seems to
+.\" have more info than this page.)
+.\" As things stand the page more or less documents Linux 2.2 reality:
+.\"
+.\" Linux 2.2 has:
+.\"
+.\"	Q_GETQUOTA
+.\"	Q_GETSTATS
+.\"	Q_QUOTAOFF
+.\"	Q_QUOTAON
+.\"	Q_RSQUASH (not currently documented)
+.\"	Q_SETQLIM
+.\"	Q_SETQUOTA
+.\"	Q_SETUSE
+.\"	Q_SYNC
+.\"
+.\" Linux 2.4 has:
+.\"
+.\"	Q_COMP_QUOTAOFF
+.\"	Q_COMP_QUOTAON
+.\"	Q_COMP_SYNC
+.\"	Q_GETFMT
+.\"	Q_GETINFO
+.\"	Q_GETQUOTA
+.\"	Q_QUOTAOFF
+.\"	Q_QUOTAON
+.\"	Q_SETINFO
+.\"	Q_SETQUOTA
+.\"	Q_SYNC
+.\"	Q_V1_GETQUOTA Q_V1_GETSTATS Q_V1_RSQUASH Q_V1_SETQLIM
+.\"	Q_V1_SETQUOTA Q_V1_SETUSE
+.\"	Q_V2_GETINFO Q_V2_GETQUOTA Q_V2_SETFLAGS Q_V2_SETGRACE
+.\"	Q_V2_SETINFO Q_V2_SETQUOTA Q_V2_SETUSE
+.\"	Q_XGETQSTAT Q_XGETQUOTA Q_XQUOTAOFF Q_XQUOTAON Q_XQUOTARM
+.\"	Q_XSETQLIM
+.\"
+.\" Linux 2.6.16 has:
+.\"
+.\"	Q_GETFMT
+.\"	Q_GETINFO
+.\"	Q_GETQUOTA
+.\"	Q_QUOTAOFF
+.\"	Q_QUOTAON
+.\"	Q_SETINFO
+.\"	Q_SETQUOTA
+.\"	Q_SYNC
+.\"	Q_XGETQSTAT
+.\"	Q_XGETQUOTA
+.\"	Q_XQUOTAOFF
+.\"	Q_XQUOTAON
+.\"	Q_XQUOTARM
+.\"	Q_XQUOTASYNC
+.\"	Q_XSETQLIM
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH QUOTACTL 2 "1er juin 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+quotactl \- Manipuler les quotas de disque.
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+.br
+\fB#include <sys/quota.h>\fP
+.sp
+\fBint quotactl(int \fP\fIcmd\fP\fB, const char *\fP\fIspecial\fP\fB, int \fP\fIid\fP\fB, caddr_t \fP\fIaddr\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Le système de quotas permet de définir pour chaque utilisateur et/ou groupe
+une limite souple et une limite impérative à la quantité d'espace disque
+utilisable sur un système de fichiers donné. La limite impérative ne peut
+pas être dépassée. La limite souple peut être dépassée, mais des
+avertissements s'en suivront. De plus, l'utilisateur ne peut pas dépasser
+une limite souple pendant plus d'une semaine (par défaut) d'affilée. Une
+fois la semaine écoulée, la limite souple devient une limite impérative.
+
+L'appel système \fBquotactl\fP() manipule ces quotas. Son premier argument est
+de la forme \fBQCMD(\fP\fIsubcmd\fP\fB,\fP\fItype\fP\fB)\fP où \fItype\fP vaut soit
+\fBUSRQUOTA\fP soit \fBGRPQUOTA\fP (respectivement pour les quotas d'utilisateur
+et de groupe), et où \fIsubcmd\fP est décrit plus bas
+
+Le second argument \fIspecial\fP est un périphérique par bloc auquel les quotas
+s'appliquent. Il doit être monté.
+
+Le troisième argument \fIid\fP est l'identifiant de l'utilisateur ou du groupe
+auquel s'appliquent les quotas.
+
+La quatrième argument \fIaddr\fP est l'adresse d'une structure de données
+dépendant de la commande à utiliser.
+
+La commande \fIsubcmd\fP est dans la liste suivante\ :
+.TP  1.1i
+\fBQ_QUOTAON\fP
+Activer les quotas. L'argument \fIaddr\fP est le chemin d'accès au fichier
+contenant les quotas pour le système de fichiers.
+.TP 
+\fBQ_QUOTAOFF\fP
+Désactiver les quotas.
+.TP 
+\fBQ_GETQUOTA\fP
+Obtenir les limites actuelles et l'utilisation courante de l'espace
+disque. L'argument \fIaddr\fP est un pointeur sur une structure dqblk (définie
+dans \fI<sys/quota.h>\fP).
+.TP 
+\fBQ_SETQUOTA\fP
+Fixer la limite et l'utilisation actuelle. \fIaddr\fP est identique à
+\fBQ_GETQUOTA\fP
+.TP 
+\fBQ_SETQLIM\fP
+Fixer les limites. \fIaddr\fP est identique à \fBQ_GETQUOTA\fP
+.TP 
+\fBQ_SETUSE\fP
+Fixer l'utilisation.
+.TP 
+\fBQ_SYNC\fP
+Synchroniser les quotas d'un système de fichiers.
+.TP 
+\fBQ_GETSTATS\fP
+Obtenir des statistiques.
+.SH "VALEUR RENVOYÉE"
+\fBquotactl\fP() renvoie 0 quand il réussit. En cas d'échec, \-1 est renvoyé et
+\fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP  0.9i
+\fBEACCES\fP
+Le fichier de quotas n'est pas un fichier ordinaire.
+.TP 
+\fBEBUSY\fP
+\fBQ_QUOTAON\fP a été requis mais les quotas sont déjà actifs.
+.TP 
+\fBEFAULT\fP
+Mauvaise valeur pour \fIaddr\fP.
+.TP 
+\fBEINVAL\fP
+\fItype\fP n'est pas un type de quota supporté. Ou bien \fIspecial\fP n'a pas pu
+être trouvé.
+.TP 
+\fBEIO\fP
+Impossible de lire ou d'écrire le fichier de quotas.
+.TP 
+\fBEMFILE\fP
+Trop de fichiers ouverts, impossible d'ouvrir le fichier des quotas.
+.TP 
+\fBENODEV\fP
+\fIspecial\fP n'est pas dans la table de montage.
+.TP 
+\fBENOPKG\fP
+Le noyau n'a pas été compilé avec le support des quotas.
+.TP 
+\fBENOTBLK\fP
+\fIspecial\fP n'est pas un périphérique bloc.
+.TP 
+\fBEPERM\fP
+Le processus n'est pas root (pour le système de fichiers) et \fBQ_GETQUOTA\fP a
+été requis pour un autre identifiant \fIid\fP que celui du processus, ou une
+commande autre que \fBQ_GETSTATS\fP ou \fBQ_SYNC\fP a été réclamée.
+.TP 
+\fBESRCH\fP
+\fBQ_GETQUOTA\fP ou \fBQ_SETQUOTA\fP ou \fBQ_SETUSE\fP ou \fBQ_SETQLIM\fP ont été requis
+sur système de fichiers n'ayant pas de quotas actifs.
+.SH CONFORMITÉ
+BSD.
+.SH "VOIR AUSSI"
+\fBquota\fP(1), \fBgetrlimit\fP(2), \fBsetrlimit\fP(2), \fBulimit\fP(3),
+\fBquotacheck\fP(8), \fBquotaon\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,82 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single Unix specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MBRLEN 3 "25 juillet 1999" GNU "Manuel du programmeur Linux"
+.SH NOM
+mbrlen \- Calculer la longueur d'un caractère multi\-octets
+.SH SYNOPSIS
+.nf
+\fB#include <wchar.h>\fP
+.sp
+\fBsize_t mbrlen(const char *\fP\fIs\fP\fB, size_t \fP\fIn\fP\fB, mbstate_t *\fP\fIps\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBmbrlen\fP() examine au maximum \fIn\fP octets de la séquence
+commençant en \fIs\fP et en extrait le caractère multi\-octets complet
+suivant. Elle met à jour l'état de décalage \fI*ps\fP. Si le caractère
+multi\-octets ne correspond pas au caractère large nul, elle renvoie le
+nombre d'octets qui ont été lus dans \fIs\fP. Si ce caractère correspond au
+caractère large nul, elle réinitialise l'état \fI*ps\fP et renvoie 0.
+.PP
+Si les \fIn\fP octets commençant en \fIs\fP ne contiennent pas un caractère
+multi\-octets complet, \fBmbrlen\fP() renvoie \fI(size_t)\ \-2\fP. Ceci peut se
+produire même si \fIn\fP >= \fIMB_CUR_MAX\fP, dans le cas où la séquence
+multi\-octets contient des séquences de décalage redondantes.
+.PP
+Si la séquence multi\-octets commençant en \fIs\fP contient une séquence
+invalide avant le prochain caractère complet, \fBmbrlen\fP() renvoie
+\fI(size_t)\ \-1\fP et place dans \fIerrno\fP la valeur \fBEILSEQ\fP. Dans ce cas, les
+effets sur \fI*ps\fP sont indéfinis.
+.PP
+Si \fIps\fP est un pointeur NULL, une zone de mémoire statique réservée à
+\fBmbrlen\fP() est utilisée à sa place.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBmbrlen\fP() renvoie le nombre d'octets balayés depuis la
+séquence commençant en \fIs\fP, si un caractère large non nul a été
+reconnu. Elle renvoie zéro si un caractère large nul est rencontré. Elle
+renvoie \fI(size_t)\ \-1\fP et remplit \fIerrno\fP avec \fBEILSEQ\fP, si une séquence
+invalide est trouvée. Elle renvoie \fI(size_t)\ \-2\fP si elle n'a pas trouvé de
+caractère entier, et si \fIn\fP doit être augmenté.
+.SH CONFORMITÉ
+C99.
+.SH NOTES
+Le comportement de \fBmbrlen\fP() dépend de la catégorie \fBLC_CTYPE\fP de la
+localisation en cours.
+.SH "VOIR AUSSI"
+\fBmbrtowc\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

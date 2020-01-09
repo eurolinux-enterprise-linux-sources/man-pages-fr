@@ -1,0 +1,195 @@
+.\" Copyright (C) 2007 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" and Copyright (C) 2007 Justin Pryzby <pryzbyj@justinpryzby.com>
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+.\" CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+.\" TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+.\" SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETSUBOPT 3 "29 mai 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+getsubopt \- Parcourir les arguments des sous\-options depuis une chaîne
+.SH SYNOPSIS
+\fB#define _XOPEN_SOURCE 500\fP
+.br
+\fB#include <stdlib.h>\fP
+
+\fBint getsubopt(char **\fP\fIoptionp\fP\fB, char * const *\fP\fItokens\fP\fB, char
+**\fP\fIvaluep\fP\fB);\fP
+.SH DESCRIPTION
+\fBgetsubopt\fP() parcourt la liste des sous\-options séparées par des virgules
+fournie dans \fIoptionp\fP (une liste de sous\-options est typiquement créée
+lorsque \fBgetopt\fP(3) est utilisée pour parcourir une ligne de commande\ ;
+consultez par exemple l'option \fI\-o\fP de \fBmount\fP(8)). Chaque sous\-option
+peut être associée à une valeur qui est séparée de son nom par un signe
+égal. La suite est un exemple de ce type de chaîne qui peut être passé à
+\fIoptionp\fP\ :
+.sp
+.in +4n
+\fBro,name=xyz\fP
+.in
+
+L'argument \fItokens\fP est un pointeur vers une liste de marqueur terminée par
+NULL que \fBgetsubopt\fP() recherche dans \fIoptionp\fP. Les marqueurs doivent
+être distincts, contenant des chaînes terminées par un caractère nul d'au
+moins un caractère, sans signe égal ou virgule.
+
+Chaque appel à \fBgetsubopt\fP() renvoie une information sur la prochaine
+sous\-option contenue dans \fIoptionp\fP qui n'a pas été traitée. Le premier
+signal égal (s'il existe) est interprété comme un séparateur entre un nom et
+une valeur de sous\-option. La valeur se termine à la prochaine virgule ou
+(pour la dernière sous\-option) à la fin de la chaîne. Si le nom d'une
+sous\-option correspond à un nom de \fItokens\fP et qu'une chaîne de valeur est
+trouvée, \fBgetsubopt\fP() définit \fI*valuep\fP à l'adresse de cette chaîne. La
+première virgule in \fIoptionp\fP est surpassée par un octet nul, ainsi
+\fI*valuep\fP est exactement «\ la chaîne de valeur\ » de cette sous\-option.
+
+Si la sous\-option est reconnue, mais qu'aucune chaîne de valeur n'existe,
+\fI*valuep\fP est défini à NULL.
+
+Lorsque \fBgetsubopt\fP() renvoie, \fIoptionp\fP pointe vers la prochaine
+sous\-option, ou vers le caractère nul de fin de chaîne si la dernière
+sous\-option vient juste d'être traitée.
+.SH "VALEUR RENVOYÉE"
+Si la première sous\-option de \fIoptionp\fP est reconnue, \fBgetsubopt\fP()
+renvoie l'index de l'élément de \fItokens\fP correspondant à la
+sous\-option. Sinon, \-1 est renvoyé et \fI*valuep\fP correspond à la chaîne
+\fInom\fP\fB[=\fP\fIvaleur\fP\fB]\fP.
+
+Puisque \fI*optionp\fP est modifié, la première sous\-option avant l'appel à
+\fBgetsubopt\fP() n'est pas nécessairement la même qu'après.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+
+Puisque \fBgetsubopt\fP() ré\-écrit toutes les virgules trouvées dans la chaîne
+\fI*optionp\fP, cette chaîne doit être accessible en écriture, elle ne peut pas
+être une chaîne constante.
+.SH EXEMPLE
+Le programme suivant attend des sous\-options après l'option «\ \-o\ ».
+
+.nf
+#define _XOPEN_SOURCE 500
+#include <stdlib.h>
+#include <assert.h>
+#include <stdio.h>
+
+int main(int argc, char **argv)
+{
+    enum {
+        RO_OPT = 0,
+        RW_OPT,
+        NAME_OPT
+    };
+    char *const token[] = {
+        [RO_OPT]   = "ro",
+        [RW_OPT]   = "rw",
+        [NAME_OPT] = "name",
+        NULL
+    };
+    char *subopts;
+    char *value;
+    int opt;
+
+    int readonly = 0;
+    int readwrite = 0;
+    char *name = NULL;
+    int errfnd = 0;
+
+    while ((opt = getopt(argc, argv, "o:")) != \-1) {
+        switch (opt) {
+        case \(aqo\(aq:
+            subopts = optarg;
+            while (*subopts != \(aq\e0\(aq && !errfnd) {
+
+            switch (getsubopt(&subopts, token, &value)) {
+            case RO_OPT:
+                readonly = 1;
+                break;
+
+            case RW_OPT:
+                readwrite = 1;
+                break;
+
+            case NAME_OPT:
+                if (value == NULL) {
+                    fprintf(stderr, "Missing value for "
+                            "suboption \(aq%s\(aq\en", token[NAME_OPT]);
+                    errfnd = 1;
+                    continue;
+                }
+
+                name = value;
+                break;
+
+            default:
+                fprintf(stderr, "No match found "
+                        "for token: /%s/\en", value);
+                errfnd = 1;
+                break;
+            }
+        }
+        if (readwrite && readonly) {
+            fprintf(stderr, "Only one of \(aq%s\(aq and \(aq%s\(aq can be "
+                    "specified\en", token[RO_OPT], token[RW_OPT]);
+            errfnd = 1;
+        }
+        break;
+
+        default:
+            errfnd = 1;
+        }
+    }
+
+    if (errfnd || argc == 1) {
+        fprintf(stderr, "\enUsage: %s \-o <suboptstring>\en", argv[0]);
+        fprintf(stderr, "suboptions are \(aqro\(aq, \(aqrw\(aq, "
+                "and \(aqname=<value>\(aq\en");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Remainder of program... */
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBgetopt\fP(3), \fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

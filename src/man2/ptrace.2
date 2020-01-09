@@ -1,0 +1,366 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (c) 1993 Michael Haardt
+.\" (michael@moria.de),
+.\" Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" changes Copyright 1999 Mike Coleman (mkc@acm.org)
+.\" -- major revision to fully document ptrace semantics per recent Linux
+.\"    kernel (2.2.10) and glibc (2.1.2)
+.\" Sun Nov  7 03:18:35 CST 1999
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Modified Fri Jul 23 23:47:18 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Fri Jan 31 16:46:30 1997 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Thu Oct  7 17:28:49 1999 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\"
+.\" 2006-03-24, Chuck Ebbert <76306.1226@compuserve.com>
+.\"    Added    PTRACE_SETOPTIONS, PTRACE_GETEVENTMSG, PTRACE_GETSIGINFO,
+.\"        PTRACE_SETSIGINFO, PTRACE_SYSEMU, PTRACE_SYSEMU_SINGLESTEP
+.\"    (Thanks to Blaisorblade, Daniel Jacobowitz and others who helped.)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTRACE 2 "30 mars 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+ptrace \- Suivre un processus
+.SH SYNOPSIS
+.nf
+\fB#include <sys/ptrace.h>\fP
+.sp
+\fBlong ptrace(enum __ptrace_request \fP\fIrequest\fP\fB, pid_t \fP\fIpid\fP\fB, \fP
+\fB            void *\fP\fIaddr\fP\fB, void *\fP\fIdata\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+L'appel système \fBptrace\fP() fournit au processus parent un moyen de
+contrôler l'exécution d'un autre processus et d'éditer son image
+mémoire. L'utilisation primordiale de cette fonction est l'implémentation de
+points d'arrêt pour le débogage, et pour suivre les appels système.
+.LP
+Le père peut démarrer un suivi en appelant \fBfork\fP(2) et que le fils créé
+fasse un \fBPTRACE_TRACEME\fP, suivi (en général) par un \fBexec\fP(3). Autrement,
+le père peut commencer un suivi sur un processus existant en utilisant
+\fBPTRACE_ATTACH\fP.
+.LP
+Le processus fils suivi s'arrêtera à chaque fois qu'un signal lui sera
+délivré, même si le signal est ignoré (à l'exception de \fBSIGKILL\fP qui a les
+effets habituels). Le père sera prévenu à son prochain \fBwait\fP(2) et pourra
+inspecter et modifier le processus fils pendant son arrêt. Le parent peut
+également faire continuer l'exécution de son fils, éventuellement en
+ignorant le signal ayant déclenché l'arrêt, ou envoyant un autre signal.
+.LP
+Quand le père a fini le suivi, il peut terminer le fils avec \fBPTRACE_KILL\fP
+ou le faire continuer normalement, non suivi, avec \fBPTRACE_DETACH\fP.
+.LP
+La valeur de l'argument \fIrequest\fP indique précisément l'action à
+entreprendre.
+.TP 
+\fBPTRACE_TRACEME\fP
+Le processus en cours va être suivi par son père. Tout signal (sauf
+\fBSIGKILL\fP) reçu par le processus l'arrêtera, et le père sera notifié grâce
+à \fBwait\fP(2). De plus, les appels ultérieurs à \fBexecve\fP(2) par ce processus
+lui enverront \fBSIGTRAP\fP, ce qui donne au père la possibilité de reprendre
+le contrôle avant que le nouveau programme continue son exécution. Un
+processus ne doit pas envoyer cette requête si son père n'est pas prêt à le
+suivre. Dans cette requête \fIpid\fP, \fIaddr\fP, et \fIdata\fP sont ignorés.
+.LP
+La requête ci\-dessus ne sert que dans le processus fils. Les autres ne
+servent que dans le père. Par la suite, \fIpid\fP précise le fils sur lequel
+agir. Pour les requêtes autres que \fBPTRACE_KILL\fP, le fils doit être arrêté.
+.TP 
+\fBPTRACE_PEEKTEXT\fP, \fBPTRACE_PEEKDATA\fP
+Lire un mot à l'adresse \fIaddr\fP dans l'espace mémoire du fils et renvoyer la
+valeur en résultat de \fBptrace\fP(). Linux ne sépare pas les espaces
+d'adressage de code et de données, ainsi ces deux requêtes sont
+équivalentes. L'argument \fIdata\fP est ignoré.
+.TP 
+\fBPTRACE_PEEKUSER\fP
+.\" PTRACE_PEEKUSR in kernel source, but glibc uses PTRACE_PEEKUSER,
+.\" and that is the name that seems common on other systems.
+Lire un mot à l'adresse \fIaddr\fP dans l'espace USER du fils, qui contient les
+registres et diverses informations sur le processus (voir
+\fI<sys/user.h>\fP). La valeur est renvoyée en résultat de
+\fBptrace\fP(). En principe, l'adresse doit être alignée sur une frontière de
+mots, bien que cela varie selon les architectures. Consultez la section
+NOTES. \fIdata\fP est ignoré.
+.TP 
+\fBPTRACE_POKETEXT\fP, \fBPTRACE_POKEDATA\fP
+Copier un mot depuis l'adresse \fIdata\fP de la mémoire du père vers l'adresse
+\fIaddr\fP de la mémoire du fils. Comme précédemment, les deux requêtes sont
+équivalentes.
+.TP 
+\fBPTRACE_POKEUSER\fP
+.\" PTRACE_POKEUSR in kernel source, but glibc uses PTRACE_POKEUSER,
+.\" and that is the name that seems common on other systems.
+Copier un mot depuis l'emplacement \fIdata\fP de la mémoire du père vers
+l'emplacement \fIaddr\fP dans l'espace USER du processus fils. Comme plus haut,
+les emplacements doivent être alignés sur une frontière de mot. Pour
+maintenir l'intégrité du noyau, certaines modifications de la zone USER sont
+interdites.
+.TP 
+\fBPTRACE_GETREGS\fP, \fBPTRACE_GETFPREGS\fP
+Copier les registres généraux ou du processeur en virgule flottante, vers
+l'adresse \fIdata\fP du père. Voir \fI<sys/user.h>\fP pour les détails sur
+le format des données (\fIaddr\fP est ignoré).
+.TP 
+\fBPTRACE_GETSIGINFO\fP (depuis Linux 2.3.99\-pre6)
+Récupérer des informations sur le signal qui a causé l'arrêt. Pour ce faire,
+copier une structure \fIsiginfo_t\fP (voir \fBsigaction\fP(2)) du fils à l'adresse
+\fIdata\fP du père. L'argument \fIaddr\fP est ignoré.
+.TP 
+\fBPTRACE_SETREGS\fP, \fBPTRACE_SETFPREGS\fP
+Remplir les registres généraux ou du processeur en virgule flottante, depuis
+le contenu de l'adresse \fIdata\fP du père. Comme pour \fBPTRACE_POKEUSER\fP
+certaines modifications sont interdites. (\fIaddr\fP est ignoré).
+.TP 
+\fBPTRACE_SETSIGINFO\fP (depuis Linux 2.3.99\-pre6)
+Fixer des informations de signaux. Copier une structure \fIsiginfo_t\fP de
+l'adresse \fIdata\fP dans le père vers le fils. Cela n'affecte que les signaux
+qui auraient dû être délivrés au fils et ont été interceptés à cause de
+\fBptrace\fP(). Il peut être difficile de différencier ces signaux normaux des
+signaux générés par \fBptrace\fP() lui\-même. L'argument \fIaddr\fP est ignoré.
+.TP 
+\fBPTRACE_SETOPTIONS\fP (depuis Linux 2.4.6, voir remarques dans BOGUES)
+Fixe les options de ptrace à partir de l'adresse \fIdata\fP dans le père
+(\fIaddr\fP est ignoré). \fIdata\fP est interprété comme un masque d'options, qui
+est construit à partir des drapeaux suivants\ :
+.RS
+.TP 
+\fBPTRACE_O_TRACESYSGOOD\fP (Depuis Linux 2.4.6)
+Lors d'un appel système, mettre à 1 le bit 7 du numéro de signal (envoyer
+\fISIGTRAP|0x80\fP). Cela permet au processus utilisant \fBptrace\fP() de faire la
+différence entre une trappe normale, et une trappe due à un appel
+système. \fBPTRACE_O_TRACESYSGOOD\fP peut ne pas marcher sur toutes les
+architectures.
+.TP 
+\fBPTRACE_O_TRACEFORK\fP (depuis Linux 2.5.46)
+Arrêter le fils au prochain \fBfork\fP(2) avec \fISIGTRAP |
+PTRACE_EVENT_FORK\ <<\ 8\fP et commencer automatiquement à suivre le
+nouveau processus créé, qui démarrera avec un signal \fBSIGSTOP\fP. Le PID du
+nouveau processus peut être récupéré avec \fBPTRACE_GETEVENTMSG\fP.
+.TP 
+\fBPTRACE_O_TRACEVFORK\fP (depuis Linux 2.5.46)
+Arrêter le fils au prochain appel \fBvfork\fP(2) avec \fISIGTRAP |
+PTRACE_EVENT_VFORK\ <<\ 8\fP et commencer automatiquement à suivre le
+nouveau processus créé, qui démarrera avec un signal \fBSIGSTOP\fP. Le PID du
+nouveau processus peut être obtenu avec \fBPTRACE_GETEVENTMSG\fP.
+.TP 
+\fBPTRACE_O_TRACECLONE\fP (depuis Linux 2.5.46)
+Arrêter le fils au prochain appel \fBclone\fP(2) avec \fISIGTRAP |
+PTRACE_EVENT_CLONE\ <<\ 8\fP et commencer automatiquement à suivre le
+nouveau processus cloné, qui démarrera avec un signal \fBSIGSTOP\fP. Le PID du
+nouveau processus peut être obtenu avec \fBPTRACE_GETEVENTMSG\fP. Cette option
+peut ne pas intercepter tous les appels \fBclone\fP(2). Si le fils appelle
+\fBclone\fP(2) avec l'attribut \fBCLONE_VFORK\fP, \fBPTRACE_EVENT_VFORK\fP sera
+envoyé si \fBPTRACE_O_TRACEVFORK\fP est utilisé. Sinon, si le fils appelle
+\fBclone\fP(2) avec \fBSIGCHLD\fP comme signal de terminaison,
+\fBPTRACE_EVENT_FORK\fP sera envoyé si \fBPTRACE_O_TRACEFORK\fP est utilisé.
+.TP 
+\fBPTRACE_O_TRACEEXEC\fP (depuis Linux 2.5.46)
+Arrêter le fils au prochain appel \fBexecve\fP(2) avec \fISIGTRAP |
+PTRACE_EVENT_EXEC\ <<\ 8\fP.
+.TP 
+\fBPTRACE_O_TRACEVFORKDONE\fP (depuis Linux 2.5.60)
+Arrêter le fils à la fin du prochain \fBvfork\fP(2) avec \fISIGTRAP |
+PTRACE_EVENT_VFORK_DONE\ <<\ 8\fP.
+.TP 
+\fBPTRACE_O_TRACEEXIT\fP (depuis Linux 2.5.60)
+Arrêter le fils à sa terminaison avec \fISIGTRAP |
+PTRACE_EVENT_EXIT\ <<\ 8\fP. Le code de retour du fils peut être obtenu
+avec \fBPTRACE_GETEVENTMSG\fP. Cet arrêt sera effectué tôt dans la terminaison
+du processus, alors que les registres sont toujours disponibles, ce qui
+permet au processus utilisant \fBptrace\fP() de voir où la terminaison s'est
+produite, alors que la notification de terminaison normale a lieu à la fin
+de cette terminaison. Même si le contexte est disponible, l'appelant ne peut
+pas empêcher la terminaison du fils.
+.RE
+.TP 
+\fBPTRACE_GETEVENTMSG\fP (depuis Linux 2.5.46)
+Récupérer un message (dans un \fIunsigned long\fP) concernant l'événement
+ptrace qui vient d'arriver, en le plaçant à l'adresse \fIdata\fP dans le
+père. Pour \fBPTRACE_EVENT_EXIT\fP, il s'agit du code de retour du fils. Pour
+\fBPTRACE_EVENT_FORK\fP, \fBPTRACE_EVENT_VFORK\fP et \fBPTRACE_EVENT_CLONE\fP, il
+s'agit du PID du nouveau processus. Depuis Linux 2.6.18, le PID du nouveau
+processus est également disponible pour \fBPTRACE_EVENT_VFORK_DONE\fP. (\fIaddr\fP
+est ignoré.)
+.TP 
+\fBPTRACE_CONT\fP
+Redémarrer le processus fils arrêté. Si \fIdata\fP est non nul et autre que
+\fBSIGSTOP\fP, il est interprété comme un numéro de signal à délivrer au fils\
+; sinon aucun signal n'est délivré. On peut ainsi contrôler si un signal
+envoyé au fils doit lui être délivré ou non (\fIaddr\fP est ignoré).
+.TP 
+\fBPTRACE_SYSCALL\fP, \fBPTRACE_SINGLESTEP\fP
+Redémarrer le processus fils arrêté comme pour \fBPTRACE_CONT\fP, mais en
+s'arrangeant pour qu'il soit arrêté à la prochaine entrée ou sortie d'un
+appel système, ou après la prochaine instruction, respectivement. (Le fils
+sera aussi arrêté par l'arrivée d'un signal). Du point de vue du père, le
+fils semblera être arrêté par \fBSIGTRAP\fP. Ainsi, pour \fBPTRACE_SYSCALL\fP
+l'idée est d'inspecter les arguments de l'appel système au premier arrêt
+puis de faire un autre \fBPTRACE_SYSCALL\fP et d'inspecter la valeur de retour
+au second arrêt. Le paramètre \fIdata\fP est interprété comme pour
+\fBPTRACE_CONT\fP. (\fIaddr\fP est ignoré).
+.TP 
+\fBPTRACE_SYSEMU\fP, \fBPTRACE_SYSEMU_SINGLESTEP\fP (depuis Linux 2.6.14)
+Pour \fBPTRACE_SYSEMU\fP, continuer puis s'arrêter lors du prochain appel
+système, qui ne sera pas exécuté. Pour \fBPTRACE_SYSEMU_SINGLESTEP\fP, faire la
+même chose, mais exécuter pas à pas s'il ne s'agit pas d'un appel
+système. Cette fonction est utilisée par des programmes comme User Mode
+Linux, qui veulent émuler tous les appels système du fils. Le paramètre
+\fIdata\fP est interprété comme pour \fBPTRACE_CONT\fP. (\fIaddr\fP est ignoré\ ; cet
+appel n'est pas disponible sur toutes les architectures.)
+.TP 
+\fBPTRACE_KILL\fP
+Envoyer au fils un signal \fBSIGKILL\fP pour le terminer. (\fIaddr\fP et \fIdata\fP
+sont ignorés).
+.TP 
+\fBPTRACE_ATTACH\fP
+Attacher le processus numéro \fIpid\fP, pour le suivre. Le comportement du fils
+est le même que s'il avait fait un \fBPTRACE_TRACEME\fP. Le processus appelant
+devient alors le père pour de nombreuses choses (il recevra les
+notifications d'événements, et sera indiqué comme le père dans un
+\fBps\fP(1)). Mais \fBgetppid\fP(2) renverra dans le fils le PID du vrai père. Le
+processus fils va recevoir un \fBSIGSTOP\fP, mais il ne sera peut\-être pas
+stoppé tout de suite, utilisez \fBwait\fP(2) pour attendre son arrêt (\fIaddr\fP
+et \fIdata\fP sont ignorés).
+.TP 
+\fBPTRACE_DETACH\fP
+Relancer un processus fils comme avec \fBPTRACE_CONT\fP, en commençant par le
+détacher, ce qui annule les effets de changement de parenté de
+\fBPTRACE_ATTACH\fP et les effets de \fBPTRACE_TRACEME\fP. Le processus ne sera
+plus suivi. Bien que cela soit involontaire, sous Linux un processus suivi
+peut être détaché ainsi quelque soit la méthode employée pour démarrer le
+suivi. (\fIaddr\fP est ignoré).
+.SH "VALEUR RENVOYÉE"
+Pour les requêtes \fBPTRACE_PEEK*\fP, \fBptrace\fP() renvoie la valeur réclamée et
+zéro pour les autres requêtes, ou \-1 en cas d'échec en remplissant \fIerrno\fP
+avec le code d'erreur. Comme la valeur renvoyée par une requête
+\fBPTRACE_PEEK*\fP peut légitimement être \-1, il faut vérifier \fIerrno\fP après
+un tel appel pour vérifier si une erreur s'est produite.
+.SH ERREURS
+.TP 
+\fBEBUSY\fP
+(i386 seulement) Il y a eu une erreur lors de l'allocation ou de la
+libération d'un registre de débogage.
+.TP 
+\fBEFAULT\fP
+Tentative de lire ou écrire dans une zone mémoire invalide du processus fils
+ou du père, probablement parce que la zone n'était pas projetée ou
+accessible. Malheureusement sous Linux, certaines variantes de cette erreur
+déclencheront \fBEIO\fP ou \fBEFAULT\fP plus ou moins arbitrairement.
+.TP 
+\fBEINVAL\fP
+Tentative d'utiliser une option invalide.
+.TP 
+\fBEIO\fP
+La requête \fIrequest\fP n'est pas valide ou une tentative de lecture ou
+d'écriture dans une zone invalide de mémoire a eu lieu. Il peut également y
+avoir un problème d'alignement sur une frontière de mot, ou une tentative de
+redémarrage en envoyant un signal invalide.
+.TP 
+\fBEPERM\fP
+Le processus indiqué ne peut pas être suivi. Cela peut être dû à un manque
+de privilège du parent (la capacité nécessaire est \fBCAP_SYS_PTRACE\fP). Les
+processus non\-root ne peuvent pas suivre les processus auxquels ils ne
+peuvent envoyer de signal, ou ceux qui s'exécutent Set\-UID/Set\-GID. En
+outre, le processus visé peut être déjà suivi, ou être \fBinit\fP(8) (pid 1).
+.TP 
+\fBESRCH\fP
+Le processus indiqué n'existe pas, ou n'est pas suivi par l'appelant, ou
+n'est pas arrêté (pour les requêtes qui en ont besoin).
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3.
+.SH NOTES
+Bien que les arguments de \fBptrace\fP() soient interprétés comme dans le
+prototype plus haut, la bibliothèque glibc déclare \fBptrace\fP comme une
+fonction variadique où seul l'argument \fIrequest\fP est fixé. Ceci signifie
+que les arguments finaux inutiles peuvent être omis, bien que cela utilise
+un comportement non documenté de \fBgcc\fP(1).
+.LP
+\fBinit\fP(8), le processus numéro 1, ne peut pas être suivi.
+.LP
+.\" See http://lkml.org/lkml/2008/5/8/375
+La disposition du contenu de la mémoire et de la zone USER dépendent du
+système d'exploitation et de l'architecture. Le décalage fourni et les
+données renvoyées peuvent ne pas correspondre entièrement avec la définition
+d'une structure \fIstruct user\fP.
+.LP
+La taille d'un mot («\ word\ ») est déterminée par la version du système
+d'exploitation (par exemple 32 bits pour Linux\-32\-bits, etc.)
+.LP
+Le suivi peut engendrer des modifications subtiles dans le fonctionnement du
+processus. Par exemple, si un processus est attaché avec \fBPTRACE_ATTACH\fP,
+son père original ne peut plus recevoir les notifications avec \fBwait\fP(2)
+lorsqu'il s'arrête, et il n'y a pas de moyen de simuler cette notification.
+.LP
+Lorsque le parent reçoit un événement avec \fBPTRACE_EVENT_*\fP activé, le fils
+n'est pas dans la procédure normale de réception de signal. Cela signifie
+que le parent ne peut pas exécuter \fBptrace\fP(PTRACE_CONT) avec un signal ou
+\fBptrace\fP(PTRACE_KILL). \fBkill\fP(2) avec un signal \fBSIGKILL\fP peut cependant
+être utilisé pour tuer le processus fils à la réception d'un de ces
+messages.
+.LP
+Cette page documente le fonctionnement actuel de \fBptrace\fP() sous
+Linux. Celui\-ci peut varier sensiblement sur d'autres types d'Unix. De toute
+façon, l'utilisation de \fBptrace\fP() dépend fortement de l'architecture et du
+système d'exploitation.
+.LP
+La page de manuel de SunOS décrit \fBptrace\fP() comme un appel système «\
+unique and arcane\ », ce qu'il est. Le mécanisme de débogage basé sur le
+système proc, présent dans Solaris 2 implémente un surensemble des
+fonctionnalités de \fBptrace\fP() de manière plus puissante et plus uniforme.
+.SH BOGUES
+Sur les machines ayant des en\-têtes du noyau 2.6, \fBPTRACE_SETOPTIONS\fP est
+déclaré avec une valeur différente de celle du noyau 2.4. De ce fait, les
+applications compilées avec ces en\-têtes ne peuvent pas s'exécuter sous des
+noyaux 2.4. Il est possible de contourner cette difficulté en redéfinissant
+\fBPTRACE_SETOPTIONS\fP à \fBPTRACE_OLDSETOPTIONS\fP, si cette dernière constante
+est définie.
+.SH "VOIR AUSSI"
+\fBgdb\fP(1), \fBstrace\fP(1), \fBexecve\fP(2), \fBfork\fP(2), \fBsignal\fP(2), \fBwait\fP(2),
+\fBexec\fP(3), \fBcapabilities\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

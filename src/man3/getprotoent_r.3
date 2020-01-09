@@ -1,0 +1,216 @@
+.\" Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"	<mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETPROTOENT_R 3 "19 août 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+getprotoent_r, getprotobyname_r, getprotobynumber_r \- Accéder aux protocoles
+(version ré\-entrante)
+.SH SYNOPSIS
+.nf
+\fB#include <netdb.h>\fP
+.sp
+\fBint getprotoent_r(struct protoent *\fP\fIresult_buf\fP\fB, char *\fP\fIbuf\fP\fB,\fP
+\fB                size_t \fP\fIbuflen\fP\fB, struct protoent **\fP\fIresult\fP\fB);\fP
+.sp
+\fBint getprotobyname_r(const char *\fP\fIname\fP\fB,\fP
+\fB                struct protoent *\fP\fIresult_buf\fP\fB, char *\fP\fIbuf\fP\fB,\fP
+\fB                size_t \fP\fIbuflen\fP\fB, struct protoent **\fP\fIresult\fP\fB);\fP
+.sp
+\fBint getprotobynumber_r(int \fP\fIproto\fP\fB,\fP
+\fB                struct protoent *\fP\fIresult_buf\fP\fB, char *\fP\fIbuf\fP\fB,\fP
+\fB                size_t \fP\fIbuflen\fP\fB, struct protoent **\fP\fIresult\fP\fB);\fP
+.sp
+.fi
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.ad l
+.in
+.sp
+\fBgetprotoent_r\fP(), \fBgetprotobyname_r\fP(), \fBgetprotobynumber_r\fP()\ :
+_BSD_SOURCE || _SVID_SOURCE
+.ad b
+.SH DESCRIPTION
+\fBgetprotoent_r\fP(), \fBgetprotobyname_r\fP(), et \fBgetprotobynumber_r\fP() sont
+respectivement, les versions ré\-entrantes des fonctions \fBgetprotoent\fP(3),
+\fBgetprotobyname\fP(3), et \fBgetprotobynumber\fP(3). Elles diffèrent car la
+structure \fIprotoent\fP est renvoyée, et leur signature ainsi que leur valeur
+de retour sont aussi différentes. Cette page de manuel décrit juste les
+différences depuis les fonctions non ré\-entrantes. 
+
+Au lieu de retourner un pointeur vers une structure \fIprotoent\fP statiquement
+allouée, ces fonctions copient la structure à l'adresse pointée par
+\fIresult_buf\fP.
+
+.\" I can find no information on the required/recommended buffer size;
+.\" the non-reentrant functions use a 1024 byte buffer.
+.\" The 1024 byte value is also what the Solaris man page suggests. -- mtk
+Le tableau \fIbuf\fP est utilisé pour sauvegarder les champs de la chaîne
+pointés par la structure \fIprotoent\fP renvoyée (les fonctions non
+ré\-entrantes allouent ces chaînes de façon statique). La taille du tableau
+est spécifiée avec \fIbuflen\fP. Si \fIbuf\fP est trop petit, l'appel échoue avec
+l'erreur \fBERANGE\fP, et l'appelant doit essayer de nouveau avec un tableau
+plus grand (un tableau de 1024 octets est en général suffisant).
+
+Si la fonction obtient un enregistrement de protocol, alors \fI*result\fP
+pointe vers \fIresult_buf\fP sinon \fI*result\fP est défini à NULL.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, ces fonctions ré\-entrantes renvoient zéro. En cas d'échec,
+une valeur d'erreur positive est renvoyée.
+
+Dans le cas des erreurs, «\ enregistrement non trouvé\ »
+(\fBgetprotobyname_r\fP(), \fBgetprotobynumber_r\fP()) ou «\ fin de l'entrée\ »
+(\fBgetprotoent_r\fP()), \fIresult\fP est défini à NULL.
+.SH ERREURS
+.TP 
+\fBENOENT\fP
+(\fBgetprotoent_r\fP()) Plus d'autre enregistrement dans la base.
+.TP 
+\fBERANGE\fP
+\fIbuf\fP est trop petit. Ré\-essayer avec un tampon plus grand (et augmentez
+\fIbuflen\fP).
+.SH CONFORMITÉ
+Ces fonctions sont des extensions GNU. Des fonctions avec des noms
+similaires existent sur d'autres systèmes, bien que en général avec des
+signatures d'appels différent.
+.SH EXEMPLE
+Le programme ci\-dessous utilise \fBgetprotobyname_r\fP() pour récupérer
+l'enregistrement de protocole du protocole nommé dans le premier argument de
+sa ligne de commande. Si un second argument (un entier) est fourni, il est
+utilisé comme valeur initiale de \fIbuflen\fP. Si \fBgetprotobyname_r\fP() échoue
+avec l'erreur \fBERANGE\fP, le programme recommence avec une taille de tampon
+plus grande. La session shell suivante montre des exemples d'utilisation.
+.in +4n
+.nf
+
+$\fB ./a.out tcp 1\fP
+ERANGE! Retrying with larger buffer
+getprotobyname_r() returned: 0 (success)  (buflen=78)
+p_name=tcp; p_proto=6; aliases=TCP
+$\fB ./a.out xxx 1\fP
+ERANGE! Retrying with larger buffer
+getprotobyname_r() returned: 0 (success)  (buflen=100)
+Call failed/record not found
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#define _GNU_SOURCE
+#include <ctype.h>
+#include <netdb.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+
+#define MAX_BUF 10000
+
+int
+main(int argc, char *argv[])
+{
+    int buflen, erange_cnt, s;
+    struct protoent result_buf;
+    struct protoent *result;
+    char buf[MAX_BUF];
+    char **p;
+
+    if (argc < 2) {
+        printf("Usage: %s proto\-name [buflen]\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    buflen = 1024;
+    if (argc > 2)
+        buflen = atoi(argv[2]);
+
+    if (buflen > MAX_BUF) {
+        printf("Exceeded buffer limit (%d)\en", MAX_BUF);
+        exit(EXIT_FAILURE);
+    }
+
+    erange_cnt = 0;
+    do {
+        s = getprotobyname_r(argv[1], &result_buf,
+                     buf, buflen, &result);
+        if (s == ERANGE) {
+            if (erange_cnt == 0)
+                printf("ERANGE! Retrying with larger buffer\en");
+            erange_cnt++;
+
+            /* Increment a byte at a time so we can see exactly
+               what size buffer was required */
+
+            buflen++;
+
+            if (buflen > MAX_BUF) {
+                printf("Exceeded buffer limit (%d)\en", MAX_BUF);
+                exit(EXIT_FAILURE);
+            }
+        }
+    } while (s == ERANGE);
+
+    printf("getprotobyname_r() returned: %s  (buflen=%d)\en",
+            (s == 0) ? "0 (success)" : (s == ENOENT) ? "ENOENT" :
+            strerror(s), buflen);
+
+    if (s != 0 || result == NULL) {
+        printf("Call failed/record not found\en");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("p_name=%s; p_proto=%d; aliases=",
+                result_buf.p_name, result_buf.p_proto);
+    for (p = result_buf.p_aliases; *p != NULL; p++)
+        printf("%s ", *p);
+    printf("\en");
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBgetprotoent\fP(3), \fBprotocols\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

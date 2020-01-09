@@ -1,0 +1,167 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 21:46:57 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 961109, 031115, aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETMNTENT 3 "15 septembre 2009" "" "Manuel du programmeur Linux"
+.SH NOM
+getmntent, setmntent, addmntent, endmntent, hasmntopt \- Obtenir des
+descriptions d'un système de fichiers.
+.SH SYNOPSIS
+.nf
+\fB#include <stdio.h>\fP
+\fB#include <mntent.h>\fP
+.sp
+\fBFILE *setmntent(const char *\fP\fIfilename\fP\fB, const char *\fP\fItype\fP\fB);\fP
+.sp
+\fBstruct mntent *getmntent(FILE *\fP\fIfp\fP\fB);\fP
+.sp
+\fBint addmntent(FILE *\fP\fIfp\fP\fB, const struct mntent *\fP\fImnt\fP\fB);\fP
+.sp
+\fBint endmntent(FILE *\fP\fIfp\fP\fB);\fP
+.sp
+\fBchar *hasmntopt(const struct mntent *\fP\fImnt\fP\fB, const char *\fP\fIopt\fP\fB);\fP
+.sp
+/* GNU extension */
+\fB#include <mntent.h>\fP
+.sp
+\fBstruct mntent *getmntent_r(FILE *\fP\fIfp\fP\fB, struct mntent *\fP\fImntbuf\fP\fB,\fP
+\fB                           char *\fP\fIbuf\fP\fB, int \fP\fIbuflen\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBgetmntent_r\fP()\ : _BSD_SOURCE || _SVID_SOURCE
+.SH DESCRIPTION
+Ces routines servent à accéder au fichier de description des systèmes de
+fichiers \fI/etc/fstab\fP et aux descriptions des systèmes de fichiers montés
+\fI/etc/mtab\fP.
+.PP
+La fonction \fBsetmntent\fP() ouvre le fichier de description des systèmes de
+fichiers \fIfilename\fP et renvoie un pointeur de fichier utilisable avec
+\fBgetmntent\fP(). L'argument \fItype\fP est le type d'accès demandé, et peut
+prendre les même valeurs que l'argument \fImode\fP de \fBfopen\fP(3).
+.PP
+La fonction \fBgetmntent\fP() lit la ligne suivante du fichier de description
+des systèmes de fichiers \fIfp\fP et renvoie un pointeur vers une structure
+détaillant les champs de cette ligne. Il s'agit d'un pointeur vers une zone
+de données statiques, qui peut être écrasée par des appels ultérieurs à
+\fBgetmntent\fP().
+.PP
+La fonction \fBaddmntent\fP() ajoute la structure \fImntent\fP \fImnt\fP à la fin du
+fichier ouvert \fIfp\fP.
+.PP
+La fonction \fBendmntent\fP() ferme le fichier de description des systèmes de
+fichiers \fIfp\fP.
+.PP
+La fonction \fBhasmntopt\fP() parcourt le champ \fImnt_opts\fP (voyez plus bas) de
+la structure \fImntent\fP \fImnt\fP, à la recherche d'une chaîne correspondant à
+\fIopt\fP. Voyez \fI<mntent.h>\fP et \fBmount\fP(8) pour les options de
+montage.
+.PP
+La fonction ré\-entrante \fBgetmntent_r\fP() est similaire à \fBgetmntent\fP(),
+mais enregistre la structure \fImount\fP dans le \fI*mntbuf\fP fourni et
+enregistre les chaînes pointées par les entrées de cette structure dans le
+tampon \fIbuf\fP fourni, de taille \fIbuflen\fP.
+.PP
+La structure \fImntent\fP est définie dans \fI<mntent.h>\fP ainsi\ :
+.sp
+.in +4n
+.nf
+struct mntent {
+    char *mnt_fsname;   /* Nom du système de fichiers monté */
+    char *mnt_dir;      /* Chemin d'accès au système de fichiers */
+    char *mnt_type;     /* Type de montage (voir mntent.h) */
+    char *mnt_opts;     /* Options de montage (voir mntent.h) */
+    int   mnt_freq;     /* Fréquence de sauvegarde (en jour) */
+    int   mnt_passno;   /* Ordre de passage dans fsck */
+};
+.fi
+.in
+
+Depuis que les champs dans les fichiers mtab et fstab sont séparés par des
+espaces, les échappements en valeur octale sont utilisés pour représentés
+les quatre caractères espace (\e040), tabulation (\e011), nouvelle ligne
+(\e012) et barre oblique inverse (\e134) dans ces fichiers lorsqu'ils
+apparaissent dans l'une des quatre chaînes d'une structure \fImntent\fP. Les
+routines \fBaddmntent\fP() et \fBgetmntent\fP() convertiront la représentation des
+chaînes en représentations échappées et vice\-versa.
+.SH "VALEUR RENVOYÉE"
+Les fonctions \fBgetmntent\fP() et \fBgetmntent_r\fP() renvoient un pointeur sur
+la structure \fImntent\fP, ou NULL en cas d'échec.
+.PP
+La fonction \fBaddmntent\fP() renvoie 0 si elle réussit, et 1 si elle échoue.
+.PP
+La fonction \fBendmntent\fP() renvoie toujours 1.
+.PP
+La fonction \fBhasmntopt\fP() renvoie l'adresse de la sous\-chaîne si une
+correspondance est trouvée, ou NULL sinon.
+.SH FICHIERS
+.nf
+/etc/fstab      Description des systèmes de fichiers
+/etc/mtab       Description des systèmes de fichiers montés
+.fi
+.SH CONFORMITÉ
+Les fonctions non ré\-entrantes viennent de SunOS\ 4.1.3. Une routine
+\fBgetmntent_r\fP() a été introduite dans HP\-UX\ 10, mais elle retourne un
+entier. Le prototype ci\-dessus ne concerne que la glibc.
+.SH NOTES
+System\ V a aussi une fonction \fBgetmntent\fP() mais l'appel est différent,
+ainsi que la structure renvoyée. Sous System\ V, le fichier \fI/etc/mnttab\fP
+est employé. BSD\ 4.4 et Digital Unix ont une routine \fBgetmntinfo\fP(), qui
+sert à invoquer l'appel système \fBgetfsstat\fP().
+.SH "VOIR AUSSI"
+\fBfopen\fP(3), \fBfstab\fP(5), \fBmount\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

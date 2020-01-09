@@ -1,0 +1,179 @@
+.\"
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de),
+.\"   Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Tue Jul  6 12:42:46 MDT 1993 <dminer@nyx.cs.du.edu>
+.\" Added "Calling Directly" and supporting paragraphs
+.\"
+.\" Modified Sat Jul 24 15:19:12 1993 by Rik Faith <faith@cs.unc.edu>
+.\"
+.\" Modified 21 Aug 1994 by Michael Chastain <mec@shell.portal.com>:
+.\"   Added explanation of arg stacking when 6 or more args.
+.\"
+.\" Modified 10 June 1995 by Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" 2007-10-23 mtk: created as a new page, by taking the content
+.\" specific to the _syscall() macros from intro(2).
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH _SYSCALL 2 "19 décembre 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+_syscall \- Invoquer un appel système sans prise en charge par la
+bibliothèque (OBSOLÈTE)
+.SH SYNOPSIS
+\fB#include <linux/unistd.h>\fP
+
+Une macro _syscall
+
+L'appel système désiré
+.SH DESCRIPTION
+La chose importante à savoir sur un appel système est son prototype. Vous
+devez savoir combien d'arguments il prend, leurs types et le type retour de
+la fonction. Il y a sept macros qui facilitent les appels du système. Elles
+ont la forme\ :
+.sp
+.RS
+_syscall\fIX\fP(\fItype\fP,\fIname\fP,\fItype1\fP,\fIarg1\fP,\fItype2\fP,\fIarg2\fP,...)
+.RE
+.PP
+où
+.IP
+\fIX\fP est 0\(en6, qui est le nombre d'argument pris par l'appel système
+.IP
+\fItype\fP est le type de retour de l'appel système
+.IP
+\fIname\fP est le nom de l'appel système
+.IP
+\fItypeN\fP est le type du Nième paramètre
+.IP
+\fIargN\fP est le nom du Nième paramètre
+.PP
+Ces macros créent une fonction appelée \fIname\fP avec les arguments que vous
+avez spécifiés. Une fois que vous avez inclus votre _syscall() dans votre
+fichier source, vous pouvez appeler l'appel système par \fIname\fP.
+.SH FICHIERS
+\fI/usr/include/linux/unistd.h\fP
+.SH CONFORMITÉ
+L'utilisation de ces macros est spécifique à Linux et est déconseillée.
+.SH NOTES
+À partir du noyau\ 2.6.18 environ, les macros _syscall ont été supprimées des
+fichiers d'en\-têtes fournis à l'espace utilisateur. Utilisez \fBsyscall\fP(2) à
+la place. (Certaines architectures, particulièrement ia64, n'ont jamais
+fourni les macros _syscall\ ; sur ces architectures, \fBsyscall\fP(2) était
+toujours nécessaire.)
+
+Les macros _syscall() \fIne fournissent pas\fP de prototype. Vous devez en
+créer un, particulièrement les utilisateurs de C++.
+
+Il n'est pas obligatoire que les appels système retournent un code d'erreur
+seulement positif ou négatif. Vous devez lire les sources pour savoir
+comment les erreurs sont retournées. Généralement, il s'agit de la valeur
+opposée d'un code d'erreur standard, par exemple, \-\fBEPERM\fP. Les macros
+_syscall() retourneront le résultat \fIr\fP de l'appel système lorsque \fIr\fP
+n'est pas négatif, mais retournera \-1 et écrira la variable \fIerrno\fP avec
+\-\fIr\fP lorsque \fIr\fP est négatif. Pour ces codes d'erreurs, voir \fBerrno\fP(3).
+
+.\" The preferred way to invoke system calls that glibc does not know
+.\" about yet is via
+.\" .BR syscall (2).
+.\" However, this mechanism can only be used if using a libc
+.\" (such as glibc) that supports
+.\" .BR syscall (2),
+.\" and if the
+.\" .I <sys/syscall.h>
+.\" header file contains the required SYS_foo definition.
+.\" Otherwise, the use of a _syscall macro is required.
+.\"
+Lors de la définition d'un appel système, les types d'arguments \fIdoivent\fP
+être passés par valeur ou par pointeur (pour les types aggrégés comme les
+structures).
+.SH EXEMPLE
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <linux/unistd.h>       /* pour les _syscallX et autres */
+#include <linux/kernel.h>       /* pour struct sysinfo */
+
+_syscall1(int, sysinfo, struct sysinfo *, info);
+
+/* Note : si vous copiez directement à partir du fichier source
+nroff de la page, n'oubliez pas de SUPPRIMER les contre obliques
+supplémentaires dans l'instruction printf. */
+
+int
+main(void)
+{
+    struct sysinfo s_info;
+    int error;
+
+    error = sysinfo(&s_info);
+    printf("code error = %d\en", error);
+    printf("Uptime = %lds\enLoad: 1 min %lu / 5 min %lu / 15 min %lu\en"
+           "RAM: total %lu / free %lu / shared %lu\en"
+           "Memory in buffers = %lu\enSwap: total %lu / free %lu\en"
+           "Number of processes = %d\en",
+           s_info.uptime, s_info.loads[0],
+           s_info.loads[1], s_info.loads[2],
+           s_info.totalram, s_info.freeram,
+           s_info.sharedram, s_info.bufferram,
+           s_info.totalswap, s_info.freeswap,
+           s_info.procs);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SS "Échantillon de sortie"
+.nf
+code error = 0
+uptime = 502034s
+Load: 1 min 13376 / 5 min 5504 / 15 min 1152
+RAM: total 15343616 / free 827392 / shared 8237056
+Memory in buffers = 5066752
+Swap: total 27881472 / free 24698880
+Number of processes = 40
+.fi
+.SH "VOIR AUSSI"
+\fBintro\fP(2), \fBsyscall\fP(2), \fBerrno\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

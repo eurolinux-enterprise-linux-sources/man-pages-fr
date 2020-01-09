@@ -1,0 +1,272 @@
+.\" Copyright Andries Brouwer, 2000
+.\"
+.\" This page is distributed under GPL.
+.\" Some fragments of text came from the time-1.7 info file.
+.\" Inspired by kromJx@crosswinds.net.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TIME 1 "14 novembre 2008" "" "Manuel de l'utilisateur Linux"
+.SH NOM
+time \- Chronométrer ou évaluer les ressources employées par une commande
+simple
+.SH SYNOPSIS
+\fBtime [\fP\fIoptions\fP\fB] \fP\fIcommande\fP\fB [\fP\fIarguments...\fP\fB] \fP
+.SH DESCRIPTION
+La fonction \fBtime\fP lance le programme représenté par la \fIcommande\fP
+indiquée, avec les \fIarguments\fP fournis.  Lorsque la \fIcommande\fP se termine,
+\fBtime\fP affiche un message sur la sortie d'erreur contenant des statistiques
+sur l'exécution du programme.  Ces statistiques contiennent (i) le temps
+écoulé entre l'invocation et la fin de la commande, (ii) le temps CPU écoulé
+en mode utilisateur (la somme des valeurs \fItms_utime\fP et \fItms_cutime\fP de
+la structure \fIstruct tms\fP fournie par l'appel système \fBtimes\fP(2)), et
+(iii) le temps CPU passé en mode système (la somme des champs \fItms_stime\fP
+et \fItms_cstime\fP de la \fIstruct tms\fP fournie par l'appel système
+\fBtimes\fP(2)).
+
+Note\ : certains shells (comme par exemple \fBbash\fP(1)) possèdent une
+commande \fBtime\fP qui fournit moins de possibilités que la commande décrite
+ici. Pour invoquer la commande réelle,  il est possible que vous soyez
+obligé d'indiquer le chemin complet (\fI/usr/bin/time\fP).
+.SH OPTIONS
+.TP 
+\fB\-p\fP
+Dans la localisation POSIX, utiliser le format traditionnel
+.IP
+.in +4n
+"real %f\enuser %f\ensys %f\en"
+.in
+.IP
+(avec des nombres exprimés en secondes)  où le nombre de décimales dans le
+format %f n'est pas précisé, mais suffisant pour exprimer le top d'horloge
+précisément.
+.SH "CODE DE RETOUR"
+Si la \fIcommande\fP a été invoquée, le code de sortie est celui de la
+\fIcommande\fP.  Sinon, il s'agit de 127 si la \fIcommande\fP n'a pas été trouvée,
+126 si elle a été trouvée mais n'a pas pu être invoquée, et une autre valeur
+non nulle (1\-125)  si quelque chose d'autre a échoué.
+.SH ENVIRONNEMENT
+Les variables \fBLANG\fP, \fBLC_ALL\fP, \fBLC_CTYPE\fP, \fBLC_MESSAGES\fP,
+\fBLC_NUMERIC\fP, \fBNLSPATH\fP et \fBPATH\fP sont utilisées.  La dernière sert à
+rechercher la \fIcommande\fP.  Les autres servent au formatage du texte et de
+la sortie.
+.SH "VERSION GNU"
+Suit une description de la version GNU 1.7 de \fBtime\fP.  Contrairement au nom
+de cet utilitaire, GNU ajoute un grand nombre d'informations utiles,
+concernant non seulement le temps écoulé, mais également d'autres
+ressources, comme la mémoire, les entrées\-sorties ou les communications IPC
+(si disponibles).  La sortie est formatée en utilisant une chaîne qui peut
+être transmise avec l'option \fI\-f\fP ou en utilisant la variable
+d'environnement \fBTIME\fP.
+.LP
+La chaîne de format par défaut est
+.PP
+.in +4n
+%Uuser %Ssystem %Eelapsed %PCPU (%Xtext+%Ddata %Mmax)k
+.br
+%Iinputs+%Ooutputs (%Fmajor+%Rminor)pagefaults %Wswaps
+.br
+.in
+.LP
+Lorsque l'option \fI\-p\fP est fournie, le format de sortie (portable)
+.PP
+.in +4n
+real %e
+.br
+user %U
+.br
+sys %S
+.br
+.in
+.PP
+est utilisé.
+.SS "Chaîne de format"
+Le format est interprété comme d'habitude à la manière de \fBprintf\fP(3).  Les
+caractères ordinaires sont copiés directement, les tabulations sauts de
+lignes et baskslashes sont protégés par \et, \en et \e\e.  Un signe pourcent
+est représenté par %%, sinon % indique une conversion.  Le programme \fBtime\fP
+ajoutera toujours un saut de ligne à la fin de la sortie.  Les conversions
+se trouvent ci\-dessous.  Toutes celles utilisées par \fBtcsh\fP(1)  sont
+disponibles.
+.LP
+\fBTemps\fP
+.TP 
+\fB%E\fP
+Temps réel écoulé (en [heures:]minutes:secondes).
+.TP 
+\fB%e\fP
+(pas avec tcsh.) Temps réel écoulé (en secondes).
+.TP 
+\fB%S\fP
+Nombre total de secondes\-CPU passé par le processus en mode noyau.
+.TP 
+\fB%U\fP
+Nombre total de secondes\-CPU passé par le processus en mode utilisateur.
+.TP 
+\fB%P\fP
+Pourcentage de CPU obtenu par cette tâche, calculé comme (%U + %S) / %E.
+.LP
+\fBMémoire\fP
+.TP 
+\fB%M\fP
+Taille maximale du processus en mémoire physique durant son exécution, en
+kilo\-octets.
+.TP 
+\fB%t\fP
+(pas avec tcsh) Taille moyenne du processus en mémoire physique durant son
+exécution, en kilo\-octets.
+.TP 
+\fB%K\fP
+Mémoire moyenne (donnée + pile + code) utilisée par le processus, en
+kilo\-octets.
+.TP 
+\fB%D\fP
+Taille moyenne des données non partagées du processus, en kilo\-octets.
+.TP 
+\fB%p\fP
+(pas avec tcsh.) Taille moyenne de la pile non partagée du processus, en
+kilo\-octets.
+.TP 
+\fB%X\fP
+Taille moyenne du code partagé du processus, en kilo\-octets.
+.TP 
+\fB%Z\fP
+(pas avec tcsh.) Taille de page du système, en octets.  Ceci est une
+constante sur un système, mais varie de système en système.
+.TP 
+\fB%F\fP
+Nombre de fautes de pages majeures durant l'exécution.  Ce sont les fautes
+où des pages ont dû être rechargées depuis le disque.
+.TP 
+\fB%R\fP
+Nombre de fautes de pages mineures durant l'exécution.  Ce sont les fautes
+où des pages ne sont plus valides, mais n'ont pas encore été réutilisées.
+Les données y sont encore présentes et seules les tables système doivent
+être mises à jour.
+.TP 
+\fB%W\fP
+Nombre de fois où le processus a été envoyé sur la mémoire de swap.
+.TP 
+\fB%c\fP
+Nombre de fois où le processus a été préempté involontairement (sa tranche
+de temps ayant expiré).
+.TP 
+\fB%w\fP
+Nombre de fois où le processus a été commuté volontairement, en passant en
+attente par exemple de la fin d'une entrée\-sortie.
+.LP
+\fBEntrées/Sorties\fP
+.TP 
+\fB%I\fP
+Nombre de lecture depuis un fichier
+.TP 
+\fB%O\fP
+Nombre d'écriture dans un fichier
+.TP 
+\fB%r\fP
+Nombre de messages reçus par le processus sur une socket.
+.TP 
+\fB%s\fP
+Nombre de messages envoyés par le processus sur une socket.
+.TP 
+\fB%k\fP
+Nombre de signaux délivrés au processus.
+.TP 
+\fB%C\fP
+(pas avec tcsh.) Nom de la commande examinée avec ses arguments.
+.TP 
+\fB%x\fP
+(pas avec tcsh.) Code de retour de la commande.
+.SS "Options GNU"
+.TP 
+\fB\-f \fP\fIFORMAT\fP\fB, \-\-format=\fP\fIFORMAT\fP
+Préciser le format de sortie, en écrasant celui mentionné éventuellement
+dans la variable d'environnement TIME.
+.TP 
+\fB\-p, \-\-portability\fP
+Utilise le format de sortie portable.
+.TP 
+\fB\-o \fP\fIFICHIER\fP\fB, \-\-output=\fP\fIFICHIER\fP
+Ne pas envoyer les résultats sur la sortie d'erreur standard, mais écraser
+le fichier indiqué.
+.TP 
+\fB\-a, \-\-append\fP
+En conjonction avec \-o, ne pas écraser le fichier, mais ajouter les
+résultats à la fin.
+.TP 
+\fB\-v, \-\-verbose\fP
+Afficher des informations concernant le programme.
+.SS "Options standard GNU"
+.TP 
+\fB\-\-help\fP
+Afficher un message d'aide sur la sortie standard et se terminer
+normalement.
+.TP 
+\fB\-V, \-\-version\fP
+Afficher un numéro de version sur la sortie standard et se terminer
+normalement.
+.TP 
+\fB\-\-\fP
+Fin de la liste des options.
+.SH BOGUES
+Toutes les ressources ne sont pas disponibles avec toutes les versions
+d'Unix, ainsi certaines valeurs peuvent être toujours à zéro.  La sélection
+proposée a été essentiellement inspirée des données disponibles sur système
+BSD\ 4.2 ou 4.3.
+.LP
+La version\ 1.7 GNU de time ne supporte pas encore la localisation.
+.LP
+Le choix de la variable d'environnement \fBTIME\fP est une erreur.  Il n'est
+pas rare que des systèmes comme \fBautoconf\fP(1)  ou \fBmake\fP(1)  emploient une
+variable avec le nom d'un utilitaire pour remplacer l'invocation directe.
+L'utilisation de noms de variables comme \fBMORE\fP ou \fBTIME\fP au lieu des noms
+de programme conduit parfois à des problèmes.
+.LP
+Il est plutôt malheureux que \fI\-o\fP écrase le fichier plutôt que d'y ajouter
+ses informations (le comportement de \fI\-a\fP devrait être celui par défaut).
+.LP
+Envoyez vos rapports de bogues et suggestions pour la version GNU de \fBtime\fP
+à
+.br
+\fIbug\-utils@prep.ai.mit.edu\fP
+.br
+Indiquez bien la version de \fBtime\fP, que vous employez, en invoquant
+.br
+\fItime \-\-version\fP
+.br
+.\" .SH AUTHORS
+.\" .TP
+.\" .IP "David Keppel"
+.\" Original version
+.\" .IP "David MacKenzie"
+.\" POSIXization, autoconfiscation, GNU getoptization,
+.\" documentation, other bug fixes and improvements.
+.\" .IP "Arne Henrik Juul"
+.\" Helped with portability
+.\" .IP "Francois Pinard"
+.\" Helped with portability
+ainsi que le système d'exploitation et le compilateur C utilisés.
+.SH "VOIR AUSSI"
+\fBtcsh\fP(1), \fBtimes\fP(2), \fBwait3\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (2001-2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

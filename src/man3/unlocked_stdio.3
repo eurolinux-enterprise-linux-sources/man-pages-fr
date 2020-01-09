@@ -1,0 +1,134 @@
+.\" Copyright (C) 2001 Andries Brouwer <aeb@cwi.nl>.
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UNLOCKED_STDIO 3 "29 août 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+getc_unlocked, getchar_unlocked, putc_unlocked, putchar_unlocked \- Fonctions
+stdio non bloquantes
+.SH SYNOPSIS
+.nf
+\fB#include <stdio.h>\fP
+.sp
+\fBint getc_unlocked(FILE *\fP\fIstream\fP\fB);\fP
+\fBint getchar_unlocked(void);\fP
+\fBint putc_unlocked(int \fP\fIc\fP\fB, FILE *\fP\fIstream\fP\fB);\fP
+\fBint putchar_unlocked(int \fP\fIc\fP\fB);\fP
+.sp
+\fBvoid clearerr_unlocked(FILE *\fP\fIstream\fP\fB);\fP
+\fBint feof_unlocked(FILE *\fP\fIstream\fP\fB);\fP
+\fBint ferror_unlocked(FILE *\fP\fIstream\fP\fB);\fP
+\fBint fileno_unlocked(FILE *\fP\fIstream\fP\fB);\fP
+\fBint fflush_unlocked(FILE *\fP\fIstream\fP\fB);\fP
+\fBint fgetc_unlocked(FILE *\fP\fIstream\fP\fB);\fP
+\fBint fputc_unlocked(int \fP\fIc\fP\fB, FILE *\fP\fIstream\fP\fB);\fP
+\fBsize_t fread_unlocked(void *\fP\fIptr\fP\fB, size_t \fP\fIsize\fP\fB, size_t \fP\fIn\fP\fB,\fP
+\fB                      FILE *\fP\fIstream\fP\fB);\fP
+\fBsize_t fwrite_unlocked(const void *\fP\fIptr\fP\fB, size_t \fP\fIsize\fP\fB, size_t \fP\fIn\fP\fB,\fP
+\fB                      FILE *\fP\fIstream\fP\fB);\fP
+.sp
+\fBchar *fgets_unlocked(char *\fP\fIs\fP\fB, int \fP\fIn\fP\fB, FILE *\fP\fIstream\fP\fB);\fP
+\fBint fputs_unlocked(const char *\fP\fIs\fP\fB, FILE *\fP\fIstream\fP\fB);\fP
+.sp
+\fB#include <wchar.h>\fP
+.sp
+\fBwint_t getwc_unlocked(FILE *\fP\fIstream\fP\fB);\fP
+\fBwint_t getwchar_unlocked(void);\fP
+\fBwint_t fgetwc_unlocked(FILE *\fP\fIstream\fP\fB);\fP
+\fBwint_t fputwc_unlocked(wchar_t \fP\fIwc\fP\fB, FILE *\fP\fIstream\fP\fB);\fP
+\fBwint_t putwc_unlocked(wchar_t \fP\fIwc\fP\fB, FILE *\fP\fIstream\fP\fB);\fP
+\fBwint_t putwchar_unlocked(wchar_t \fP\fIwc\fP\fB);\fP
+\fBwchar_t *fgetws_unlocked(wchar_t *\fP\fIws\fP\fB, int \fP\fIn\fP\fB, FILE *\fP\fIstream\fP\fB);\fP
+\fBint fputws_unlocked(const wchar_t *\fP\fIws\fP\fB, FILE *\fP\fIstream\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.ad l
+.in
+.sp
+\fBgetc_unlocked\fP(), \fBgetchar_unlocked\fP(), \fBputc_unlocked\fP(),
+\fBputchar_unlocked\fP()\ : _POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE ||
+_POSIX_SOURCE || _BSD_SOURCE || _SVID_SOURCE
+.sp
+\fBclearerr_unlocked\fP(), \fBfeof_unlocked\fP(), \fBferror_unlocked\fP(),
+\fBfileno_unlocked\fP(), \fBfflush_unlocked\fP(), \fBfgetc_unlocked\fP(),
+\fBfputc_unlocked\fP(), \fBfread_unlocked\fP(), \fBfwrite_unlocked\fP()\ : _BSD_SOURCE
+|| _SVID_SOURCE
+.sp
+\fBfgets_unlocked\fP(), \fBfputs_unlocked\fP(), \fBgetwc_unlocked\fP(),
+\fBgetwchar_unlocked\fP(), \fBfgetwc_unlocked\fP(), \fBfputwc_unlocked\fP(),
+\fBputwchar_unlocked\fP(), \fBfgetws_unlocked\fP(), \fBfputws_unlocked\fP()\ :
+_GNU_SOURCE
+.ad b
+.SH DESCRIPTION
+Toutes ces fonctions se comportent de la même façon que leurs homonymes sans
+le suffixe «\ _unlocked\ », si ce n'est qu'elles n'utilisent pas de
+verrouillage (elles ne positionnent pas les verrous elles\-mêmes, et ne
+testent pas la présence éventuelle de verrous positionnés par les autres) et
+ne sont donc pas adaptées à un contexte multithread. Voir \fBflockfile\fP(3).
+.SH CONFORMITÉ
+Les quatre fonctions \fBgetc_unlocked\fP(), \fBgetchar_unlocked\fP(),
+\fBputc_unlocked\fP(), \fBputchar_unlocked\fP() apparaissent dans POSIX.1\-2001.
+
+.\" E.g., in HP-UX 10.0. In HP-UX 10.30 they are called obsolescent, and
+.\" moved to a compatibility library.
+.\" Available in HP-UX 10.0: clearerr_unlocked, fclose_unlocked,
+.\" feof_unlocked, ferror_unlocked, fflush_unlocked, fgets_unlocked,
+.\" fgetwc_unlocked, fgetws_unlocked, fileno_unlocked, fputs_unlocked,
+.\" fputwc_unlocked, fputws_unlocked, fread_unlocked, fseek_unlocked,
+.\" ftell_unlocked, fwrite_unlocked, getc_unlocked, getchar_unlocked,
+.\" getw_unlocked, getwc_unlocked, getwchar_unlocked, putc_unlocked,
+.\" putchar_unlocked, puts_unlocked, putws_unlocked, putw_unlocked,
+.\" putwc_unlocked, putwchar_unlocked, rewind_unlocked, setvbuf_unlocked,
+.\" ungetc_unlocked, ungetwc_unlocked.
+Les variantes \fB*_unlocked\fP() non standard sont présentes sur quelques
+systèmes Unix et sont disponibles dans les versions récentes de la
+glibc. Elles ne devraient sans doute pas être utilisées.
+.SH "VOIR AUSSI"
+\fBflockfile\fP(3), \fBstdio\fP(3), \fBfeature_test_macros\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

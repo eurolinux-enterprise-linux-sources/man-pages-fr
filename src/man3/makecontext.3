@@ -1,0 +1,200 @@
+.\" Copyright (C) 2001 Andries Brouwer (aeb@cwi.nl)
+.\" and Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" 2006-08-02, mtk, Added example program
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MAKECONTEXT 3 "31 mars 2009" GNU "Manuel du programmeur Linux"
+.SH NOM
+makecontext, swapcontext \- Manipulation du contexte utilisateur.
+.SH SYNOPSIS
+\fB#include <ucontext.h>\fP
+.sp
+\fBvoid makecontext(ucontext_t *\fP\fIucp\fP\fB, void (*\fP\fIfunc\fP\fB)(),\fP \fBint
+\fP\fIargc\fP\fB, ...);\fP
+.sp
+\fBint swapcontext(ucontext_t *\fP\fIoucp\fP\fB, ucontext_t *\fP\fIucp\fP\fB);\fP
+.SH DESCRIPTION
+Dans un environnement de type System\ V, on dispose du type \fIucontext_t\fP
+défini dans \fI<ucontext.h>\fP et des quatre fonctions
+\fBgetcontext\fP(2), \fBsetcontext\fP(2), \fBmakecontext\fP() et \fBswapcontext\fP() qui
+permettent, au niveau utilisateur, des permutations de contextes entre
+plusieurs threads de contrôle au sein d'un processus.
+.LP
+Pour le type et les deux premières fonctions, voir \fBgetcontext\fP(2).
+.LP
+La fonction \fBmakecontext\fP() modifie le contexte pointé par \fIucp\fP (qui a
+été obtenu par un appel à \fBgetcontext\fP(2)). Avant d'appeler
+\fBmakecontext\fP(), l'appelant doit allouer une nouvelle pile pour ce contexte
+et l'affecter à \fIucp\->uc_stack\fP et définir un contexte successeur et
+l'affecter à \fIucp\->uc_link\fP.
+
+Lorsque ce contexte est activé par la suite (avec \fBsetcontext\fP(2) ou
+\fBswapcontext\fP()), alors la fonction \fIfunc\fP() est tout d'abord appelée avec
+la série  d'arguments de type \fIint\fP spécifiés à la suite de \fIargc\fP\ ;
+l'appelant doit préciser le nombre de ces arguments dans \fIargc\fP. Lorsque
+cette fonction s'achève, le contexte successeur est activé. Lorsque le
+pointeur sur le contexte successeur vaut NULL, le thread se termine.
+.LP
+La fonction \fBswapcontext\fP() sauvegarde le contexte actuel dans la structure
+pointée par \fIoucp\fP et active ensuite le contexte pointé par \fIucp\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBswapcontext\fP() ne rend pas la main à l'appelant (on peut
+toutefois revenir à l'appelant en cas d'activation de \fIoucp\fP\ ; dans un tel
+cas, \fBswapcontext\fP se comporte comme si elle renvoyait 0). En cas d'erreur,
+\fBswapcontext\fP() renvoie \-1 et positionne \fIerrno\fP de façon appropriée.
+.SH ERREURS
+.TP 
+\fBENOMEM\fP
+Espace de pile disponible insuffisant.
+.SH VERSIONS
+\fBmakecontext\fP() et \fBswapcontext\fP() sont fournies par la glibc depuis la
+version\ 2.1.
+.SH CONFORMITÉ
+SUSv2, POSIX.1\-2001. POSIX.1\-2008 supprime les spécifications de
+\fBmakecontext\fP() et \fBswapcontext\fP() à cause de problèmes de portabilité, et
+recommande que les applications soient ré\-écrites avec des processus légers
+POSIX à la place.
+.SH NOTES
+L'interprétation de \fIucp\->uc_stack\fP est exactement la même que pour
+\fBsigaltstack\fP(2), à savoir, cette structure contient l'adresse de départ et
+la longueur d'une zone mémoire destinée à être utilisée comme pile, et ce,
+sans considération sur le sens d'expansion de la pile. Il n'est donc pas
+nécessaire pour le programme utilisateur de se soucier de ce sens.
+
+Sur les architectures où le type \fIint\fP et les types «\ pointeur\ » sont de
+même taille (p.\ ex., pour x86\-32,  leur taille est 32 bits), vous pouvez
+passer outre en passant des pointeurs comme paramètres à \fBmakecontext\fP()
+suivi de \fIargc\fP. Cependant, sachez que cela n'est pas forcément portable,
+et indéfini selon les standards, et ne fonctionnera pas sur les
+architectures où la taille des pointeurs est supérieure à la taille des
+entiers \fIint\fP. Néanmoins, avec la version 2.8, la glibc effectue quelques
+changements à \fBmakecontext\fP(), afin de permettre cela sur certaines
+architecture 64 bits (p.\ ex., x86\-64).
+.SH EXEMPLE
+.PP
+Le programme d'exemple ci\-dessous décrit l'utilisation de \fBgetcontext\fP(2),
+\fBmakecontext\fP() et \fBswapcontext\fP(). Ce programme produit la sortie
+suivante\ :
+.in +4n
+.nf
+
+$\fB ./a.out\fP
+main: swapcontext(&uctx_main, &uctx_func2)
+func2: started
+func2: swapcontext(&uctx_func2, &uctx_func1)
+func1: started
+func1: swapcontext(&uctx_func1, &uctx_func2)
+func2: returning
+func1: returning
+main: exiting
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <ucontext.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+static ucontext_t uctx_main, uctx_func1, uctx_func2;
+
+#define handle_error(msg) \e
+    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+static void
+func1(void)
+{
+    printf("func1: started\en");
+    printf("func1: swapcontext(&uctx_func1, &uctx_func2)\en");
+    if (swapcontext(&uctx_func1, &uctx_func2) == \-1)
+        handle_error("swapcontext");
+    printf("func1: returning\en");
+}
+
+static void
+func2(void)
+{
+    printf("func2: started\en");
+    printf("func2: swapcontext(&uctx_func2, &uctx_func1)\en");
+    if (swapcontext(&uctx_func2, &uctx_func1) == \-1)
+        handle_error("swapcontext");
+    printf("func2: returning\en");
+}
+
+int
+main(int argc, char *argv[])
+{
+    char func1_stack[16384];
+    char func2_stack[16384];
+
+    if (getcontext(&uctx_func1) == \-1)
+        handle_error("getcontext");
+    uctx_func1.uc_stack.ss_sp = func1_stack;
+    uctx_func1.uc_stack.ss_size = sizeof(func1_stack);
+    uctx_func1.uc_link = &uctx_main;
+    makecontext(&uctx_func1, func1, 0);
+
+    if (getcontext(&uctx_func2) == \-1)
+        handle_error("getcontext");
+    uctx_func2.uc_stack.ss_sp = func2_stack;
+    uctx_func2.uc_stack.ss_size = sizeof(func2_stack);
+    /* Successor context is f1(), unless argc > 1 */
+    uctx_func2.uc_link = (argc > 1) ? NULL : &uctx_func1;
+    makecontext(&uctx_func2, func2, 0);
+
+    printf("main: swapcontext(&uctx_main, &uctx_func2)\en");
+    if (swapcontext(&uctx_main, &uctx_func2) == \-1)
+        handle_error("swapcontext");
+
+    printf("main: exiting\en");
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBgetcontext\fP(2), \fBsigaction\fP(2), \fBsigaltstack\fP(2), \fBsigprocmask\fP(2),
+\fBsigsetjmp\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

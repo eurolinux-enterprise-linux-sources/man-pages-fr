@@ -1,0 +1,88 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 19:11:11 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 2004-11-12 as per suggestion by Fabian Kreutz/AEB
+.\"	to note that this function is not available in glibc2.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH INFNAN 3 "2 juin 1993" GNU "Manuel du programmeur Linux"
+.SH NOM
+infnan \- Traiter un résultat infini ou non numérique (NaN)
+.SH SYNOPSIS
+.nf
+\fB#include <math.h>\fP
+.sp
+\fBdouble infnan(int \fP\fIerror\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.SH DESCRIPTION
+La fonction \fBinfnan\fP()  renvoie une valeur acceptable pour un résultat
+infini ou non numérique («\ NaN\ », Not a Number). La valeur \fIerror\fP peut
+être \fBERANGE\fP pour indiquer l'infini, ou n'importe quoi d'autre pour
+représenter NaN. \fIerrno\fP est également renseignée.
+.SH "VALEUR RENVOYÉE"
+Si \fIerror\fP vaut \fBERANGE\fP (Infini), \fBHUGE_VAL\fP est renvoyé.
+.PP
+Si \fIerror\fP vaut \fB\-ERANGE\fP (\-Infini), \-\fBHUGE_VAL\fP est renvoyé.
+.PP
+Si \fIerror\fP vaut autre chose, NAN est renvoyé.
+.SH ERREURS
+.TP 
+\fBEDOM\fP
+La valeur de \fIerror\fP est non numérique (NaN).
+.TP 
+\fBERANGE\fP
+La valeur de \fIerror\fP est infinie (positive ou négative).
+.SH CONFORMITÉ
+BSD\ 4.3.
+.SH NOTES
+Cette fonction, obsolète, était fournie dans la libc4 et la libc5, mais
+n'est plus disponible dans la glibc\ 2 .
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

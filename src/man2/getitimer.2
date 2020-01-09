@@ -1,0 +1,172 @@
+.\" Copyright 7/93 by Darren Senn <sinster@scintilla.santa-clara.ca.us>
+.\" Based on a similar page Copyright 1992 by Rick Faith
+.\" May be freely distributed
+.\" Modified Tue Oct 22 00:22:35 EDT 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" 2005-04-06 mtk, Matthias Lang <matthias@corelatus.se>
+.\" 	Noted MAX_SEC_IN_JIFFIES ceiling
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETITIMER 2 "15 mars 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+getitimer, setitimer \- Lire/écrire la valeur d'une temporisation
+.SH SYNOPSIS
+.nf
+\fB#include <sys/time.h>\fP
+.sp
+\fBint getitimer(int \fP\fIwhich\fP\fB, struct itimerval *\fP\fIcurr_value\fP\fB);\fP
+.br
+\fBint setitimer(int \fP\fIwhich\fP\fB, const struct itimerval *\fP\fInew_value\fP\fB,\fP
+\fB              struct itimerval *\fP\fIold_value\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Le système fournit pour chaque processus trois temporisations, chacune avec
+un fonctionnement particulier. Lorsqu'une temporisation expire, un signal
+est envoyé au processus et la temporisation redémarre éventuellement.
+.TP  1.5i
+\fBITIMER_REAL\fP
+décroît en temps réel et un signal \fBSIGALRM\fP est émis à l'expiration du
+délai.
+.TP 
+\fBITIMER_VIRTUAL\fP
+décroît uniquement quand le processus s'exécute, et un signal \fBSIGVTALRM\fP
+est émis à l'expiration du délai.
+.TP 
+\fBITIMER_PROF\fP
+décroît à la fois quand le processus s'exécute, et quand le processeur
+exécute des fonctions systèmes à la demande du processus. Cette
+temporisation, utilisée conjointement avec \fBITIMER_VIRTUAL\fP, est
+généralement utilisée pour obtenir le profil d'exécution du processus entre
+les fonctionnalités utilisateur et le noyau. \fBSIGPROF\fP est émis à
+l'expiration du délai.
+.LP
+Les valeurs des temporisations sont définies avec les structures suivantes\
+:
+.PD 0
+.in +4n
+.nf
+
+struct itimerval {
+    struct timeval it_interval; /* valeur suivante */
+    struct timeval it_value;    /* valeur actuelle */
+};
+
+struct timeval {
+    long tv_sec;                /* secondes        */
+    long tv_usec;               /* micro secondes  */
+};
+.fi
+.in
+.PD
+.LP
+La fonction \fBgetitimer\fP() renseigne la structure pointée par \fIcurr_value\fP
+avec le paramétrage de la temporisation indiqué par \fIwhich\fP (parmi
+\fBITIMER_REAL\fP, \fBITIMER_VIRTUAL\fP, ou \fBITIMER_PROF\fP). L'élément \fIit_value\fP
+est rempli avec le délai restant dans la temporisation, ou zéro si la
+temporisation est désactivée. De même, \fIit_interval\fP sera rempli avec la
+valeur originale de la temporisation.
+
+La fonction \fBsetitimer\fP() positionne la temporisation avec les valeurs de
+\fInew_value\fP. Si \fIold_value\fP n'est pas NULL, les paramètres précédents de
+la temporisation y sont inscrits.
+.LP
+Les temporisations décroissent de \fIit_value\fP à zéro, déclenchent un signal,
+et sont replacées à \fIit_interval\fP. Une temporisation s'arrête si elle est
+mise à zéro (\fIit_value\fP vaut zéro) ou bien elle expire et \fIit_interval\fP
+vaut zéro.
+.LP
+Les deux champs \fItv_sec\fP et \fItv_usec\fP sont utilisés pour déterminer la
+durée d'une temporisation.
+.LP
+Les temporisations n'expirent jamais avant la fin du temps requis, et
+expirent plutôt avec un court délai après la limite. Ce délai dépend de la
+résolution de la temporisation système et de la charge du système\ ; voir
+\fBtime\fP(7) (mais consultez la section BOGUES ci\(hydessous). À l'expiration,
+un signal est déclenché puis la temporisation réinitialisée. Si la
+temporisation expire alors que le processus est actif (toujours vrai avec
+\fBITIMER_VIRTUAL\fP) le signal sera délivré immédiatement. Autrement, il y
+aura un petit délai avant réception du signal, dépendant de la charge du
+système.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fInew_value\fP, \fIold_value\fP ou \fIcurr_value\fP n'est pas un pointeur correct.
+.TP 
+\fBEINVAL\fP
+\fIwhich\fP n'est ni \fBITIMER_REAL\fP, ni \fBITIMER_VIRTUAL\fP, ni \fBITIMER_PROF\fP\ ;
+ou (depuis Linux\ 2.6.22) un des champs \fItv_usec\fP dans la structure pointée
+par \fInew_value\fP contient une valeur hors de l'intervalle 0 à 999\ 999.
+.SH CONFORMITÉ
+POSIX.1\-2001, SVr4, BSD\ 4.4 (cet appel est apparu dans BSD\
+4.2). POSIX.1\-2008 marque \fBgetitimer\fP() et \fBsetitimer\fP() comme étant
+obsolètes, en recommandant d'utiliser à la place l'API des temporisations
+POSIX (\fBtimer_gettime\fP(2), \fBtimer_settime\fP(2), etc.).
+.SH NOTES
+Un fils créé avec \fBfork\fP(2) n'hérite pas des temporisations périodiques de
+son père. Les temporisations périodiques sont conservées au travers d'un
+\fBexecve\fP(2).
+
+POSIX.1 laisse indéterminées les actions entre \fBsetitimer()\fP et les trois
+interfaces \fBalarm\fP(2), \fBsleep\fP(3) et \fBusleep\fP(3).
+.SH BOGUES
+Sous Linux, l'émission et la réception d'un signal sont distincts, et un
+même signal ne peut pas être émis deux fois de suite si le premier n'a pas
+été reçu. Il est ainsi possible qu'avec une charge système très élevée, une
+temporisation \fBITIMER_REAL\fP expire avant que le signal d'une expiration
+précédente n'ait été reçu. Le second signal sera alors perdu.
+
+Sous les noyaux Linux antérieurs au 2.6.16, les valeurs des temporisations
+sont exprimées en «\ jiffies\ ». Si une temporisation est initialisée à une
+valeur en jiffies dépassant la constante \fBMAX_SEC_IN_JIFFIES\fP (définie dans
+\fIinclude/linux/jiffies.h\fP), la temporisation est silencieusement tronquée à
+cette valeur maximale. Sous Linux sur i386 (où, depuis Linux\ 2.6.13, un
+jiffy correspond par défaut à 4 millisecondes), cela signifie que la valeur
+maximale d'une temporisation est environ 99,42 jours. Depuis Linux 2.6.16,
+le noyau utilise une représentation interne du temps différente et le
+plafond est supprimé.
+
+.\" 4 Jul 2005: It looks like this bug may remain in 2.4.x.
+.\"	http://lkml.org/lkml/2005/7/1/165
+Sur certains systèmes (y compris i386), les noyaux Linux avant la version
+2.6.12 ont un bogue qui cause des expirations prématurées de temporisation,
+avec une avance pouvant aller jusqu'à un jiffy dans certaines
+circonstances. Ce bogue est corrigé dans Linux 2.6.12.
+
+.\" Bugzilla report 25 Apr 2006:
+.\" http://bugzilla.kernel.org/show_bug.cgi?id=6443
+.\" "setitimer() should reject non-canonical arguments"
+Selon POSIX.1\-2001, \fBsetitimer\fP() devrait échouer si la valeur de
+\fItv_usec\fP fournie n'est pas entre 0 et 999999. Cependant, dans les noyaux
+de version inférieure ou égale à 2.6.21, Linux ne renvoie pas d'erreur, et
+se contente d'ajuster la valeur de \fItv_sec\fP correspondante. Depuis le noyau
+2.6.22, cette non conformité a été corrigée\ ; une valeur non valable de
+\fItv_usec\fP résulte en une erreur \fBEINVAL\fP.
+.SH "VOIR AUSSI"
+\fBgettimeofday\fP(2), \fBsigaction\fP(2), \fBsignal\fP(2), \fBtimer_create\fP(2),
+\fBtimerfd_create\fP(2), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

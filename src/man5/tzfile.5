@@ -1,0 +1,119 @@
+.\" @(#)tzfile.5	7.11
+.\" This file is in the public domain, so clarified as of
+.\" 1996-06-05 by Arthur David Olson <arthur_david_olson@nih.gov>.
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TZFILE 5 "5 juin 1996" "" "Manuel du programmeur Linux"
+.SH NOM
+tzfile \- Informations de zone horaire.
+.SH SYNOPSIS
+\fB#include <tzfile.h>\fP
+.SH DESCRIPTION
+Les fichiers d'informations de zone horaire utilisés par \fBtzset\fP(3)
+commencent par les caractères magiques «\ TZif\ » pour les identifier en tant
+que fichiers d'informations de zone horaire (Time Zone information
+file). Ces caractères sont suivis de 16 octets réservés pour une utilisation
+future, suivis de 6 valeurs sur 4 octets de type \fIlong\fP, écrites dans
+l'ordre «\ standard\ » des octets (poids fort en premier). Ces valeurs sont,
+dans l'ordre\ :
+.TP 
+\fItzh_ttisgmtcnt\fP
+Nombre d'indicateurs UTC/local enregistrés dans le fichier.
+.TP 
+\fItzh_ttisstdcnt\fP
+Nombre d'indicateurs standard/locale enregistrés dans le fichier.
+.TP 
+\fItzh_leapcnt\fP
+Nombre de secondes de rattrapage pour lesquelles des données sont
+enregistrées dans le fichier.
+.TP 
+\fItzh_timecnt\fP
+Nombre d'«\ instants de transition\ » pour lesquels des données sont
+enregistrées dans le fichier.
+.TP 
+\fItzh_typecnt\fP
+Le nombre de «\ types d'heures locales\ » pour lesquelles des données sont
+enregistrées dans le fichier (ne doit pas être nul).
+.TP 
+\fItzh_charcnt\fP
+Nombre de caractères de «\ chaînes d'abréviation de zone horaire\ »
+enregistrées dans le fichier.
+.PP
+L'en\-tête ci\-dessus est suivi par les valeurs \fItzh_timecnt\fP sur 4 octets de
+type \fIlong\fP, triées par ordre croissant. Ces valeurs sont écrites dans
+l'ordre «\ standard\ » des octets. Chacune est utilisée comme un instant de
+transition (tel que renvoyé par l'appel système \fBtime\fP(2)) auquel les
+règles de calcul de l'heure locale changent. Ensuite, viennent les valeur
+\fItzh_timecnt\fP sur un octet de type \fIunsigned char\fP\ ; chacune indiquant
+lequel des différents types «\ d'heure locale\ » décrits dans le fichier est
+associé avec l'instant de transition de même rang. Ces valeurs servent
+d'indice dans une table de structures \fIttinfo\fP qui apparaissent ensuite
+dans le fichier. Ces structures sont définies ainsi\ :
+.in +4n
+.sp
+.nf
+struct ttinfo {
+    long         tt_gmtoff;
+    int          tt_isdst;
+    unsigned int tt_abbrind;
+};
+.in
+.fi
+.sp
+Chaque structure est écrite sous forme d'une valeur de 4 octets, du type
+\fBlong\fP, dans l'ordre standard des octets pour \fItt_gmtoff\fP, suivie d'une
+valeur sur 1 octet pour \fItt_isdst\fP et d'une valeur sur 1 octet pour
+\fItt_abbrind\fP. Dans chaque structure, \fItt_gmtoff\fP indique le nombre de
+secondes à ajouter à UTC, \fItt_isdst\fP indique que \fItm_isdst\fP doit être
+définie par \fBlocaltime\fP(3) et que \fItt_abbrind\fP sert d'index dans la table
+des caractères d'abréviation de la zone horaire qui suit les structures
+\fIttinfo\fP dans le fichier.
+.PP
+Viennent ensuite \fItzh_leapcnt\fP paires de valeurs 4 octets, écrites dans
+l'ordre standard des octets. La première valeur de chaque paire donne
+l'instant (comme fourni par \fBtime\fP(2)) auquel s'insère une seconde de
+rattrapage. La seconde indique le nombre \fItotal\fP de secondes de rattrapage
+à insérer après l'instant donné. Ces paires sont classées en ordre croissant
+de temps.
+.PP
+Ensuite se trouvent \fItzh_ttisstdcnt\fP indicateurs standard/locale, chacun
+enregistré sur un octet. Ils indiquent si les instants de transition
+associés aux types d'heures locales ont été spécifiés en heure standard ou
+locale, et servent lorsqu'un fichier de zone horaire permet de manipuler des
+variables d'environnement de zone horaire à la manière POSIX.
+.PP
+Finalement se trouvent \fItzh_ttisgmtcnt\fP indicateurs UTC/local, chacun
+enregistré sur un octet. Ils indiquent si les instants de transition
+associés aux types d'heures locales ont été spécifiés en heure UTC ou
+locale, et servent lorsqu'un fichier de fuseau horaire permet de manipuler
+des variables d'environnement de zone horaire à la manière POSIX.
+.PP
+\fILocaltime\fP utilise la première structure \fIttinfo\fP en heure standard du
+fichier (ou simplement la première structure \fIttinfo\fP s'il n'y en a pas en
+heure standard), si \fItzh_timecnt\fP est nul, ou si son paramètre horaire est
+antérieur à la première transition enregistrée dans le fichier.
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,238 @@
+.\" Copyright (c) 2008 Petr Baudis <pasky@suse.cz>
+.\" and copyright (c) 2009, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\"
+.\" 2008-12-08 Petr Baudis <pasky@suse.cz>
+.\"    Rewrite the BSD manpage in the Linux man pages style and account
+.\"    for glibc specificities, provide an example.
+.\" 2009-01-14 mtk, many edits and changes, rewrote example program.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETIFADDRS 3 "23 janvier 2009" GNU "Manuel du programmeur Linux"
+.SH NOM
+getifaddrs, freeifaddrs \- renvoyer les adresses des interfaces
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <ifaddrs.h>\fP
+.sp
+\fBint getifaddrs(struct ifaddrs **\fP\fIifap\fP\fB);\fP
+.sp
+\fBvoid freeifaddrs(struct ifaddrs *\fP\fIifa\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBgetifaddrs\fP() crée une liste chaînée de structures décrivant
+les interfaces réseau du système local et sauvegarde l'adresse du premier
+élément de la liste dans \fI*ifap\fP. La liste est constituée de stucture
+\fIifaddrs\fP definie ci\-dessous\ :
+.sp
+.in +4n
+.nf
+struct ifaddrs {
+    struct ifaddrs  *ifa_next;    /* Next item in list */
+    char            *ifa_name;    /* Name of interface */
+    unsigned int     ifa_flags;   /* Flags from SIOCGIFFLAGS */
+    struct sockaddr *ifa_addr;    /* Address of interface */
+    struct sockaddr *ifa_netmask; /* Netmask of interface */
+    union {
+        struct sockaddr *ifu_broadaddr;
+                         /* Broadcast address of interface */
+        struct sockaddr *ifu_dstaddr;
+                         /* Point\-to\-point destination address */
+    } ifa_ifu;
+#define              ifa_broadaddr ifa_ifu.ifu_broadaddr
+#define              ifa_dstaddr   ifa_ifu.ifu_dstaddr
+    void            *ifa_data;    /* Address\-specific data */
+};
+.fi
+.in
+.PP
+Le champ \fIifa_next\fP contient un pointeur vers la prochaine structure de la
+liste ou NULL si c'est le dernier de la liste.
+.PP
+.\" The constant
+.\" .B IF NAMESIZE
+.\" indicates the maximum length of this field.
+\fIifa_name\fP pointe vers un nom d'interface terminé par un caractère nul.
+.PP
+Le champ \fIifa_flags\fP contient les drapeaux de l'interface, comme renvoyé
+par l'opération \fBioctl\fP(2) \fBSIOCGUFFLAGS\fP (consultez \fBnetdevice\fP(7) pour
+la liste des drapeaux).
+.PP
+Le champ \fIifa_addr\fP pointe vers une structure contenant l'adresse de
+l'interface (le sous\-champ \fIsa_family\fP devrait être consulté afin de
+déterminer le format de la structure d'adresse).
+.PP
+Le champ \fIifa_netmask\fP pointe vers une structure contenant le masque réseau
+associé à \fIifa_addr\fP, si cela est valable pour cette famille d'adresse.
+.PP
+Selon que le bit \fBIFF_BROADCAST\fP ou \fBIFF_POINTOPOINT\fP est défini dans
+\fIifa_flags\fP (seul l'un des deux bit peut être défini), soit
+\fIifa_broadaddr\fP contiendra l'adresse de diffusion associée à \fIifa_addr\fP
+(si cela est applicable avec cette famille d'adresse), ou soit
+\fIifa_dstaddr\fP contiendra l'adresse de destination de l'interface point à
+point.
+.PP
+Le champ \fIifa_data\fP pointe vers un tampon contenant les données spécifique
+de la famille d'adresse («\ address\-family\-specific data\ »). Ce champ peut
+être NULL s'il n'y a aucune donnée de ce type pour cette interface.
+.PP
+La donnée renvoyée par \fBgetifaddrs\fP() est dynamiquement allouée et devrait
+être libérée avec \fBfreeifaddrs\fP().
+.SH "VALEURS RENVOYÉES"
+En cas de réussite, \fBgetifaddrs\fP() renvoie 0, en cas d'erreur, elle renvoie
+\-1 et \fIerrno\fP est rempli avec le code d'erreur.
+.SH ERREURS
+\fBgetifaddrs\fP()  peut échouer et définir \fIerrno\fP pour toutes erreurs
+spécifiées pour \fBsocket\fP(2), \fBbind\fP(2), \fBgetsockname\fP(2), \fBrecvmsg\fP(2),
+\fBsendto\fP(2), \fBmalloc\fP(3) ou \fBrealloc\fP(3).
+.SH VERSIONS
+\fBgetifaddrs\fP() est apparue dans la glibc\ 2.3. Les versions antérieures à la
+glibc 2.3.3 n'implémentaient que l'IPv4. La gestion de l'IPv6 a été ajoutée
+dans la glibc\ 2.3.3. La gestion des familles d'adresse autre que IPv4 n'est
+disponible que si le noyau gère netlink.
+.SH CONFORMITÉ
+.\" , but the BSD-derived documentation generally
+.\" appears to be confused and obsolete on this point.
+.\" i.e., commonly it still says one of them will be NULL, even if
+.\" the ifa_ifu union is already present
+Pas dans POSIX.1\-2001. Cette fonction est apparue en premier dans BSDi et
+elle est présente sur les systèmes BSD avec de légères différences
+sémantiques documentées\ ; elle renvoie une entrée par interface et non pas
+par adresse. Cela signifie que \fIifa_addr\fP et d'autres champs peuvent être
+NULL si l'interface n'a pas d'adresse, et aucune adresse «\ link\-level\ »
+(synonyme d'adresse MAC) n'est renvoyée si l'interface possède une adresse
+IP. De plus, la façon de choisir soit \fIifa_broadaddr\fP ou soit
+\fIifa_dstaddr\fP varie sur beacoup de systèmes.
+.SH NOTES
+Les adresses renvoyées sous Linux seront généralement les adresses IPv4 et
+IPv6 de l'interface, et une adresse \fBAF_PACKET\fP contenant des détails bas
+niveau de l'interface et de sa couche physique. Dans ce cas, le champ
+\fIifa_data\fP peut contenir un pointeur vers une structure
+\fInet_device_stats\fP, définie dans \fI<linux/netdevice.h>\fP, qui
+contient différents attributs et statistiques sur les interfaces.
+.SH EXEMPLE
+Le programme suivant décrit l'utilisation de \fBgetifaddrs\fP(),
+\fBfreeifaddrs\fP() et \fBgetnameinfo\fP(3). Ci\-dessous, la sortie du programme
+sur un système\ :
+.in +4n
+.nf
+
+$ \fB./a.out\fP
+lo      address family: 17 (AF_PACKET)
+eth0    address family: 17 (AF_PACKET)
+lo      address family: 2 (AF_INET)
+        address: <127.0.0.1>
+eth0    address family: 2 (AF_INET)
+        address: <10.1.1.4>
+lo      address family: 10 (AF_INET6)
+        address: <::1>
+eth0    address family: 10 (AF_INET6)
+        address: <fe80::2d0:59ff:feda:eb51%eth0>
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <ifaddrs.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int
+main(int argc, char *argv[])
+{
+    struct ifaddrs *ifaddr, *ifa;
+    int family, s;
+    char host[NI_MAXHOST];
+
+    if (getifaddrs(&ifaddr) == \-1) {
+        perror("getifaddrs");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Walk through linked list, maintaining head pointer so we
+       can free list later */
+
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa\->ifa_next) {
+        family = ifa\->ifa_addr\->sa_family;
+
+        /* Display interface name and family (including symbolic
+           form of the latter for the common families) */
+
+        printf("%s\t  address family: %d%s\en",
+                ifa\->ifa_name, family,
+                (family == AF_PACKET) ? " (AF_PACKET)" :
+                (family == AF_INET) ?   " (AF_INET)" :
+                (family == AF_INET6) ?  " (AF_INET6)" : "");
+
+        /* For an AF_INET* interface address, display the address */
+
+        if (family == AF_INET || family == AF_INET6) {
+            s = getnameinfo(ifa\->ifa_addr,
+                    (family == AF_INET) ? sizeof(struct sockaddr_in) :
+                                          sizeof(struct sockaddr_in6),
+                    host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+            if (s != 0) {
+                printf("getnameinfo() failed: %s\en", gai_strerror(s));
+                exit(EXIT_FAILURE);
+            }
+            printf("\etaddress: <%s>\en", host);
+        }
+    }
+
+    freeifaddrs(ifaddr);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBbind\fP(2), \fBgetsockname\fP(2), \fBsocket\fP(2), \fBpacket\fP(7), \fBifconfig\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

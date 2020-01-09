@@ -1,0 +1,95 @@
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" This manpage is Copyright (C) 2006, Michael Kerrisk
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MKNODAT 2 "21 août 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+mknodat \- Créer un noeud du système de fichiers, relatif à un descripteur
+.SH SYNOPSIS
+.nf
+\fB#define _ATFILE_SOURCE\fP
+\fB#include <fcntl.h> /* Définition des constantes AT_* */\fP
+\fB#include <sys/stat.h>\fP
+.sp
+\fBint mknodat(int \fP\fIdirfd\fP\fB, const char *\fP\fIpathname\fP\fB, mode_t \fP\fImode\fP\fB, dev_t \fP\fIdev\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+L'appel système \fBmknodat\fP() fonctionne exactement comme \fBmknod\fP(2), les
+seules différences étant celles décrites sur cette page.
+
+Si le chemin donné dans \fIpathname\fP est relatif, il est interprété par
+rapport au répertoire référencé par le descripteur de fichier \fIdirfd\fP,
+plutôt que par rapport au répertoire courant, comme dans \fBmknod\fP(2).
+
+Si \fIpathname\fP est un chemin relatif, et si \fIdirfd\fP est la valeur spéciale
+\fBAT_FDCWD\fP, \fIpathname\fP est interprété comme étant relatif au répertoire
+courant du processus appelant, comme \fBmknod\fP(2).
+
+Si \fIpathname\fP est un chemin absolu, \fIdirfd\fP est ignoré.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBmknodat\fP() renvoie zéro. En cas d'erreur, il renvoie \-1 et
+remplit \fIerrno\fP avec la valeur d'erreur.
+.SH ERREURS
+Les erreurs renvoyées par \fBmknod\fP(2) peuvent aussi l'être par
+\fBmknodat\fP(). Les erreurs supplémentaires suivantes peuvent également se
+produire pour \fBmknodat\fP()\ :
+.TP 
+\fBEBADF\fP
+\fIdirfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBENOTDIR\fP
+\fIpathname\fP est relatif, et le descripteur de fichier \fIdirfd\fP est associé à
+un fichier, pas à un répertoire.
+.SH VERSIONS
+\fBmknodat\fP() a été ajouté au noyau Linux dans sa version 2.6.16.
+.SH CONFORMITÉ
+POSIX.1\-2008.
+.SH NOTES
+Voir \fBopenat\fP(2) pour une explication de la nécessité de \fBmknodat\fP().
+.SH "VOIR AUSSI"
+\fBmknod\fP(2), \fBopenat\fP(2), \fBpath_resolution\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

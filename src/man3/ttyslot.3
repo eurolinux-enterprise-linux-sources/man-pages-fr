@@ -1,0 +1,134 @@
+.\" Copyright (C) 2002 Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" This replaces an earlier man page written by Walter Harms
+.\" <walter.harms@informatik.uni-oldenburg.de>.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TTYSLOT 3 "26 novembre 2007" GNU "Manuel du programmeur Linux"
+.SH NOM
+ttyslot \- Trouver l'emplacement du terminal en cours dans un fichier
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP /* sur les systèmes BSD et Linux */
+.br
+\fB#include <stdlib.h>\fP /* sur les systèmes V ou assimilés */
+.sp
+\fBint ttyslot(void);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBttyslot\fP()\ : _BSD_SOURCE || (_XOPEN_SOURCE_EXTENDED && !\ _XOPEN_SOURCE\
+>=\ 500)
+.ad b
+.SH DESCRIPTION
+La fonction \fBttyslot\fP() renvoie la position de l'entrée du terminal en
+cours dans un fichier.
+.LP
+«\ Dans quel fichier\ ?\ » demandez\-vous... Bonne question\ ; voyons un peu
+d'histoire.
+.SS "HISTOIRE ANCIENNE"
+Il existait un fichier \fI/etc/ttys\fP dans Unix V6, qui était consulté par
+\fBinit\fP(8) afin de savoir que faire sur chaque terminal. Chaque ligne était
+composée de trois caractères. Le premier était «\ 0\ » ou «\ 1\ », le «\ 0\
+» signifiant «\ ignoré\ ». Le second caractère indiquait le terminal\ : «\
+8\ » signifiant «\ /dev/tty8\ ». Le troisième caractère était un argument
+pour \fBgetty\fP(8) indiquant la séquence de vitesses à essayer («\ \-\ »
+signifiait «\ essayer à partir de 110 bauds\ »). Ainsi, une ligne typique
+était «\ 18\-\ ». Une déconnexion sur une ligne se faisait en changeant le «\
+1\ » en «\ 0\ », en envoyant un signal à init, en rechangeant à l'inverse et
+en renvoyant un signal.
+.LP
+Sous Unix V7, le format a changé\ : le second caractère devenait l'argument
+pour \fBgetty\fP(8) indiquant la séquence de vitesses à essayer («\ 0\ »
+signifiait «\ essayer en boucle 300\-1200\-150\-110 bauds\ » et «\ 4\ »
+signifiait «\ console DECwriter\ ») tandis que le reste de la ligne
+contenait le nom du terminal. Une ligne typique était «\ 14console\ ».
+.LP
+Les systèmes ultérieurs utilisèrent une syntaxe plus élaborée. Les systèmes
+type System\ V employaient \fI/etc/inittab\fP à la place.
+.SS "HISTOIRE ANCIENNE (BIS)"
+D'autre part, il existe un fichier \fI/etc/utmp\fP listant les gens
+actuellement connectés. Il est géré par \fBlogin\fP(1). Il a une taille fixe,
+et la position appropriée dans le fichier est déterminée par \fBlogin\fP(1) en
+utilisant l'appel \fBttyslot\fP() pour trouver le numéro de la ligne dans
+\fI/etc/ttys\fP (à partir de 1).
+.SS "SÉMANTIQUE DE TTYSLOT"
+Ainsi, la fonction \fBttyslot\fP() renvoie l'index du terminal de contrôle du
+processus appelant dans le fichier \fI/etc/ttys\fP, qui est aussi (en principe)
+l'index de l'entrée pour l'utilisateur en cours dans le fichier
+\fI/etc/utmp\fP. BSD utilise encore le fichier \fI/etc/ttys\fP, mais pas les
+système de type System\ V, qui ne peuvent donc pas s'y référer. Sur ces
+systèmes, la documentation dit que \fBttyslot\fP() renvoie l'index de
+l'utilisateur appelant dans la base de données de comptabilité des
+utilisateurs.
+.SH "VALEUR RENVOYÉE"
+Si elle réussit, cette fonction renvoie le numéro d'entrée. Si elle échoue
+(par exemple si aucun des descripteurs 0, 1 ou 2 n'est associé avec un
+terminal trouvé dans la base de données), elle renvoie 0 sur Unix V6, V7 et
+les systèmes BSD, mais \-1 sur les autres systèmes V.
+.SH CONFORMITÉ
+SUSv1\ ; mentionné comme historique dans SUSv2\ ; supprimé dans
+POSIX.1\-2001. SUSv2 demande un \-1 en cas d'erreur.
+.SH NOTES
+Le fichier utmp se rencontre à divers endroits sur les différents systèmes,
+comme \fI/etc/utmp\fP, \fI/var/adm/utmp\fP, \fI/var/run/utmp\fP.
+.LP
+L'implémentation de cette fonction dans la glibc 2 lit le fichier
+\fB_PATH_TTYS\fP, défini dans \fI<ttyent.h>\fP comme "/etc/ttys". Elle
+renvoie 0 en cas d'erreur. Comme les systèmes Linux n'ont habituellement pas
+de «\ /etc/ttys\ », elle renverra toujours 0.
+.LP
+.\" .SH HISTORY
+.\" .BR ttyslot ()
+.\" appeared in Unix V7.
+Minix avait aussi \fIfttyslot\fP(\fIfd\fP).
+.SH "VOIR AUSSI"
+\fBgetttyent\fP(3), \fBttyname\fP(3), \fButmp\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

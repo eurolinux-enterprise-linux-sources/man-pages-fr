@@ -1,0 +1,181 @@
+.\" Copyright (C) 2008, Linux Foundation, written by Michael Kerrisk
+.\" <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" A few pieces remain from an earlier version written in
+.\" 2002 by Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETGROUPLIST 3 "3 juillet 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+getgrouplist \- Obtenir la liste des groupes auxquels appartient un
+utilisateur
+.SH SYNOPSIS
+\fB#include <grp.h>\fP
+.sp
+\fBint getgrouplist(const char *\fP\fIuser\fP\fB, gid_t \fP\fIgroup\fP\fB,\fP
+.br
+\fB gid_t *\fP\fIgroups\fP\fB, int *\fP\fIngroups\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBgetgrouplist\fP()\ : _BSD_SOURCE
+.SH DESCRIPTION
+La fonction \fBgetgrouplist\fP() balaie la base de données des groupes (voir
+\fBgroup\fP(5)) pour obtenir la liste des groupes auxquels appartient
+l'utilisateur \fIuser\fP. Jusqu'à \fI*ngroups\fP de ces groupes sont retournés
+dans le tableau \fIgroups\fP.
+
+S'il n'était pas parmi les groupes définis pour l'utilisateur \fIuser\fP dans
+la base de données des groupes, \fIgroup\fP est inclus dans la liste des
+groupes retournée par \fBgetgrouplist\fP\ ; typiquement, cet argument est
+spécifié comme étant l'identifiant du groupe de l'utilisateur \fIuser\fP pris
+dans l'enregistrement correspondant dans le fichier des mots de passe.
+
+L'argument \fIngroups\fP est un argument «\ valeur résultat\ »\ : au retour, il
+contient toujours le nombre de groupes trouvés pour l'utilisateur \fIuser\fP,
+incluant \fIgroup\fP\ ; cette valeur peut être supérieure au nombre de groupes
+enregistrés dans \fIgroups\fP.
+.SH "VALEUR RENVOYÉE"
+Si le nombre de groupes auquel l'utilisateur \fIuser\fP appartient est
+inférieur ou égal à \fI*ngroups\fP, la valeur \fI*ngroups\fP est renvoyée.
+
+Si l'utilisateur appartient à plus de \fI*ngroups\fP groupes, \fBgetgrouplist\fP()
+renvoie \-1. Dans ce cas, la valeur renvoyée dans \fI*ngroups\fP peut être
+utilisée pour redimensionner le tampon passé à un appel \fBgetgrouplist\fP()
+ultérieur.
+.SH VERSIONS
+Cette fonction est présente depuis glibc 2.2.4.
+.SH CONFORMITÉ
+Cette fonction n'est pas standard, elle est apparue sur la plupart des BSD.
+.SH BOGUES
+Dans les versions de la glibc antérieures à la 2.3.3, l'implémentation de
+cette fonction comportait un bogue de débordement de tampon\ : elle renvoyait
+la liste complète des groupes de l'utilisateur \fIuser\fP dans le tableau
+\fIgroups\fP, même si le nombre de groupes était supérieur à \fI*ngroups\fP.
+.SH EXEMPLE
+.PP
+Le programme ci\-dessous affiche la liste des groupes auxquels appartient
+l'utilisateur indiqué comme premier argument de la ligne de commande. Le
+second argument indique la valeur \fIngroups\fP à passer à
+\fBgetgrouplist\fP(). La session shell suivante montre des exemples
+d'utilisation de ce programme\ :
+.in +4n
+.nf
+
+$\fB ./a.out cecilia 0\fP
+getgrouplist() returned \-1; ngroups = 3
+$\fB ./a.out cecilia 3\fP
+ngroups = 3
+16 (dialout)
+33 (video)
+100 (users)
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+#include <grp.h>
+#include <pwd.h>
+
+int
+main(int argc, char *argv[])
+{
+    int j, ngroups;
+    gid_t *groups;
+    struct passwd *pw;
+    struct group *gr;
+
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <user> <ngroups>\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    ngroups = atoi(argv[2]);
+
+    groups = malloc(ngroups * sizeof (gid_t));
+    if (groups == NULL) {
+        perror("malloc");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Fetch passwd structure (contains first group ID for user) */
+
+    pw = getpwnam(argv[1]);
+    if (pw == NULL) {
+        perror("getpwnam");
+        exit(EXIT_SUCCESS);
+    }
+
+    /* Retrieve group list */
+
+    if (getgrouplist(argv[1], pw\->pw_gid, groups, &ngroups) == \-1) {
+        fprintf(stderr, "getgrouplist() returned \-1; ngroups = %d\en",
+                ngroups);
+	exit(EXIT_FAILURE);
+    }
+
+    /* Display list of retrieved groups, along with group names */
+
+    fprintf(stderr, "ngroups = %d\en", ngroups);
+    for (j = 0; j < ngroups; j++) {
+        printf("%d", groups[j]);
+        gr = getgrgid(groups[j]);
+        if (gr != NULL)
+            printf(" (%s)", gr\->gr_name);
+        printf("\en");
+    }
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBgetgroups\fP(2), \fBsetgroups\fP(2), \fBgetgrent\fP(3), \fBgroup\fP(5), \fBpasswd\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2004-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

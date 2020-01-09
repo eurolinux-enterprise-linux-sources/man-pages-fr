@@ -1,0 +1,142 @@
+.\" t
+.\" Hey Emacs! This file is -*- nroff -*- source.
+.\"
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MQ_RECEIVE 3 "29 septembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+mq_receive, mq_timedreceive \- Recevoir un message d'une file de messages
+.SH SYNOPSIS
+.nf
+\fB#include <mqueue.h>\fP
+.sp
+\fBssize_t mq_receive(mqd_t \fP\fImqdes\fP\fB, char *\fP\fImsg_ptr\fP\fB,\fP
+\fB                   size_t \fP\fImsg_len\fP\fB, unsigned *\fP\fImsg_prio\fP\fB);\fP
+.sp
+\fB#define _XOPEN_SOURCE 600\fP
+\fB#include <time.h>\fP
+\fB#include <mqueue.h>\fP
+.sp
+\fBssize_t mq_timedreceive(mqd_t \fP\fImqdes\fP\fB, char *\fP\fImsg_ptr\fP\fB,\fP
+\fB                   size_t \fP\fImsg_len\fP\fB, unsigned *\fP\fImsg_prio\fP\fB,\fP
+\fB                   const struct timespec *\fP\fIabs_timeout\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP.
+.SH DESCRIPTION
+\fBmq_receive\fP() supprime le plus vieux message avec la plus haute priorité
+de la file de messages référencée par \fImqdes\fP, et le place dans un tampon
+pointé par \fImsg_ptr\fP. L'argument \fImsg_len\fP spécifie la taille du tampon
+pointé par \fImsg_ptr\fP\ ; celui\-ci doit être plus large que l'attribut
+\fImq_msgsize\fP de la file (voyez \fBmq_getattr\fP(3)). Si \fIprio\fP est non NULL,
+alors le tampon vers lequel il pointe est utilisé pour renvoyer la priorité
+associée au message reçu.
+
+Si la file est vide, alors par défaut, \fBmq_receive\fP() bloque tant qu'aucun
+message n'est disponible, ou que l'appel n'est pas interrompu par un
+gestionnaire de signaux. Si le drapeau \fBO_NONBLOCK\fP est activé dans la
+description de file de messages, alors l'appel échouera immédiatement avec
+l'erreur \fBEAGAIN\fP.
+
+\fBmq_timedreceive\fP() se comporte comme \fBmq_receive\fP(), excepté que si la
+file est vide et si le drapeau \fBO_NONBLOCK\fP n'est pas actif pour la
+description de la file de messages, alors \fIabs_timeout\fP pointe vers une
+structure qui spécifie une limite de l'heure jusqu'à laquelle l'appel sera
+bloqué. Cette limite est un délai absolu en secondes et nanosecondes depuis
+Epoch (00\ h\ 00 du 1er janvier 1970), spécifié dans la structure suivante\
+:
+.sp
+.in +4n
+.nf
+struct timespec {
+    time_t tv_sec;        /* secondes     */
+    long   tv_nsec;       /* nanosecondes */
+};
+
+.fi
+.in
+Si aucun message n'est disponible et si le délai d'attente a déjà expiré
+pendant la durée de l'appel, \fBmq_timedreceive\fP() s'achève immédiatement.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBmq_receive\fP() et \fBmq_timedreceive\fP() renvoient le
+nombre d'octets du message reçu. En cas d'erreur, \-1 est renvoyé et \fIerrno\fP
+indique l'erreur.
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+La file est vide et le drapeau \fBO_NONBLOCK\fP était défini pour la file de
+messages référencée par le descripteur \fImqdes\fP.
+.TP 
+\fBEBADF\fP
+Le descripteur spécifié dans \fImqdes\fP n'est pas valable.
+.TP 
+\fBEINTR\fP
+L'appel a été interrompu par un gestionnaire de signal\ ; voir \fBsignal\fP(7).
+.TP 
+\fBEINVAL\fP
+L'appel devrait être bloqué, et \fIabs_timeout\fP n'est pas valable, soit car
+\fItv_sec\fP est inférieur à zéro, ou soit car \fItv_nsec\fP est inférieur à zéro
+ou plus grand que 1000\ millions.
+.TP 
+\fBEMSGSIZE\fP
+\fImsg_len\fP était plus petit que l'attribut \fImq_msgsize\fP de la file de
+messages.
+.TP 
+\fBETIMEDOUT\fP
+Le délai d'attente de l'appel a expiré avant que le message ait été
+transféré.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Sous Linux, \fBmq_timedreceive\fP() est un appel système et \fBmq_receive\fP() est
+une fonction de bibliothèque au dessus de la couche des appels systèmes.
+.SH "VOIR AUSSI"
+\fBmq_close\fP(3), \fBmq_getattr\fP(3), \fBmq_notify\fP(3), \fBmq_open\fP(3),
+\fBmq_send\fP(3), \fBmq_unlink\fP(3), \fBfeature_test_macros\fP(7),
+\fBmq_overview\fP(7), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

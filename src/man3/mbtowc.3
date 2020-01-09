@@ -1,0 +1,92 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single Unix specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MBTOWC 3 "4 juillet 2001" GNU "Manuel du programmeur Linux"
+.SH NOM
+mbtowc \- Convertir une séquences multi\-octets en caractères larges
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBint mbtowc(wchar_t *\fP\fIpwc\fP\fB, const char *\fP\fIs\fP\fB, size_t \fP\fIn\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+L'utilisation habituelle de cette fonction est avec \fIs\fP et \fIpwc\fP tous deux
+différents NULL. Dans ce cas, la fonction \fBmbtowc\fP() examine au plus \fIn\fP
+octets de la chaîne multi\-octets commençant à l'adresse \fIs\fP, extrait le
+prochain caractère multi\-octets complet, le convertit en caractère large et
+le stocke dans \fI*pwc\fP. Elle met à jour l'état interne de décalage, connu
+d'elle seule. Si \fIs\fP ne pointe pas sur un octet \(aq\e0\(aq, elle renvoie
+le nombre d'octets qui ont été consommés dans \fIs\fP, sinon, elle renvoie
+zéro.
+.PP
+Si les \fIn\fP octets débutants en \fIs\fP ne contiennent pas un caractère
+multi\-octets complet, ou s'il s'agit d'une séquence invalide, \fBmbtowc\fP()
+renvoie \-1. Ceci peut se produire même si \fIn\fP est supérieur ou égal à
+\fBMB_CUR_MAX\fP, si la chaîne multi\-octets contient des séquences de décalage
+redondantes.
+.PP
+Un autre cas possible se présent si \fIs\fP est non NULL, mais \fIpwc\fP est
+NULL. Dans ce cas, la fonction \fBmbtowc\fP() se comporte comme ci\-dessus, mais
+ne stocke par le caractère large en mémoire.
+.PP
+.\" The Dinkumware doc and the Single Unix specification say this, but
+.\" glibc doesn't implement this.
+Un troisième cas est possible si \fIs\fP est NULL. Alors, \fIpwc\fP et \fIn\fP sont
+ignorés. La fonction \fBmbtowc\fP() réinitialise l'état de décalage, qu'elle
+seule connaît, et renvoie une valeur non nulle si l'encodage à un état de
+décalage non trivial, ou zéro si l'encodage est sans état.
+.SH "VALEUR RENVOYÉE"
+Si \fIs\fP est non NULL, la fonction \fBmbtowc\fP() renvoie le nombre d'octets
+consommés à partir de \fIs\fP, ou zéro si \fIs\fP pointe sur un octet nul, ou
+encore \-1 en cas d'erreur.
+.PP
+Si \fIs\fP est NULL, la fonction \fBmbtowc\fP() renvoie une valeur non nulle si
+l'encodage a un état de décalage non trivial, ou zéro si l'encodage est sans
+état.
+.SH CONFORMITÉ
+C99.
+.SH NOTES
+Le comportement de \fBmbtowc\fP() dépend de la catégorie \fBLC_CTYPE\fP de la
+localisation en cours.
+.PP
+Cette fonction n'est pas sûre en contexte multi\-threads. La fonction
+\fBmbrtowc\fP(3) fournit une meilleure interface pour la même fonctionnalité.
+.SH "VOIR AUSSI"
+\fBMB_CUR_MAX\fP(3), \fBmbrtowc\fP(3), \fBmbstowcs\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

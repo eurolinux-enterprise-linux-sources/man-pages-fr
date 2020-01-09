@@ -1,0 +1,213 @@
+.\" Copyright (C) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" Modified 2003-08-17 by Walter Harms
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STATFS 2 "23 juin 2004" Linux "Manuel du programmeur Linux"
+.SH NOM
+statfs, fstatfs \- Obtenir des statistiques sur le système de fichiers.
+.SH SYNOPSIS
+\fB#include <sys/vfs.h> \fP/* ou <sys/statfs.h> */
+.sp
+\fBint statfs(const char *\fP\fIpath\fP\fB, struct statfs *\fP\fIbuf\fP\fB);\fP
+.br
+\fBint fstatfs(int \fP\fIfd\fP\fB, struct statfs *\fP\fIbuf\fP\fB);\fP
+.SH DESCRIPTION
+La fonction \fBstatfs\fP() renvoie des informations à propos d'un système de
+fichiers monté. \fIpath\fP est le nom d'un fichier quelconque dans le système
+de fichiers. \fIbuf\fP est un pointeur sur une structure \fIstatfs\fP
+approximativement définie comme suit\ :
+
+.in +4n
+.nf
+struct statfs {
+   long    f_type;     /* type de système de fichiers       */
+   long    f_bsize;    /* Taille optimale de bloc           */
+   long    f_blocks;   /* Nombre total de blocs             */
+   long    f_bfree;    /* Blocs libres                      */
+   long    f_bavail;   /* Blocs libres pour utilisateurs    */
+   long    f_files;    /* Nombres de noeuds                 */
+   long    f_ffree;    /* Nombre de noeuds libres           */
+   fsid_t  f_fsid;     /* ID du système de fichiers         */
+   long    f_namelen;  /* Longueur maxi des noms de fichier */
+};
+
+Types de systèmes de fichiers\ :
+
+   ADFS_SUPER_MAGIC       0xadf5
+   AFFS_SUPER_MAGIC       0xADFF
+   BEFS_SUPER_MAGIC       0x42465331
+   BFS_MAGIC              0x1BADFACE
+   CIFS_MAGIC_NUMBER      0xFF534D42
+   CODA_SUPER_MAGIC       0x73757245
+   COH_SUPER_MAGIC        0x012FF7B7
+   CRAMFS_MAGIC           0x28cd3d45
+   DEVFS_SUPER_MAGIC      0x1373
+   EFS_SUPER_MAGIC        0x00414A53
+   EXT_SUPER_MAGIC        0x137D
+   EXT2_OLD_SUPER_MAGIC   0xEF51
+   EXT2_SUPER_MAGIC       0xEF53
+   EXT3_SUPER_MAGIC       0xEF53
+   HFS_SUPER_MAGIC        0x4244
+   HPFS_SUPER_MAGIC       0xF995E849
+   HUGETLBFS_MAGIC        0x958458f6
+   ISOFS_SUPER_MAGIC      0x9660
+   JFFS2_SUPER_MAGIC      0x72b6
+   JFS_SUPER_MAGIC        0x3153464a
+   MINIX_SUPER_MAGIC      0x137F  /* Minix original   */
+   MINIX_SUPER_MAGIC2     0x138F  /* Minix 30 caract. */
+   MINIX2_SUPER_MAGIC     0x2468  /* Minix V2         */
+   MINIX2_SUPER_MAGIC2    0x2478  /* Minix V2 30 car. */
+   MSDOS_SUPER_MAGIC      0x4d44
+   NCP_SUPER_MAGIC        0x564c
+   NFS_SUPER_MAGIC        0x6969
+   NTFS_SB_MAGIC          0x5346544e
+   OPENPROM_SUPER_MAGIC   0x9fa1
+   PROC_SUPER_MAGIC       0x9fa0
+   QNX4_SUPER_MAGIC       0x002f
+   REISERFS_SUPER_MAGIC   0x52654973
+   ROMFS_MAGIC            0x7275
+   SMB_SUPER_MAGIC        0x517B
+   SYSV2_SUPER_MAGIC      0x012FF7B6
+   SYSV4_SUPER_MAGIC      0x012FF7B5
+   TMPFS_MAGIC            0x01021994
+   UDF_SUPER_MAGIC        0x15013346
+   UFS_MAGIC              0x00011954
+   USBDEVICE_SUPER_MAGIC  0x9fa2
+   VXFS_SUPER_MAGIC       0xa501FCF5
+   XENIX_SUPER_MAGIC      0x012FF7B4
+   XFS_SUPER_MAGIC        0x58465342
+   _XIAFS_SUPER_MAGIC     0x012FD16D
+.fi
+.in
+.PP
+Personne ne sait ce que \fIf_fsid\fP est supposé contenir (voir plus loin).
+.PP
+Les champs indéfinis pour un système de fichiers donné sont mis à
+0. \fBfstatfs\fP() renvoie les mêmes informations concernant un fichier ouvert
+référencé par \fIfd\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, zéro est renvoyé, sinon \-1 est renvoyé et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+(\fBstatfs\fP()) Un élément du chemin d'accès \fIpath\fP ne permet pas le
+parcours. (Voir aussi \fBpath_resolution\fP(7).)
+.TP 
+\fBEBADF\fP
+(\fBfstatfs\fP()) \fIfd\fP n'est pas un descripteur de fichier ouvert valide.
+.TP 
+\fBEFAULT\fP
+\fIbuf\fP ou \fIpath\fP pointent en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEINTR\fP
+L'appel a été interrompu par un signal.
+.TP 
+\fBEIO\fP
+Une erreur d'entrée\-sortie est survenue lors de la lecture sur le système de
+fichiers.
+.TP 
+\fBELOOP\fP
+(\fBstatfs\fP()) \fIpath\fP contient une référence circulaire (à travers un lien
+symbolique).
+.TP 
+\fBENAMETOOLONG\fP
+(\fBstatfs\fP()) \fIpath\fP est trop long.
+.TP 
+\fBENOENT\fP
+(\fBstatfs\fP()) Le fichier indiqué par \fIpath\fP n'existe pas.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.TP 
+\fBENOSYS\fP
+Le système de fichiers ne supporte pas cet appel.
+.TP 
+\fBENOTDIR\fP
+(\fBstatfs\fP()) Un élément du chemin d'accès \fIpath\fP n'est pas un répertoire.
+.TP 
+\fBEOVERFLOW\fP
+Certaines valeurs sont trop grandes pour être représentées dans la structure
+renvoyée.
+.SH CONFORMITÉ
+Spécifique à Linux. La routine \fBstatfs\fP() de Linux a été inspirée par celle
+de BSD\ 4.4, mais n'emploie pas la même structure.
+.SH NOTES
+Le noyau a les appels système \fBstatfs\fP(), \fBfstatfs\fP(), \fBstatfs64\fP(),
+\fBfstatfs64\fP() pour supporter cet appel de la bibliothèque.
+
+Certains systèmes ont seulement \fI<sys/vfs.h>\fP, d'autres ont aussi
+\fI<sys/statfs.h>\fP, où le premier inclus le dernier. Aussi, il semble
+qu'inclure le premier soit le meilleur choix.
+
+LSB déconseille les appels bibliothèque \fBstatfs\fP() et \fBfstatfs\fP() et
+demande d'utiliser \fBstatvfs\fP(2) et \fBfstatvfs\fP(2) à la place.
+.SS "Le champ f_fsid"
+Solaris, Irix et POSIX ont un appel système \fBstatvfs\fP(2) qui renvoie une
+\fIstruct statvfs\fP (définie dans \fI<sys/statvfs.h>\fP) contenant un
+\fIunsigned long\fP \fIf_fsid\fP. Linux, SunOS, HP\-UX, BSD\ 4.4 ont un appel
+système \fBstatfs\fP() qui renvoie une \fIstruct statfs\fP (définie dans
+\fI<sys/vfs.h>\fP) contenant un \fIfsid_t\fP \fIf_fsid\fP, où \fIfsid_t\fP est
+défini comme une \fIstruct { int val[2]; }\fP. La même chose vaut pour FreeBSD,
+sauf que le fichier d'en\-tête est \fI<sys/mount.h>\fP.
+
+L'idée générale est que \fIf_fsid\fP contient quelque chose qui permette que la
+paire (\fIf_fsid\fP,\fIino\fP) identifie un fichier de manière unique. Certains
+systèmes utilisent (une variation sur) le numéro de périphérique combiné au
+type de système de fichiers. Plusieurs systèmes restreignent l'accès au
+champ \fIf_fsid\fP pour le superutilisateur (et indiquent zéro pour les
+utilisateurs normaux), car ce champ est utilisé dans la manipulation du
+système de fichiers lors d'exportation par NFS, et sa valeur peut être
+considérée comme un élément de sécurité.
+.LP
+Sous certains systèmes, le \fIfsid\fP peut être utilisé en second paramètre de
+l'appel système \fBsysfs\fP().
+.SH "VOIR AUSSI"
+\fBstat\fP(2), \fBstatvfs\fP(2), \fBpath_resolution\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

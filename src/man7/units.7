@@ -1,0 +1,146 @@
+.\" t
+.\" Copyright (C) 2001 Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UNITS 7 "22 décembre 2001" Linux "Manuel du programmeur Linux"
+.SH NOM
+units, kilo, kibi, mega, mebi, giga, gibi \- Préfixes décimaux et binaires
+.SH DESCRIPTION
+.SS "Préfixes décimaux"
+Le système international des unités utilise des préfixes qui indiquent des
+puissances de dix. Un kilomètre vaut 1000 mètres, et un mégawatt vaut
+1000000 watts. Voici les préfixes standards.
+.RS
+.TS
+l l l.
+Préfixe	Nom	Valeur
+y	yocto	10^\-24 = 0.000000000000000000000001
+z	zepto	10^\-21 = 0.000000000000000000001
+a	atto	10^\-18 = 0.000000000000000001
+f	femto	10^\-15 = 0.000000000000001
+p	pico	10^\-12 = 0.000000000001
+n	nano	10^\-9  = 0.000000001
+u	micro	10^\-6  = 0.000001
+m	milli	10^\-3  = 0.001
+c	centi	10^\-2  = 0.01
+d	deci	10^\-1  = 0.1
+da	deca	10^ 1  = 10
+h	hecto	10^ 2  = 100
+k	kilo	10^ 3  = 1000
+M	mega	10^ 6  = 1000000
+G	giga	10^ 9  = 1000000000
+T	tera	10^12  = 1000000000000
+P	peta	10^15  = 1000000000000000
+E	exa	10^18  = 1000000000000000000
+Z	zetta	10^21  = 1000000000000000000000
+Y	yotta	10^24  = 1000000000000000000000000
+.TE
+.RE
+
+Le symbole pour micro est la lettre grecque Mu, souvent écrite u dans un
+contexte ASCII où la lettre grecque n'est pas disponible. Voir aussi
+.sp
+.RS
+http://physics.nist.gov/cuu/Units/prefixes.html
+.RE
+.SS "Préfixes binaires"
+Les préfixes binaires ressemblent aux décimaux, mais ont un «\ i\ »
+supplémentaire (et «\ Ki\ » commence par un «\ K\ » majuscule). Les noms
+sont formés en prenant la première syllable du préfixe décimal avec la même
+taille approximative et en ajoutant «\ bi\ » pour «\ binaire\ ».
+.RS
+.TS
+l l l.
+Préfixe	Nom	Valeur
+Ki	kibi	2^10 = 1024
+Mi	mebi	2^20 = 1048576
+Gi	gibi	2^30 = 1073741824
+Ti	tebi	2^40 = 1099511627776
+Pi	pebi	2^50 = 1125899906842624
+Ei	exbi	2^60 = 1152921504606846976
+.TE
+.RE
+
+Voir aussi
+.sp
+.RS
+http://physics.nist.gov/cuu/Units/binary.html
+.RE
+.SS Discussion
+Avant l'introduction des préfixes binaires, il était assez courant
+d'utiliser k=1000 et K=1024. Malheureusement le M est déjà en majuscule, et
+ne peut pas indiquer l'aspect binaire.
+
+Il y a quelques temps, cela n'était pas trop grave, car les modules mémoire
+et les disques avaient toujours des tailles en puissance de deux, ainsi tout
+le monde savait, dans ce contexte que «\ kilo\-octet" et «\ méga\-octet\ »
+signifiaient 1024 et 1048576 octets respectivement. Ce qui était un abus de
+langage à l'origine avec les préfixes «\ kilo\ » et «\ méga\ » a commencé à
+devenir la pratique officielle dans le monde informatique. Mais la
+technologie des disques a évolué et leurs tailles sont devenues
+arbitraires. Après une période de flottement, tous les fabricants de disques
+ont fixé le standard k=1000, M=1000k, et G=1000M.
+
+.\" also common: 14.4k modem
+La situation était floue\ : pour un modem 14,4\ k, k=1000\ ; pour une
+disquette 1.44\ M, M=1024000, etc. En 1998, l'IEC a approuvé le standard qui
+définit les préfixes binaires ci\-dessus, permettant d'être précis et sans
+ambiguïté.
+
+Ainsi aujourd'hui, MB = 1000000B et MiB = 1048576B.
+
+Dans le monde du logiciel libre, les programmes évoluent peu à peu pour être
+conformes. Lorsque Linux démarre et dit
+
+.RS
+.nf
+hda: 120064896 sectors (61473 MB) w/2048KiB Cache
+.fi
+.RE
+
+les MB sont des «\ megabytes\ » et les «\ KiB\ » des «\ kibibytes\ ».
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,409 @@
+.\" This page was taken from the 4.4BSD-Lite CDROM (BSD license)
+.\"
+.\" @(#)xdr.3n	2.2 88/08/03 4.0 RPCSRC; from 1.16 88/03/14 SMI
+.\"
+.\" 2007-12-30, mtk, Convert function prototypes to modern C syntax
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XDR 3 "30 décembre 2007" "" "Manuel du programmeur Linux"
+.SH NOM
+xdr \- Bibliothèque de fonctions pour transmission externe de données
+.SH "SYNOPSIS ET DESCRIPTION"
+.LP
+Ces routines permettent aux programmeurs C de décrire des structures de
+données arbitraires de manière indépendante de la machine. Les données pour
+les appels de routines distantes (\fBRPC\fP) sont transmises de cette manière.
+
+Les prototypes ci\-dessous sont déclarés dans \fI<rpc/xdr.h>\fP et
+utilisent les types suivants\ :
+.in +4n
+.nf
+
+typedef int \fIbool_t\fP;
+
+typedef bool_t (*\fIxdrproc_t\fP) (XDR *, void *,...);
+.fi
+.in
+.LP
+Pour la déclaration du type \fIXDR\fP, consultez \fI<rpc/xdr.h>\fP.
+.LP
+.nf
+\fBbool_t xdr_array(XDR *\fP\fIxdrs\fP\fB, char **\fP\fIarrp\fP\fB, unsigned int *\fP\fIsizep\fP\fB,\fP
+\fB                 unsigned int \fP\fImaxsize\fP\fB, unsigned int \fP\fIelsize\fP\fB,\fP
+\fB                 xdrproc_t \fP\fIelproc\fP\fB);\fP
+.fi
+.IP
+Une primitive de filtrage qui traduit les tables de longueur variable en
+leur représentations externes correspondantes. Le paramètre \fIarrp\fP est
+l'adresse d'un pointeur sur la chaîne, tandis que \fIsizep\fP est l'adresse du
+nombre d'éléments dans la table. Ce nombre d'éléments ne peut pas excéder
+\fImaxsize\fP. Le paramètre \fIelsize\fP est la taille (\fIsizeof\fP) de chaque
+élément de la table, et \fIelproc\fP est un filtre XDR de traduction entre la
+forme C des éléments de la table, et sa représentation externe. Cette
+routine renvoie 1 si elle réussit, 0 sinon.
+.LP
+.nf
+\fBbool_t xdr_bool(XDR *\fP\fIxdrs\fP\fB, bool_t *\fP\fIbp\fP\fB);\fP
+.fi
+.IP
+Une primitive de filtrage assurant la traduction entre les booléens (entiers
+C) et leur représentation externe. Durant l'encodage des données, ce filtre
+produit soit un 1 soit un 0. Cette routine renvoie 1 si elle réussit, 0
+sinon.
+.LP
+.nf
+\fBbool_t xdr_bytes(XDR *\fP\fIxdrs\fP\fB, char **\fP\fIsp\fP\fB, unsigned int *\fP\fIsizep\fP\fB,\fP
+\fB                 unsigned int \fP\fImaxsize\fP\fB);\fP
+.fi
+.IP
+Une primitive de filtrage assurant la traduction entre des tables caractères
+de longueurs données et leur représentation externe. Le paramètre \fIsp\fP est
+l'adresse du pointeur sur la chaîne. La longueur de la chaîne est située à
+l'adresse \fIsizep\fP. Les chaînes ne peuvent pas être plus longues que
+\fImaxsize\fP. Cette routine renvoie 1 si elle réussit, 0 sinon.
+.LP
+.nf
+\fBbool_t xdr_char(XDR *\fP\fIxdrs\fP\fB, char *\fP\fIcp\fP\fB);\fP
+.fi
+.IP
+Une primitive de filtrage assurant la traduction entre les caractères C et
+leur représentation externe. Cette routine renvoie 1 si elle réussit, 0
+sinon. Note\ : les caractères encodés ne sont pas accolés, et occupent
+quatre octets chacun. Pour les tables de caractères, il vaut mieux se
+tourner vers \fBxdr_bytes\fP(), \fBxdr_opaque\fP() ou \fBxdr_string\fP().
+.LP
+.nf
+\fBvoid xdr_destroy(XDR *\fP\fIxdrs\fP\fB);\fP
+.fi
+.IP
+Une macro invoquant la routine de destruction associée avec le flux XDR,
+\fIxdrs\fP. La destruction entraîne habituellement la libération de structures
+de données privées associées avec le flux. Le comportement est indéfini si
+on essaye d'utiliser \fIxdrs\fP après avoir invoqué \fBxdr_destroy\fP().
+.LP
+.nf
+\fBbool_t xdr_double(XDR *\fP\fIxdrs\fP\fB, double *\fP\fIdp\fP\fB);\fP
+.fi
+.IP
+Une primitive de filtrage assurant la traduction entre les nombres C en
+\fIdouble\fP précision et leur représentation externe. Cette routine renvoie 1
+si elle réussit, 0 sinon.
+.LP
+.nf
+\fBbool_t xdr_enum(XDR *\fP\fIxdrs\fP\fB, enum_t *\fP\fIep\fP\fB);\fP
+.fi
+.IP
+Une primitive de filtrage assurant la traduction entre les énumérés C
+\fIenum\fP (en réalité des entiers) et leur représentation externe. Cette
+routine renvoie 1 si elle réussit, 0 sinon.
+.LP
+.nf
+\fBbool_t xdr_float(XDR *\fP\fIxdrs\fP\fB, float *\fP\fIfp\fP\fB);\fP
+.fi
+.IP
+Une primitive de filtrage assurant la traduction entre les nombres \fIfloat\fP
+C et leur représentation externe. Cette routine renvoie 1 si elle réussit, 0
+sinon.
+.LP
+.nf
+\fBvoid xdr_free(xdrproc_t \fP\fIproc\fP\fB, char *\fP\fIobjp\fP\fB);\fP
+.fi
+.IP
+Routine générique de libération. Le premier argument est la routine XDR de
+l'objet à libérer. Le second argument est un pointeur vers l'objet
+lui\-même. Note\ : le pointeur transmis à cette routine n'est \fIpas\fP libéré,
+mais l'endroit où il pointe \fIest\fP libéré (récursivement).
+.LP
+.nf
+\fBunsigned int xdr_getpos(XDR *\fP\fIxdrs\fP\fB);\fP
+.fi
+.IP
+Une macro invoquant la routine de lecture de position associée avec le flux
+XDR, \fIxdrs\fP. Cette fonction renvoie un entier non signé, qui indique la
+position dans le flux XDR. Une fonctionnalité appréciable serait que
+l'arithmétique usuelle fonctionne avec ce nombre, mais tous les flux XDR ne
+le garantissent pas.
+.LP
+.nf
+\fBlong *xdr_inline(XDR *\fP\fIxdrs\fP\fB, int \fP\fIlen\fP\fB);\fP
+.fi
+.IP
+Une macro qui invoque la routine en\-ligne associée avec le flux XDR
+\fIxdrs\fP. Cette routine renvoie un pointeur vers une portion continue du
+tampon du flux. \fIlen\fP est la longueur en octets du tampon désiré. Note\ :
+le pointeur est converti en \fIlong *\fP.
+.IP
+Attention\ : \fBxdr_inline\fP() peut renvoyer NULL (0) si elle ne peut allouer
+une portion continue de tampon de la taille réclamée. Ce comportement peut
+néanmoins varier d'une instance de flux à l'autre\ ; elle existe par souci
+d'efficacité.
+.LP
+.nf
+\fBbool_t xdr_int(XDR *\fP\fIxdrs\fP\fB, int *\fP\fIip\fP\fB);\fP
+.fi
+.IP
+Une primitive de filtrage assurant la traduction entre les entiers C et leur
+représentation externe. Cette routine renvoie 1 si elle réussit, 0 sinon.
+.LP
+.nf
+\fBbool_t xdr_long(XDR *\fP\fIxdrs\fP\fB, long *\fP\fIlp\fP\fB);\fP
+.fi
+.IP
+Une primitive de filtrage assurant la traduction entre les entiers \fIlong\fP C
+et leur représentation externe. Cette routine renvoie 1 si elle réussit, 0
+sinon.
+.LP
+.nf
+\fBvoid xdrmem_create(XDR *\fP\fIxdrs\fP\fB, char *\fP\fIaddr\fP\fB, unsigned int \fP\fIsize\fP\fB,\fP
+\fB                   enum xdr_op \fP\fIop\fP\fB);\fP
+.fi
+.IP
+Cette routine initialise l'objet flux XDR pointé par \fIxdrs\fP. Les données du
+flux sont lues ou écrites dans le bloc mémoire situé en \fIaddr\fP et dont la
+longueur ne dépasse pas \fIsize\fP octets. L'argument \fIop\fP détermine la
+direction du flux XDR (\fBXDR_ENCODE\fP, \fBXDR_DECODE\fP ou \fBXDR_FREE\fP).
+.LP
+.nf
+\fBbool_t xdr_opaque(XDR *\fP\fIxdrs\fP\fB, char *\fP\fIcp\fP\fB, unsigned int \fP\fIcnt\fP\fB);\fP
+.fi
+.IP
+Une primitive de filtrage assurant la traduction entre des données opaques
+de taille fixe et leur représentation externe. Le paramètre \fIcp\fP est
+l'adresse de l'objet opaque, et \fIcnt\fP est sa taille en octets. Cette
+routine renvoie 1 si elle réussit, 0 sinon.
+.LP
+.nf
+\fBbool_t xdr_pointer(XDR *\fP\fIxdrs\fP\fB, char **\fP\fIobjpp\fP\fB,\fP
+\fB                   unsigned int \fP\fIobjsize\fP\fB, xdrproc_t \fP\fIxdrobj\fP\fB);\fP
+.fi
+.IP
+Comme \fBxdr_reference\fP() sauf qu'elle met bout à bout les pointeurs NULL
+alors que \fBxdr_reference\fP() ne le fait pas. Ainsi \fBxdr_pointer\fP() peut
+représenter des structures de données récursives, comme les arbres binaires
+ou les listes chaînées.
+.LP
+.nf
+\fBvoid xdrrec_create(XDR *\fP\fIxdrs\fP\fB, unsigned int \fP\fIsendsize\fP\fB,\fP
+\fB                   unsigned int \fP\fIrecvsize\fP\fB, char *\fP\fIhandle\fP\fB,\fP
+\fB                   int (*\fP\fIreadit\fP\fB) (char *, char *, int),\fP
+\fB                   int (*\fP\fIwriteit\fP\fB) (char *, char *, int));\fP
+.fi
+.IP
+Cette routine initialise le flux XDR pointé par \fIxdrs\fP. Les données du flux
+sont écrites dans un tampon de taille \fIsendsize\fP. Une valeur nulle indique
+que le système choisira une taille adéquate. Les données du flux sont lues
+depuis un tampon de taille \fIrecvsize\fP. De même le système choisira une
+taille adéquate en transmettant une valeur nulle. Lorsque le tampon de
+sortie du flux est plein, la fonction \fIwriteit\fP est appelé. Symétriquement,
+lorsque le tampon d'entrée est vide, la fonction \fIreadit\fP est invoquée. Le
+comportement de ces routines est similaire aux deux appels système
+\fBread\fP(2) et \fBwrite\fP(2), sauf que le descripteur \fIhandle\fP est passé aux
+routines en tant que premier paramètre. Note\ : l'attribut \fIop\fP du flux XDR
+doit être fixé par l'appelant.
+.IP
+Attention\ : ce flux XDR implémente un flux d'enregistrement
+intermédiaire. Il y a donc des octets supplémentaires dans le flux afin de
+séparer les enregistrements.
+.LP
+.nf
+\fBbool_t xdrrec_endofrecord(XDR *\fP\fIxdrs\fP\fB, int \fP\fIsendnow\fP\fB);\fP
+.fi
+.IP
+Cette routine ne peut être invoquée que sur des flux créé par
+\fBxdrrec_create\fP(). Les données dans le tampon de sortie sont considérées
+comme un enregistrement complet, et le tampon de sortie est éventuellement
+écrit si \fIsendnow\fP est non nul. Cette routine renvoie 1 si elle réussit, 0
+sinon.
+.LP
+.nf
+\fBbool_t xdrrec_eof(XDR *\fP\fIxdrs\fP\fB);\fP
+.fi
+.IP
+Cette routine ne peut être invoqué que sur des flux créés par
+\fBxdrrec_create\fP(). Après avoir rempli le reste de l'enregistrement avec les
+données du flux, cette routine renvoie 1 si le flux n'a plus de données
+d'entrée, et 0 sinon.
+.LP
+.nf
+\fBbool_t xdrrec_skiprecord(XDR *\fP\fIxdrs\fP\fB);\fP
+.fi
+.IP
+Cette routine ne peut être invoqué que sur des flux créés par
+\fBxdrrec_create\fP(). Elle indique à l'implémentation XDR que le reste de
+l'enregistrement en cours dans le tampon d'entrée doit être éliminé. Cette
+routine renvoie 1 si elle réussit, 0 sinon.
+.LP
+.nf
+\fBbool_t xdr_reference(XDR *\fP\fIxdrs\fP\fB, char **\fP\fIpp\fP\fB, unsigned int \fP\fIsize\fP\fB,\fP
+\fB                     xdrproc_t \fP\fIproc\fP\fB);\fP
+.fi
+.IP
+Une primitive qui gère les pointeurs sur les structures. Le paramètre \fIpp\fP
+est l'adresse du pointeur, \fIsize\fP est la taille (\fIsizeof\fP) de la structure
+pointée par \fI*pp\fP, et \fIproc\fP est la procédure XDR qui filtre la structure
+entre sa forme C et sa représentation externe. Cette routine renvoie 1 si
+elle réussit, et 0 sinon.
+.IP
+Attention\ : cette routine ne comprend pas les pointeurs NULL. Utilisez
+\fBxdr_pointer\fP() à sa place.
+.LP
+.nf
+\fBxdr_setpos(XDR *\fP\fIxdrs\fP\fB, unsigned int \fP\fIpos\fP\fB);\fP
+.fi
+.IP
+Une macro qui invoque la routine de positionnement associée au flux XDR
+\fIxdrs\fP. Le paramètre \fIpos\fP est une valeur de position obtenue avec
+\fBxdr_getpos\fP(). Cette routine renvoie 1 si le flux XDR peut être
+repositionné, et zéro sinon.
+.IP
+Attention\ : il est difficile de repositionner certains types de flux XDR ce
+qui peut faire échouer cette routine avec certains flux, et réussir avec
+d'autres.
+.LP
+.nf
+\fBbool_t xdr_short(XDR *\fP\fIxdrs\fP\fB, short *\fP\fIsp\fP\fB);\fP
+.fi
+.IP
+Une primitive de filtrage assurant la traduction entre les entiers \fIshort\fP
+et leur représentation externe. Cette routine renvoie 1 si elle réussit, 0
+sinon.
+.LP
+.nf
+\fBvoid xdrstdio_create(XDR *\fP\fIxdrs\fP\fB, FILE *\fP\fIfile\fP\fB, enum xdr_op \fP\fIop\fP\fB);\fP
+.fi
+.IP
+Cette routine initialise l'objet flux XDR pointé par \fIxdrs\fP. Les données du
+flux XDR sont écrites dans \- ou lues depuis \- le flux d'entrée\-sortie
+standard \fIfile\fP. Le paramètre \fIop\fP détermine la direction du flux XDR
+(\fBXDR_ENCODE\fP, \fBXDR_DECODE\fP ou \fBXDR_FREE\fP).
+.IP
+Attention\ : la routine de destruction associée avec un tel flux XDR appelle
+\fBfflush\fP(3) sur le flux \fIfile\fP, mais pas \fBfclose\fP(3).
+.LP
+.nf
+\fBbool_t xdr_string(XDR *\fP\fIxdrs\fP\fB, char **\fP\fIsp\fP\fB, unsigned int \fP\fImaxsize\fP\fB);\fP
+.fi
+.IP
+Une primitive de filtrage assurant la traduction entre les chaînes de
+caractères C et leur représentation externe. Les chaînes ne peuvent pas être
+plus longues que \fImaxsize\fP. Note\ : \fIsp\fP est l'adresse du pointeur sur la
+chaîne. Cette routine renvoie 1 si elle réussit, 0 sinon.
+.LP
+.nf
+\fBbool_t xdr_u_char(XDR *\fP\fIxdrs\fP\fB, unsigned char *\fP\fIucp\fP\fB);\fP
+.fi
+.IP
+Une primitive de filtrage assurant la traduction entre les caractères
+\fIunsigned\fP du C et leur représentation externe. Cette routine renvoie 1 si
+elle réussit, 0 sinon.
+.LP
+.nf
+\fBbool_t xdr_u_int(XDR *\fP\fIxdrs\fP\fB, unsigned *\fP\fIup\fP\fB);\fP
+.fi
+.IP
+Une primitive de filtrage assurant la traduction entre les entiers
+\fIunsigned\fP du C et leur représentation externe. Cette routine renvoie 1 si
+elle réussit, 0 sinon.
+.LP
+.nf
+\fBbool_t xdr_u_long(XDR *\fP\fIxdrs\fP\fB, unsigned long *\fP\fIulp\fP\fB);\fP
+.fi
+.IP
+Une primitive de filtrage assurant la traduction entre les entiers
+\fIunsigned long\fP du C et leur représentation externe. Cette routine renvoie
+1 si elle réussit, 0 sinon.
+.LP
+.nf
+\fBbool_t xdr_u_short(XDR *\fP\fIxdrs\fP\fB, unsigned short *\fP\fIusp\fP\fB);\fP
+.fi
+.IP
+Une primitive de filtrage assurant la traduction entre les entiers
+\fIunsigned short\fP du C et leur représentation externe. Cette routine renvoie
+1 si elle réussit, 0 sinon.
+.LP
+.nf
+\fBbool_t xdr_union(XDR *\fP\fIxdrs\fP\fB, int *\fP\fIdscmp\fP\fB, char *\fP\fIunp\fP\fB,\fP
+\fB                 struct xdr_discrim *\fP\fIchoices\fP\fB,\fP
+\fB                 xdrproc_t \fP\fIdefaultarm\fP\fB);     /* peut être NULL */\fP
+.fi
+.IP
+Une primitive de filtrage assurant la traduction entre une \fIunion\fP C avec
+discriminant et la représentation externe correspondante. Elle traduit
+d'abord le discriminant de l'union, situé en \fIdscmp\fP. Le discriminant doit
+toujours être du type \fIenum_t\fP. Ensuite, l'union située en \fIunp\fP est
+traduite. Le paramètre \fIchoices\fP est un pointeur sur une table de
+structures \fBxdr_discrim\fP(). Chaque structure contient une paire ordonnée
+[\fIvaleur\fP, \fIprocédure\fP]. Si le discriminant de l'union est égal à une
+\fIvaleur\fP, alors la \fIprocédure\fP associée est invoquée pour traduire
+l'union. La fin de la table de structures \fBxdr_discrim\fP() est indiquée par
+une routine de valeur NULL. Si le discriminant n'est pas trouvé dans la
+table \fIchoices\fP, alors la procédure \fIdefaultarm\fP est invoquée (si elle ne
+vaut pas NULL). Cette routine renvoie 1 si elle réussit, 0 sinon.
+.LP
+.nf
+\fBbool_t xdr_vector(XDR *\fP\fIxdrs\fP\fB, char *\fP\fIarrp\fP\fB, unsigned int \fP\fIsize\fP\fB,\fP
+\fB                  unsigned int \fP\fIelsize\fP\fB, xdrproc_t \fP\fIelproc\fP\fB);\fP
+.fi
+.IP
+Une primitive de filtrage assurant la traduction entre les tables de
+longueur fixe, et leur représentation externe. Le paramètre \fIarrp\fP est
+l'adresse du pointeur sur la table, tandis que \fIsize\fP est le nombre
+d'éléments dans la table. Le paramètre \fIelsize\fP est la taille (\fIsizeof\fP)
+d'un élément de la table, et \fIelproc\fP est un filtre XDR assurant la
+traduction entre la forme C des éléments de la table et leur représentation
+externe. Cette routine renvoie 1 si elle réussit, 0 sinon.
+.LP
+.nf
+\fBbool_t xdr_void(void);\fP
+.fi
+.IP
+Cette routine renvoie toujours 1. Elle peut être passée aux routines RPC qui
+ont besoin d'une fonction en paramètre alors que rien ne doit être fait.
+.LP
+.nf
+\fBbool_t xdr_wrapstring(XDR *\fP\fIxdrs\fP\fB, char **\fP\fIsp\fP\fB);\fP
+.fi
+.IP
+Une primitive qui appelle \fBxdr_string(xdrs, sp, MAXUN.UNSIGNED);\fP où
+\fBMAXUN.UNSIGNED\fP est la valeur maximale d'un entier non
+signé. \fBxdr_wrapstring\fP() est pratique car la bibliothèque RPC passe un
+maximum de deux routines XDR comme paramètres, et \fBxdr_string\fP(), l'une des
+primitives les plus fréquemment utilisées en requiert trois. Cette routine
+renvoie 1 si elle réussit, 0 sinon.
+.SH "VOIR AUSSI"
+\fBrpc\fP(3)
+.LP
+Les manuels suivants\ :
+.RS
+eXternal Data Representation Standard: Protocol Specification
+.br
+eXternal Data Representation: Sun Technical Notes
+.br
+\fIXDR: External Data Representation Standard\fP, RFC\ 1014, Sun Microsystems,
+Inc., USC\-ISI.
+.RE
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

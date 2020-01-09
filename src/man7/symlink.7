@@ -1,0 +1,313 @@
+.\"-
+.\" Copyright (c) 1992, 1993, 1994
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"	@(#)symlink.7	8.3 (Berkeley) 3/31/94
+.\" $FreeBSD: src/bin/ln/symlink.7,v 1.30 2005/02/13 22:25:09 ru Exp $
+.\"
+.\" 2008-06-11, mtk, Taken from FreeBSD 6.2 and heavily edited for
+.\"     specific Linux details, improved readability, and man-pages style.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYMLINK 7 "18 juin 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+symlink \- Fonctionnement des liens symboliques
+.SH "FONCTIONNEMENT DES LIENS SYMBOLIQUES"
+Les liens symboliques sont des fichiers qui agissent comme des pointeurs
+vers d'autres fichiers. Pour comprendre leur fonctionnement, vous devez
+d'abord comprendre comment fonctionnent les liens physiques.
+
+Un lien physique (hard link) vers un fichier est indistinguable du fichier
+original car c'est une référence directe vers l'objet sous\-jacent pointé par
+le nom original. (Pour être précis, chaque lien physique sur un fichier fait
+référence au même \fInuméro d'in\[oe]ud\fP, ce numéro étant un indice dans une
+table d'in\[oe]ud qui contient des méta\-données sur tout le contenu du
+système de fichiers. Voir \fBstat\fP(2)). Les changements dans un fichier sont
+indépendants du nom utilisé pour faire référence au fichier. Les liens
+physiques ne peuvent pas faire référence aux répertoires (pour éviter le
+risque de boucles dans le système de fichiers, ce qui planterait de nombreux
+programmes) et ne peuvent pas référencer des fichiers sur un autre système
+de fichiers (car les numéros d'in\[oe]ud ne sont uniques que sur un même
+système de fichiers).
+
+Un lien symbolique est un fichier d'un type spécial, dont le contenu est une
+chaîne représentant le chemin d'accès vers un autre fichier, celui vers
+lequel le lien pointe. En d'autres termes, un lien symbolique est un
+pointeur vers un autre nom, pas vers le contenu sous\-jacent. Pour cette
+raison, les liens symboliques peuvent faire référence aux répertoires et
+peuvent franchir les frontières des systèmes de fichiers.
+
+Il n'y a pas d'obligation pour que le fichier dont le nom est référencé par
+un lien symbolique existe. Un lien symbolique qui fait référence à un nom de
+fichier inexistant est dit \fIdangling link\fP (pendouillant).
+
+Comme un lien symbolique et l'objet qu'il référence coexistent sur le
+système de fichiers, une confusion peut survenir pour distinguer le lien
+lui\-même et l'objet référencé. Sur des systèmes historiques, les commandes
+et les appels système adoptaient leur propres conventions pour le suivi des
+liens symboliques de manière arbitraire. Des règles pour une approche plus
+uniforme, comme elles sont implémentées sur Linux et d'autres systèmes, sont
+présentées ici. Il est important que les applications locales se conforment
+aussi à ces règles pour que l'interface avec l'utilisateur soit la plus
+cohérente possible.
+.SS "Propriétés, permissions, et horodatage des liens symboliques"
+Le propriétaire et le groupe d'un lien symbolique existant peut être modifié
+en utilisant \fBlchown\fP(2). Le seul moment où l'appartenance d'un lien
+symbolique est importante est lors de sa suppression ou de son renommage
+dans un répertoire dont le bit «\ Sticky\ » est positionné (voir \fBstat\fP(2)).
+
+Les horodatages du dernier accès et de la dernière modification d'un lien
+symbolique peuvent être modifiés en utilisant \fButimensat\fP(2) ou
+\fBlutimes\fP(3).
+
+.\" Linux does not currently implement an lchmod(2).
+.\"
+.\" The
+.\" 4.4BSD
+.\" system differs from historical
+.\" 4BSD
+.\" systems in that the system call
+.\" .BR chown (2)
+.\" has been changed to follow symbolic links.
+.\" The
+.\" .BR lchown (2)
+.\" system call was added later when the limitations of the new
+.\" .BR chown (2)
+.\" became apparent.
+Sur Linux, les permissions associées au lien symbolique ne sont utilisées
+dans aucune opération\ ; ces permissions sont toujours 0777 (lecture,
+écriture et exécution pour toutes les catégories d'utilisateurs) et ne
+peuvent pas être modifiées.
+.SS "Traitement des liens symboliques par les appels système et les commandes"
+Les liens symboliques sont traités en agissant soit sur le lien lui\-même,
+soit sur l'objet pointé par le lien. Dans ce dernier cas, on dit que
+l'application ou l'appel système \fIsuit\fP le lien. Les liens symboliques
+peuvent faire référence à d'autres liens symboliques, auquel cas les liens
+sont suivis jusqu'à ce qu'un objet qui ne soit pas un lien symbolique soit
+rencontré, qu'un lien symbolique pointant sur un fichier inexistant soit
+trouvé, ou qu'une boucle soit détectée. (La détection des boucles est faite
+en définissant une limite maximale sur le nombre de liens qui peuvent être
+suivis, et une erreur se produit si cette limite est atteinte).
+
+Il faut considérer trois domaines d'utilisation différents des liens
+symboliques. Ce sont\ :
+.IP 1. 3
+Les liens symboliques fournis en argument des appels système sous forme de
+noms de fichiers.
+.IP 2.
+Les liens symboliques indiqués comme arguments de la ligne de commande pour
+les utilitaires qui ne parcourent pas l'arborescence des fichiers.
+.IP 3.
+Les liens symboliques rencontrés par les utilitaires qui traversent
+l'arborescence (soit indiqués sur la ligne de commande, soit rencontrés
+comme partie de la hiérarchie des fichiers).
+.SS "Appels système"
+Le premier domaine est celui des liens symboliques utilisés en noms de
+fichiers comme argument pour les appels système.
+
+Sauf exception mentionnée ci\-dessous, tous les appels système suivent les
+liens symboliques. Par exemple s'il existe un lien \fIslink\fP qui pointe vers
+le fichier \fIafile\fP, l'appel système \fIopen("slink" ...\&)\fP renverra un
+descripteur de fichier faisant référence à \fIafile\fP.
+
+.\" Maybe one day: .BR fchownat (2)
+Certains appels système ne suivent pas les liens, et agissent sur le lien
+symbolique lui\-même. Ce sont\ : \fBlchown\fP(2), \fBlgetxattr\fP(2),
+\fBllistxattr\fP(2), \fBlremovexattr\fP(2), \fBlsetxattr\fP(2), \fBlstat\fP(2),
+\fBreadlink\fP(2), \fBrename\fP(2), \fBrmdir\fP(2) et \fBunlink\fP(2). Certains autres
+appels système suivent éventuellement les liens symboliques. Il s'agit de\ :
+\fBfaccessat\fP(2), \fBfchownat\fP(2), \fBfstatat\fP(2), \fBlinkat\fP(2), \fBopen\fP(2),
+\fBopenat\fP(2) et \fButimensat\fP(2)\ ; Reportez\-vous à leur pages de
+manuel. Comme \fBremove\fP(3) est un alias pour \fBunlink\fP(2), cette fonction de
+bibliothèque ne suit pas non plus les liens symboliques. Quand \fBrmdir\fP(2)
+est utilisé sur un lien symbolique, il échoue avec l'erreur
+\fBENOTDIR\fP. L'appel \fBlink\fP(2) réclame une discussion
+particulière. POSIX.1\-2001 précise que \fBlink\fP(2) doit déréférencer
+\fIoldpath\fP si c'est un lien symbolique. Néanmoins, Linux ne le fait
+pas. (Par défaut, Solaris non plus, mais une option de compilation permet
+d'obtenir le comportement POSIX.1\-2001). La révision à venir de POSIX.1
+changera de description pour permettre les deux comportements.
+.SS "Les commandes qui ne parcourent pas les arborescences"
+Ce second domaine est celui des liens symboliques, indiqués en tant que noms
+de fichiers, comme argument pour des commandes ne traversant pas les
+arborescences.
+
+Sauf exception mentionnée ci\-dessous, les commandes suivent les liens
+symboliques fournis en argument de ligne de commande. Par exemple, si un
+lien symbolique \fIslink\fP pointe vers un fichier nommé \fIafile\fP, la commande
+\fIcat slink\fP affichera le contenu du fichier \fIafile\fP.
+
+Notez bien que cette règle s'applique à des commandes qui peuvent dans
+d'autres situations parcourir l'arborescence, par exemple la commande
+\fIchown file\fP suit cette règle, alors que \fIchown\ \-R file\fP, qui descend
+l'arborescence, ne la suit pas. (Cette dernière est traitée dans la
+troisième partie ci\-dessous).
+
+Si on désire qu'une commande agisse sur le lien symbolique lui\-même plutôt
+qu'en le suivant, par exemple si on veut que \fIchown slink\fP change
+l'appartenance du fichier \fIslink\fP, que ce soit un lien symbolique ou non,
+l'option \fI\-h\fP doit être utilisée. Dans cet exemple, la commande \fIchown
+root slink\fP modifierait l'appartenance du fichier référencé par \fIslink\fP,
+tandis que \fIchown\ \-h root slink\fP modifierait l'appartenance de \fIslink\fP
+lui\-même.
+
+Il y a quelques exceptions à cette règle\ :
+.IP * 2
+Les commandes \fBmv\fP(1) et \fBrm\fP(1) ne suivent pas les liens symboliques
+fournis en argument, mais essayent respectivement de les renommer ou de les
+détruire. (Notez que si lorsqu'un lien symbolique fait référence à un
+fichier par un chemin relatif, il peut cesser de fonctionner si on le
+déplace dans un autre répertoire où le chemin relatif ne serait plus
+correct).
+.IP *
+La commande \fBls\fP(1) est aussi une exception à cette règle. Pour assurer la
+compatibilité avec des systèmes historiques, quand \fBls\fP(1) ne descend pas
+une arborescence (c'est\-à\-dire si l'option \fI\-R\fP n'est pas présente), la
+commande \fBls\fP(1) suit les liens symboliques fournis en argument si les
+options \fI\-H\fP ou \fI\-L\fP sont indiquées, ou si les options \fI\-F\fP, \fI\-d\fP et
+\fI\-l\fP ne sont pas présentes. (La commande \fBls\fP(1) est la seule dont les
+options \fI\-H\fP et \fI\-L\fP modifient le comportement même lorsqu'elle ne fait
+pas un parcours d'arborescence).
+.IP *
+.\"
+.\"The 4.4BSD system differs from historical 4BSD systems in that the
+.\".BR chown (1)
+.\"and
+.\".BR chgrp (1)
+.\"commands follow symbolic links specified on the command line.
+La commande \fBfile\fP(1) est aussi une exception à cette règle. Sauf mention
+contraire, la commande \fBfile\fP(1) ne suit pas les liens symboliques fournis
+en argument. La commande \fBfile\fP(1) ne suit les liens symboliques que si
+l'option \fI\-L\fP est mentionnée.
+.SS "Les commandes parcourant une arborescence"
+Les commandes suivantes parcourent, toujours ou sur option, l'arborescence
+des fichiers\ : \fBchgrp\fP(1), \fBchmod\fP(1), \fBchown\fP(1), \fBcp\fP(1), \fBdu\fP(1),
+\fBfind\fP(1), \fBls\fP(1), \fBpax\fP(1), \fBrm\fP(1) et \fBtar\fP(1).
+
+Il est important de remarquer que les règles ci\-dessous s'appliquent tant
+aux liens symboliques rencontrés durant un parcours d'arborescence qu'aux
+liens fournis en argument de ligne de commande.
+
+La \fIpremière règle\fP s'applique aux liens qui référencent des fichiers
+autres que des répertoires. Les opérations entreprises sur ces liens sont
+appliquées sur les liens eux\-mêmes, ou alors les liens sont ignorés.
+
+La commande \fIrm\ \-r slink directory\fP effacera \fIslink\fP, ainsi que tout lien
+symbolique rencontré durant le parcours de \fIdirectory\fP, car les liens
+symboliques peuvent être effacés. En aucun cas \fBrm\fP(1) ne touchera au
+fichier référencé par \fIslink\fP.
+
+La \fIseconde règle\fP s'applique aux liens symboliques qui pointent vers des
+répertoires. Sauf mention contraire, ces liens ne sont jamais suivis. On
+parle souvent d'un parcours «\ physique\ » par opposition à un parcours
+«\ logique\ » (où les liens symboliques vers des répertoires seraient suivis).
+
+Certaines conventions sont (ou devraient être) respectées autant que
+possible par les commandes parcourant des arborescences de fichiers\ :
+.IP * 2
+Une commande peut être forcée à suivre n'importe quel lien symbolique
+indiqué sur la ligne de commande, quel que soit le type de fichier vers
+lequel il pointe, en utilisant l'option \fI\-H\fP («\ half\-logical\ »). Cette
+option permet d'avoir une représentation des noms sur les lignes de commande
+conforme à l'espace logique des noms. (Notez que pour les commandes qui ne
+parcourent pas toujours l'arborescence, l'option \fI\-H\fP sera ignorée si
+l'option \fI\-R\fP n'est pas également présente.)
+
+Par exemple, la commande \fIchown\ \-HR user slink\fP parcourra la hiérarchie
+débutant par le fichier pointé par \fIslink\fP. Remarquez que l'option \fI\-H\fP
+n'est pas la même que l'option \fI\-h\fP traitée précédemment. L'option \fI\-H\fP
+permet de suivre les liens symboliques indiqués sur la ligne de commande
+aussi bien pour l'action à exécuter que pour le parcours de l'arborescence\ ;
+tout se passe comme si l'utilisateur avait fourni le nom du fichier
+référencé par le lien symbolique.
+.IP *
+Une commande peut être forcée à suivre les liens symboliques sur sa ligne de
+commande, ainsi que tous les liens rencontrés durant le parcours, quel que
+soit le type des fichiers qu'ils référencent, en utilisant l'option \fI\-L\fP
+(«\ logical\ »). Cette option permet de rendre l'espace réel des noms
+semblable à l'espace logique. (Notez que les commandes qui ne font pas
+systématiquement de parcours d'arborescence ignoreront l'option \fI\-L\fP si
+l'option \fI\-R\fP n'est pas présente).
+
+Par exemple, la commande \fIchown\ \-LR user slink\fP modifiera l'appartenance
+du fichier référencé par \fIslink\fP. Si \fIslink\fP pointe vers un répertoire,
+\fBchown\fP(1) descendra l'arborescence à partir de ce répertoire. En outre, si
+des liens symboliques sont rencontrés pendant le parcours de \fBchown\fP(1),
+ils seront traités de la même façon que \fIslink\fP.
+.IP *
+Une commande peut être forcée à employer le comportement par défaut en
+utilisant l'option \fI\-P\fP (pour «\ physique\ »). Cet attribut permet de rendre
+l'espace des noms semblable à l'espace physique.
+.PP
+Pour les commandes qui ne parcourent pas d'arborescence par défaut, les
+options \fI\-H\fP, \fI\-L\fP et \fI\-P\fP sont ignorées si l'option \fI\-R\fP n'est pas
+présente. De plus, vous pouvez indiquer \fI\-H\fP, \fI\-L\fP et \fI\-P\fP plusieurs
+fois\ ; c'est la dernière option qui déterminera le comportement de la
+commande. Ceci permet de créer des alias sur des commandes afin d'avoir un
+comportement choisi, et de surcharger ce comportement en ligne de commande.
+
+Les commandes \fBls\fP(1) et \fBrm\fP(1) présentent des exceptions pour ces
+règles\ :
+.IP * 2
+La commande \fBrm\fP(1) agit toujours sur le lien symbolique, et jamais sur le
+fichier qu'il référence. Ainsi le lien n'est jamais suivi. La commande
+\fBrm\fP(1) ne supporte pas les options \fI\-H\fP, \fI\-L\fP ou \fI\-P\fP.
+.IP *
+Afin d'assurer une compatibilité avec systèmes historiques, la commande
+\fBls\fP(1) agit quelque peu différemment. Si on ne précise pas d'option \fI\-F\fP,
+\fI\-d\fP ou \fI\-l\fP, alors \fBls\fP(1) suivra les liens indiqués sur la ligne de
+commande. Si l'option \fI\-L\fP est mentionnée, \fBls\fP(1) suivra tous les liens
+symboliques, quels que soient leurs types, et qu'ils soient fournis sur la
+ligne de commande ou rencontré en parcourant l'arborescence.
+.SH "VOIR AUSSI"
+\fBchgrp\fP(1), \fBchmod\fP(1), \fBfind\fP(1), \fBln\fP(1), \fBls\fP(1), \fBmv\fP(1),
+\fBrm\fP(1), \fBlchown\fP(2), \fBlink\fP(2), \fBlstat\fP(2), \fBreadlink\fP(2),
+\fBrename\fP(2), \fBsymlink\fP(2), \fBunlink\fP(2), \fButimensat\fP(2), \fBlutimes\fP(3),
+\fBpath_resolution\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

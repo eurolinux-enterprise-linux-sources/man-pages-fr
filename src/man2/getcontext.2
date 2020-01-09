@@ -1,0 +1,140 @@
+.\" Copyright (C) 2001 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETCONTEXT 2 "15 mars 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+getcontext, setcontext \- Lire ou écrire le contexte utilisateur
+.SH SYNOPSIS
+\fB#include <ucontext.h>\fP
+.sp
+\fBint getcontext(ucontext_t *\fP\fIucp\fP\fB);\fP
+.br
+\fBint setcontext(const ucontext_t *\fP\fIucp\fP\fB);\fP
+.SH DESCRIPTION
+Dans un environnement de type System\ V, il existe deux types \fImcontext_t\fP
+et \fIucontext_t\fP définis dans \fI<ucontext.h>\fP et les quatre
+fonctions \fBgetcontext\fP(), \fBsetcontext\fP(), \fBmakecontext\fP(3) et
+\fBswapcontext\fP(3), qui permettent le changement de contexte au niveau
+utilisateur entre plusieurs fils de contrôle au sein du même processus
+(threads).
+.LP
+Le type \fImcontext_t\fP est opaque et dépend de la machine. Le type
+\fIucontext_t\fP est une structure ayant au moins les champs suivants\ :
+.in +4
+.nf
+
+typedef struct ucontext {
+    struct ucontext *uc_link;
+    sigset_t         uc_sigmask;
+    stack_t          uc_stack;
+    mcontext_t       uc_mcontext;
+    ...
+} ucontext_t;
+
+.fi
+.in
+Les types \fIsigset_t\fP et \fIstack_t\fP sont définis dans
+\fI<signal.h>\fP. Ici, \fIuc_link\fP pointe sur le contexte qui doit être
+restauré lorsque le contexte courant se terminera (si le contexte en cours a
+été créé par \fBmakecontext\fP(3)), \fIuc_sigmask\fP est l'ensemble des signaux
+bloqués dans ce contexte (voir \fBsigprocmask\fP(2)), \fIuc_stack\fP est la pile
+utilisée par ce contexte (voir \fBsigaltstack\fP(2)), et \fIuc_mcontext\fP est la
+représentation \(em dépendant de la machine \(em du contexte sauvegardé, qui
+inclue les registres du processeur pour le thread appelant.
+.LP
+La fonction \fBgetcontext\fP() remplit la structure pointée par \fIucp\fP avec le
+contexte actuellement actif.
+.LP
+La fonction \fBsetcontext\fP() restaure le contexte utilisateur pointé par
+\fIucp\fP. Un appel réussi ne revient pas. Le contexte doit avoir été obtenu
+par un appel \fBgetcontext\fP(), ou \fBmakecontext\fP(3), ou passé en troisième
+argument à un gestionnaire de signal.
+.LP
+Si le contexte a été obtenu par un appel \fBgetcontext\fP(), l'exécution du
+programme reprend comme si cet appel venait juste de se terminer.
+.LP
+Si le contexte a été obtenu par un appel \fBmakecontext\fP(3), l'exécution du
+programme continue par l'appel de la fonction \fIfunc\fP indiquée en second
+argument de \fBmakecontext\fP(3). Quand la fonction \fIfunc\fP se termine, on
+continue avec le membre \fIuc_link\fP de la structure \fIucp\fP spécifiée en
+premier argument de l'appel \fBmakecontext\fP(3). Si ce membre est NULL, le
+thread se termine.
+.LP
+Si le contexte a été obtenu lors d'un appel à un gestionnaire de signal,
+alors le texte des anciens standards dit que «\ l'exécution du programme
+continue avec l'instruction suivant celle qui a été interrompue par le
+signal\ ». Toutefois cette phrase a été supprimée de SUSv2, et remplacée par
+"«\ le résultat n'est pas spécifié\ ».
+.SH "VALEUR RENVOYÉE"
+Lorsqu'ils réussissent, \fBgetcontext\fP() renvoie zéro et \fBsetcontext\fP() ne
+revient pas. En cas d'erreur, ils retournent \-1 et remplissent \fIerrno\fP avec
+le code d'erreur adéquat.
+.SH ERREURS
+Aucune définie.
+.SH CONFORMITÉ
+SUSv2, POSIX.1\-2001. POSIX.1\-2008 supprime la spécification de
+\fBgetcontext\fP(), en citant des problèmes de portabilité et en recommandant à
+la place que les applications soient récrites en utilisant les threads
+POSIX.
+.SH NOTES
+L'incarnation la plus ancienne de ce mécanisme était constituée de la paire
+\fBsetjmp\fP(3)/\fBlongjmp\fP(3). Comme ils ne précisent pas la gestion des
+signaux, l'étape suivante fut \fBsigsetjmp\fP(3)/\fBsiglongjmp\fP(3). Le mécanisme
+actuel donne plus de contrôle. En revanche, il n'y a pas de moyen simple
+pour savoir si le retour de \fBgetcontext\fP() se fait depuis son premier appel
+ou par l'intermédiaire d'un appel \fBsetcontext\fP(). L'utilisateur doit
+inventer son propre système de comptabilisation, et pas dans un registre car
+il serait restauré.
+.LP
+Lorsqu'un signal arrive, le contexte utilisateur courant est sauvegardé et
+un nouveau contexte est créé par le noyau pour exécuter le
+gestionnaire. N'utilisez pas \fBlongjmp\fP(3) dans le gestionnaire, le
+comportement est indéfini. Utilisez \fBsiglongjmp\fP(3) ou \fBsetcontext\fP().
+.SH "VOIR AUSSI"
+\fBsigaction\fP(2), \fBsigaltstack\fP(2), \fBsigprocmask\fP(2), \fBlongjmp\fP(3),
+\fBmakecontext\fP(3), \fBsigsetjmp\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

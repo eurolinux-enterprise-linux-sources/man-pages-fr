@@ -1,0 +1,77 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" Distributed under GPL
+.\" Based on glibc infopages
+.\"
+.\" Corrections by aeb
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH NAN 3 "11 août 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+nan, nanf, nanl \- Fonctions renvoyant «\ Not a Number\ »
+.SH SYNOPSIS
+\fB#include <math.h>\fP
+.sp
+\fBdouble nan(const char *\fP\fItagp\fP\fB);\fP
+.br
+\fBfloat nanf(const char *\fP\fItagp\fP\fB);\fP
+.br
+\fBlong double nanl(const char *\fP\fItagp\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBnan\fP(), \fBnanf\fP(), \fBnanl\fP(): _XOPEN_SOURCE\ >=\ 600 ||
+_ISOC99_SOURCE\ ; ou \fIcc\ \-std=c99\fP
+.SH DESCRIPTION
+Ces fonctions renvoient une représentation (déterminée par \fItagp\fP) d'un NaN
+(Not A Number, élément non numérique indiquant un cas d'erreur dans les
+routines mathématiques). Si cette implémentation ne supporte pas les NaN,
+ces fonctions renvoient zéro.
+.LP
+L'appel \fInan("char\-sequence")\fP est équivalent à\ :
+.nf
+
+    strtod("NAN(char\-sequence)", NULL);
+.fi
+.PP
+Et de même, les appels à \fBnanf\fP() et \fBnanl\fP() sont équivalents aux appels
+analogues à \fBstrtof\fP(3) et \fBstrtold\fP(3).
+.PP
+L'argument \fItagp\fP est utilisé de manière non spécifiée. Sur les systèmes
+IEEE 754, il existe de nombreuses représentations de NaN, et \fItagp\fP en
+sélectionne une. Sur les autres systèmes, il peut n'avoir aucun effet.
+.SH VERSIONS
+Ces fonctions ont été introduites dans la glibc dans sa version\ 2.1.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001. Voir aussi IEC 559 et l'annexe sur les fonctions
+recommandées dans IEEE 754/IEEE 854.
+.SH "VOIR AUSSI"
+\fBisnan\fP(3), \fBstrtod\fP(3), \fBmath_error\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

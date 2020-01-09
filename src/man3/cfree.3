@@ -1,0 +1,116 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CFREE 3 "26 juillet 2007" "" "Manuel du programmeur Linux"
+.SH NOM
+cfree \- Libérer la mémoire allouée
+.SH SYNOPSIS
+.nf
+.sp
+\fB#include <stdlib.h>\fP
+.sp
+/* Avec SunOS 4 */
+\fBint cfree(void *\fP\fIptr\fP\fB);\fP
+.sp
+/* Avec la glibc ou avec FreeBSD libcompat */
+\fBvoid cfree(void *\fP\fIptr\fP\fB);\fP
+.sp
+/* Avec SCO OpenServer */
+\fBvoid cfree(char *\fP\fIptr\fP\fB, unsigned \fP\fInum\fP\fB, unsigned \fP\fIsize\fP\fB);\fP
+.sp
+/* Dans Solaris watchmalloc.so.1 */
+\fBvoid cfree(void *\fP\fIptr\fP\fB, size_t \fP\fInelem\fP\fB, size_t \fP\fIelsize\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (voir
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBcfree\fP()\ : _BSD_SOURCE || _SVID_SOURCE
+.SH DESCRIPTION
+Cette fonction ne devrait jamais être utilisée. Utilisez \fBfree\fP(3) à la
+place.
+.SS "cfree avec un argument"
+Dans la glibc, la fonction \fBcfree\fP() est un synonyme de \fBfree\fP(3), «\
+ajoutée pour être compatible avec SunOS\ ».
+.LP
+D'autres systèmes ont d'autres fonctions du même nom. La déclaration se
+trouve parfois dans \fI<stdlib.h>\fP et parfois dans
+\fI<malloc.h>\fP.
+.SS "cfree avec trois arguments"
+Certaines versions de SCO et de Solaris ont des bibliothèques malloc avec
+une fonction \fBcfree\fP() à 3 arguments, apparemment par analogie à
+\fBcalloc\fP(3).
+.LP
+Si vous en avez besoin et que vous faites un portage, ajoutez
+.sp
+.in +4n
+#define cfree(p, n, s) free((p))
+.in
+.sp
+dans votre fichier.
+.LP
+Une question fréquemment posée est\ : «\ Puis\-je utiliser \fBfree\fP(3) pour
+libérer de la mémoire allouée avec \fBcalloc\fP(3), ou bien dois\-je utiliser
+\fBcfree\fP()\ ?\ ». La réponse est\ : utilisez \fBfree\fP(3).
+.LP
+Un manuel de SCO dit\ : «\ La routine cfree est fournie pour être conforme à
+la norme iBCSe2 et faciliter les appels de free. Les arguments num et size
+de cfree ne sont pas utilisés.\ »
+.SH "VALEUR RENVOYÉE"
+La version SunOS de \fBcfree\fP() (qui est un synonyme de \fBfree\fP(3)) renvoie 1
+si elle réussit et 0 si elle échoue. En cas d'erreur, \fIerrno\fP est
+positionnée à \fBEINVAL\fP\ : la valeur de \fIptr\fP n'était pas un pointeur vers
+un bloc précédemment alloué par l'une des routines de la famille
+\fBmalloc\fP(3).
+.SH CONFORMITÉ
+La version à trois arguments de \fBcfree\fP() est utilisée par SCO pour être
+conforme à la norme iBCSe2\ : «\ Intel386 Binary Compatibility
+Specification, Edition 2\ ».
+.SH "VOIR AUSSI"
+\fBmalloc\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2004-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

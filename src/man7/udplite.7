@@ -1,0 +1,154 @@
+.\" Copyright (c) 2008 by Gerrit Renker <gerrit@erg.abdn.ac.uk>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" $Id: udplite.7,v 1.12 2008/07/23 15:22:22 gerrit Exp gerrit $
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UDPLITE 7 "3 décembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+udplite \- Protocole «\ Lightweight User Datagram Protocol\ »
+.SH SYNOPSIS
+\fB#include <sys/socket.h>\fP
+.br
+.\" FIXME . see #defines under `BUGS',
+.\"        when glibc supports this, add
+.\"        #include <netinet/udplite.h>
+.sp
+\fBsockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDPLITE);\fP
+.SH DESCRIPTION
+C'est une implémentation du protocol «\ Lightweight User Datagram Protocol\ »
+(UDP\-Lite, version légère de UDP), comme décrit dans la RFC\ 3828.
+
+UDP\-Lite est une extension de UDP (RFC\ 768) pour prendre en charge des
+sommes de contrôle de taille variable. Ceci a des avantages pour certains
+types de communication multimedia qui peuvent être capable d'utiliser des
+datagrammes légèrement abîmés, plutôt que de les ignorer dans les couches
+basses du protocole.
+
+La couverture de la somme de contrôle de taille variable se fait par un
+option \fBsetsockopt\fP(2). SI cette option n'est pas positionnée, la seule
+différence avec UDP réside dans l'utilisation d'un identifiant de protocole
+IP différent (numéro IANA 136).
+
+L'implémentation UDP\-Lite est une extension complète de \fBudp\fP(7),
+c'est\-à\-dire qu'elle partage la même API et le même comportement de l'API et
+offre en plus deux nouvelles options de socket pour contrôler la couverture
+de la somme de contrôle.
+.SS "Format d'adresse"
+UDP\-Litev4 utilise le format d'adresse \fIsockaddr_in\fP décrit dans
+\fBip\fP(7). UDP\-Litev6 utilise le format d'adresse \fIsockaddr_in6\fP décrit dans
+\fBipv6\fP(7).
+.SS "Options de sockets"
+Pour lire ou écrire une option de socket UDP\-Lite, appeler \fBgetsockopt\fP(2)
+pour la lecture ou \fBsetsockopt\fP(2) pour l'écriture, avec l'argument niveau
+de socket valant \fBIPPROTO_UDPLITE\fP. De plus, la plupart des options de
+socket \fBIPPROTO_UDP\fP sont valables sur les sockets UDP\-Lite. Pour plus de
+détails, voir \fBudp\fP(7).
+
+Les deux opérations suivantes sont spécifiques à UDP\-Lite.
+.TP 
+\fBUDPLITE_SEND_CSCOV\fP
+Cette option configure la couverture de la somme de contrôle pour les
+émissions et prend un paramètre de type \fIint\fP, avec une couverture de somme
+de contrôle dans l'intervalle 0..2^16\-1.
+
+Une valeur de 0 signifie que le datagramme en entier est couvert. Les
+valeurs de 1 à 7 ne sont pas autorisées (RFC\ 3828, 3.1) et sont remplacées
+par 8, la couverture minimale.
+
+Par rapport aux jumbogrammes IPv6 (RFC\ 2675), la couverture de la somme de
+contrôle UDP\-Litev6 est limitée aux premier 2^16\-1 octets, comme d'après la
+RFC\ 3828, 3.5. Les valeurs les plus hautes sont donc tronquées à 2^16\-1. En
+cas de doute, la valeur de couverture en cours peut toujours être demandée
+en utilisant \fBgetsockopt\fP(2).
+.TP 
+\fBUDPLITE_RECV_CSCOV\fP
+Il s'agit de l'option analogue pour la réception. Elle utilise un paramètre
+au même format et avec le même intervalle que \fBUDPLITE_SEND_CSCOV\fP. Cette
+option n'est pas obligée d'autoriser le trafic avec une couverture de somme
+de contrôle partielle. Son rôle est celui d'un filtre de trafic\ :
+lorsqu'elle est activée, elle indique au noyau d'ignorer tous les paquets
+dont la couverture est \fIinférieure\fP à celle spécifiée dans la valeur de
+couverture.
+
+.\" SO_NO_CHECK exists and is supported by UDPv4, but is
+.\" commented out in socket(7), hence also commented out here
+.\".PP
+.\"Since UDP-Lite mandates checksums, checksumming can not be disabled
+.\"via the
+.\".B SO_NO_CHECK
+.\"option from
+.\".BR socket (7).
+Quand la valeur \fBUDPLITE_RECV_CSCOV\fP dépasse la couverture du paquet en
+cours, le paquet est simplement ignoré, mais il peut générer un
+avertissement dans le journal système.
+.SH ERREURS
+Toutes les erreurs documentées pour \fBudp\fP(7) peuvent être
+renvoyées. UDP\-Lite n'ajoute pas d'autres erreurs.
+.SH BOGUES
+.\" FIXME . remove this section once glibc supports UDP-Lite
+Quand le support de la glibc n'est pas présent, les définitions suivantes
+sont nécessaires\ :
+.in +4n
+.nf
+
+.\" The following two are defined in the kernel in linux/net/udplite.h
+#define IPPROTO_UDPLITE     136
+#define UDPLITE_SEND_CSCOV  10
+#define UDPLITE_RECV_CSCOV  11
+.fi
+.in
+.SH FICHIERS
+\fI/proc/net/snmp\fP \- compteurs de statistiques de base UDP\-Litev4.
+.br
+\fI/proc/net/snmp6\fP \- compteurs de statistiques de base UDP\-Litev6.
+.SH VERSIONS
+UDP\-Litev4/v6 est apparu dans Linux 2.6.20.
+.SH "VOIR AUSSI"
+\fBudp\fP(7), \fBip\fP(7), \fBipv6\fP(7), \fBsocket\fP(7)
+
+RFC\ 3828 pour le protocol «\ Lightweight User Datagram Protocol\ » (UDP\-Lite)
+.br
+\fIDocumentation/networking/udplite.txt\fP
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Alain Portal <URL:http://manpagesfr.free.fr/>\ (2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

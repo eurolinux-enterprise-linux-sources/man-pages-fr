@@ -1,0 +1,72 @@
+.\" Written Sat Mar  8 10:35:08 MEZ 1997 by
+.\" J. "MUFTI" Scheurich (mufti@csv.ica.uni-stuttgart.de)
+.\" This page is licensed under the GNU General Public License
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH __SETFPUCW 3 "8 mars 1997" Linux "Manuel du programmeur Linux"
+.SH NOM
+__setfpucw \- Positionner le mot de contrôle du FPU sur les machines i386
+(obsolète).
+.SH SYNOPSIS
+\fB#include <i386/fpu_control.h>\fP
+.sp
+\fBvoid __setfpucw(unsigned short \fP\fIcontrol_word\fP\fB);\fP
+.SH DESCRIPTION
+\fB__setfpucw\fP() transfère le \fImot_de_controle\fP dans les registres du FPU
+(Floating Point Unit, unité de calcul en virgule flottante), sur les
+machines reposant sur une architecture à base de i386. Ceci permet de
+commander la précision des calculs en virgule flottante, les arrondis, et
+les exceptions mathématiques.
+.SH CONFORMITÉ
+Cette fonction était une extension GNU non standard.
+.SH NOTES
+Depuis la glibc 2.1, cette fonction n'existe plus. Il y a quelques fonctions
+nouvelles de C99, dont les prototypes se trouvent dans \fI<fenv.h>\fP,
+permettant de commander le mode d'arrondi du FPU comme \fBfegetround\fP(),
+\fBfesetround\fP(), l'environnement en virgule flottante comme \fBfegetenv\fP(),
+\fBfeholdexcept\fP(), \fBfesetenv\fP(), \fBfeupdateenv\fP(), et la gestion des
+exception du FPU comme \fBfeclearexcept\fP(), \fBfegetexceptflag\fP(),
+\fBferaiseexcept\fP(), \fBfesetexceptflag\fP() et \fBfetestexcept\fP().
+.PP
+Si l'accès direct au mot de commande du FPU est encore nécessaire, on peut
+utiliser les macros \fB_FPU_GETCW\fP et \fB_FPU_SETCW\fP de
+\fI<fpu_control.h>\fP.
+.SH EXEMPLE
+\fB__setfpucw(0x1372)\fP
+
+Positionne le mot de contrôle du FPU sur une machine i386 ainsi\ :
+.br
+     \- Précision étendue
+.br
+     \- Arrondi au plus proche
+.br
+     \- Exceptions si débordement, division par zéro, ou NaN (not a number)
+.SH "VOIR AUSSI"
+\fBfeclearexcept\fP(3)
+.br
+\fI<fpu_control.h>\fP
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

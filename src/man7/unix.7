@@ -1,0 +1,277 @@
+.\" This man page is Copyright (C) 1999 Andi Kleen <ak@muc.de>.
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\"
+.\" Modified, 2003-12-02, Michael Kerrisk, <mtk.manpages@gmail.com>
+.\" Modified, 2003-09-23, Adam Langley
+.\" Modified, 2004-05-27, Michael Kerrisk, <mtk.manpages@gmail.com>
+.\"	Added SOCK_SEQPACKET
+.\" 2008-05-27, mtk, Provide a clear description of the three types of
+.\"     address that can appear in the sockaddr_un structure: pathname,
+.\"     unnamed, and abstract.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UNIX 7 "1er décembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+unix, AF_UNIX, AF_LOCAL \- Sockets pour communications locales entre
+processus.
+.SH SYNOPSIS
+\fB#include <sys/socket.h>\fP
+.br
+\fB#include <sys/un.h>\fP
+
+\fIunix_socket\fP\fB = socket(AF_UNIX, type, 0);\fP
+.br
+\fIerror\fP\fB = socketpair(AF_UNIX, type, 0, int *\fP\fIsv\fP\fB);\fP
+.SH DESCRIPTION
+La famille de socket \fBAF_UNIX\fP (aussi connue sous le nom \fBAF_LOCAL\fP) sert
+à communiquer efficacement entre processus sur la même
+machine. Traditionnellement, les sockets Unix peuvent ne pas être nommées ou
+bien être liées à un chemin d'accès, lequel sera marqué comme étant de type
+socket, sur un système de fichiers. Linux gère également un espace de noms
+abstrait, indépendant du système de fichiers.
+
+Les types valides sont\ : \fBSOCK_STREAM\fP, pour une socket orientée flux et
+\fBSOCK_DGRAM\fP, pour une socket orientée datagramme, préservant les limites
+entre messages (comme sur la plupart des implémentations Unix, les sockets
+datagramme de domaine Unix sont toujours fiables et ne réordonnent pas les
+datagrammes)\ ; et (depuis Linux\ 2.6.4) \fBSOCK_SEQPACKET\fP, pour un socket
+orientée connexion, préservant les limites entre messages et délivrant les
+messages dans l'ordre où ils ont été envoyés.
+
+Les sockets Unix prennent en charge la transmission de descripteurs de
+fichier ou d'identificateurs d'un processus à l'autre en utilisant des
+données annexes.
+.SS "Format d'adresse"
+Une adresse de socket de domaine Unix est représentée dans la structure
+suivante\ :
+.in +4n
+.nf
+
+#define UNIX_PATH_MAX    108
+
+struct sockaddr_un {
+    sa_family_t sun_family;               /* AF_UNIX */
+    char        sun_path[UNIX_PATH_MAX];  /* chemin accès */
+};
+.fi
+.in
+.PP
+\fIsun_family\fP contient toujours la valeur \fBAF_UNIX\fP.
+
+On considère trois types d'adresse pour cette structure\ :
+.IP * 3
+\fIchemin d'accès\fP\ : une socket de domaine Unix peut être liée, avec
+\fBbind\fP(2), à un fichier dont le chemin d'accès est une chaîne de caractères
+terminée par un octet nul. Lorsque l'adresse de la socket est obtenue avec
+\fBgetsockname\fP(2), \fBgetpeername\fP(2) ou \fBaccept\fP(2), sa longueur vaut
+\fIsizeof(sa_family_t) + strlen(sun_path) + 1\fP, et \fIsun_path\fP contient une
+chaîne de caractères, terminée par un octet nul, représentant le chemin
+d'accès.
+.IP *
+.\" There is quite some variation across implementations: FreeBSD
+.\" says the length is 16 bytes, HP-UX 11 says it's zero bytes.
+\fIsans nom\fP\ : une socket orientée flux qui n'a pu être liée à un chemin
+d'accès avec \fBbind\fP(2) n'a pas de nom. De la même façon, les deux sockets
+crées avec \fBsocketpair\fP(2) ne sont pas nommées. Lorsque l'adresse d'une
+socket sans nom est obtenue avec \fBgetsockname\fP(2), \fBgetpeername\fP(2) ou
+\fBaccept\fP(2), sa longueur vaut \fIsizeof(sa_family_t)\fP, et il n'est pas
+nécessaire de vérifier \fIsun_path\fP.
+.IP *
+\fIabstraite\fP\ : une adresse de socket abstraite se reconnait par le fait que
+\fIsun_path[0]\fP est un octet nul («\ \e0\ »). Tous les autres octets de
+\fIsun_path\fP définissent le «\ nom\ » de la socket. (Les octets nuls dans le
+nom n'ont pas de signification particulière.) Le nom n'a aucun rapport avec
+les chemins d'accès sur les systèmes de fichiers. L'adresse de la socket
+dans cet espace est donnée par le reste des octets dans \fIsun_path\fP. Lorsque
+l'adresse d'une socket abstraite est obtenue avec \fBgetsockname\fP(2),
+\fBgetpeername\fP(2) ou \fBaccept\fP(2), sa longueur vaut \fIsizeof(struct
+sockaddr_un)\fP, et \fIsun_path\fP contient le nom abstrait. L'espace de nom des
+sockets abstraites est une extension Linux non portable.
+.SS "Options de sockets"
+Pour des raisons historiques, les options de ces sockets sont spécifiées
+avec un type \fBSOL_SOCKET\fP même si elles sont spécifiques \fBAF_UNIX\fP. On
+peut les fixer avec \fBsetsockopt\fP(2) et les lire avec \fBgetsockopt\fP(2) en
+spécifiant la famille \fBSOL_SOCKET\fP.
+.TP 
+\fBSO_PASSCRED\fP
+Valide la réception des identifiants dans les messages annexes du processus
+émetteur. Lorsque cette option est active et la socket non encore connectée
+un nom unique dans l'espace abstrait sera généré automatiquement. On attend
+un attribut booléen entier.
+.SS "API des sockets"
+Les paragraphes suivants décrivent des détails spécifiques au domaine Unix,
+et des fonctionnalités de l'API des sockets du domaine Unix non prises en
+charge sous Linux.
+
+Les sockets de domaine Unix ne prennent pas en charge la notion de données
+hors\-bande (l'attribut \fBMSG_OOB\fP de \fBsend\fP(2) et \fBrecv\fP(2)).
+
+L'attribut \fBMSG_MORE\fP de \fBsend\fP(2) n'est pas pris en charge sur les
+sockets de domaine Unix.
+
+L'utilisation de \fBMSG_TRUNC\fP dans la paramètre \fIflags\fP de \fBrecv\fP(2) n'est
+pas prise en charge sur les sockets de domaine Unix.
+
+L'option \fBSO_SNDBUF\fP a un effet pour les sockets de domaine Unix, mais
+\fBSO_RCVBUF\fP n'en a pas. Pour les sockets datagramme, la valeur \fBSO_SNDBUF\fP
+impose une limite supérieure à la taille des datagrammes sortants. Cette
+limite est calculée comme le double de la valeur de l'option, moins 32
+octets utilisés par le système (voir \fBsocket\fP(7)).
+.SS "Messages annexes"
+Les données annexes sont envoyées et reçues en utilisant \fBsendmsg\fP(2) et
+\fBrecvmsg\fP(2). Pour des raisons historiques, les messages annexes listés
+ci\-dessous sont spécifiés avec un type \fBSOL_SOCKET\fP même s'ils sont
+spécifiques \fBAF_UNIX\fP. Pour les envoyer, fixez le champ \fIcmsg_level\fP de la
+structure \fIcmsghdr\fP à \fBSOL_SOCKET\fP et le champ \fIcmsg_type\fP avec le type
+du message. Pour plus de détails, voir \fBcmsg\fP(3).
+.TP 
+\fBSCM_RIGHTS\fP
+Envoie ou reçoit un jeu de descripteurs de fichier ouverts par un autre
+processus. La portion de données contient une table de descripteurs. Les
+descripteurs passés se comportent comme s'ils avaient été créés avec
+\fBdup\fP(2).
+.TP 
+\fBSCM_CREDENTIALS\fP
+Envoyer ou recevoir les identifiants Unix. Ceci peut servir à
+l'authentification. Les identifications sont passés en message annexe en
+\fIstruct ucred\fP. La structure est définie dans \fI<sys/socket.h>\fP
+comme ceci\ :
+
+.in +4n
+.nf
+struct ucred {
+    pid_t pid;    /* PID processus émetteur */
+    uid_t uid;    /* UID processus émetteur */
+    gid_t gid;    /* GID processus émetteur */
+};
+.fi
+.in
+
+Depuis la glibc 2.8, la macro de test de fonctionnalités \fB_GNU_SOURCE\fP doit
+être définie afin d'obtenir la définition de cette structure.
+
+Les identifiants que l'émetteur envoie sont vérifiés par le noyau. Un
+processus avec un UID effectif nul est autorisé à indiquer des valeurs
+autres que les siennes. L'émetteur doit indiquer son propre PID (sauf s'il a
+la capacité \fBCAP_SYS_ADMIN\fP), son UID réel, effectif ou sauvé (sauf s'il a
+la capacité \fBCAP_SETUID\fP), et son GID réel, effectif ou sauvé (sauf s'il a
+la capacité \fBCAP_SETGID\fP). Pour recevoir un message \fIstruct ucred\fP
+l'option \fBSO_PASSCRED\fP doit être validée sur la socket.
+.SH ERREURS
+.TP 
+\fBEADDRINUSE\fP
+L'adresse locale est déjà prise ou l'objet existe déjà dans le système de
+fichiers.
+.TP 
+\fBECONNREFUSED\fP
+\fBconnect\fP(2) a été appelé sur une socket qui n'est pas en écoute. Ceci peut
+arriver si la socket distante n'existe pas ou si le fichier n'est pas une
+socket.
+.TP 
+\fBECONNRESET\fP
+La socket distante a été fermée de manière inattendue.
+.TP 
+\fBEFAULT\fP
+Adresse mémoire utilisateur invalide.
+.TP 
+\fBEINVAL\fP
+Argument invalide. Une cause habituelle est l'oubli de AF_UNIX dans le champ
+\fIsun_type\fP de l'adresse passée ou lorsque la socket est dans un état
+invalide pour l'opération.
+.TP 
+\fBEISCONN\fP
+\fBconnect\fP(2) a été appelée sur une socket déjà connectée, ou l'adresse
+cible a été indiquée sur une socket connectée.
+.TP 
+\fBENOMEM\fP
+Plus de mémoire disponible.
+.TP 
+\fBENOTCONN\fP
+L'opération nécessite une adresse cible, mais la socket n'est pas connectée.
+.TP 
+\fBEOPNOTSUPP\fP
+Opération de flux sur une socket non orientée flux, ou tentative d'utiliser
+des options de données hors\-bande.
+.TP 
+\fBEPERM\fP
+L'émetteur a transmis des identifiants invalide dans la \fIstruct ucred\fP.
+.TP 
+\fBEPIPE\fP
+La socket distante, de type flux, a été fermée. Dans ce cas un signal
+\fBSIGPIPE\fP est émis également. Ceci peut être évité en passant l'attribut
+\fBMSG_NOSIGNAL\fP dans \fBsendmsg\fP(2) ou \fBrecvmsg\fP(2).
+.TP 
+\fBEPROTONOSUPPORT\fP
+Le protocole passé n'est pas AF_UNIX.
+.TP 
+\fBEPROTOTYPE\fP
+La socket distante ne correspond pas au type local (\fBSOCK_DGRAM\fP
+vs. \fBSOCK_STREAM\fP)
+.TP 
+\fBESOCKTNOSUPPORT\fP
+Type de socket inconu.
+.PP
+D'autres erreurs peuvent être déclenchées par le niveau socket générique ou
+par le système de fichiers. Voir les pages de manuel correspondantes pour
+plus de détails.
+.SH VERSIONS
+\fBSCM_CREDENTIALS\fP et l'espace de noms abstrait ont été introduits avec
+Linux 2.2 et ne doivent pas être utilisés dans des programmes
+portables. (Certains systèmes dérivés de BSD prennent aussi en charge le
+passage d'identifiants, mais les détails d'implémentation diffèrent).
+.SH NOTES
+Dans l'implémentation Linux, les sockets qui sont visibles dans le système
+de fichiers honorent les permissions du répertoire où elles se
+trouvent. Leur propriétaire, groupe et autorisations peuvent être
+changés. La création d'une nouvelle socket échouera si le processus n'a pas
+le droit d'écrire et de parcourir (exécution) dans le répertoire où elle est
+créée. La connexion sur une socket nécessite les permissions de
+lecture/écriture. Le comportement diffère de plusieurs systèmes dérivés de
+BSD qui ignorent les permissions sur les sockets Unix. Les programmes
+portables ne doivent pas s'appuyer sur ces fonctionnalités pour la sécurité.
+
+Lier une socket avec un nom de fichier crée la socket dans le système de
+fichiers, qu'il faudra détruire lorsqu'elle n'est plus utile (en appelant
+\fBunlink\fP(2)). La sémantique habituelle Unix s'applique\ ; la socket peut
+être effacée à tout moment, et sera effectivement supprimée lorsque sa
+dernière référence sera fermée.
+
+Pour passer un descripteur ou des identifiants par dessus un \fBSOCK_STREAM\fP,
+il faut envoyer ou recevoir au moins un octet de donnée non\-méta dans
+l'appel \fBsendmsg\fP(2) ou \fBrecvmsg\fP(2) correspondant.
+
+Les sockets flux Unix ne prennent pas en charge la notion de données
+hors\-bande.
+.SH EXEMPLE
+Voir \fBbind\fP(2).
+.SH "VOIR AUSSI"
+\fBrecvmsg\fP(2), \fBsendmsg\fP(2), \fBsocket\fP(2), \fBsocketpair\fP(2), \fBcmsg\fP(3),
+\fBcapabilities\fP(7), \fBcredentials\fP(7), \fBsocket\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

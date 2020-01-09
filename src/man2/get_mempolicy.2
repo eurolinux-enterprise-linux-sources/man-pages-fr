@@ -1,0 +1,151 @@
+.\" Copyright 2003,2004 Andi Kleen, SuSE Labs.
+.\" and Copyright 2007 Lee Schermerhorn, Hewlett Packard
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\"
+.\" 2006-02-03, mtk, substantial wording changes and other improvements
+.\" 2007-08-27, Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+.\"     more precise specification of behavior.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GET_MEMPOLICY 2 "15 août 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+get_mempolicy \- Lire la politique mémoire NUMA d'un processus
+.SH SYNOPSIS
+\fB#include <numaif.h>\fP
+.nf
+.sp
+\fBint get_mempolicy(int *\fP\fImode\fP\fB, unsigned long *\fP\fInodemask\fP\fB,\fP
+\fB                  unsigned long \fP\fImaxnode\fP\fB, unsigned long \fP\fIaddr\fP\fB,\fP
+\fB                  unsigned long \fP\fIflags\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lnuma\fP.
+.fi
+.SH DESCRIPTION
+\fBget_mempolicy\fP() lit la politique NUMA du processus appelant ou d'une
+adresse en mémoire, selon la valeur de \fIflags\fP.
+
+Une machine NUMA a plusieurs contrôleurs de mémoire, avec des distances
+différentes aux divers processeurs. La politique mémoire définit sur quel
+noeud la mémoire est allouée pour ce processus.
+
+Si \fIflags\fP est nul, la politique par défaut du processus appelant (fixée
+par \fBset_mempolicy\fP(2)) est renvoyée. La politique renvoyée (\fImode\fP et
+\fInodemask\fP) peut être utilisée avec \fBset_mempolicy\fP(2) pour restaurer la
+politique du processus dans son état au moment de l'appel à
+\fBget_mempolicy\fP().
+
+Si \fIflags\fP indique \fBMPOL_F_MEMS_ALLOWED\fP (disponible depuis Linux\ 2.6.24),
+le paramètre \fImode\fP est ignoré et l'ensemble des noeuds (mémoires) que le
+processus est autorisé à utiliser dans les appels suivants à \fBmbind\fP(2) ou
+\fBset_mempolicy\fP(2) (en l'absence de \fIdrapeaux de mode\fP) est renvoyé dans
+\fInodemask\fP. Il n'est pas permit de combiner \fBMPOL_F_MEMS_ALLOWED\fP avec
+\fBMPOL_F_ADDR\fP ou \fBMPOL_F_NODE\fP.
+
+Si \fIflags\fP indique \fBMPOL_F_ADDR\fP, l'information renvoyée concerne la
+politique gouvernant la mémoire à l'adresse \fIaddr\fP. Cette politique peut
+être différente de la politique par défaut du processus si \fBmbind\fP(2) ou
+une des fonctions d'aide décrites dans \fBnuma\fP(3) a été utilisée pour fixer
+une politique pour la page contenant l'adresse \fIaddr\fP.
+
+Si le paramètre \fImode\fP n'est pas NULL, \fBget_mempolicy\fP() stockera le mode
+de politique et tout \fIdrapeau de mode\fP optionnel de la politique NUMA
+requise à l'endroit pointé par ce paramètre. Si \fInodemask\fP n'est pas NULL,
+le masque de noeud associé à la politique sera stockée à l'emplacement
+pointé par cet argument. \fImaxnode\fP spécifie le nombre d'identifiants de
+noeuds qui peuvent être stockés dans \fInodemask\fP, c'est\-à\-dire, la valeur
+maximale de l'identifiant de noeud plus un. La valeur indiquée dans
+\fImaxnode\fP est toujours arrondie à un multiple de \fIsizeof(unsigned long)\fP.
+
+Si \fIflags\fP indique à la fois \fBMPOL_F_NODE\fP et \fBMPOL_F_ADDR\fP,
+\fBget_mempolicy\fP() renverra, à l'endroit pointé par \fImode\fP, l'identifiant
+de noeud du noeud sur lequel l'adresse \fIaddr\fP est allouée. Si aucune page
+n'a encore été allouée pour l'adresse spécifiée, \fBget_mempolicy\fP() allouera
+une page comme si le processus avait réalisé un accès en lecture
+[chargement] à cette adresse, et renverra l'identifiant du noeud où cette
+page a été allouée.
+
+.\" Note:  code returns next interleave node via 'mode' argument -Lee Schermerhorn
+Si \fIflags\fP indique \fBMPOL_F_NODE\fP mais pas \fBMPOL_F_ADDR\fP et que la
+politique actuelle est \fBMPOL_INTERLEAVE\fP, \fBget_mempolicy\fP() renverra à
+l'endroit pointé par un paramètre \fImode\fP non nul l'identifiant du prochain
+noeud à utiliser pour l'entrelacement des pages internes du noyau allouées
+au nom du processus. Ces allocations incluent des pages pour les fichiers de
+mémoire projetée dans les plages de mémoire projetée du processus en
+utilisant l'appel \fBmmap\fP(2) avec l'attribut \fBMAP_PRIVATE\fP pour les accès
+en lecture, et dans les plages de mémoire projetée avec l'attribut
+\fBMAP_SHARED\fP pour tous les autres accès.
+
+D'autres valeurs d'attribut sont réservées.
+
+Pour un survol des politiques possibles, voir \fBset_mempolicy\fP(2).
+.SH "VALEUR RENVOYÉE"
+\fBget_mempolicy\fP() renvoie 0 s'il réussit, ou \-1 s'il échoue, auquel cas
+\fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+Une partie de (ou toute) la plage mémoire spécifiée par \fInodemask\fP et
+\fImaxnode\fP pointe en dehors de votre espace d'adressage accessible.
+.TP 
+\fBEINVAL\fP
+La valeur spécifiée par \fImaxnode\fP est inférieure au nombre d'identifiants
+de noeud pris en charge par le système. Ou \fIflags\fP spécifie des valeurs
+autres que \fBMPOL_F_NODE\fP ou \fBMPOL_F_ADDR\fP\ ; ou \fIflags\fP spécifie
+\fBMPOL_F_ADDR\fP et \fIaddr\fP est NULL, ou \fIflags\fP ne spécifie pas
+\fBMPOL_F_ADDR\fP et \fIaddr\fP n'est pas NULL. Ou \fIflags\fP spécifie
+\fBMPOL_F_NODE\fP mais pas \fBMPOL_F_ADDR\fP et la politique actuelle du processus
+n'est pas \fBMPOL_INTERLEAVE\fP. Ou \fIflags\fP spécifie \fBMPOL_F_MEMS_ALLOWED\fP
+avec \fBMPOL_F_ADDR\fP ou \fBMPOL_F_NODE\fP. (Et il y a d'autres cas pour
+\fBEINVAL\fP)
+.SH VERSIONS
+L'appel système \fBget_mempolicy\fP() a été ajouté au noyau Linux dans la
+version 2.6.7.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux.
+.SH NOTES
+Pour des informations sur la prise en charge par des bibliothèques,
+consultez \fBnuma\fP(7).
+.SH "VOIR AUSSI"
+\fBgetcpu\fP(2), \fBmbind\fP(2), \fBmmap\fP(2), \fBset_mempolicy\fP(2), \fBnuma\fP(3),
+\fBnuma\fP(7), \fBnumactl\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.23 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+<URL:http://www.kernel.org/doc/man\-pages/>.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <URL:http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<URL:http://alioth.debian.org/projects/perkamon/>.
+.PP
+Christophe Blaess <URL:http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <URL:http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-l10n\-fr@lists.alioth.debian.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».
