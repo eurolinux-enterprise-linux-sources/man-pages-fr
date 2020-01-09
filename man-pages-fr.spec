@@ -1,21 +1,21 @@
 %define	REV_EXTRAS 0.8.1
-%define	REV_SUP 20080608
+%define	REV_SUP 20091012
 %define SUBREV 1
 
 Summary:	French version of the Linux man-pages
 Name:		man-pages-fr
 Version:	3.23
-Release:	3.4%{?dist}
+Release:	9%{?dist}
 License:	GPL+
 Group:		Documentation
 URL:		http://manpagesfr.free.fr/
 Source0:	https://alioth.debian.org/frs/download.php/3223/%{name}-%{version}-%{SUBREV}.tar.bz2
-Source1:	http://www.delafond.org/traducmanfr/mansupfr.tar.bz2
+Source1:	mansupfr-20091012.tar.bz2
 Source2:	http://manpagesfr.free.fr/download/man-pages-extras-fr-%{REV_EXTRAS}.tar.bz2
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:	noarch
 
-#Requires: man-pages-reader 
+#Requires: man-pages-reader
 
 %description
 Manual pages from the man-pages Project, translated into French.
@@ -30,12 +30,16 @@ Dr. Gerard Delafond.
 # pick up the supplemental pages
 
 mv pagesdeman man-pages-sup-fr-%{REV_SUP}
-mv -f man-pages-sup-fr-%{REV_SUP}/LISEZ_MOI man-pages-sup-fr-%{REV_SUP}/LISEZ_MOI.man-pages-sup-fr
-cp -a man-pages-sup-fr-%{REV_SUP}/* .
+mv -f man-pages-sup-fr-%{REV_SUP}/LISEZ_MOI LISEZ_MOI.man-pages-sup-fr
+# Do not override the original translation
+cp -anr man-pages-sup-fr-%{REV_SUP}/* fr/
 %{__rm} -rf man-pages-sup-fr-%{REV_SUP}/
 
-cp -a man-pages-extras-fr-%{REV_EXTRAS}/* .
+# pick up the extra pages
+# Do not override the original translation
+cp -anr man-pages-extras-fr-%{REV_EXTRAS}/* .
 %{__rm} -rf man-pages-extras-fr-%{REV_EXTRAS}/
+
 
 # fix bug rh 495703
 for i in mail.1 ; do
@@ -67,16 +71,74 @@ make install-fedora DESTDIR=$RPM_BUILD_ROOT
 # Remove files already included in other packages
 
 # This page is provided by LDP so we have to remove it from shadow-utils package
-%{__rm} -rf $RPM_BUILD_ROOT%{_mandir}/fr/man3/getspnam.3
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man3/getspnam.3
 
 # This page is provided by rpm package
-%{__rm} -rf $RPM_BUILD_ROOT%{_mandir}/fr/man8/rpm.8
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man8/rpm.8
 
 # This page is provided by sitecopy package
-%{__rm} -rf $RPM_BUILD_ROOT%{_mandir}/fr/man1/sitecopy.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/sitecopy.1
 
 # This page is provided by nmap package
-%{__rm} -rf $RPM_BUILD_ROOT%{_mandir}/fr/man1/nmap.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/nmap.1
+
+# This page is provided by lynx package
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/lynx.1
+
+# Remove files that shows incorrect in Verification of French translation.
+%{__rm} -f $RPM_BUILD_ROOT%{_mandir}/fr/man1/Index.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/Mail.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/a2p.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/addr-birthday.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/alevtd.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/allcm.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/allec.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/allneeded.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/anjuta.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/anjuta_launcher.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/antiword.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/anytopnm.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/asclock.1x
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/asp.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/atktopbm.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/aumix.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/avimerge.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/awesome-client.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/awesome-menu.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/awesome-message.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/awesome.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/bb.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/bbdate.1x
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/bibtex.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/blackbox.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/bochs-dlx.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/bochs.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/bochsrc.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/bogomips.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/bsetroot.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/bximage.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/c.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/camlp4.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/cancel.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/cdadd.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/cdappend.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/cdbkup.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/cdcat.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/cdctrl.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/cdrecord.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/cdrstr.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/cdsplit.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/cg.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/chvt.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/cmatrix.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/coverpg.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/cplay.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/ddd.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/hot-babe.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/locate.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/mcedit.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man1/switchdesk.1
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/fr/man8/bosskill.8
 
 #LANG=fr ./cree_index_man.sh $RPM_BUILD_ROOT%{_mandir}/fr/
 
@@ -89,6 +151,28 @@ rm -fr $RPM_BUILD_ROOT
 %{_mandir}/fr/man?/*
 
 %changelog
+* Thu Mar 29 2012 Ding-Yi Chen <dchen at redhat.com> 3.23-9
+- Remove incorrect man pages.
+
+* Mon Jan 09 2012 Ding-Yi Chen <dchen at redhat.com> 3.23-8
+- Fixed the upstream source bad checksum.
+
+* Mon Jan 09 2012 Ding-Yi Chen <dchen at redhat.com> 3.23-7
+- Fixed the upstream source bad checksum.
+
+* Mon Jan 09 2012 Ding-Yi Chen <dchen at redhat.com> 3.23-6
+- Make the spec file closer to Fedora counterpart.
+
+* Wed Oct 26 2011 Ding-Yi Chen <dchen at redhat.com> 3.23-5
+- According to the comment from Sebastien Aime, following are also removed:
+  c.1.gz
+  switchdesk.1.gz
+  bosskill.8.gz
+
+* Fri Sep 30 2011 Ding-Yi Chen <dchen at redhat.com> 3.23-4
+- Resolves: #613622
+- Remove files that shows incorrect in Verification of French translation.
+
 * Wed Jun 16 2010 Ding-Yi Chen <dchen at redhat.com> 3.23-3.4
 - Resolves: #603627
 
