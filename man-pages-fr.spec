@@ -5,13 +5,14 @@
 Summary:	French version of the Linux man-pages
 Name:		man-pages-fr
 Version:	3.23
-Release:	9%{?dist}
+Release:	10%{?dist}
 License:	GPL+
 Group:		Documentation
 URL:		http://manpagesfr.free.fr/
 Source0:	https://alioth.debian.org/frs/download.php/3223/%{name}-%{version}-%{SUBREV}.tar.bz2
 Source1:	mansupfr-20091012.tar.bz2
 Source2:	http://manpagesfr.free.fr/download/man-pages-extras-fr-%{REV_EXTRAS}.tar.bz2
+Patch0:         phony-targets.patch
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:	noarch
 
@@ -26,6 +27,7 @@ Dr. Gerard Delafond.
 %setup -q -c -n man-pages-fr-3.23
 %setup -q -D -T -a 1
 %setup -q -D -T -a 2
+%patch0 -p1 -b .phony-targets
 
 # pick up the supplemental pages
 
@@ -151,6 +153,10 @@ rm -fr $RPM_BUILD_ROOT
 %{_mandir}/fr/man?/*
 
 %changelog
+* Wed Jan 30 2013 Mike FABIAN <mfabian@redhat.com> 3.23-10
+- fix Makefile in man-pages-extras-fr-0.8.1.tar.bz2 to install missing man-pages
+- Resolves: #903048 - [fr_FR] man echo manuals are still English.
+
 * Thu Mar 29 2012 Ding-Yi Chen <dchen at redhat.com> 3.23-9
 - Remove incorrect man pages.
 
