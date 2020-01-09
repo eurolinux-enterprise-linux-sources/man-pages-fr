@@ -5,7 +5,7 @@
 Summary:	French version of the Linux man-pages
 Name:		man-pages-fr
 Version:	3.23
-Release:	10%{?dist}
+Release:	11%{?dist}
 License:	GPL+
 Group:		Documentation
 URL:		http://manpagesfr.free.fr/
@@ -42,16 +42,10 @@ cp -anr man-pages-sup-fr-%{REV_SUP}/* fr/
 cp -anr man-pages-extras-fr-%{REV_EXTRAS}/* .
 %{__rm} -rf man-pages-extras-fr-%{REV_EXTRAS}/
 
-
 # fix bug rh 495703
-for i in mail.1 ; do
+for i in mail.1 yum.8 xinetd.8; do
   name=`echo ${i} | awk -F"." '{print$1}'`
-  find . -name ${i} -exec sed -i "/SYNOPSIS/i\.Sh Attention :\n La traduction de  cette page de manuel pour \"$name\" est obsolète par rapport à la version actuelle de \"$name\".\n Pour avoir la dernière version de la page de manuel, veuillez utiliser la version anglaise.\n La version anglaise est disponible avec la commande suivante :\n.Nm LANG=en man $name" {} \;
-done
-
-for i in yum.8 ; do
-  name=`echo ${i} | awk -F"." '{print$1}'`
-  find . -name ${i} -exec sed -i "/SYNOPSIS/i\.SH Attention :\n La traduction de  cette page de manuel pour \"$name\" est obsolète par rapport à la version actuelle de \"$name\".\n Pour avoir la dernière version de la page de manuel, veuillez utiliser la version anglaise.\n La version anglaise est disponible avec la commande suivante :\n.B LANG=en man $name" {} \;
+  find . -name ${i} -exec sed -i "s/\(\(\.SH\) *SYNOPSIS\)/.br\n\2 Attention\\\\ :\nLa traduction de  cette page de manuel pour \"$name\" est obsolète par rapport à la version actuelle de \"$name\". Pour avoir la dernière version de la page de manuel, veuillez utiliser la version anglaise. La version anglaise est disponible avec la commande suivante :\n.nf\nLANG=en_US.UTF-8 man $name\n.fi\n\1/gi" {} \;
 done
 
 %build
@@ -153,6 +147,16 @@ rm -fr $RPM_BUILD_ROOT
 %{_mandir}/fr/man?/*
 
 %changelog
+* Wed May 28 2014 Mike FABIAN <mfabian@redhat.com> 3.23-11
+- Bump release number to 11.
+- Resolves: rhbz#891278
+
+* Wed May 28 2014 Mike FABIAN <mfabian@redhat.com> 3.23-10
+- Add a warning to the xinetd man-page, warning the user that it is
+  severely out of date and one should consult the English man-page
+  instead for up-to-date information.
+- Resolves: rhbz#891278
+
 * Wed Jan 30 2013 Mike FABIAN <mfabian@redhat.com> 3.23-10
 - fix Makefile in man-pages-extras-fr-0.8.1.tar.bz2 to install missing man-pages
 - Resolves: #903048 - [fr_FR] man echo manuals are still English.
