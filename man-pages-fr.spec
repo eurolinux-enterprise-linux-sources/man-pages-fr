@@ -5,7 +5,7 @@
 Summary:	French version of the Linux man-pages
 Name:		man-pages-fr
 Version:	3.52
-Release:	2%{?dist}
+Release:	3%{?dist}
 License:	GPL+ and GPLv2 and GPLv2+ and LGPLv2+ and GPLv3+ and ImageMagick and ISC and Public Domain and BSD and MIT and ASL 2.0 and and UCD and IBM and TCL and xinetd
 Group:		Documentation
 URL:		https://alioth.debian.org/projects/perkamon/
@@ -107,6 +107,9 @@ done
 %{_mandir}/fr/man?/*
 
 %changelog
+* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 3.52-3
+- Mass rebuild 2013-12-27
+
 * Mon Aug 19 2013 Mike FABIAN <mfabian@redhat.com> - 3.52-2
 - Fix download URL
 
