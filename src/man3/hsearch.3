@@ -1,0 +1,258 @@
+.\" Copyright 1993 Ulrich Drepper (drepper@karlsruhe.gmd.de)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     SunOS 4.1.1 man pages
+.\" Modified Sat Sep 30 21:52:01 1995 by Jim Van Zandt <jrv@vanzandt.mv.com>
+.\" Remarks from dhw@gamgee.acad.emich.edu Fri Jun 19 06:46:31 1998
+.\" Modified 2001-12-26, 2003-11-28, 2004-05-20, aeb
+.\" 2008-09-02, mtk: various additions and rewrites
+.\" 2008-09-03, mtk, restructured somewhat, in part after suggestions from
+.\"     Timothy S. Nelson <wayland@wayland.id.au>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH HSEARCH 3 "19 avril 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+hcreate, hdestroy, hsearch, hcreate_r, hdestroy_r, hsearch_r \- Gestion de
+table de hachage
+.SH SYNOPSIS
+.nf
+\fB#include <search.h>\fP
+.sp
+\fBint hcreate(size_t \fP\fInel\fP\fB);\fP
+.sp
+\fBENTRY *hsearch(ENTRY \fP\fIitem\fP\fB, ACTION \fP\fIaction\fP\fB);\fP
+.sp
+\fBvoid hdestroy(void);\fP
+.sp
+\fB#define _GNU_SOURCE\fP         /* Consultez feature_test_macros(7) */
+.br
+\fB#include <search.h>\fP
+.sp
+\fBint hcreate_r(size_t \fP\fInel\fP\fB, struct hsearch_data *\fP\fIhtab\fP\fB);\fP
+.sp
+\fBint hsearch_r(ENTRY \fP\fIitem\fP\fB, ACTION \fP\fIaction\fP\fB, ENTRY **\fP\fIretval\fP\fB,\fP
+\fB              struct hsearch_data *\fP\fIhtab\fP\fB);\fP
+.sp
+\fBvoid hdestroy_r(struct hsearch_data *\fP\fIhtab\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Les trois fonctions \fBhcreate\fP(), \fBhsearch\fP() et \fBhdestroy\fP() permettent à
+l'utilisateur de créer et de gérer une table de hachage qui associe une clé
+(une chaîne de caractères) avec des données quelconques. Une seule table de
+hachage peut être utilisée à la fois avec ces fonctions.
+
+Les fonctions \fBhcreate_r\fP(), \fBhsearch_r\fP() et \fBhdestroy_r\fP() sont des
+versions réentrantes qui permettent d'utiliser plusieurs tables en même
+temps. Le dernier argument \fIhtab\fP pointe vers une structure qui identifie
+la table à utiliser. Le programmeur doit traiter la structure comme opaque
+(par exemple, il est impossible d'accéder ou de modifier la table de hachage
+depuis cette structure).
+
+.\" e.g., in glibc it is raised to the next higher prime number
+La table doit d'abord être créée avec \fBhcreate\fP(). L'argument \fInel\fP est le
+nombre maximal d'éléments de la table (le maximum ne peut pas être changé
+pas la suite). L'implémentation peut décider d'augmenter cette valeur, afin
+d'améliorer les performances de la table de hachage.
+
+\fBhcreate_r\fP() effectue la même tâche que \fBhcreate\fP() mais pour les tables
+décrites par la structure \fI*htab\fP. La structure pointée par \fIhtab\fP doit
+être initialisée avec des zéros avant le premier appel à \fBhcreate_r\fP().
+
+La fonction \fBhdestroy\fP() libère la mémoire occupée par la table de hachage
+créée par \fBhcreate\fP(). Après un appel à \fBhdestroy\fP(), une nouvelle table
+de hachage peut être créée avec \fBhcreate\fP(). La fonction \fBhdestroy_r\fP()
+effectue la même tâche pour une table de hachage décrite par \fI*htab\fP, qui a
+été préalablement créée par \fBhcreate_r\fP().
+
+\fBhsearch\fP() cherche dans la table de hachage un élément dont la clé est la
+même que \fIitem\fP (au sens de \fBstrcmp\fP(3)), et retourne un pointeur sur cet
+élément si la recherche réussit.
+
+L'argument \fIitem\fP est du type \fIENTRY\fP, qui est défini dans
+\fI<search.h>\fP ainsi\ :
+.in +4n
+.sp
+.nf
+typedef struct entry {
+    char *key;
+    void *data;
+} ENTRY;
+.in
+.fi
+.sp
+Le champ \fIkey\fP pointe vers une chaîne terminée par un caractère nul qui est
+la clé cherchée. Le champ \fIdata\fP pointe vers les données associées à la
+clé.
+
+Le paramètre \fIaction\fP détermine ce que doit faire \fBhsearch\fP() après une
+recherche infructueuse. Si \fIaction\fP est égal à \fBENTER\fP, alors une copie de
+\fIitem\fP est insérée et un pointeur sur ce nouvel élément est renvoyé. Si
+\fIaction\fP est égal à \fBFIND\fP, NULL est renvoyé et \fIdata\fP est ignoré.
+
+\fBhsearch_r\fP() est similaire à \fBhsearch\fP(), mais elle opère sur la table de
+hachage décrite par \fI*htab\fP, et le pointeur de l'objet trouvé est renvoyé
+dans \fI*retval\fP et non dans la valeur de retour de la fonction.
+.SH "VALEUR RENVOYÉE"
+\fBhcreate\fP() et \fBhcreate_r\fP() renvoient une valeur non nulle en cas de
+succès. En cas d'erreur, 0 est renvoyé et \fIerrno\fP contient le code
+d'erreur.
+
+En cas de succès, \fBhsearch\fP renvoie un pointeur vers une entrée de la table
+de hachage. Elle renvoie NULL en cas d'erreur ou si \fIaction\fP est égal à
+\fBENTER\fP, et la table de hachage pleine, ou  si \fIaction\fP est égal à
+\fBFIND\fP, et \fIitem\fP ne peut pas être trouvé. \fBhsearch_r\fP() renvoie une
+valeur non nulle en cas de succès et zéro en cas d'erreur.En cas d'erreur de
+ces fonctions, \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.LP
+\fBhcreate_r\fP() et \fBhdestroy_r\fP() peuvent échouer pour les raisons
+suivantes\ :
+.TP 
+\fBEINVAL\fP
+\fIhtab\fP est NULL.
+.PP
+\fBhsearch\fP et \fBhsearch_r\fP peuvent échouer pour les raisons suivantes\ :
+.TP 
+\fBENOMEM\fP
+\fIaction\fP est \fBENTER\fP, \fIkey\fP n'a pas été trouvé dans la table, et il n'y a
+plus de place dans la table pour ajouter un nouvel élément.
+.TP 
+\fBESRCH\fP
+\fIaction\fP vaut \fBFIND\fP et \fIkey\fP n'a pas été trouvé dans la table.
+.PP
+POSIX.1\-2001 spécifie seulement l'erreur \fBENOMEM\fP.
+.SH ATTRIBUTS
+.SS "Multithreading (voir pthreads(7))"
+Les fonctions \fBhcreate\fP(), \fBhsearch\fP() et \fBhdestroy\fP() ne sont pas sûres
+dans un contexte multithread car elles utilisent un espace global pour
+stocker la table.
+.LP
+Les fonctions \fBhcreate_r\fP(), \fBhsearch_r\fP() et \fBhdestroy_r\fP() sont sûres
+dans un contexte multithread.
+.SH CONFORMITÉ
+Les fonctions \fBhcreate\fP(), \fBhsearch\fP() et \fBhdestroy\fP() viennent de SVr4,
+et sont décrites dans POSIX.1\-2001. Les fonctions \fBhcreate_r\fP(),
+\fBhsearch_r\fP() et \fBhdestroy_r\fP() sont des extensions GNU.
+.SH NOTES
+L'implémentation des tables de hachage est généralement plus efficace
+lorsque la table possède assez d'espace libre pour minimiser les
+collisions. Typiquement, cela signifie que \fInel\fP devrait être 25\ % plus
+large que le nombre maximal d'éléments que l'on souhaite enregistrer dans la
+table.
+
+Les fonctions \fBhdestroy\fP() et \fBhdestroy_r\fP() ne libèrent pas les tampons
+pointés par les éléments \fIkey\fP et \fIdata\fP de la table de hachage. Elles ne
+peuvent pas le faire car elles ne savent pas où ces tampons ont été alloués
+dynamiquement. Si ces tampons doivent être libérés (peut\-être car le
+programme crée et supprime des tables de hachage de façon répétitive, au
+lieu de créer un seule table pour toute la vie du programme), alors le
+programme doit maintenir la liste des tampons libérables.
+.SH BOGUES
+SVr4 et POSIX.1\-2001 précisent que \fIaction\fP n'est significatif que pour les
+recherches infructueuses\ ; ainsi \fBENTER\fP ne devrait avoir aucune influence
+pour une recherche réussie. Les implémentations libc et glibc (antérieure à
+la 2.3) ne suivaient pas les spécifications car elles mettaient à jour les
+données \fIdata\fP de la clé \fIkey\fP dans ce cas.
+
+Les entrées ne peuvent être qu'ajoutées dans la table, on ne peut pas les
+supprimer individuellement.
+.SH EXEMPLE
+.PP
+Le programme suivant insère 24 éléments dans une table de hachage, puis
+affiche quelques\-uns d'entre eux.
+.nf
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <search.h>
+
+char *data[] = { "alpha", "bravo", "charlie", "delta",
+     "echo", "foxtrot", "golf", "hotel", "india", "juliet",
+     "kilo", "lima", "mike", "november", "oscar", "papa",
+     "quebec", "romeo", "sierra", "tango", "uniform",
+     "victor", "whisky", "x\-ray", "yankee", "zulu"
+};
+
+int
+main(void)
+{
+    ENTRY e, *ep;
+    int i;
+
+    hcreate(30);
+
+    for (i = 0; i < 24; i++) {
+        e.key = data[i];
+        /* data is just an integer, instead of a
+           pointer to something */
+        e.data = (void *) i;
+        ep = hsearch(e, ENTER);
+        /* there should be no failures */
+        if (ep == NULL) {
+            fprintf(stderr, "entry failed\en");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    for (i = 22; i < 26; i++) {
+        /* print two entries from the table, and
+           show that two are not in the table */
+        e.key = data[i];
+        ep = hsearch(e, FIND);
+        printf("%9.9s \-> %9.9s:%d\en", e.key,
+               ep ? ep\->key : "NULL", ep ? (int)(ep\->data) : 0);
+    }
+    hdestroy();
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBbsearch\fP(3), \fBlsearch\fP(3), \fBmalloc\fP(3), \fBtsearch\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

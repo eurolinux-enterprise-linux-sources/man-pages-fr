@@ -1,0 +1,175 @@
+.\" Copyright (C) 2008, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ACCT 5 "15 juin 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+acct \- Fichier de comptabilité des processus
+.SH SYNOPSIS
+\fB#include <sys/acct.h>\fP
+.SH DESCRIPTION
+Si le noyau a été compilé avec l'option de comptabilité des processus
+activée (\fBCONFIG_BSD_PROCESS_ACCT\fP), l'appel système \fBacct\fP(2) démarre la
+comptabilité. Par exemple\ :
+
+.in +4n
+acct("/var/log/pacct");
+.in
+
+Quand la comptabilité des processus est activée, le noyau écrit dans le
+fichier indiqué un enregistrement à chaque mort d'un processus. Cet
+enregistrement contient des informations concernant le processus terminé,
+décrites dans \fI<sys/acct.h>\fP ainsi\ :
+
+.in +4n
+.nf
+#define ACCT_COMM 16
+
+typedef u_int16_t comp_t;
+
+struct acct {
+    char      ac_flag;      /* Attribut de comptabilité */
+    u_int16_t ac_uid;       /* UID comptabilisé */
+    u_int16_t ac_gid;       /* GID comptabilisé */
+    u_int16_t ac_tty;       /* Terminal de contrôle */
+    u_int32_t ac_btime;     /* Heure de création du processus */
+                               (secondes depuis 01/01/1970) */
+    comp_t    ac_utime;     /* Temps CPU en mode utilisateur */
+    comp_t    ac_stime;     /* Temps CPU en mode noyau */
+    comp_t    ac_etime;     /* Temps écoulé */
+    comp_t    ac_mem;       /* Moyenne mémoire utilisée (ko) */
+    comp_t    ac_io;        /* Caractères transmis (inutilisé) */
+    comp_t    ac_rw;        /* Blocs lus ou écrits (inutilisé) */
+    comp_t    ac_minflt;    /* Nb fautes de pages mineures */
+    comp_t    ac_majflt;    /* Nb fautes de pages majeures */
+    comp_t    ac_swaps;     /* Nb de swaps (inutilisé) */
+    u_int32_t ac_exitcode;  /* Code de retour \- voir wait(2) */
+    char      ac_comm[ACCT_COMM+1];
+                            /* Nom de la commande (nom de base
+                               de la dernière commande exécutée
+                               terminé par zéro) */
+    char      ac_pad[\fIX\fP];    /* Remplissage */
+};
+
+enum {          /* Bits qui peuvent se trouver dans ac_flag */
+    AFORK = 0x01,           /* A exécuté fork mais pas exec */
+    ASU   = 0x02,           /* A utilisé les privilèges superutilisateur */
+    ACORE = 0x08,           /* A créé un fichier core */
+    AXSIG = 0x10            /* Tué par un signal */
+};
+.fi
+.in
+.PP
+Le type de donnée \fIcomp_t\fP est une valeur réelle constituée d'un exposant
+en base 8 sur 3\ bits et d'une mantisse sur 13 bits. Une valeur \fIc\fP, de ce
+type peut être convertie en entier (long) ainsi\ :
+.nf
+
+    v = (c & 0x1fff) << (((c >> 13) & 0x7) * 3);
+.fi
+.PP
+Les champs \fIac_utime\fP, \fIac_stime\fP, et \fIac_etime\fP mesurent les temps en «\ tops d'horloge\ ». Divisez ces valeurs par \fIsysconf(_SC_CLK_TCK)\fP pour
+obtenir des secondes.
+.SS "Format des fichiers de comptabilité version 3"
+Depuis le noyau 2.6.8, une autre version du fichier peut être éventuellement
+produite, si l'option \fBCONFIG_BSD_PROCESS_ACCT_V3\fP est définie lors de la
+compilation du noyau. Lorsque cette option est active, les enregistrements
+écrits dans le fichier de comptabilité contiennent des champs
+supplémentaires et la longueur des champs \fIc_uid\fP et \fIac_gid\fP est élargie
+de 16 à 32 bits (en accord avec l'élargissement des UID et GID dans les
+noyaux Linux 2.4 et ultérieur). Les enregistrements sont définis ainsi\ :
+
+.in +4n
+.nf
+struct acct_v3 {
+    char      ac_flag;      /* Attribut de comptabilité */
+    char      ac_version;   /* Vaut toujours ACCT_VERSION (3) */
+    u_int16_t ac_tty;       /* Terminal de contrôle */
+    u_int32_t ac_exitcode;  /* Code de retour \- voir wait(2) */
+    u_int32_t ac_uid;       /* UID réel */
+    u_int32_t ac_gid;       /* GID réel */
+    u_int32_t ac_pid;       /* PID */
+    u_int32_t ac_ppid;      /* PPID (PID du parent) */
+    u_int32_t ac_btime;     /* Heure de création du processus */
+                               (secondes depuis 01/01/1970) */
+    float     ac_etime;     /* Temps écoulé */
+    comp_t    ac_utime;     /* Temps CPU en mode utilisateur */
+    comp_t    ac_stime;     /* Temps CPU en mode noyau */
+    comp_t    ac_mem;       /* Moyenne mémoire utilisée (ko) */
+    comp_t    ac_io;        /* Caractères transmis (inutilisé) */
+    comp_t    ac_rw;        /* Blocs lus ou écrits (inutilisé) */
+    comp_t    ac_minflt;    /* Nb fautes de pages mineures */
+    comp_t    ac_majflt;    /* Nb fautes de pages majeures */
+    comp_t    ac_swaps;     /* Nb de swaps (inutilisé) */
+    char      ac_comm[ACCT_COMM];
+                            /* Nom de la commande */
+};
+.fi
+.in
+.SH VERSIONS
+La structure \fIacct_v3\fP est définie dans la glibc depuis la version 2.6.
+.SH CONFORMITÉ
+La comptabilité des processus provient de BSD. Bien qu'elle soit implémentée
+sur la plupart des systèmes, elle n'est pas normalisée et varie parfois
+entre les systèmes.
+.SH NOTES
+Les enregistrements dans le fichier de comptabilité sont classés en fonction
+de l'heure de fin des processus.
+
+Dans les noyaux jusqu'au 2.6.9 (inclus), un enregistrement séparé était
+écrit pour chaque thread utilisant la bibliothèque NPTL. Depuis Linux
+2.6.10, un enregistrement unique est écrit pour l'ensemble du processus à la
+fin de son dernier thread.
+
+Le fichier \fIproc/sys/kernel/acct\fP décrit dans \fBproc\fP(5), configure le
+comportement de la comptabilité des processus lorsque l'espace disque
+commence à manquer.
+.SH "VOIR AUSSI"
+\fBlastcomm\fP(1), \fBacct\fP(2), \fBaccton\fP(8), \fBsa\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

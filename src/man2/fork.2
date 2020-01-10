@@ -1,0 +1,206 @@
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" A few fragments remain from an earlier (1992) page by
+.\" Drew Eckhardt (drew@cs.colorado.edu),
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt (michael@moria.de)
+.\" Modified Sat Jul 24 13:22:07 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 21 Aug 1994 by Michael Chastain (mec@shell.portal.com):
+.\"   Referenced 'clone(2)'.
+.\" Modified 1995-06-10, 1996-04-18, 1999-11-01, 2000-12-24
+.\"   by Andries Brouwer (aeb@cwi.nl)
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\" 2006-09-04, Michael Kerrisk
+.\"     Greatly expanded, to describe all attributes that differ
+.\"	parent and child.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FORK 2 "12 mars 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+fork \- Créer un processus fils
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBpid_t fork(void);\fP
+.SH DESCRIPTION
+\fBfork\fP() crée un nouveau processus en copiant le processus appelant. Le
+nouveau processus, qu'on appelle \fIfils\fP («\ child\ »), est une copie exacte
+du processus appelant, qu'on appelle \fIpère\fP ou\ \fIparent\fP, avec les
+exceptions suivantes\ :
+.IP * 3
+Le fils a son propre identifiant de processus unique, et ce PID ne
+correspond à l'identifiant d'aucun groupe de processus existant
+(\fBsetpgid\fP(2)).
+.IP *
+L'identifiant de processus parent (PPID) du fils est l'identifiant de
+processus (PID) du père.
+.IP *
+Le fils n'hérite pas des verrouillages mémoire du père (\fBmlock\fP(2),
+\fBmlockall\fP(2)).
+.IP *
+Les utilisations de ressources (\fBgetrusage\fP(2)) et les compteurs de temps
+processeur (\fBtimes\fP(2)) sont remis à zéro dans le fils.
+.IP *
+L'ensemble de signaux en attente dans le fils est initialement vide
+(\fBsigpending\fP(2)).
+.IP *
+Le fils n'hérite pas des opérations sur les sémaphores de son père
+(\fBsemop\fP(2)).
+.IP *
+Le fils n'hérite pas des verrous d'enregistrements de son père
+(\fBfcntl\fP(2)).
+.IP *
+Le fils n'hérite pas des temporisations de son père (\fBsetitimer\fP(2),
+\fBalarm\fP(2), \fBtimer_create\fP(2)).
+.IP *
+Le fils n'hérite pas des opérations d'E/S asynchrones en cours de son père
+(\fBaio_read\fP(3), \fBaio_write\fP(3)) et n'hérite d'aucun contexte d'E/S
+asynchrone de son père (consultez \fBio_setup\fP(2)).
+.PP
+Les attributs du processus listés ci\(hydessus sont tous spécifiés dans
+POSIX.1\-2001. Les processus parent et fils diffèrent également par les
+propriétés spécifiques Linux suivantes\ :
+.IP * 3
+Le fils n'hérite pas des notifications de modification de répertoire
+(dnotify) de son père (voir la description de \fBF_NOTIFY\fP dans \fBfcntl\fP(2)).
+.IP *
+Le drapeau \fBPR_SET_PDEATHSIG\fP de \fBprctl\fP(2) est réinitialisé, de manière à
+ce que le fils ne reçoive pas de signal lorsque son père se termine.
+.IP *
+La valeur de temporisation relâchée par défaut est définie à la valeur de
+temporisation relâchée actuelle de son père. Veuillez consulter la
+description de \fBPR_SET_TIMERSLACK\fP dans \fBprctl\fP(2).
+.IP *
+Les projections en mémoire qui ont été marquées avec l'attribut
+\fBMADV_DONTFORK\fP de \fBmadvise\fP(2) ne sont pas hérités lors d'un \fBfork\fP().
+.IP *
+Le signal de terminaison du fils est toujours \fBSIGCHLD\fP (consultez
+\fBclone\fP(2)).
+.IP *
+Les bits de permission d'accès au port indiqués par \fBioperm\fP(2) ne sont pas
+hérités par le fils\ ; le fils doit activer avec \fBioperm\fP(2) les bits dont
+il a besoin.
+.PP
+Notez également les points suivants\ :
+.IP * 3
+Le processus fils est créé avec un unique thread \(em celui qui a appelé
+\fBfork\fP(). L'espace d'adressage virtuel complet du parent est copié dans le
+fils, y compris l'état des mutex, variables de condition, et autres objets
+de pthreads\ ; l'utilisation de \fBpthread_atfork\fP(3) peut être utile pour
+traiter les problèmes que cela peut occasionner.
+.IP *
+Le fils hérite de copies des descripteurs de fichier ouverts du père. Chaque
+descripteur de fichier du fils renvoie à la même description de fichier
+ouvert (consultez \fBopen\fP(2)) que le descripteur de fichier correspondant
+dans le processus parent. Cela signifie que les deux descripteurs partagent
+les attributs d'état du fichier, le décalage, et les attributs d'E/S liés
+aux signaux (voir la description de \fBF_SETOWN\fP et \fBF_SETSIG\fP dans
+\fBfcntl\fP(2)).
+.IP *
+Le fils hérite de copies des descripteurs files de messages ouvertes dans le
+père (consultez \fBmq_overview\fP(7)). Chaque descripteur dans le fils renvoie
+à la même description de file de messages ouverte que le descripteur
+correspondant dans le père. Cela signifie que les deux descripteurs
+partagent leurs attributs (\fImq_flags\fP).
+.IP *
+Le fils hérite d'une copie de l'ensemble des flux de répertoire ouverts par
+le parent (consultez \fBopendir\fP(3)). POSIX.1\-2001 indique que les flux de
+répertoire correspondant dans le parent ou l'enfant \fIpeuvent\fP partager le
+positionnement du flux de répertoire\ ; sous Linux/glibc, ce n'est pas le
+cas.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, le PID du fils est renvoyé au parent, et 0 est renvoyé au
+fils. En cas d'échec \-1 est renvoyé au parent, aucun processus fils n'est
+créé, et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+\fBfork\fP() ne peut pas allouer assez de mémoire pour copier la table des
+pages du père et allouer une structure de tâche pour le fils.
+.TP 
+\fBEAGAIN\fP
+Il n'a pas été possible de créer un nouveau processus car la limite
+ressource \fBRLIMIT_NPROC\fP de l'appelant a été rencontrée. Pour franchir
+cette limite, le processus doit avoir au moins l'une des deux capacités
+\fBCAP_SYS_ADMIN\fP ou \fBCAP_SYS_RESOURCE\fP.
+.TP 
+\fBENOMEM\fP
+\fBfork\fP() a échoué car le noyau n'a plus assez de mémoire.
+.TP 
+\fBENOSYS\fP
+.\" e.g., arm (optionally), blackfin, c6x, frv, h8300, microblaze, xtensa
+\fBfork\fP()  n'est pas supporté sur cette plate\-forme (par exemple sur du
+matériel sans unité de gestion mémoire).
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3, POSIX.1\-2001.
+.SH NOTES
+.PP
+Sous Linux, \fBfork\fP() est implémenté en utilisant une méthode de copie à
+l'écriture. Ceci consiste à ne faire la véritable duplication d'une page
+mémoire que lorsqu'un processus en modifie une instance. Tant qu'aucun des
+deux processus n'écrit dans une page donnée, celle\(hyci n'est pas vraiment
+dupliquée. Ainsi les seules pénalisations induites par fork sont le temps et
+la mémoire nécessaires à la copie de la table des pages du parent ainsi que
+la création d'une structure de tâche pour le fils.
+
+.\" nptl/sysdeps/unix/sysv/linux/fork.c
+.\" and does some magic to ensure that getpid(2) returns the right value.
+Depuis la version 2.3.3, plutôt que d'invoquer l'appel système \fBfork\fP() du
+noyau, l'enveloppe \fBfork\fP() de la glibc qui est fournie comme faisant
+partie de l'implémentation de threading NPTL invoque \fBclone\fP(2) avec des
+attributs qui fournissent le même effet que l'appel système traditionnel (un
+appel à \fBfork\fP() est équivalent à un appel à \fBclone\fP(2) avec \fIflags\fP
+valant exactement \fBSIGCHLD\fP). L'enveloppe de la glibc invoque tous les
+gestionnaires de bifurcation («\ fork\ ») établis avec \fBpthread_atfork\fP(3).
+.SH EXEMPLE
+Consultez \fBpipe\fP(2) et \fBwait\fP(2).
+.SH "VOIR AUSSI"
+\fBclone\fP(2), \fBexecve\fP(2), \fBexit\fP(2), \fBsetrlimit\fP(2), \fBunshare\fP(2),
+\fBvfork\fP(2), \fBwait\fP(2), \fBdaemon\fP(3), \fBcapabilities\fP(7), \fBcredentials\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,304 @@
+.\" Copyright (C) 2001 David Gómez <davidge@jazzfree.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Based on comments from mm/filemap.c. Last modified on 10-06-2001
+.\" Modified, 25 Feb 2002, Michael Kerrisk, <mtk.manpages@gmail.com>
+.\"	Added notes on MADV_DONTNEED
+.\" 2010-06-19, mtk, Added documentation of MADV_MERGEABLE and
+.\"     MADV_UNMERGEABLE
+.\" 2010-06-15, Andi Kleen, Add documentation of MADV_HWPOISON.
+.\" 2010-06-19, Andi Kleen, Add documentation of MADV_SOFT_OFFLINE.
+.\" 2011-09-18, Doug Goldstein <cardoe@cardoe.com>
+.\"     Document MADV_HUGEPAGE and MADV_NOHUGEPAGE
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MADVISE 2 "28 avril 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+madvise \- Configurer l'utilisation de la mémoire
+.SH SYNOPSIS
+\fB#include <sys/mman.h>\fP
+.sp
+\fBint madvise(void *\fP\fIaddr\fP\fB, size_t \fP\fIlength\fP\fB, int \fP\fIadvice\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBmadvise\fP()\ : _BSD_SOURCE
+.SH DESCRIPTION
+L'appel système \fBmadvise\fP() conseille le noyau sur la façon de gérer la
+pagination sur l'intervalle d'adresses débutant à l'adresse \fIaddr\fP et de
+taille \fIlength\fP (en octets). Il permet à une application d'indiquer au
+noyau l'utilisation qu'elle compte faire de certaines zones de mémoire
+partagée ou projetée de façon à ce que le noyau puisse choisir les
+techniques de lecture anticipée et de mise en cache appropriées. Cet appel
+ne modifie pas la sémantique de l'application (sauf dans le cas de
+\fBMADV_DONTNEED\fP), mais peut avoir un impact sur ses performances. Le noyau
+est libre d'ignorer le conseil.
+.LP
+Le conseil est spécifié par le paramètre \fIadvice\fP qui peut prendre les
+valeurs
+.TP 
+\fBMADV_NORMAL\fP
+Pas de traitement particulier. Il s'agit du comportement par défaut.
+.TP 
+\fBMADV_RANDOM\fP
+Prévoit des accès aux pages dans un ordre aléatoire. (Ainsi, la lecture
+anticipée sera moins utile qu'elle ne l'est en général.)
+.TP 
+\fBMADV_SEQUENTIAL\fP
+prévoit des accès aux pages dans un ordre séquentiel. (Aussi, les pages d'un
+intervalle donné peuvent être systématiquement lues par anticipation, et
+peuvent être libérées rapidement après avoir été accédées.)
+.TP 
+\fBMADV_WILLNEED\fP
+Prévoit un accès dans un futur proche. (Ainsi, lire quelques pages de façon
+anticipée peut être une bonne idée.)
+.TP 
+\fBMADV_DONTNEED\fP
+Ne prévoit pas d'accès dans un futur proche. (Pour l'instant, l'application
+en a fini avec l'intervalle considéré, ainsi le noyau peut\(hyil libérer les
+ressources associées à ce dernier.) Les accès ultérieurs aux pages de
+l'intervalle réussiront, mais résulteront soit en un rechargement du fichier
+projeté sous\(hyjacent (consultez \fBmmap\fP(2)), soit en un remplissage avec
+des zéros pour les pages sans fichier.
+.TP 
+\fBMADV_REMOVE\fP (depuis Linux 2.6.16)
+.\" 2.6.18-rc5
+.\" Databases want to use this feature to drop a section of their
+.\" bufferpool (shared memory segments) - without writing back to
+.\" disk/swap space.  This feature is also useful for supporting
+.\" hot-plug memory on UML.
+Libérer un ensemble contigu de pages et les ressources
+correspondantes. Actuellement, ceci n'est possible que sur shmfs/tmpfs\ ;
+les autres systèmes de fichiers renvoient l'erreur \fBENOSYS\fP.
+.TP 
+\fBMADV_DONTFORK\fP (depuis Linux 2.6.16)
+.\" See http://lwn.net/Articles/171941/
+.\" [PATCH] madvise MADV_DONTFORK/MADV_DOFORK
+.\" Currently, copy-on-write may change the physical address of
+.\" a page even if the user requested that the page is pinned in
+.\" memory (either by mlock or by get_user_pages).  This happens
+.\" if the process forks meanwhile, and the parent writes to that
+.\" page.  As a result, the page is orphaned: in case of
+.\" get_user_pages, the application will never see any data hardware
+.\" DMA's into this page after the COW.  In case of mlock'd memory,
+.\" the parent is not getting the realtime/security benefits of mlock.
+.\"
+.\" In particular, this affects the Infiniband modules which do DMA from
+.\" and into user pages all the time.
+.\"
+.\" This patch adds madvise options to control whether memory range is
+.\" inherited across fork. Useful e.g. for when hardware is doing DMA
+.\" from/into these pages.  Could also be useful to an application
+.\" wanting to speed up its forks by cutting large areas out of
+.\" consideration.
+.\"
+.\" SEE ALSO: http://lwn.net/Articles/171941/
+.\" "Tweaks to madvise() and posix_fadvise()", 14 Feb 2006
+Ne pas rendre les pages de cet intervalle disponibles au fils après un
+\fBfork\fP(2). Ceci est utile pour empêcher la sémantique de copie à l'écriture
+de changer l'emplacement physique d'une page si le père y écrit après un
+\fBfork\fP(2). (De tels déplacements posent des problèmes si le matériel accède
+directement à la page (DMA)).
+.TP 
+\fBMADV_DOFORK\fP (depuis Linux 2.6.16)
+Annuler l'effet de \fBMADV_DONTFORK\fP et restaurer le comportement par défaut,
+où une projection en mémoire est héritée après un \fBfork\fP(2).
+.TP 
+\fBMADV_HWPOISON\fP (depuis Linux 2.6.32)
+Empoisonne une page et la traite comme une corruption de la mémoire
+matérielle. Cette opération n'est disponible que pour les processus
+privilégiés (\fBCAP_SYS_ADMIN\fP). À la suite de cette opération, le processus
+appelant peut recevoir un \fBSIGBUS\fP et la page devenir non affectée. Cette
+fonctionnalité est prévue pour tester le code de gestion des erreurs de la
+mémoire\ ; elle n'est disponible que si le noyau a été configuré avec
+\fBCONFIG_MEMORY_FAILURE\fP.
+.TP 
+\fBMADV_SOFT_OFFLINE\fP (depuis Linux 2.6.33)
+Déconnecte les pages dans l'intervalle spécifié par \fIaddr\fP et \fIlength\fP. La
+mémoire de chaque page dans l'intervalle spécifié est préservée (lors du
+prochain accès, le même contenu sera visible, mais dans une nouvelle page
+physique), et la page originale est déconnectée (ce qui signifie qu'elle
+n'est plus utilisée, et plus prise en compte par les mécanismes habituels de
+gestion de la mémoire). L'effet de l'opération \fBMADV_SOFT_OFFLINE\fP est
+invisible au processus appelant (c'est\-à\-dire qu'elle n'en change pas la
+sémantique). Cette fonctionnalité est prévue pour tester le code de gestion
+des erreurs de la mémoire\ ; elle n'est disponible que si le noyau a été
+configuré avec \fBCONFIG_MEMORY_FAILURE\fP.
+.TP 
+\fBMADV_MERGEABLE\fP (depuis Linux 2.6.32)
+Active la fusion des pages identiques par le noyau (\fIKernel Samepage
+Merging\fP, ou KSM) pour les pages dans l'intervalle spécifié par \fIaddr\fP et
+\fIlength\fP. Le noyau analyse régulièrement les régions de la mémoire
+utilisateur qui ont été marquées comme pouvant être fusionnées, à la
+recherche de pages avec un contenu identique. Elles sont remplacées par une
+page unique protégée en écriture (qui sera automatiquement recopiée si un
+processus veut plus tard modifier le contenu de la page). KSM ne fusionne
+que les pages anonymes privées (consultez \fBmmap\fP(2)). La fonctionnalité KSM
+est prévue pour des applications qui génèrent beaucoup d'instances des mêmes
+données (par exemple des systèmes de virtualisation tels que KVM). Elle peut
+nécessiter beaucoup de ressources de traitement\ ; à utiliser avec
+précaution. Consultez le fichier \fIDocumentation/vm/ksm.txt\fP dans les
+sources du noyau Linux pour plus de détails. Les opérations
+\fBMADV_MERGEABLE\fP et \fBMADV_UNMERGEABLE\fP ne sont disponibles que si le noyau
+a été configuré avec \fBCONFIG_KSM\fP.
+.TP 
+\fBMADV_UNMERGEABLE\fP (depuis Linux 2.6.32)
+Annuler l'effet d'une opération \fBMADV_MERGEABLE\fP précédente sur
+l'intervalle d'adresse spécifié\ ; KSM annule la fusion sur les pages qui
+avaient été fusionnées dans l'intervalle spécifié par \fIaddr\fP et \fIlength\fP.
+.TP 
+\fBMADV_HUGEPAGE\fP (depuis Linux 2.6.38)
+.\" http://lwn.net/Articles/358904/
+.\" https://lwn.net/Articles/423584/
+Active la gestion transparente des pages immenses (\fITransparent Huge
+Pages\fP, ou THP) pour les pages dans l'intervalle spécifié par \fIaddr\fP et
+\fIlength\fP. Actuellement, THP ne fonctionne qu'avec les pages anonymes
+privées (consultez \fBmmap\fP(2)). Le noyau analysera régulièrement les régions
+qui ont été marquées comme candidates aux pages immenses pour les remplacer
+par des pages immenses. Le noyau allouera aussi des pages immenses
+directement quand la région est naturellement alignée sur la taille de page
+immense (consultez \fBposix_memalign\fP(2)). Cette fonctionnalité est
+initialement prévue pour des applications qui utilisent de grosses
+projections de données et accèdent à de grosses zones de cette mémoire en
+même temps (par exemple les systèmes de virtualisation comme QEMU). Il peut
+très facilement gaspiller beaucoup de mémoire (par exemple une projection de
+2\ Mo qui n'accède qu'à un seul octet a pour conséquence 2\ Mo de mémoire
+connectée au lieu d'une page de 4\ ko). Consultez le fichier
+\fIDocumentation/vm/ktranshuge.txt\fP dans les sources du noyau Linux pour plus
+de détails. Les opérations \fBMADV_HUGEPAGE\fP et \fBMADV_NOHUGEPAGE\fP ne sont
+disponibles que si le noyau a été configuré avec
+\fBCONFIG_TRANSPARENT_HUGEPAGE\fP.
+.TP 
+\fBMADV_NOHUGEPAGE\fP (depuis Linux 2.6.38)
+S'assure que la mémoire dans l'intervalle spécifié par \fIaddr\fP et \fIlength\fP
+ne sera pas perdue dans des pages immenses.
+.TP 
+\fBMADV_DONTDUMP\fP (depuis Linux\ 3.4)
+Exclue de l'image mémoire («\ core dump\ ») les pages dans l'intervalle
+indiqué par \fIaddr\fP et \fIlength\fP. C'est utile pour les applications dont de
+larges zones de mémoire sont notoirement inutiles dans une image
+mémoire. L'effet de \fBMADV_DONTDUMP\fP est prioritaire sur le masque de bits
+configuré via \fI/proc/PID/coredump_filter\fP, consultez \fBcore\fP(5).
+.TP 
+\fBMADV_DODUMP\fP (depuis Linux\ 3.4)
+Annuler l'effet de \fBMADV_DONTDUMP\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de succès \fBmadvise\fP() renvoie zéro. En cas d'erreur, il renvoie \-1
+et \fIerrno\fP est positionné de façon adéquate.
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+Une ressource du noyau est temporairement indisponible.
+.TP 
+\fBEBADF\fP
+La projection existe, mais la zone n'est pas associée à un fichier.
+.TP 
+\fBEINVAL\fP
+Cette erreur peut survenir pour les raisons suivantes\ :
+.RS
+.IP * 3
+.\" .I len
+.\" is zero,
+La valeur \fIlen\fP est négative.
+.IP *
+\fIaddr\fP n'est pas aligné sur une page.
+.IP *
+\fIadvice\fP n'a pas une valeur valide.
+.IP *
+L'application tente de libérer des pages verrouillées ou partagées (avec
+\fBMADV_DONTNEED\fP).
+.IP *
+\fBMADV_MERGEABLE\fP ou \fBMADV_UNMERGEABLE\fP a été indiqué dans \fIadvice\fP, mais
+le noyau n'a pas été configuré avec l'option \fBCONFIG_KSM\fP.
+.RE
+.TP 
+\fBEIO\fP
+(pour \fBMADV_WILLNEED\fP) Suivre la consigne de pagination sur cette zone
+dépasserait la limite maximale de mémoire physique utilisable par le
+processus.
+.TP 
+\fBENOMEM\fP
+(pour \fBMADV_WILLNEED\fP) Mémoire insuffisante\ ; échec de pagination.
+.TP 
+\fBENOMEM\fP
+Les adresses de l'intervalle spécifié ne sont pas projetées actuellement, ou
+n'appartiennent pas à l'espace d'adressage du processus.
+.SH CONFORMITÉ
+.\" FIXME . Write a posix_madvise(3) page.
+POSIX.1b. POSIX.1\-2001 spécifie l'appel \fBposix_madvise\fP(3) avec des
+constantes \fBPOSIX_MADV_NORMAL\fP, etc. et un comportement proche de celui
+décrit ici. Il existe un appel similaire \fBposix_fadvise\fP(2) pour les accès
+aux fichiers.
+
+\fBMADV_REMOVE\fP, \fBMADV_DONTFORK\fP, \fBMADV_DOFORK\fP, \fBMADV_HWPOISON\fP,
+\fBMADV_MERGEABLE\fP et \fBMADV_UNMERGEABLE\fP sont spécifiques à Linux.
+.SH NOTES
+.SS "Notes sur Linux"
+.LP
+L'implémentation Linux actuelle (2.4.0) perçoit davantage cet appel système
+comme une commande que comme un conseil et est ainsi susceptible de renvoyer
+une erreur quand elle ne parvient pas à réaliser ce qu'elle devrait
+accomplir en réponse à ce conseil. (Consultez la description des ERREURS
+ci\(hydessus.) Il s'agit d'un comportement non standard.
+.LP
+.\" .SH HISTORY
+.\" The
+.\" .BR madvise ()
+.\" function first appeared in 4.4BSD.
+L'implémentation Linux nécessite que l'adresse \fIaddr\fP soit alignée sur une
+page, et permet que \fIlength\fP vaille zéro. S'il y a des parties de
+l'intervalle d'adresses spécifié qui ne sont pas projetées, la version Linux
+de \fBmadvise\fP() les ignore et applique l'appel au reste de l'intervalle
+(mais renvoie \fBENOMEM\fP comme il se doit).
+.SH "VOIR AUSSI"
+\fBgetrlimit\fP(2), \fBmincore\fP(2), \fBmmap\fP(2), \fBmprotect\fP(2), \fBmsync\fP(2),
+\fBmunmap\fP(2), \fBcore\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

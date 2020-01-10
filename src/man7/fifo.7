@@ -1,0 +1,77 @@
+.\" This man page is Copyright (C) 1999 Claus Fischer.
+.\"
+.\" %%%LICENSE_START(VERBATIM_ONE_PARA)
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" %%%LICENSE_END
+.\"
+.\" 990620 - page created - aeb@cwi.nl
+.\"
+.\" FIXME . Add example programs to this page?
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FIFO 7 "3 décembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+fifo \- Fichier spécial file FIFO, tube nommé
+.SH DESCRIPTION
+Un fichier spécial de file FIFO (First In, First Out) est l'équivalent d'un
+tube (pipeline), sauf qu'il est accessible en tant que partie du système de
+fichiers. Il peut être ouvert par plusieurs processus, tant en lecture qu'en
+écriture. Lorsque des processus échangent des données par le biais d'une
+file FIFO, le noyau transfère les informations de manière interne, sans
+passer par une écriture réelle dans le système de fichiers. Ainsi, le
+fichier spécial FIFO n'a pas de véritable contenu\ ; c'est essentiellement un
+point de référence pour que les processus puissent accéder au tube en
+employant un nom dans le système de fichiers.
+.PP
+Le noyau assimile exactement un tube à chaque fichier spécial FIFO ouvert
+par au moins un processus. La file FIFO doit être ouverte aux deux
+extrémités (lecture et écriture) avant que des données puissent y
+transiter. Normalement, l'ouverture d'une file FIFO est bloquante jusqu'à ce
+que l'autre côté soit aussi ouvert.
+.PP
+Un processus peut ouvrir une FIFO en mode non bloquant. Dans ce cas,
+l'ouverture en lecture seule réussira même si personne n'a encore ouvert le
+côté écriture. L'ouverture en écriture seule échouera avec l'erreur \fBENXIO\fP
+(aucun périphérique ou adresse) si l'autre extrémité n'a pas encore été
+ouverte.
+.PP
+Sous Linux, l'ouverture d'une file FIFO en lecture et écriture réussira
+aussi bien en mode bloquant que non bloquant. POSIX ne précise pas ce
+comportement. Ceci peut servir à ouvrir une FIFO en écriture, même si aucun
+lecteur n'est prêt. Un processus qui utilise les deux côtés d'une FIFO pour
+communiquer avec lui\-même doit être très prudent pour éviter les situations
+de blocage.
+.SH NOTES
+Quand un processus essaye d'écrire dans une FIFO qui n'a pas été ouverte en
+lecture de l'autre côté, le processus reçoit un signal \fBSIGPIPE\fP.
+
+Un fichier spécial de file FIFO peut être créé à l'aide de la fonction
+\fBmkfifo\fP(3), et est indiqué par \fIls \-l\fP avec un type de fichier «\ p\ ».
+.SH "VOIR AUSSI"
+\fBmkfifo\fP(1), \fBopen\fP(2), \fBpipe\fP(2), \fBsigaction\fP(2), \fBsignal\fP(2),
+\fBsocketpair\fP(2), \fBmkfifo\fP(3), \fBpipe\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

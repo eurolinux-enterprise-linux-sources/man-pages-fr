@@ -1,0 +1,61 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CASINH 3 "11 août 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+casinh, casinhf, casinhl \- Fonction arc sinus hyperbolique complexe
+.SH SYNOPSIS
+\fB#include <complex.h>\fP
+.sp
+\fBdouble complex casinh(double complex \fP\fIz\fP\fB);\fP
+.br
+\fBfloat complex casinhf(float complex \fP\fIz\fP\fB);\fP
+.br
+\fBlong double complex casinhl(long double complex \fP\fIz\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.SH DESCRIPTION
+La fonction \fBcasinh\fP() calcule la valeur complexe de l'arc sinus
+hyperbolique de \fIz\fP. Si \fIy\ =\ casinh(z)\fP, alors \fIz\ =\ csinh(y)\fP. La
+partie imaginaire de \fIy\fP est choisie dans l'intervalle [\-pi/2,\ pi/2].
+.LP
+On a\ :
+.nf
+
+    casinh(z) = clog(z + csqrt(z * z + 1))
+.fi
+.SH VERSIONS
+Ces fonctions ont été introduites dans la glibc dans sa version\ 2.1.
+.SH CONFORMITÉ
+C99.
+.SH "VOIR AUSSI"
+\fBasinh\fP(3), \fBcabs\fP(3), \fBcimag\fP(3), \fBcsinh\fP(3), \fBcomplex\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

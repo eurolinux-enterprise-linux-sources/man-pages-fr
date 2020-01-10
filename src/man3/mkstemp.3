@@ -1,0 +1,174 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright (C) 2008, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 18:48:48 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 980310, aeb
+.\" Modified 990328, aeb
+.\" 2008-06-19, mtk, Added mkostemp(); various other changes
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MKSTEMP 3 "21 décembre 2012" GNU "Manuel du programmeur Linux"
+.SH NOM
+mkstemp, mkostemp, mkstemps, mkostemps \- Créer un fichier temporaire unique
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBint mkstemp(char *\fP\fItemplate\fP\fB);\fP
+.sp
+\fBint mkostemp(char *\fP\fItemplate\fP\fB, int \fP\fIflags\fP\fB);\fP
+.sp
+\fBint mkstemps(char *\fP\fItemplate\fP\fB, int \fP\fIsuffixlen\fP\fB);\fP
+.sp
+\fBint mkostemps(char *\fP\fItemplate\fP\fB, int \fP\fIsuffixlen\fP\fB, int \fP\fIflags\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBmkstemp\fP()\ :
+.ad l
+.RS 4
+.PD 0
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.br
+|| /* Depuis la glibc 2.12\ : */ _POSIX_C_SOURCE\ >=\ 200112L
+.PD
+.RE
+.ad b
+.PP
+\fBmkostemp\fP()\ : _GNU_SOURCE
+.br
+\fBmkstemps\fP()\ : _BSD_SOURCE || _SVID_SOURCE
+.br
+\fBmkostemps\fP()\ : _GNU_SOURCE
+.SH DESCRIPTION
+La fonction \fBmkstemp\fP() engendre un nom de fichier temporaire unique, à
+partir du motif \fItemplate\fP, crée et ouvre le fichier, et renvoie un
+descripteur de fichier ouvert pour ce fichier.
+
+Les 6 derniers caractères de \fItemplate\fP doivent être XXXXXX, et ils seront
+remplacés par une chaîne rendant le nom de fichier unique. Comme il sera
+modifié, \fItemplate\fP ne doit pas être une chaîne constante, mais un tableau
+de caractères.
+
+Le fichier est créé en mode 0600, c'est\-à\-dire en lecture et écriture pour
+le propriétaire seulement. Le descripteur de fichier renvoyé fournit les
+accès en lecture et en écriture sur le fichier. Le fichier est ouvert avec
+l'attribut \fBO_EXCL\fP de \fBopen\fP(2), garantissant que l'appelant soit le
+processus qui ait créé le fichier.
+
+La fonction \fBmkostemp\fP() agit comme \fBmkstemp\fP(), à la différence que les
+attributs, comme pour \fBopen\fP(2), peuvent être définis dans \fIflags\fP
+(c'est\-à\-dire, \fBO_APPEND\fP, \fBO_SYNC\fP).
+
+La fonction \fBmkstemps\fP() agit comme \fBmkstemp\fP(), sauf que la chaîne dans
+\fItemplate\fP contient un suffixe de \fIsuffixlen\fP caractères. Ainsi,
+\fItemplate\fP est de la forme \fIpréfixeXXXXXXsuffixe\fP, et la chaîne XXXXXX est
+modifiée comme dans \fBmkstemp\fP().
+
+La fonction \fBmkostemps\fP() est à \fBmkstemps\fP() ce que \fBmkostemp\fP() est à
+\fBmkstemp\fP().
+.SH "VALEUR RENVOYÉE"
+Si elles réussissent, ces fonctions renvoient le descripteur du fichier
+temporaire créé ou \-1 si elles échouent, auquel cas \fIerrno\fP contient le
+code d'erreur.
+.SH ERREURS
+.TP 
+\fBEEXIST\fP
+Impossible de créer un nom de fichier unique. Le contenu \fItemplate\fP est
+imprévisible.
+.TP 
+\fBEINVAL\fP
+Pour \fBmkstemp\fP() et \fBmkostemp\fP()\ : les six derniers caractères de
+\fItemplate\fP ne sont pas XXXXXX\ ; \fItemplate\fP n'est pas modifiée.
+.sp
+Pour \fBmkstemps\fP() et \fBmkostemps\fP()\ : \fItemplate\fP a une longueur inférieure
+à \fI(6 + suffixlen)\fP, ou les 6 derniers caractères avant le suffixe ne sont
+pas XXXXXX.
+.PP
+Ces fonctions peuvent également échouer avec chacune des erreurs décrites
+pour \fBopen\fP(2).
+.SH VERSIONS
+\fBmkostemp\fP() est disponible depuis la glibc\ 2.7. \fBmkstemps\fP() et
+\fBmkostemps\fP() sont disponibles depuis la glibc\ 2.11.
+.SH CONFORMITÉ
+\fBmkstemp\fP()\ : 4.3BSD, POSIX.1\-2001.
+
+.\" mkstemps() appears to be at least on the BSDs, Mac OS X, Solaris,
+.\" and Tru64.
+\fBmkstemps\fP()\ : non standard, mais existe sur plusieurs autres systèmes.
+
+\fBmkostemp\fP() et \fBmkostemps\fP() sont des extensions de la glibc.
+.SH NOTES
+Dans la version\ 2.06 de la glibc et auparavant, le fichier était créé en
+mode 0666, c'est\-à\-dire en lecture et écriture pour tous les
+utilisateurs. Cet ancien comportement est un trou de sécurité potentiel,
+surtout depuis que les autres dérivés UNIX utilisent le mode 0600 et
+quelqu'un risque d'oublier ce détail en effectuant un portage de
+programme. POSIX.1\-2008 ajoute l'obligation de créer ce fichier en mode
+0600.
+
+Plus généralement, la spécification POSIX de \fBmkstemp\fP() ne dit rien des
+modes des fichiers, ainsi les applications doivent s'assurer que la valeur
+du masque de mode de création de fichiers (consultez \fBumask\fP(2)) est
+correcte avant d'appeler \fBmkstemp\fP() (et \fBmkostemp\fP()).
+
+Le prototype de \fBmktemp\fP() se trouve dans \fI<unistd.h>\fP pour libc4,
+libc5, glibc1. Glibc2 suit POSIX.1 et possède le prototype dans
+\fI<stdlib.h>\fP.
+.SH "VOIR AUSSI"
+\fBmkdtemp\fP(3), \fBmktemp\fP(3), \fBtempnam\fP(3), \fBtmpfile\fP(3), \fBtmpnam\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

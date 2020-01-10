@@ -1,0 +1,141 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_ATTR_SETSTACK 3 "24 octobre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_attr_setstack, pthread_attr_getstack \- Définir ou obtenir les
+attributs de pile d'un objet d'attributs de thread
+.SH SYNOPSIS
+.nf
+\fB#include <pthread.h>\fP
+
+\fBint pthread_attr_setstack(pthread_attr_t *\fP\fIattr\fP\fB,\fP
+\fB                          void *\fP\fIstackaddr\fP\fB, size_t \fP\fIstacksize\fP\fB);\fP
+\fBint pthread_attr_getstack(pthread_attr_t *\fP\fIattr\fP\fB,\fP
+\fB                          void **\fP\fIstackaddr\fP\fB, size_t *\fP\fIstacksize\fP\fB);\fP
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBpthread_attr_getstack\fP(), \fBpthread_attr_setstack\fP()\ :
+.RS 4
+_POSIX_C_SOURCE\ >=\ 200112L || _XOPEN_SOURCE\ >=\ 600
+.RE
+.ad b
+.SH DESCRIPTION
+La fonction \fBpthread_attr_setstack\fP() définit l'adresse et la taille de la
+pile dans l'objet d'attributs de thread auquel \fIattr\fP fait référence, à
+partir des valeurs indiquées par \fIstackaddr\fP et \fIstacksize\fP
+respectivement. Ces attributs indique l'emplacement et la taille de la pile
+qui doit être utilisée par un thread qui est créé en utilisant \fIattr\fP.
+
+\fIstackaddr\fP devrait pointer vers l'octet adressable d'adresse la plus basse
+d'un tampon de \fIstacksize\fP octets, alloué par l'appelant. Les pages du
+tampon alloué devraient être accessibles en lecture et écriture.
+
+La fonction \fBpthread_attr_getstack\fP() renvoie, respectivement dans les
+tampons pointé par \fIstackaddr\fP et \fIstacksize\fP, l'adresse et la taille de
+la pile d'un objet d'attributs de thread auquel \fIattr\fP fait référence.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient 0\ ; en cas d'erreur elles
+renvoient un numéro d'erreur non nul.
+.SH ERREURS
+\fBpthread_attr_setstack\fP() peut échouer avec les erreurs suivantes\ :
+.TP 
+\fBEINVAL\fP
+\fIstacksize\fP est inférieur à \fBPTHREAD_STACK_MIN\fP (16384) octets. Sur
+certains systèmes, cette erreur peut également se produire si \fIstackaddr\fP
+ou \fIstackaddr\ +\ stacksize\fP n'est pas aligné correctement.
+.PP
+POSIX.1\-2001 documente également une erreur \fBEACCES\fP si la zone de pile
+décrite par \fIstackaddr\fP et \fIstacksize\fP n'est pas accessible en lecture ou
+écriture par l'appelant.
+.SH VERSIONS
+Ces fonctions sont fournies par la glibc depuis la version\ 2.1.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Ces fonctions sont fournies pour les applications qui doivent assurer que la
+pile d'un thread se trouve à un emplacement particulier. Pour la plupart des
+applications, ce n'est pas nécessaire, et l'utilisation de cette fonction
+devrait être évitée. (Utilisez \fBpthread_attr_setstacksize\fP(3) si une
+application a juste besoin d'une pile de taille différente de la taille par
+défaut.)
+
+Quand une application utilise \fBpthread_attr_setstack\fP(), elle prend la
+responsabilité d'allouer la pile. Si une taille de garde a été définie en
+utilisant \fBpthread_attr_setguardsize\fP(3), elle est ignorée. Si c'est
+nécessaire, l'application est responsable de l'allocation d'une zone de
+protection (une page ou plus protégées en lecture et écriture) pour prendre
+en charge la possibilité d'un débordement de pile.
+
+L'adresse indiquée par \fIstackaddr\fP devrait être alignée correctement\ : pour
+une compatibilité complète, il faut l'aligner sur une limite de page
+(\fIsysconf(_SC_PAGESIZE)\fP). \fBposix_memalign\fP(3) peut être utile pour
+l'allocation. \fIstacksize\fP devrait probablement aussi être un multiple de la
+taille des pages système.
+
+Si \fIattr\fP est utilisé pour créer plusieurs threads, alors l'appelant doit
+changer l'attribut de l'adresse de la pile entre les appels à
+\fBpthread_create\fP(3)\ ; sinon, les threads vont chercher à utiliser la même
+zone mémoire pour leurs piles, ce qui ne pourra que créer du chaos.
+.SH EXEMPLE
+Consultez \fBpthread_attr_init\fP(3).
+.SH "VOIR AUSSI"
+.ad l
+.nh
+\fBmmap\fP(2), \fBmprotect\fP(2), \fBposix_memalign\fP(3), \fBpthread_attr_init\fP(3),
+\fBpthread_attr_setguardsize\fP(3), \fBpthread_attr_setstackaddr\fP(3),
+\fBpthread_attr_setstacksize\fP(3), \fBpthread_create\fP(3), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

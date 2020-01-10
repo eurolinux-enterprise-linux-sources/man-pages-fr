@@ -1,0 +1,52 @@
+.\" This page was taken from the 4.4BSD-Lite CDROM (BSD license)
+.\"
+.\" %%%LICENSE_START(BSD_ONELINE_CDROM)
+.\" This page was taken from the 4.4BSD-Lite CDROM (BSD license)
+.\" %%%LICENSE_END
+.\"
+.\" @(#)getrpcport.3r	2.2 88/08/02 4.0 RPCSRC; from 1.12 88/02/26 SMI
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETRPCPORT 3 "23 décembre 2007" "" "Manuel du programmeur Linux"
+.SH NOM
+getrpcport \- Renvoyer un numéro de port RPC
+.SH SYNOPSIS
+.nf
+\fBint getrpcport(char *\fP\fIhost\fP\fB, int \fP\fIprognum\fP\fB, int \fP\fIversnum\fP\fB, int \fP\fIproto\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBgetrpcport\fP() renvoie le numéro de port pour la version \fIversnum\fP du
+programme RPC \fIprognum\fP qui fonctionne sur la machine \fIhost\fP et utilisant
+le protocole \fIproto\fP. Elle renvoie 0 s'il n'est pas possible de contacter
+le «\ portmapper\ », ou si \fIprognum\fP n'est pas déclaré. Si \fIprognum\fP est
+déclaré mais la version \fIversnum\fP n'est pas celle employée, un numéro de
+port sera bien renvoyé (pour certaines versions du programme), indiquant que
+le programme est bien enregistré. L'erreur de version ne sera détectée qu'au
+premier appel à ce service.
+.SH CONFORMITÉ
+Absent de POSIX.1\-2001. Présent sur les systèmes BSD, Solaris et beaucoup
+d'autres.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,169 @@
+.\" Copyright (C) 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 18:26:16 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Thu Apr 11 17:11:33 1996 by Andries Brouwer (aeb@cwi.nl):
+.\"     Corrected type of compar routines, as suggested by
+.\"     Miguel Barreiro (enano@avalon.yaix.es).  Added example.
+.\" Modified Sun Sep 24 20:15:46 2000 by aeb, following Petter Reinholdtsen.
+.\" Modified 2001-12-26 by aeb, following Joey. Added versionsort.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SCANDIR 3 "19 avril 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+scandir, alphasort, versionsort \- Sélectionner des éléments d'un répertoire
+.SH SYNOPSIS
+.nf
+\fB#include <dirent.h>\fP
+.sp
+\fBint scandir(const char *\fP\fIdirp\fP\fB, struct dirent ***\fP\fInamelist\fP\fB,\fP
+.RS
+\fBint (*\fP\fIfilter\fP\fB)(const struct dirent *),\fP
+\fBint (*\fP\fIcompar\fP\fB)(const struct dirent **, const struct dirent **));\fP
+.RE
+.sp
+\fBint alphasort(const void *\fP\fIa\fP\fB, const void *\fP\fIb\fP\fB);\fP
+.sp
+\fBint versionsort(const void *\fP\fIa\fP\fB, const void *\fP\fIb\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBscandir\fP(), \fBalphasort\fP()\ : _BSD_SOURCE || _SVID_SOURCE
+.br
+\fBversionsort\fP()\ : _GNU_SOURCE
+.SH DESCRIPTION
+La fonction \fBscandir\fP() examine le répertoire \fIdirp\fP, en appelant
+\fIfilter\fP() pour chaque élément rencontré. Les entrées pour lesquelles
+\fIfilter\fP() renvoie une valeur non nulle sont stockées dans une table
+allouée avec \fBmalloc\fP(3), triée avec \fBqsort\fP(3) en utilisant la fonction
+de comparaison \fIcompar\fP(), puis regroupées dans une table \fInamelist\fP
+allouée avec \fBmalloc\fP(3). Si \fIfilter\fP est NULL, toutes les entrées sont
+sélectionnées.
+.LP
+Les fonctions \fBalphasort\fP() et \fBversionsort\fP() peuvent être utilisées
+comme fonction de comparaison \fIcompar\fP. La première trie les entrées du
+répertoire en ordre alphabétique en utilisant \fBstrcoll\fP(3), la seconde en
+utilisant \fBstrverscmp\fP(3) sur les chaînes \fI(*a)\->d_name\fP et
+\fI(*b)\->d_name\fP.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBscandir\fP() renvoie le nombre d'entrées de répertoires
+sélectionnées s'il réussit, ou \-1 s'il échoue, avec \fIerrno\fP qui contient le
+code d'erreur.
+.PP
+Les fonctions \fBalphasort\fP() et \fBversionsort\fP() renvoient un entier
+négatif, nul, ou positif si le premier argument est respectivement
+inférieur, égal ou supérieur au second.
+.SH ERREURS
+.TP 
+\fBENOENT\fP
+Le chemin n'existe pas dans \fIdirp\fP.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour terminer l'opération.
+.TP 
+\fBENOTDIR\fP
+Le chemin n'est pas un répertoire de \fIdirp\fP.
+.SH VERSIONS
+\fBversionsort\fP() a été ajoutée à la glibc dans la version 2.1.
+.SH CONFORMITÉ
+\fBalphasort\fP() et \fBscandir\fP() sont spécifiées dans POSIX.1\-2008 et sont
+disponibles largement. \fBversionsort\fP() est une extension GNU.
+.LP
+Les fonctions \fBscandir\fP() et \fBalphasort\fP() proviennent de BSD\ 4.3 et sont
+disponibles sous Linux depuis libc4. Les bibliothèques libc4 et libc5
+utilisent le prototype plus précis
+.sp
+.nf
+    int alphasort(const struct dirent ** a,
+                  const struct dirent **b);
+.fi
+.sp
+mais la glibc 2.0 est revenue au prototype BSD imprécis.
+.LP
+La fonction \fBversionsort\fP() est une extension GNU, disponible depuis la
+glibc 2.1.
+.LP
+Depuis la glibc 2.1, la fonction \fBalphasort\fP() invoque \fBstrcoll\fP(3). Dans
+les versions précédentes, elle appelait \fBstrcmp\fP(3).
+.SH EXEMPLE
+.nf
+#define _SVID_SOURCE
+/* Afficher le contenu du répertoire en ordre inverse */
+#include <dirent.h>
+
+int
+main(void)
+{
+    struct dirent **namelist;
+    int n;
+
+    n = scandir(".", &namelist, NULL, alphasort);
+    if (n < 0)
+        perror("scandir");
+    else {
+        while (n\-\-) {
+            printf("%s\en", namelist[n]\->d_name);
+            free (namelist [n]);
+        }
+        free (namelist);
+    }
+}
+.fi
+.SH "VOIR AUSSI"
+\fBclosedir\fP(3), \fBfnmatch\fP(3), \fBopendir\fP(3), \fBreaddir\fP(3),
+\fBrewinddir\fP(3), \fBscandirat\fP(3), \fBseekdir\fP(3), \fBstrcmp\fP(3),
+\fBstrcoll\fP(3), \fBstrverscmp\fP(3), \fBtelldir\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,94 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH WCSTOMBS 3 "16 octobre 2011" GNU "Manuel du programmeur Linux"
+.SH NOM
+wcstombs \- Convertir une chaîne de caractères étendus en chaîne de
+caractères multioctet
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBsize_t wcstombs(char *\fP\fIdest\fP\fB, const wchar_t *\fP\fIsrc\fP\fB, size_t \fP\fIn\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Si \fIdest\fP n'est pas un pointeur NULL, la fonction \fBwcstombs\fP() convertit
+la chaîne de caractères larges \fIsrc\fP vers la séquence multioctet située en
+\fIdest\fP. Au plus \fIn\fP octets seront écrits dans \fIdest\fP. La conversion
+débute dans l'état initial. La conversion peut se terminer pour trois
+raisons\ :
+.PP
+1. Un caractère large que l'on ne peut pas représenter par une séquence
+multioctet (dans la locale utilisée) a été rencontré. Dans ce cas, la
+fonction renverra \fI(size_t)\ \-1\fP.
+.PP
+2. La limite de longueur force l'arrêt. Dans ce cas, le nombre d'octets
+écrits dans \fIdest\fP est renvoyé, mais l'état de décalage est perdu.
+.PP
+3. La chaîne de caractères larges a été complètement convertie, y compris le
+L\(aq\e0\(aq final. Dans ce cas, la conversion se termine dans l'état
+initial. La fonction renvoie le nombre d'octets écrits dans \fIdest\fP, sans
+compter l'octet nul («\ \e0\ ») final.
+.PP
+Le programmeur doit s'assurer qu'il y a assez de place pour au moins \fIn\fP
+octets au minimum dans \fIdest\fP.
+.PP
+Si \fIdest\fP est NULL, la longueur \fIn\fP est ignorée, et la conversion se
+déroule comme précédemment, sauf que les octets convertis ne sont pas écrits
+en mémoire, et qu'il n'y a pas de limite de longueur en destination.
+.PP
+Pour éviter le cas 2 ci\-dessus, le programmeur doit s'assurer que \fIn\fP est
+supérieur ou égal à \fIwcstombs(NULL,src,0)+1\fP.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBwcstombs\fP() renvoie le nombre d'octets constituant la partie
+convertie de la séquence multioctet, sans compter l'octet nul final. Si elle
+rencontre un caractère large qu'elle ne peut convertir, elle renvoie
+\fI(size_t)\ \-1\fP.
+.SH CONFORMITÉ
+C99.
+.SH NOTES
+Le comportement de \fBwcstombs\fP() dépend de la catégorie \fBLC_CTYPE\fP de la
+locale utilisée.
+.PP
+La fonction \fBwcsrtombs\fP(3) fournit une interface sûre en contexte
+multithread pour la même fonctionnalité.
+.SH "VOIR AUSSI"
+\fBmbstowcs\fP(3), \fBwcsrtombs\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

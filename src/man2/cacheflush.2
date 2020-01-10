@@ -1,0 +1,93 @@
+.\" Written by Ralf Baechle (ralf@waldorf-gmbh.de),
+.\" Copyright (c) 1994, 1995 Waldorf GMBH
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CACHEFLUSH 2 "26 mai 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+cacheflush \- Vider le contenu des mémoires caches
+.SH SYNOPSIS
+.nf
+\fB#include <asm/cachectl.h>\fP
+.sp
+\fBint cacheflush(char *\fP\fIaddr\fP\fB, int \fP\fInbytes\fP\fB, int \fP\fIcache\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBcacheflush\fP() vide le contenu des mémoires caches de l'espace d'adressage
+utilisateur compris entre \fIaddr\fP et \fI(addr+nbytes\-1)\fP. La mémoire \fIcache\fP
+est l'une des suivantes\ :
+.TP 
+\fBICACHE\fP
+Vider le cache d'instructions.
+.TP 
+\fBDCACHE\fP
+Réécrire le cache en mémoire et invalider le cache concerné.
+.TP 
+\fBBCACHE\fP
+Identique à \fB(ICACHE|DCACHE)\fP.
+.SH "VALEUR RENVOYÉE"
+\fBcacheflush\fP() renvoie 0 s'il réussit. En cas d'échec, \-1 est renvoyé et
+\fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+Une partie de l'espace d'adressage entre \fIaddr\fP et \fI(addr+nbytes\-1)\fP n'est
+pas accessible.
+.TP 
+\fBEINVAL\fP
+Le paramètre \fIcache\fP est différent de \fBICACHE\fP, \fBDCACHE\fP ou \fBBCACHE\fP.
+.SH CONFORMITÉ
+.\" FIXME This system call was only on MIPS back in 1.2 days, but
+.\" by now it is on a number of other architectures (but not i386).
+.\" Investigate the details and update this page.
+.\" Irix 6.5 appears to have a cacheflush() syscall -- mtk
+Cet appel système spécifique à Linux n'est disponible que sur les systèmes
+MIPS, il ne faut pas l'employer dans un programme destiné à être portable.
+.SH BOGUES
+L'implémentation actuelle ignore les paramètres \fIaddr\fP et \fInbytes\fP. À la
+place, le cache entier est toujours vidé.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

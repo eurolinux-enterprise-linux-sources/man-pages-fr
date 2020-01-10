@@ -1,0 +1,82 @@
+.\"  Copyright 2001 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" aeb: some corrections
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH DYSIZE 3 "22 septembre 2010" GNU "Manuel du programmeur Linux"
+.SH NOM
+dysize \- Obtenir le nombre de jours d'une année donnée
+.SH SYNOPSIS
+\fB#include <time.h>\fP
+.sp
+\fBint dysize(int \fP\fIyear\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBdysize\fP()\ : _BSD_SOURCE || _SVID_SOURCE
+.SH DESCRIPTION
+La fonction renvoie 365 pour une année normale et 366 pour une année
+bissextile. L'identification d'une année bissextile repose sur le calcul
+suivant\ :
+.sp
+(year) %4 == 0 && ((year) %100 != 0 || (year) %400 == 0)
+.sp
+La formule est définie dans la macro \fI__isleap(year)\fP que l'on trouve
+également dans \fI<time.h>\fP.
+.SH CONFORMITÉ
+Cette fonction apparaît dans SunOS 4.x.
+.SH NOTES
+.\" The SCO version of this function had a year-2000 problem.
+Il s'agit seulement d'une fonction à vocation de compatibilité. Ne
+l'utilisez pas dans de nouveaux programmes.
+.SH "VOIR AUSSI"
+\fBstrftime\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

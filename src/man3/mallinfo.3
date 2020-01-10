@@ -1,0 +1,269 @@
+.\" t
+.\" Copyright (c) 2012 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MALLINFO 3 "6 mai 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+mallinfo \- Obtenir les paramètres d'allocation de mémoire
+.SH SYNOPSIS
+\fB#include <malloc.h>\fP
+
+\fBstruct mallinfo mallinfo(void);\fP
+.SH DESCRIPTION
+La fonction \fBmallinfo\fP() renvoie une copie de la structure contenant les
+détails des allocations mémoires effectuées par \fBmalloc\fP(3) et pour
+d'autres fonctions associées. La structure est déclarée comme suit\ :
+.PP
+.in +4n
+.nf
+struct mallinfo {
+    int arena;     /* Espace alloué en mémoire non projetée (o) */
+    int ordblks;   /* Nombre de fragments libres */
+    int smblks;    /* Nombre de blocs «\ fastbin\ » libres */
+    int hblks;     /* Nombre de zones de mémoire projetée */
+    int hblkhd;    /* Espace alloué en zones de mém. projetée (o) */
+    int usmblks;   /* Maximum total d'espace alloué (octet) */
+    int fsmblks;   /* Espace en blocs «\ fastbin\ » libérés (octet) */
+    int uordblks;  /* Espace alloué total (octet) */
+    int fordblks;  /* Espace libre total (octet) */
+    int keepcost;  /* Plus grand espace libérable (octet) */
+};
+.fi
+.in
+.PP
+Les champs de la structure \fImallinfo\fP contiennent les informations
+suivantes\ :
+.TP  10
+\fIarena\fP
+La quantité de mémoire allouée par d'autres moyens que \fBmmap\fP(2)
+(c'est\-à\-dire la mémoire allouée dans le tas). Ce chiffre inclut à la fois
+les blocs en cours d'utilisation et ceux marqués comme libres.
+.TP 
+\fIordblks\fP
+Le nombre de blocs libres normaux (c'est\-à\-dire non «\ fastbin\ »).
+.TP 
+\fIsmblks\fP
+Le nombre de blocs libres «\ fastbin\ » (consultez \fBmallopt\fP(3)).
+.TP 
+\fIhblks\fP
+Le nombre de blocs actuellement alloués par \fBmmap\fP(2). Consultez
+\fBmallopt\fP(3) pour l'explication de \fBM_MMAP_THRESHOLD\fP.
+.TP 
+\fIhblkhd\fP
+Le nombre d'octets des blocs actuellement alloués par \fBmmap\fP(2).
+.TP 
+\fIusmblks\fP
+Le «\ niveau haut\ » d'espace alloué —\ c'est\-à\-dire la quantité d'espace qui a
+déjà été allouée. Ce champ n'est maintenu que dans les environnements sans
+thread.
+.TP 
+\fIfsmblks\fP
+Le nombre total d'octets dans les blocs libres «\ fastbin\ ».
+.TP 
+\fIuordblks\fP
+Le nombre total d'octets consommés par des allocations en cours
+d'utilisation.
+.TP 
+\fIfordblks\fP
+Le nombre total d'octets dans les blocs libres.
+.TP 
+\fIkeepcost\fP
+.\" .SH VERSIONS
+.\" Available already in glibc 2.0, possibly earlier
+La quantité total d'espace libérable en plus du tas. C'est le nombre maximal
+d'octets qui pourraient au mieux (c'est\-à\-dire en ignorant les restrictions
+d'alignement de page, etc.) être libérés par \fBmalloc_trim\fP(3).
+.SH CONFORMITÉ
+Cette fonction n'est pas spécifiée par les standards POSIX ou C. Une
+fonction similaire existe sur de nombreux dérivés de «\ System\ V\ », met était
+spécifiée dans SVID.
+.SH BOGUES
+.\" FIXME http://sourceware.org/bugzilla/show_bug.cgi?id=208
+.\" See the 24 Aug 2011 mail by Paul Pluzhnikov:
+.\"     "[patch] Fix mallinfo() to accumulate results for all arenas"
+.\" on libc-alpha@sourceware.org
+\fBLes renseignements ne sont renvoyés que pour la zone principale
+d'allocation de mémoire.\fP Les allocations dans les autres enclos mémoires
+(«\ arenas\ ») sont exclues. Consultez \fBmalloc_stats\fP(3) et \fBmalloc_info\fP(3)
+pour les alternatives qui contiennent des renseignements sur d'autres enclos
+mémoires.
+
+Les champs de la structure \fImallinfo\fP sont notés de type \fIint\fP. Cependant,
+puisque certaines valeurs servant à la gestion interne pourraient être de
+type \fIlong\fP, les valeurs rendues pourraient être arrondies à zéro et être
+par conséquent incorrectes.
+.SH EXEMPLE
+Le programme ci\-dessous utilise \fBmallinfo\fP() pour récupérer les
+statistiques d'allocation de mémoire avant et après l'allocation et la
+libération de certains blocs de mémoire. Les statistiques sont affichées sur
+la sortie standard.
+
+Les deux premiers paramètres en ligne de commande définissent le nombre et
+la taille des blocs à allouer avec \fBmalloc\fP(3).
+
+Les trois arguments restants définissent les blocs alloués qui devraient
+être libérés avec \fBfree\fP(3). Ces trois arguments sont facultatifs, et
+définissent (dans l'ordre)\ : la taille du pas à utiliser dans la boucle qui
+libère les blocs (1 par défaut, ce qui signifie de libérer tous les blocs de
+l'intervalle)\ : la position du premier bloc à libérer (0 par défaut, ce qui
+signifie le premier bloc alloué)\ ; et un nombre suivant directement la
+position du dernier bloc à libérer (le nombre suivant directement le nombre
+maximal de blocs par défaut). Si aucun de ces trois arguments n'est présent,
+tous les blocs seront libérés par défaut.
+
+Dans l'exemple suivant, 1000\ allocations de 100\ octets sont effectuées, puis
+chaque deuxième bloc alloué est libéré\ :
+.PP
+.in +4n
+.nf
+$ \fB./a.out 1000 100 2\fP
+============= Avant allocation des blocs =============
+Total d'o en mém. non projetée (arena) : 0
+Nb. de fragments libres (ordblks)\ :      1
+Nb. de blocs fastbin libres (smblks)\ :   0
+Nb. de zones de mémoire projetée\ :       0
+Octets en mém. non projetée (hblkhd)\ :   0
+Max. total d'espace alloué (usmblks)\ :   0
+Octets libres en fastbins (fsmblks)\ :    0
+Espace alloué total (uordblks)\ :         0
+Espace libre total (fordblks)\ :          0
+
+============= Après libération des blocs =============
+Total d'o en mém. non projetée (arena) : 135168
+Nb. de fragments libres (ordblks)\ :      1
+Nb. de blocs fastbin libres (smblks)\ :   0
+Nb. de zones de mémoire projetée\ :       0
+Octets en mém. non projetée (hblkhd)\ :   0
+Max. total d'espace alloué (usmblks)\ :   0
+Octets libres en fastbins (fsmblks)\ :    104000
+Espace alloué total (uordblks)\ :         31168
+Espace libre total (fordblks)\ :          31168
+
+============= Avant allocation des blocs =============
+Total d'o en mém. non projetée (arena) : 135168
+Nb. de fragments libres (ordblks)\ :      501
+Nb. de blocs fastbin libres (smblks)\ :   0
+Nb. de zones de mémoire projetée\ :       0
+Octets en mém. non projetée (hblkhd)\ :   0
+Max. total d'espace alloué (usmblks)\ :   0
+Octets libres en fastbins (fsmblks)\ :    52000
+Espace alloué total (uordblks)\ :         83168
+Espace libre total (fordblks)\ :          31168
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <malloc.h>
+#include "tlpi_hdr.h"
+
+static void
+display_mallinfo(void)
+{
+    struct mallinfo mi;
+
+    mi = mallinfo();
+
+    printf("Total d'o en mém. non projetée (arena)\ : %d\en", mi.arena);
+    printf("Nb. de fragments libres (ordblks)\ :      %d\en", mi.ordblks);
+    printf("Nb. de blocs fastbin libres (smblks)\ :   %d\en", mi.smblks);
+    printf("Nb. de zones de mémoire projetée\ :       %d\en", mi.hblks);
+    printf("Octets en mém. non projetée (hblkhd)\ :   %d\en", mi.hblkhd);
+    printf("Max. total d'espace alloué (usmblks)\ :   %d\en", mi.usmblks);
+    printf("Octets libres en fastbins (fsmblks)\ :    %d\en", mi.fsmblks);
+    printf("Espace alloué total (uordblks)\ :         %d\en", mi.uordblks);
+    printf("Espace libre total (fordblks)\ :          %d\en", mi.fordblks);
+    printf("Plus grand bloc libérable (keepcost)\ :   %d\en", mi.keepcost);
+}
+
+int
+main(int argc, char *argv[])
+{
+#define MAX_ALLOCS 2000000
+    char *alloc[MAX_ALLOCS];
+    int nbBlocs, j, debutLib, finLib, pasLib;
+    size_t tailleBloc;
+
+    if (argc < 3 || strcmp(argv[1], "\-\-help") == 0)
+        usageErr("%s nb\-blocs taille\-bloc [pas\-lib [début\-lib "
+                "[fin\-lib]]]\en", argv[0]);
+
+    nbBlocs = atoi(argv[1]);
+    tailleBloc = atoi(argv[2]);
+    pasLib = (argc > 3) ? atoi(argv[3]) : 1;
+    debutLib = (argc > 4) ? atoi(argv[4]) : 0;
+    finLib = (argc > 5) ? atoi(argv[5]) : nbBlocs;
+
+    printf("============= Avant allocation des blocs =============\en");
+    display_mallinfo();
+
+    for (j = 0; j < nbBlocs; j++) {
+        if (nbBlocs >= MAX_ALLOCS)
+            fatal("Trop d'allocations");
+
+        alloc[j] = malloc(tailleBloc);
+        if (alloc[j] == NULL)
+            errExit("malloc");
+    }
+
+    printf("\en============= Après allocation des blocs =============\en");
+    display_mallinfo();
+
+    for (j = debutLib; j < finLib; j += pasLib)
+        free(alloc[j]);
+
+    printf("\en============= Après libération des blocs =============\en");
+    display_mallinfo();
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+.ad l
+.nh
+\fBmmap\fP(2), \fBmalloc\fP(3), \fBmalloc_info\fP(3), \fBmalloc_stats\fP(3),
+\fBmalloc_trim\fP(3), \fBmallopt\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

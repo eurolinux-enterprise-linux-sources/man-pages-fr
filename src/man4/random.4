@@ -1,0 +1,263 @@
+.\" Copyright (c) 1997 John S. Kallal (kallal@voicenet.com)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" Some changes by tytso and aeb.
+.\"
+.\" 2004-12-16, John V. Belmonte/mtk, Updated init and quit scripts
+.\" 2004-04-08, AEB, Improved description of read from /dev/urandom
+.\" 2008-06-20, George Spelvin <linux@horizon.com>,
+.\"             Matt Mackall <mpm@selenic.com>
+.\"     Add a Usage subsection that recommends most users to use
+.\"     /dev/urandom, and emphasizes parsimonious usage of /dev/random.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RANDOM 4 "15 mars 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+random, urandom \- Périphériques générateurs aléatoires du noyau
+.SH SYNOPSIS
+#include <linux/random.h>
+.sp
+\fBint ioctl(\fP\fIfd\fP\fB, RND\fP\fIrequête\fP\fB, \fP\fIparam\fP\fB);\fP
+.SH DESCRIPTION
+Les fichiers spéciaux en mode caractère \fI/dev/random\fP et \fI/dev/urandom\fP
+(existants depuis Linux 1.3.30) fournissent une interface avec le générateur
+de nombres aléatoires du noyau. Le fichier \fI/dev/random\fP a un numéro de
+périphérique majeur égal à 1, et un numéro mineur égal à 8. Les numéros du
+périphérique \fI/dev/urandom\fP sont 1 pour le majeur, et 9 pour le mineur.
+.LP
+Le générateur de nombres aléatoires regroupe du bruit provenant de son
+environnement par l'intermédiaire des pilotes de périphériques et d'autres
+sources, et le stocke dans un réservoir d'entropie. Le générateur mémorise
+également une estimation du nombre de bits de bruit dans son réservoir
+d'entropie, et utilise son contenu pour créer des nombres aléatoires.
+.LP
+Lors d'une lecture, le périphérique \fI/dev/random\fP sera limité au nombre de
+bits de bruit contenus dans le réservoir d'entropie. \fI/dev/random\fP est
+particulièrement adapté pour les cas où l'on a ponctuellement besoin de
+nombres hautement aléatoires (création de clés par exemple). Lorsque le
+réservoir d'entropie est vide, les lectures depuis le périphérique
+\fI/dev/random\fP seront bloquantes jusqu'à l'obtention de suffisamment de
+bruit en provenance de l'environnement.
+.LP
+Lors d'une lecture, \fI/dev/urandom\fP renverra autant d'octets qu'on en
+demande. Toutefois, s'il n'y a plus assez de bits disponibles dans le
+réservoir d'entropie, les valeurs renvoyées pourraient être théoriquement
+vulnérables à une cryptanalyse basée sur l'algorithme employé par le
+pilote. Il n'existe pas de documentation sur ce type d'attaque dans la
+littérature publique actuelle, mais cela n'élimine pas le risque
+théorique. Si ce risque est important pour votre application, utilisez
+plutôt \fI/dev/random\fP à la place.
+.LP
+Écrire dans \fI/dev/random\fP ou \fI/dev/urandom\fP mettra à jour le réservoir
+d'entropie avec les données écrites, mais n'augmentera pas le décompte
+d'entropie. Cela signifie que le contenu lu des deux fichiers sera affecté,
+mais que ça ne rendra pas les lectures de \fI/dev/random\fP plus rapides.
+.SS Utilisation
+Si vous ne savez pas très bien s'il vous faut utiliser \fI/dev/random\fP ou
+\fI/dev/urandom\fP, alors utilisez ce dernier. En règle générale,
+\fI/dev/urandom\fP est à utiliser pour tout sauf les clés GPG/SSL/SSH à longue
+durée de vie.
+
+Si un réservoir d'entropie est sauvé d'un redémarrage à l'autre comme
+recommandé ci\-dessous (toutes les distributions majeures de Linux font cela
+depuis au plus tard l'an 2000), la sortie est cryptographiquement sûre vis à
+vis d'attaquants sans accès local comme superutilisateur, à la condition que
+ce fichier soit rechargé au démarrage et suffisant pour les clés de
+chiffrement de sessions réseau. Comme la lecture depuis \fI/dev/random\fP peut
+être bloquante, les utilisateurs l'ouvrent généralement dans un mode non
+bloquant (ou en effectuant la lecture avec un délai d'expiration) et
+fournissent un système de notification lorsque l'entropie demandée n'est pas
+immédiatement disponible.
+
+Le générateur de nombres aléatoires du noyau est conçu pour produire une
+faible quantité de données de haute qualité destinées à initialiser un
+générateur de nombres pseudoaléatoires («\ cryptographic pseudo\-random number
+generator\ » ou CPRNG). Il est conçu pour la sécurité et non la vitesse, et
+n'est pas adapté à la génération de grandes quantités de données
+aléatoires. Les utilisateurs doivent être très économes sur leur utilisation
+de \fI/dev/urandom\fP (et \fI/dev/random\fP)\ : des lectures inutiles de grandes
+quantités de données auront un impact négatif sur les autres utilisateurs de
+ces sources.
+
+La quantité de données d'initialisation nécessaire pour générer une clé de
+chiffrement est égale à la taille utile de la clé. Par exemple, une clé
+privée RSA ou Diffie\-Hellman de 3072\ bits a une taille utile de 128\ bits
+(2^128\ calculs sont nécessaires pour la casser) et a donc besoin de 128\ bits
+(16\ octets) aléatoires issus de \fI/dev/random\fP.
+
+Bien qu'une marge d'incertitude au\-dessus de ce minimum soit acceptable,
+pour contourner les faiblesses de l'algorithme du générateur de nombres
+pseudoaléatoires cryptographique, aucune primitive de cryptographie ne peut
+espérer aujourd'hui garantir plus de 256\ bits de sécurité. Aussi, si un
+programme puise plus de 256\ bits (32\ octets) dans le réservoir d'entropie du
+noyau, par invocation ou après un intervalle de réapprovisionnement
+raisonnable (au moins une minute), cela laisse supposer que la cryptographie
+est \fImaladroitement\fP implémentée.
+.SS Configuration
+Si votre système ne dispose pas des fichiers \fI/dev/random\fP et
+\fI/dev/urandom\fP vous pouvez les créer avec les commandes suivantes\ :
+
+.nf
+    mknod \-m 644 /dev/random c 1 8
+    mknod \-m 644 /dev/urandom c 1 9
+    chown root:root /dev/random /dev/urandom
+.fi
+
+Lorsqu'un système Linux démarre sans interaction avec un opérateur humain,
+le réservoir d'entropie peut se trouver dans un état relativement
+prévisible. La véritable quantité de bruit dans le réservoir d'entropie est
+donc en dessous de son estimation. Afin de contrer ce problème, il est utile
+de sauvegarder l'état du réservoir d'entropie lors des arrêts et
+redémarrages du système. Il est possible ainsi d'ajouter les lignes
+suivantes dans les scripts de démarrage appropriés\ :
+
+.nf
+    echo "Initialisation du générateur de nombres aléatoires"
+    random_seed=/var/run/random\-seed
+    # Initialise le générateur de nombres aléatoires avec une racine
+    # mémorisée lors du dernier arrêt (ou redémarrage) du système
+    # Charge puis sauvegarde 512 octets (taille du réservoir d'entropie).
+    if [ \-f $random_seed ]; then
+        cat $random_seed >/dev/urandom
+    else
+        touch $random_seed
+    fi
+    chmod 600 $random_seed
+    poolfile=/proc/sys/kernel/random/poolsize
+    [ \-r $poolfile ] && bytes=\`cat $poolfile\` || bytes=512
+    dd if=/dev/urandom of=$random_seed count=1 bs=$bytes
+.fi
+
+Également, il faut ajouter les lignes suivantes dans un script exécuté lors
+de l'arrêt du système.
+
+.nf
+    # Initialise le générateur de nombres aléatoires avec une racine
+    # mémorisée lors du dernier arrêt (ou redémarrage) du système
+    # Sauvegarde le réservoir d'entropie
+    echo "Sauvegarde la racine du générateur aléatoire…"
+    random_seed=/var/run/random\-seed
+    touch $random_seed
+    chmod 600 $random_seed
+    poolfile=/proc/sys/kernel/random/poolsize
+    [ \-r $poolfile ] && bytes=\`cat $poolfile\` || bytes=512
+    dd if=/dev/urandom of=$random_seed count=1 bs=$bytes
+.fi
+.SS "Interface /proc"
+Les fichiers du répertoire \fI/proc/sys/kernel/random\fP (présent depuis
+2.3.16) fournissent une interface supplémentaire au périphérique
+\fI/dev/random\fP.
+.LP
+Le fichier en lecture seule \fIentropy_avail\fP donne l'entropie
+disponible. Normalement, elle sera de 4096 (bits), une réserve d'entropie
+pleine.
+.LP
+Le fichier \fIpoolsize\fP donne la taille de la réserve d'entropie. Sa
+signification dépend des versions du noyau\ :
+.RS
+.TP  12
+Linux 2.4\ :
+Ce fichier donne la taille de la réserve d'entropie en
+\fIoctets\fP. Normalement, elle sera de 512 (octets), mais le fichier peut être
+écrit et peut être modifié à n'importe quelle valeur pour laquelle un
+algorithme est disponible. Actuellement, les choix sont 32, 64, 128, 256,
+512, 1024, 2048.
+.TP 
+Linux 2.6\ :
+Ce fichier est en lecture seule et donne la taille de la réserve d'entropie
+en \fIbits\fP. Il contient la valeur 4096.
+.RE
+.LP
+Le fichier \fIread_wakeup_threshold\fP contient le nombre de bits d'entropie
+nécessaires pour réveiller les processus endormis qui attendaient l'entropie
+en provenance de \fI/dev/random\fP. La valeur par défaut est 64. Le fichier
+\fIwrite_wakeup_threshold\fP contient le nombre de bits d'entropie en dessous
+duquel on réveillera les processus ayant effectué un appel à \fBselect\fP(2) ou
+\fBpoll\fP(2) pour un accès en écriture à \fI/dev/random\fP. Ces valeurs peuvent
+être modifiées en écrivant dans les fichiers.
+.LP
+Les fichiers en lecture seule \fIuuid\fP et \fIboot_id\fP contiennent des chaînes
+aléatoires comme 6fd5a44b\-35f4\-4ad4\-a9b9\-6b9be13e1fe9. Le premier est généré
+à chaque lecture, le dernier est généré une seule fois.
+.SS "Interface ioctl(2)"
+Les requêtes \fBioctl\fP(2) suivantes sont définies sur les descripteurs de
+fichier connectés à \fI/dev/random\fP ou \fI/dev/urandom\fP. Toutes les requêtes
+réalisées interagiront avec l'entrée du réservoir d'entropie et auront un
+effet sur \fI/dev/random\fP et \fI/dev/urandom\fP. La capacité \fBCAP_SYS_ADMIN\fP
+est nécessaire pour toutes les requêtes sauf \fBRNDGETENTCNT\fP.
+.TP 
+\fBRNDGETENTCNT\fP
+Récupérer le décompte d'entropie du réservoir d'entrée, le contenu sera le
+même que celui du fichier \fIentropy_avail\fP sous proc. Le résultat sera
+stocké dans l'entier pointé par l'argument.
+.TP 
+\fBRNDADDTOENTCNT\fP
+Augmenter ou diminuer le décompte d'entropie du réservoir d'entrée de la
+valeur pointée par l'argument.
+.TP 
+\fBRNDGETPOOL\fP
+Supprimée dans Linux\ 2.6.9.
+.TP 
+\fBRNDADDENTROPY\fP
+Ajouter de l'entropie supplémentaires au réservoir d'entrée, en augmentant
+le décompte d'entropie. C'est différent d'écrire dans \fI/dev/random\fP ou
+\fI/dev/urandom\fP, qui n'ajoute que des données mais sans augmenter le
+décompte d'entropie. La structure suivante est utilisée\ :
+.IP
+.nf
+    struct rand_pool_info {
+        int    entropy_count;
+        int    buf_size;
+        __u32  buf[0];
+    };
+.fi
+.IP
+Ici, \fIentropy_count\fP est la valeur ajoutée au (ou soustraite du) décompte
+d'entropie, et \fIbuf\fP est le tampon de taille \fIbuf_size\fP qui est ajouté au
+réservoir d'entropie.
+.TP 
+\fBRNDZAPENTCNT\fP, \fBRNDCLEARPOOL\fP
+Vider les décomptes d'entropie de tous les réservoirs et ajouter des données
+système (comme le temps réel) aux réservoirs.
+.SH FICHIERS
+/dev/random
+.br
+.\" .SH AUTHOR
+.\" The kernel's random number generator was written by
+.\" Theodore Ts'o (tytso@athena.mit.edu).
+/dev/urandom
+.SH "VOIR AUSSI"
+\fBmknod\fP(1)
+.br
+RFC\ 1750, «\ Randomness Recommendations for Security\ »
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Simon Paillard et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

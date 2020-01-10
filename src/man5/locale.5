@@ -1,0 +1,421 @@
+.\" Copyright (C) 1994  Jochen Hein (Hein@Student.TU-Clausthal.de)
+.\" Copyright (C) 2008  Petr Baudis (pasky@suse.cz)
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_3_PARA)
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 2008-06-17 Petr Baudis <pasky@suse.cz>
+.\"     LC_TIME: Describe first_weekday and first_workday
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LOCALE 5 "17 juin 2008" Linux "Manuel de l'utilisateur Linux"
+.SH NOM
+locale \- Décrire un fichier de définition de paramètres régionaux
+.SH DESCRIPTION
+Le fichier de définition \fBlocale\fP contient toutes les informations dont la
+commande \fBlocaledef\fP(1) a besoin pour créer la base de données binaire des
+paramètres régionaux.
+
+Le fichier de définition est constitué de sections, chacune d'entre elles
+décrivant en détail une catégorie d'informations liées aux paramètres
+régionaux.
+.SS Syntaxe
+Le fichier débute par un en\-tête contenant les mots\-clés suivants\ :
+.TP 
+\fI<escape_char>\fP
+est suivi d'un caractère qui doit être utilisé comme caractère de
+déspécification (caractère «\ d'échappement\ ») pour le reste du fichier afin
+de marquer les caractères qui doivent être interprétés d'une manière
+particulières. La valeur par défaut est l'anti\-slash (\e).
+.TP 
+\fI<comment_char>\fP
+suivi d'un caractère qui servira à introduire des commentaires dans le reste
+du fichier. Par défaut, il s'agit du symbole dièse (\fB#\fP).
+.PP
+.\" FIXME glibc 2.2.2 added new nonstandard locale categories:
+.\" LC_ADDRESS, LC_IDENTIFICATION, LC_MEASUREMENT, LC_NAME,
+.\" LC_PAPER, LC_TELEPHONE.  These need to be documented.
+La définition des paramètres régionaux est divisée en plusieurs parties,
+chacune d'elles représentant une catégorie de paramètres régionaux. Une
+partie peut être copiée directement depuis d'autres paramètres existants, ou
+peut être entièrement définie. Si l'on désire copier intégralement une
+catégorie, le seul mot\-clé valide est \fBcopy\fP suivi du nom représentant les
+paramètres régionaux à copier.
+.SS LC_CTYPE
+La définition de la catégorie \fBLC_CTYPE\fP commence avec la chaîne
+\fILC_CTYPE\fP en première colonne.
+
+Les mots\-clés suivants sont autorisés\ :
+.TP 
+\fIupper\fP
+suivi d'une liste de lettres majuscules. Les lettres \fBA\fP à \fBZ\fP sont
+inclues automatiquement. Les caractères indiqués dans les classes \fBcntrl\fP,
+\fBdigit\fP, \fBpunct\fP, ou \fBspace\fP ne sont pas autorisés.
+.TP 
+\fIlower\fP
+suivi d'une liste de lettres minuscules. Les lettres \fBa\fP à \fBz\fP sont
+inclues automatiquement. Les caractères indiqués dans les classes \fBcntrl\fP,
+\fBdigit\fP, \fBpunct\fP, ou \fBspace\fP ne sont pas autorisés.
+.TP 
+\fIalpha\fP
+suivi d'une liste de lettres. Tous les caractères mentionnés dans \fBupper\fP
+ou \fBlower\fP sont inclus automatiquement. Les caractères indiqués dans les
+classes \fBcntrl\fP, \fBdigit\fP, \fBpunct\fP, ou \fBspace\fP ne sont pas autorisés.
+.TP 
+\fIdigit\fP
+suivi d'une liste de chiffres. Seuls les caractères \fB0\fP à \fB9\fP sont
+autorisés. Ils sont inclus automatiquement dans cette classe.
+.TP 
+\fIspace\fP
+suivi d'une liste de caractères considérés comme un caractère
+d'espacement. Les caractères indiqués dans les classes \fBupper\fP, \fBlower\fP,
+\fBalpha\fP, \fBdigit\fP, \fBgraph\fP, ou \fBxdigit\fP ne sont pas autorisés. Les
+caractères \fB<space>\fP (espace), \fB<form\-feed>\fP (saut de
+page), \fB<newline>\fP (saut de ligne), \fB<carriage\-return>\fP
+(retour chariot), \fB<tab>\fP et \fB<vertical\-tab>\fP sont inclus
+automatiquement.
+.TP 
+\fIcntrl\fP
+suivi d'une liste de caractères de contrôle. Les caractères mentionnés dans
+les classes \fBupper\fP, \fBlower\fP, \fBalpha\fP, \fBdigit\fP, \fBpunct\fP, \fBgraph\fP,
+\fBprint\fP, ou \fBxdigit\fP ne sont pas autorisés.
+.TP 
+\fIpunct\fP
+suivi d'une liste de caractères de ponctuation. Les caractères mentionnés
+dans les classes \fBupper\fP, \fBlower\fP, \fBalpha\fP, \fBdigit\fP, \fBcntrl\fP,
+\fBxdigit\fP, et le caractère \fB<space>\fP (espace) ne sont pas
+autorisés.
+.TP 
+\fIgraph\fP
+suivi d'une liste de caractères affichables, sauf l'espace. Les caractères
+mentionnés dans les classes \fBupper\fP, \fBlower\fP, \fBalpha\fP, \fBdigit\fP,
+\fBxdigit\fP et \fBpunct\fP sont inclus automatiquement. Les caractères mentionnés
+dans la classe \fBcntrl\fP ne sont pas autorisés.
+.TP 
+\fIprint\fP
+suivi d'une liste de caractères affichables, y compris \fB<space>\fP
+(espace). Les caractères mentionnés dans les classes \fBupper\fP, \fBlower\fP,
+\fBalpha\fP, \fBdigit\fP, \fBxdigit\fP, \fBpunct\fP, et le caractère \fB<space>\fP
+sont inclus automatiquement. Les caractères mentionnés dans la classe
+\fBcntrl\fP ne sont pas autorisés.
+.TP 
+\fIxdigit\fP
+suivi d'une liste de caractères représentant les digits hexadécimaux. Les
+chiffres décimaux doivent être mentionnés, suivi d'un ou plusieurs ensembles
+de six caractères, en ordre croissant. Les caractères suivant sont inclus
+par défaut\ : \fB0\fP à \fB9\fP, \fBa\fP à \fBf\fP, \fBA\fP à \fBF\fP.
+.TP 
+\fIblank\fP
+suivi d'une liste de caractères considérés comme \fBblank\fP (blancs). L'espace
+\fB<space>\fP et la tabulation \fB<tab>\fP sont inclus
+automatiquement.
+.TP 
+\fItoupper\fP
+suivi d'une liste de correspondance entre lettres majuscules et lettres
+minuscules. Chaque correspondance est représentée par une paire de lettres
+majuscule et minuscule, séparées par une virgule \fB,\fP et entourée de
+parenthèses. Les correspondances sont séparées par des points\-virgules.
+.TP 
+\fItolower\fP
+suivi d'une liste de correspondance entre lettres minuscules et
+majuscules. Si le mot\-clé \fItolower\fP est absent, la liste inverse de
+\fItoupper\fP est utilisée.
+.PP
+La définition de la catégorie \fBLC_CTYPE\fP se termine avec la chaîne de
+caractères \fIEND LC_CYTPE\fP.
+.SS LC_COLLATE
+La catégorie \fBLC_COLLATE\fP définit des règles d'assemblage de caractères. En
+raison des limitations de libc, toutes les options POSIX ne sont pas
+implémentées.
+
+La définition commence avec la chaîne \fBLC_COLLATE\fP en première colonne.
+
+Les mots\-clés suivants sont autorisés\ :
+.TP 
+\fIcollating\-element\fP
+.TP 
+\fIcollating\-symbol\fP
+.PP
+order\-definition commence par une ligne telle que\ :
+.TP 
+\fIorder_start\fP
+.PP
+suivie par une liste de mots\-clés pris parmi \fBforward\fP, \fBbackward\fP ou
+\fBposition\fP. La définition de l'ordre est constituée de lignes qui décrivent
+l'ordre, elle est terminée par le mot\-clé
+.TP 
+\fIorder_end\fP.
+.PP
+Pour davantage d'informations, voir les sources dans \fI/usr/lib/nls/src\fP
+notamment les exemples \fBPOSIX\fP, \fBExample\fP et \fBExample2\fP.
+.PP
+La définition de \fBLC_COLLATE\fP se termine par la chaîne \fIEND LC_COLLATE\fP.
+.SS LC_MONETARY
+La définition commence par la chaîne \fBLC_MONETARY\fP en première colonne.
+
+Les mots\-clés suivants sont autorisés\ :
+.TP 
+\fIint_curr_symbol\fP
+suivi du code international de symbole monétaire. Il s'agit d'une chaîne de
+4 caractères composée du code défini dans le standard ISO 4217 (trois
+caractères) suivie d'un séparateur.
+.TP 
+\fIcurrency_symbol\fP
+suivi du symbole monétaire local.
+.TP 
+\fImon_decimal_point\fP
+suivi de la chaîne à utiliser comme délimiteur décimal lors de la mise en
+forme de valeurs monétaires.
+.TP 
+\fImon_thousands_sep\fP
+suivi de la chaîne à utiliser comme séparateur de groupes de chiffres lors
+de la mise en forme de valeurs monétaires.
+.TP 
+\fImon_grouping\fP
+suivi d'une chaîne qui décrit la mise en forme des valeurs numériques.
+.TP 
+\fIpositive_sign\fP
+suivi de la chaîne à utiliser comme signe positif lors de la mise en forme
+de valeurs monétaires.
+.TP 
+\fInegative_sign\fP
+suivi de la chaîne à utiliser comme indicateur négatif lors de la mise en
+forme de valeurs monétaires.
+.TP 
+\fIint_frac_digits\fP
+suivi du nombre de décimales à afficher lors de la mise en forme avec le
+symbole \fBint_curr_symbol\fP.
+.TP 
+\fIfrac_digits\fP
+suivi du nombre de décimales à afficher lors de la mise en forme avec le
+symbole \fBcurrency_symbol\fP.
+.TP 
+\fIp_cs_precedes\fP
+suivi d'un entier valant \fB1\fP si les symboles monétaires \fIcurrency_symbol\fP
+ou \fIint_curr_symbol\fP doivent précéder la valeur numérique, et \fB0\fP s'ils
+doivent suivre la valeur numérique.
+.TP 
+\fIp_sep_by_space\fP
+suivi d'un entier.
+.RS
+.TP 
+\fB0\fP
+signifie qu'aucune espace ne doit être insérée entre le symbole et la
+valeur.
+.TP 
+\fB1\fP
+signifie qu'une espace doit être insérée entre le symbole et la valeur.
+.TP 
+\fB2\fP
+signifie qu'une espace doit être inséré entre le symbole monétaire et le
+symbole de signe positif s'ils sont adjacents.
+.RE
+.TP 
+\fIn_cs_precedes\fP
+.RS
+.TP 
+\fB0\fP
+\- le symbole suit la valeur
+.TP 
+\fB1\fP
+\- le symbole précède la valeur
+.RE
+.TP 
+\fIn_sep_by_space\fP
+Un entier valant \fB0\fP si aucune espace ne sépare les symboles
+\fIcurrency_symbol\fP ou \fIint_curr_symbol\fP de la valeur pour une quantité
+négative, \fB1\fP si une espace sépare le symbole de la valeur, et \fB2\fP si une
+espace sépare le symbole du signe s'ils sont adjacents.
+.TP 
+\fIp_sign_posn\fP
+.RS
+.TP 
+\fB0\fP
+Des parenthèses encadrent la valeur et les symboles \fIcurrency_symbol\fP ou
+\fIint_curr_symbol\fP.
+.TP 
+\fB1\fP
+La chaîne de signe précède la valeur et les symboles \fIcurrency_symbol\fP ou
+\fIint_curr_symbol\fP.
+.TP 
+\fB2\fP
+La chaîne de signe suit la valeur et les symboles \fIcurrency_symbol\fP ou
+\fIint_curr_symbol\fP.
+.TP 
+\fB3\fP
+La chaîne de signe précède les symboles \fIcurrency_symbol\fP ou
+\fIint_curr_symbol\fP.
+.TP 
+\fB4\fP
+La chaîne de signe suit les symboles \fIcurrency_symbol\fP ou
+\fIint_curr_symbol\fP.
+.RE
+.TP 
+\fIn_sign_posn\fP
+.RS
+.TP 
+\fB0\fP
+Des parenthèses encadrent la valeur et les symboles \fIcurrency_symbol\fP ou
+\fIint_curr_symbol\fP.
+.TP 
+\fB1\fP
+La chaîne de signe précède la valeur et les symboles \fIcurrency_symbol\fP ou
+\fIint_curr_symbol\fP.
+.TP 
+\fB2\fP
+La chaîne de signe suit la valeur et les symboles \fIcurrency_symbol\fP ou
+\fIint_curr_symbol\fP.
+.TP 
+\fB3\fP
+La chaîne de signe précède les symboles \fIcurrency_symbol\fP ou
+\fIint_curr_symbol\fP.
+.TP 
+\fB4\fP
+La chaîne de signe suit les symboles \fIcurrency_symbol\fP ou
+\fIint_curr_symbol\fP.
+.RE
+.PP
+La définition \fBLC_MONETARY\fP se termine par la chaîne \fIEND LC_MONETARY\fP.
+.SS LC_NUMERIC
+La définition de cette catégorie commence par la chaîne \fBLC_NUMERIC\fP en
+première colonne.
+
+Les mots\-clés suivant sont autorisés\ :
+.TP 
+\fIdecimal_point\fP
+suivi d'une chaîne indiquant le séparateur décimal lors de la mise en forme
+d'une valeur numérique.
+.TP 
+\fIthousands_sep\fP
+suivi d'une chaîne indiquant le séparateur de groupes lors de la mise en
+forme d'une valeur numérique.
+.TP 
+\fIgrouping\fP
+suivi d'une chaîne qui décrit la mise en forme des valeurs numériques.
+.PP
+La définition de la catégorie \fBLC_NUMERIC\fP se termine par la chaîne \fIEND
+LC_NUMERIC\fP.
+.SS LC_TIME
+La définition débute par la chaîne \fBLC_TIME\fP en première colonne.
+
+Les mots\-clés suivant sont autorisés\ :
+.TP 
+\fIabday\fP
+suivi d'une liste des noms de jours abrégés. La liste commence par le
+premier jour de la semaine tel qu'il est indiqué dans \fIweek\fP (dimanche par
+défaut).
+.TP 
+\fIday\fP
+suivi d'une liste des noms de jours. La liste commence par le premier jour
+de la semaine tel qu'il est indiqué dans \fIweek\fP (dimanche par défaut).
+.TP 
+\fIabmon\fP
+suivi d'une liste des noms de mois abrégés.
+.TP 
+\fImon\fP
+suivi d'une liste des noms de mois.
+.TP 
+\fIam_pm\fP
+suivi de la représentation locale des chaînes \fBam\fP et \fBpm\fP.
+.TP 
+\fId_t_fmt\fP
+Le format local de la date et de l'heure.
+.TP 
+\fId_fmt\fP
+Le format local de la date.
+.TP 
+\fIt_fmt\fP
+Le format local pour l'heure.
+.TP 
+\fIt_fmt_ampm\fP
+Le format local pour l'heure sur un cadran de 12 heures.
+.TP 
+\fIweek\fP
+suivi d'une liste de trois valeurs\ : le nombre de jours dans la semaine (7
+par défaut), une date de début de semaine (correspondant au dimanche par
+défaut) et la longueur minimale de la première semaine de l'année (4 jours
+par défaut). Considérant le début de la semaine, \fB19971130\fP sera utilisé
+pour le dimanche et \fB19971201\fP pour le lundi. Par conséquent, les pays
+utilisant \fB19971130\fP auront le nom local «\ dimanche\ » comme premier jour
+dans la liste \fIday\fP, alors que les pays utilisant \fB19971201\fP auront la
+traduction «\ lundi\ » comme premier élément dans la liste \fIday\fP.
+.TP 
+\fIfirst_weekday\fP (depuis la glibc 2.2)
+Numéro du premier jour de la liste \fIday\fP à afficher dans les applications
+calendrier. La valeur par défaut est \fB1\fP correspondant soit à dimanche,
+soit à lundi, selon la valeur du deuxième élément de la liste \fIweek\fP.
+.TP 
+\fIfirst_workday\fP (depuis la glibc 2.2)
+Numéro du premier jour ouvrable dans la liste \fIday\fP.
+.PP
+La définition de la catégorie \fBLC_TIME\fP se termine par la chaîne \fIEND
+LC_TIME\fP.
+.SS LC_MESSAGES
+La définition de cette catégorie commence par la chaîne \fBLC_MESSAGES\fP en
+première colonne.
+
+Les mots\-clés suivant sont autorisés\ :
+.TP 
+\fIyesexpr\fP
+suivi d'une expression rationnelle correspondant à une réponse affirmative.
+.TP 
+\fInoexpr\fP
+suivi d'une expression rationnelle correspondant à une réponse négative.
+.PP
+La définition de la catégorie \fBLC_MESSAGES\fP se termine par la chaîne \fIEND
+LC_MESSAGES\fP.
+
+Se référer à la norme POSIX.2 pour plus de détails.
+.SH FICHIERS
+/usr/lib/locale/ \(em base de données des paramètres régionaux en cours pour
+cette catégorie
+.br
+/usr/lib/nls/charmap/* \(em fichiers de tables de caractères
+.SH CONFORMITÉ
+POSIX.2, ISO/IEC 14652.
+.SH BOGUES
+.\" .SH AUTHOR
+.\" Jochen Hein (Hein@Student.TU-Clausthal.de)
+Cette page de manuel est incomplète.
+.SH "VOIR AUSSI"
+\fBlocale\fP(1), \fBlocaledef\fP(1), \fBlocaleconv\fP(3), \fBsetlocale\fP(3),
+\fBcharmap\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,104 @@
+.\" Copyright (c) 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"	@(#)daemon.3	8.1 (Berkeley) 6/9/93
+.\" Added mentioning of glibc weirdness wrt unistd.h. 5/11/98, Al Viro
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH DAEMON 3 "5 décembre 2009" GNU "Manuel du programmeur Linux"
+.SH NOM
+daemon \- Exécuter en arrière\-plan
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBint daemon(int \fP\fInochdir\fP\fB, int \fP\fInoclose\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBdaemon\fP()\ : _BSD_SOURCE || (_XOPEN_SOURCE && _XOPEN_SOURCE\ <\ 500)
+.SH DESCRIPTION
+La fonction \fBdaemon\fP() sert aux programmes désireux de se détacher de leur
+terminal de contrôle, et de s'exécuter en arrière\-plan à la manière des
+démons système.
+.PP
+Si \fInochdir\fP vaut zéro, \fBdaemon\fP() change le répertoire de travail du
+processus appelant pour le répertoire racine («\ /\ »)\ ; sinon le
+répertoire de travail courant n'est pas changé.
+.PP
+si \fInoclose\fP vaut zéro, \fBdaemon\fP() redirige l'entrée standard, la sortie
+standard, et la sortie d'erreur vers \fI/dev/null\fP\ ; sinon aucun changement
+sur ces descripteurs n'est réalisé.
+.SH "VALEUR RENVOYÉE"
+.\" not .IR in order not to underline _
+Cette fonction exécute un \fBfork\fP(2), et s'il réussit, le père effectue un
+\fB_exit\fP(2), ainsi, toutes les erreurs éventuelles apparaissent uniquement
+du côté du fils. La fonction \fBdaemon\fP() renvoie zéro si elle réussit. Si
+une erreur se produit, elle renvoie \-1 et définit la variable globale
+\fIerrno\fP avec l'un des codes d'erreurs spécifiés par les fonctions
+\fBfork\fP(2) et \fBsetsid\fP(2).
+.SH CONFORMITÉ
+Absent de POSIX.1\-2001. Une fonction similaire est apparue sur les systèmes
+BSD. La fonction \fBdaemon\fP() est apparue dans BSD\ 4.4.
+.SH NOTES
+L'implémentation de la glibc peut également renvoyer \-1 si \fI/dev/null\fP
+existe et qu'il n'est pas un périphérique caractère, avec les numéros mineur
+et majeur attendus. Dans ce cas, \fIerrno\fP ne sera pas définie.
+.SH "VOIR AUSSI"
+\fBfork\fP(2), \fBsetsid\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

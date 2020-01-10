@@ -1,0 +1,100 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   OpenGroup's Single UNIX specification
+.\"     http://www.UNIX-systems.org/online.html
+.\"
+.\" 2007-03-31 Bruno Haible, Describe the glibc/libiconv //TRANSLIT
+.\" and //IGNORE extensions for 'tocode'.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ICONV_OPEN 3 "11 août 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+iconv_open \- Allouer un descripteur pour une conversion de jeux de
+caractères
+.SH SYNOPSIS
+.nf
+\fB#include <iconv.h>\fP
+.sp
+\fBiconv_t iconv_open(const char *\fP\fItocode\fP\fB, const char *\fP\fIfromcode\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBiconv_open\fP() alloue un descripteur de conversion adapté à la
+transformation d'une séquence d'octets depuis le codage de caractères
+\fIfromcode\fP dans le codage \fItocode\fP.
+.PP
+Les valeurs autorisées pour \fIfromcode\fP et \fItocode\fP et leurs combinaisons
+acceptées dépendent du système. Pour la bibliothèque C GNU, les valeurs
+permises sont fournies par la commande \fIiconv \-\-list\fP et toutes les
+combinaisons de ces valeurs sont supportées. De plus, la bibliothèque C et
+la bibliothèque libiconv de GNU supportent les suffixes suivants\ :
+.TP 
+//TRANSLIT
+Quand la chaîne «\ //TRANSLIT\ » est ajoutée à la fin de \fItocode\fP, les
+translittérations sont activées. Cela signifie que quand un caractère ne
+peut pas être représenté dans le jeu de caractères cible, il peut être
+approximé en un des caractères qui lui ressemblent.
+.TP 
+//IGNORE
+Quand la chaîne «\ //IGNORE\ » est ajoutée à la fin de \fItocode\fP, les
+caractères qui ne peuvent pas être représentés dans le jeu de caractères
+cible sont simplement ignorés.
+.PP
+Le descripteur de conversion résultant peut être utilisé autant de fois que
+voulu avec \fBiconv\fP(3). Il reste valide jusqu'à sa libération avec
+\fBiconv_close\fP(3).
+.PP
+Un descripteur de conversion contient un état de conversion. Lors de sa
+création avec \fBiconv_open\fP(), il se trouve dans l'état
+initial. L'utilisation de \fBiconv\fP(3) modifie l'état du descripteur. On ne
+doit donc pas utiliser simultanément un descripteur de conversion dans
+plusieurs «\ threads\ ». Pour revenir à l'état initial, utilisez \fBiconv\fP(3)
+avec un argument \fIinbuf\fP NULL.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBiconv_open\fP() renvoie un nouveau descripteur de conversion. En
+cas d'erreur, elle remplit \fIerrno\fP et renvoie \fI(iconv_t)\ \-1\fP.
+.SH ERREURS
+Les erreurs suivantes peuvent, entre autres, se présenter\ :
+.TP 
+\fBEINVAL\fP
+La conversion depuis \fIfromcode\fP vers \fItocode\fP n'est pas supportée par
+l'implémentation.
+.SH VERSIONS
+Cette fonction est disponible dans la glibc depuis la version\ 2.1.
+.SH CONFORMITÉ
+UNIX98, POSIX.1\-2001.
+.SH "VOIR AUSSI"
+\fBiconv\fP(1), \fBiconv\fP(3), \fBiconv_close\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

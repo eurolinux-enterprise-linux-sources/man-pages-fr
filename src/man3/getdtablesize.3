@@ -1,0 +1,99 @@
+.\" Copyright 1993 Rickard E. Faith (faith@cs.unc.edu)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 2002-04-15 by Roger Luethi <rl@hellgate.ch> and aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETDTABLESIZE 3 "5 février 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+getdtablesize \- Lire la taille de la table des descripteurs
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBint getdtablesize(void);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBgetdtablesize\fP()\ :
+.ad l
+.RS 4
+.PD 0
+.TP  4
+Depuis la glibc 2.12\ :
+.nf
+_BSD_SOURCE ||
+    !(_POSIX_C_SOURCE\ >=\ 200112L || _XOPEN_SOURCE\ >=\ 600)
+.TP  4
+.fi
+Avant la glibc 2.12\ : _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.PD
+.RE
+.ad b
+.SH DESCRIPTION
+\fBgetdtablesize\fP() retourne le nombre maximal de fichiers qu'un processus
+puisse ouvrir simultanément, soit un de plus que la plus grande valeur
+possible pour un descripteur de fichier.
+.SH "VALEUR RENVOYÉE"
+La limite actuelle du nombre de fichiers ouverts par processus.
+.SH ERREURS
+Sous Linux, \fBgetdtablesize\fP() peut renvoyer toutes les erreurs décrites
+pour \fBgetrlimit\fP(2)\ ; consultez les NOTES ci\(hydessous.
+.SH CONFORMITÉ
+SVr4, BSD\ 4.4 (\fBgetdtablesize\fP() est apparue dans BSD\ 4.2). Il n'est pas
+spécifié par POSIX.1\-2001\ ; les applications portables devraient utiliser
+\fIsysconf(_SC_OPEN_MAX)\fP à la place.
+.SH NOTES
+\fBgetdtablesize\fP() est implémentée comme fonction de bibliothèque. La
+version de la glibc appelle \fBgetrlimit\fP(2) et renvoie la valeur de la
+limite \fBRLIMIT_NOFILE\fP actuelle, ou \fBOPEN_MAX\fP si cela échoue. Les
+versions des bibliothèques libc4 et libc5 renvoyaient \fBOPEN_MAX\fP (256
+depuis Linux 0.98.4).
+.SH "VOIR AUSSI"
+\fBclose\fP(2), \fBdup\fP(2), \fBgetrlimit\fP(2), \fBopen\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

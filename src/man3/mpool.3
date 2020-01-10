@@ -1,0 +1,173 @@
+.\" Copyright (c) 1990, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"	@(#)mpool.3	8.1 (Berkeley) 6/4/93
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MPOOL 3 "26 avril 2012" "" "Manuel du programmeur Linux"
+.UC 7
+.SH NOM
+mpool, mpool_open, mpool_filter, mpool_new, mpool_get, mpool_put,
+mpool_sync, mpool_close \- Partage d'ensembles de tampons mémoires
+.SH SYNOPSIS
+.nf
+\fB#include <db.h>\fP
+\fB#include <mpool.h>\fP
+.sp
+\fBMPOOL *mpool_open(DBT *\fP\fIkey\fP\fB, int \fP\fIfd\fP\fB, pgno_t \fP\fIpagesize\fP\fB, pgno_t \fP\fImaxcache\fP\fB);\fP
+.sp
+\fBvoid mpool_filter(MPOOL *\fP\fImp\fP\fB, void (*pgin)(void *, pgno_t, void *),\fP
+\fB                  void (*\fP\fIpgout\fP\fB)(void *, pgno_t, void *),\fP
+\fB                  void *\fP\fIpgcookie\fP\fB);\fP
+.sp
+\fBvoid *mpool_new(MPOOL *\fP\fImp\fP\fB, pgno_t *\fP\fIpgnoaddr\fP\fB);\fP
+.sp
+\fBvoid *mpool_get(MPOOL *\fP\fImp\fP\fB, pgno_t \fP\fIpgno\fP\fB, unsigned int \fP\fIflags\fP\fB);\fP
+.sp
+\fBint mpool_put(MPOOL *\fP\fImp\fP\fB, void *\fP\fIpgaddr\fP\fB, unsigned int \fP\fIflags\fP\fB);\fP
+.sp
+\fBint mpool_sync(MPOOL *\fP\fImp\fP\fB);\fP
+.sp
+\fBint mpool_close(MPOOL *\fP\fImp\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fINOTE\fP: cette page décrit des interfaces founies par la glibc jusque dans
+sa version\ 2.1. Depuis la version\ 2.2, la glibc ne fournit plus ces
+interfaces. Veuillez consulter les API fournies par la bibliothèque
+\fIlibdb\fP.
+
+\fImpool\fP est l'interface de la bibliothèque fournissant une gestion de
+fichiers par des tampons mémoires découpés en pages. Les tampons peuvent
+être partagés entre les processus.
+.PP
+La fonction \fBmpool_open\fP() initialise un ensemble de tampons
+mémoire. L'argument \fIkey\fP est la chaîne d'octets utilisée pour négocier
+entre plusieurs processus désireux de partager des tampons. Si les tampons
+de fichiers sont projetés en mémoire partagée, tous les processus utilisant
+la même clé partageront les tampons. Si la clé \fIkey\fP vaut NULL, les tampons
+sont projetés en mémoire privée. L'argument \fIfd\fP est un descripteur du
+fichier sous\-jacent qui doit être accessible directement en n'importe quel
+point. Si la clé \fIkey\fP n'est pas NULL et correspond à un fichier déjà
+projeté, l'argument \fIfd\fP est ignoré.
+.PP
+Le fichier est découpé en pages de la taille \fIpagesize\fP (en
+octets). L'argument \fImaxcache\fP est le nombre maximal de pages du fichier
+sous\-jacent, résidant dans le cache à un instant donné. Cette valeur ne
+dépend pas du nombre de processus qui partageront les tampons d'un fichier,
+mais la plus grande valeur de tous les processus partageant le fichier sera
+prise en compte.
+.PP
+La fonction \fBmpool_filter\fP() sert à rendre transparent le traitement des
+pages en entrée et sortie. Si la fonction \fIpgin\fP est spécifiée, elle sera
+appelée à chaque fois qu'un tampon est lu depuis le fichier vers la
+mémoire. Si la fonction \fIpgout\fP est spécifiée, elle sera appelée à chaque
+fois qu'un tampon est écrit dans le fichier. Ces deux fonctions sont
+appelées avec le pointeur \fIpgcookie\fP, le numéro de page, et un pointeur sur
+la page lue ou écrite.
+.PP
+La fonction \fBmpool_new\fP() prend en argument un pointeur \fIMPOOL\fP et une
+adresse. Si une nouvelle page peut être allouée, elle renvoie un pointeur
+sur cette page, et son numéro est stocké à l'adresse \fIpgnoaddr\fP. Sinon elle
+renvoie NULL et remplit \fIerrno\fP.
+.PP
+La fonction \fBmpool_get\fP() prend en argument un pointeur \fIMPOOL\fP et un
+numéro de page. Si la page existe, elle renvoie un pointeur dessus. Sinon,
+elle renvoie NULL et remplit \fIerrno\fP. L'argument \fIflags\fP n'est pas utilisé
+actuellement.
+.PP
+La fonction \fBmpool_put\fP() débloque la page référencée par
+\fIpgaddr\fP. \fIPgaddr\fP doit être une adresse que l'on a obtenue précédemment
+avec \fBmpool_get\fP() ou \fBmpool_new\fP(). La valeur d'attribut \fIflags\fP est
+indiquée avec un \fIOU\fP binaire entre les valeurs suivantes\ :
+.TP 
+\fBMPOOL_DIRTY\fP
+La page a été modifiée est doit être réécrite dans le fichier.
+.PP
+\fBmpool_put\fP() renvoie 0 en cas de succès et \-1 si une erreur se produit.
+.PP
+La fonction \fBmpool_sync\fP() écrit toutes les pages modifiées associée au
+pointeur \fIMPOOL\fP dans le fichier. \fBmpool_sync\fP() renvoie 0 en cas de
+succès et \-1 si une erreur se produit.
+.PP
+La fonction \fBmpool_close\fP() libère toute mémoire allouée pour l'ensemble de
+tampons mémoire correspondant au cookie. Les pages modifiées \fBne\fP sont
+\fBpas\fP écrites dans le fichier. \fBmpool_close\fP() renvoie 0 en cas de succès
+et \-1 si une erreur se produit.
+.SH ERREURS
+La fonction \fBmpool_open\fP() peut échouer et remplir \fIerrno\fP avec n'importe
+quel code d'erreur renvoyé par la routine \fBmalloc\fP(3).
+.PP
+La fonction \fBmpool_get\fP() peut échouer et renvoyer dans \fIerrno\fP le code
+suivant\ :
+.TP  15
+\fBEINVAL\fP
+L'enregistrement demandé n'existe pas.
+.PP
+Les fonctions \fBmpool_new\fP() et \fBmpool_get\fP() peuvent échouer et remplir
+\fIerrno\fP avec n'importe quel code d'erreur renvoyé par les routines
+\fBread\fP(2), \fBwrite\fP(2) et \fBmalloc\fP(3).
+.PP
+La fonction \fBmpool_sync\fP() peut échouer et renvoyer dans \fIerrno\fP n'importe
+quel code d'erreur renvoyé par la routine \fBwrite\fP(2).
+.PP
+La fonction \fBmpool_close\fP() peut échouer et renvoyer dans \fIerrno\fP
+n'importe quel code d'erreur renvoyé par la routine \fBfree\fP(3).
+.SH CONFORMITÉ
+Absent de POSIX.1\-2001. Présent sur les systèmes BSD.
+.SH "VOIR AUSSI"
+\fBbtree\fP(3), \fBdbopen\fP(3), \fBhash\fP(3), \fBrecno\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

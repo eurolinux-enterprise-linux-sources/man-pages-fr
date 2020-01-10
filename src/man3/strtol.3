@@ -1,0 +1,224 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sun Jul 25 10:53:39 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Added correction due to nsd@bbc.com (Nick Duffek) - aeb, 950610
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STRTOL 3 "10 février 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+strtol, strtoll, strtoq \- Convertir une chaîne en un entier long
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBlong int strtol(const char *\fP\fInptr\fP\fB, char **\fP\fIendptr\fP\fB, int \fP\fIbase\fP\fB);\fP
+.sp
+\fBlong long int strtoll(const char *\fP\fInptr\fP\fB, char **\fP\fIendptr\fP\fB, int \fP\fIbase\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBstrtoll\fP()\ :
+.RS 4
+XOPEN_SOURCE\ >=\ 600 || _BSD_SOURCE || _SVID_SOURCE || _ISOC99_SOURCE
+|| _POSIX_C_SOURCE\ >=\ 200112L
+.br
+ou \fIcc\ \-std=c99\fP
+.RE
+.ad
+.SH DESCRIPTION
+La fonction \fBstrtol\fP() convertit la chaîne \fInptr\fP en un entier long en
+fonction de l'argument \fIbase\fP, qui doit être dans l'intervalle 2 à 36
+(bornes comprises), ou avoir la valeur spéciale 0.
+.PP
+La chaîne peut commencer par un nombre quelconque d'espaces ou de caractères
+interprétés comme tels par \fBisspace\fP(3). Un signe éventuel «\ +\ » ou «\ \-\ » peut suivre. Si \fIbase\fP vaut 0 ou 16, la chaîne peut inclure un préfixe «\ 0x\ » et le nombre sera interprété en base 16. Sinon, une \fIbase\fP valant
+zéro est interprétée comme 10 (décimale) sauf si le caractère suivant est «\ 0\ », auquel cas la base est 8 (octale).
+.PP
+Le reste de la chaîne est converti en une valeur \fIlong int\fP, en s'arrêtant
+au premier caractère qui ne soit pas un chiffre valide dans cette base. Dans
+les bases supérieures à 10, la lettre «\ A\ » (majuscule ou minuscule)
+représente 10, «\ B\ » représente 11, et ainsi de suite jusqu'à «\ Z\ »
+représentant 35.
+.PP
+Si \fIendptr\fP n'est pas NULL, \fBstrtol\fP() stocke l'adresse du premier
+caractère invalide dans \fI*endptr\fP. S'il n'y avait aucun chiffre valide,
+\fBstrtol\fP() stocke la valeur originale de \fInptr\fP dans \fI*endptr\fP (et
+renvoie 0). En particulier, si \fI*nptr\fP n'est pas «\ \e0\ » et si
+\fI**endptr\fP vaut «\ \e0\ » en retour, la chaîne entière est valide.
+.PP
+La fonction \fBstrtoll\fP() travaille comme \fBstrtol\fP() mais renvoie une valeur
+entière de type "long long".
+.SH "VALEUR RENVOYÉE"
+La fonction \fBstrtol\fP() renvoie le résultat de la conversion, à moins qu'un
+débordement supérieur (overflow) ou inférieur (underflow) se produise. Si un
+dépassement inférieur se produit, \fBstrtol\fP() renvoie \fBLONG_MIN\fP. Si un
+dépassement supérieur se produit, \fBstrtol\fP() renvoie \fBLONG_MAX\fP. Dans les
+deux cas, \fIerrno\fP contient le code d'erreur \fBERANGE\fP. La même chose est
+vraie pour \fBstrtoll\fP() avec \fBLLONG_MIN\fP et \fBLLONG_MAX\fP à la place de
+\fBLONG_MIN\fP et \fBLONG_MAX\fP.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+(pas dans C99) La \fIbase\fP indiquée n'est pas supportée.
+.TP 
+\fBERANGE\fP
+La valeur retournée est hors limites.
+.LP
+L'implémentation peut aussi mettre \fIerrno\fP à \fBEINVAL\fP si aucune conversion
+n'a été réalisée (pas de chiffres trouvés, et renvoyé zéro).
+.SH CONFORMITÉ
+\fBstrtol\fP() est conforme à SVr4, BSD\ 4.3, C89, C99 et POSIX.1\-2001, et
+\fBstrtoll\fP() à C99 et POSIX.1\-2001.
+.SH NOTES
+Comme \fBstrtol\fP() peut légitimement renvoyer 0, \fBLONG_MAX\fP ou \fBLONG_MIN\fP
+(\fBLLONG_MAX\fP ou \fBLLONG_MIN\fP pour \fBstrtoll\fP()) à la fois en cas de succès
+et d'échec, le programme appelant doit positionner \fIerrno\fP à 0 avant
+l'appel, et déterminer si une erreur s'est produite en vérifiant si \fIerrno\fP
+a une valeur non nulle après l'appel.
+
+POSIX.1\-2001 spécifie que dans le cas de locales autres que «\ C\ » et
+«\ POSIX\ », ces fonctions peuvent accepter chaînes numériques propres à
+l'implémentation.
+.LP
+BSD a aussi
+.sp
+.in +4n
+.nf
+\fBquad_t strtoq(const char *\fP\fInptr\fP\fB, char **\fP\fIendptr\fP\fB, int \fP\fIbase\fP\fB);\fP
+.sp
+.in
+.fi
+avec une définition exactement analogue. Suivant l'architecture, cela peut
+être équivalent à \fBstrtoll\fP() ou \fBstrtol\fP().
+.SH EXEMPLE
+Le programme suivant montre l'utilisation de \fBstrtol\fP(). Le premier
+argument de la ligne de commande spécifie une chaîne dans laquelle
+\fBstrtol\fP() analysera un nombre. Le second argument, optionnel, spécifie la
+base à utiliser pour la conversion. (Cet argument est converti sous forme
+numérique avec \fBatoi\fP(3), une fonction qui n'effectue aucune vérification
+d'erreur et qui a une interface plus simple que \fBstrtol\fP()). Voici
+plusieurs exemples de résultats produits par ce programme\ :
+.in +4n
+.nf
+
+$\fB ./a.out 123\fP
+strtol() a renvoyé 123
+$\fB ./a.out \(aq    123\(aq\fP
+strtol() a renvoyé 123
+$\fB ./a.out 123abc\fP
+strtol() a renvoyé 123
+Caractères trouvés après le nombre : abc
+$\fB ./a.out 123abc 55\fP
+strtol: Invalid argument
+$\fB ./a.out \(aq\(aq\fP
+Pas de chiffre trouvé
+$\fB ./a.out 4000000000\fP
+strtol: Numerical result out of range
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <stdlib.h>
+#include <limits.h>
+#include <stdio.h>
+#include <errno.h>
+
+int
+main(int argc, char *argv[])
+{
+    int base;
+    char *endptr, *str;
+    long val;
+
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s str [base]\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    str = argv[1];
+    base = (argc > 2) ? atoi(argv[2]) : 10;
+
+    errno = 0;    /* Pour distinguer la réussite/échec après l'appel */
+    val = strtol(str, &endptr, base);
+
+    /* Vérification de certaines erreurs possibles */
+
+    if ((errno == ERANGE && (val == LONG_MAX || val == LONG_MIN))
+            || (errno != 0 && val == 0)) {
+        perror("strtol");
+        exit(EXIT_FAILURE);
+    }
+
+    if (endptr == str) {
+        fprintf(stderr, "Pas de chiffre trouvé\en");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Si nous sommes ici, strtol() a analysé un nombre avec succès */
+
+    printf("strtol() a renvoyé %ld\en", val);
+
+    if (*endptr != \(aq\e0\(aq)        /* Pas nécessairement une erreur... */
+        printf("Caractères trouvés après le nombre : %s\en", endptr);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBatof\fP(3), \fBatoi\fP(3), \fBatol\fP(3), \fBstrtod\fP(3), \fBstrtoul\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

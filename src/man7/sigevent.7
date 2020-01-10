@@ -1,0 +1,138 @@
+.\" Copyright (C) 2006, 2010 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Copyright (C) 2009 Petr Baudis <pasky@suse.cz>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SIGEVENT 7 "9 septembre 2011" GNU "Manuel du programmeur Linux"
+.SH NOM
+sigevent \- Structure de notification des routines asynchrones
+.SH SYNOPSIS
+.nf
+
+union sigval {          /* Données transmises avec la notification */
+    int     sival_int;         /* Valeur entière */
+    void   *sival_ptr;         /* Valeur du pointeur */
+};
+
+struct sigevent {
+    int          sigev_notify; /* Méthode de notification */
+    int          sigev_signo;  /* Signal de notification */
+    union sigval sigev_value;  /* Données transmises avec
+                                  la notification */
+    void       (*sigev_notify_function) (union sigval);
+                     /* Fonction utilisée pour la notification
+                        du thread (SIGEV_THREAD) */
+    void        *sigev_notify_attributes;
+                     /* Attributs pour la notification
+                        du thread (SIGEV_THREAD) */
+    pid_t        sigev_notify_thread_id;
+                     /* Identifiant du thread à signaler (SIGEV_THREAD_ID) */
+};
+.fi
+.SH DESCRIPTION
+.PP
+La structure de \fIsigevent\fP est utilisée par différentes API pour décrire la
+façon dont un processus sera averti d'un évènement (par exemple la fin d'une
+requête asynchrone, l'expiration d'une temporisation ou l'arrivée d'un
+message).
+.PP
+La définition du SYNOPSIS est approximative\ : certains champs de la
+structure \fIsigevent\fP peuvent être définis comme faisant partie d'une
+union. Les programmes ne devraient utiliser ces champs qu'en fonction de la
+valeur indiquée dans \fIsigev_notify\fP.
+.PP
+Le champ \fIsigev_notify\fP indique comment les notifications seront
+effectuées. Ce champ peut prendre une des valeurs suivantes\ :
+.TP  8
+\fBSIGEV_NONE\fP
+Une notification «\ vide\ »\ : ne fait rien quand l'évènement se produit.
+.TP 
+\fBSIGEV_SIGNAL\fP
+Notifie le processus en envoyant le signal indiqué en \fIsigev_signo\fP.
+.IP
+Si le signal est intercepté avec un gestionnaire de signal qui a été
+enregistré avec l'option \fBSA_SIGINFO\fP de \fBsigaction\fP(2), les champs
+suivants sont définis dans la structure \fIsiginfo_t\fP qui est transmise en
+tant que deuxième argument au gestionnaire\ :
+.RS 8
+.TP  10
+\fIsi_code\fP
+La valeur de ce champ dépend de l'API qui transmet la notification.
+.TP 
+\fIsi_signo\fP
+Le numéro du signal est attribué à ce champ (par exemple la même valeur que
+dans \fIsigev_signo\fP).
+.TP 
+\fIsi_value\fP
+La valeur indiquée dans \fIsigev_value\fP est attribuée à ce champ.
+.RE
+.IP
+En fonction de l'API, d'autres champs peuvent être définis dans la structure
+\fIsiginfo_t\fP.
+.IP
+Les mêmes renseignements sont aussi disponibles si le signal permet
+d'utiliser \fBsigwaitinfo\fP(2).
+.TP 
+\fBSIGEV_THREAD\fP
+Notifie le processus par l'appel de \fIsigev_notify_function\fP «\ comme s'il\ »
+s'agissait de la fonction de démarrage d'un nouveau thread (il y a plusieurs
+possibilités d'implémentation, dont la création d'un nouveau thread pour
+chaque notification de minuterie, ou la création d'un unique thread pour la
+réception de toutes les notifications). La fonction est appelée avec
+\fIsigev_value\fP comme unique paramètre. Si \fIsigev_notify_attributes\fP n'est
+pas NULL, il doit pointer vers une structure \fIpthread_attr_t\fP qui définie
+les paramètres pour le nouveau thread (voir \fBpthread_attr_init\fP(3)).
+.TP 
+\fBSIGEV_THREAD_ID\fP (spécifique à Linux)
+.\" | SIGEV_SIGNAL vs not?
+Seulement utilisée par les temporisations POSIX pour le moment, consultez
+\fBtimer_create\fP(2).
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH "VOIR AUSSI"
+\fBtimer_create\fP(2), \fBaio_fsync\fP(3), \fBaio_read\fP(3), \fBaio_write\fP(3),
+\fBgetaddrinfo_a\fP(3), \fBlio_listio\fP(3), \fBmq_notify\fP(3), \fBaio\fP(7),
+\fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

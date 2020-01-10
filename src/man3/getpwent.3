@@ -1,0 +1,163 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\"
+.\" Modified Sat Jul 24 19:22:14 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Mon May 27 21:37:47 1996 by Martin Schulze (joey@linux.de)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETPWENT 3 "21 juin 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+getpwent, setpwent, endpwent \- Lire un enregistrement du fichier des mots de
+passe
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <pwd.h>\fP
+.sp
+\fBstruct passwd *getpwent(void);\fP
+.sp
+\fBvoid setpwent(void);\fP
+.sp
+\fBvoid endpwent(void);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBgetpwent\fP(), \fBsetpwent\fP(), \fBendpwent\fP()\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.RE
+.ad b
+.SH DESCRIPTION
+La fonction \fBgetpwent\fP() renvoie un pointeur sur une structure contenant
+les divers champs d'un enregistrement de la base de données des mots de
+passe (par exemple, le fichier de mots de passe local \fI/etc/passwd\fP, NIS ou
+LDAP). Au premier appel, \fBgetpwent\fP() renvoie le premier enregistrement,
+puis les enregistrements suivants lors des appels suivants.
+.PP
+La fonction \fBsetpwent\fP() ramène le pointeur de fichier au début de base de
+données des mots de passe.
+.PP
+La fonction \fBendpwent\fP() est utilisée pour fermer la base de données des
+mots de passe après que toutes les actions ont été réalisées.
+.PP
+La structure \fIpasswd\fP est définie dans \fI<pwd.h>\fP comme ceci\ :
+.sp
+.in +4n
+.nf
+struct passwd {
+    char   *pw_name;       /* Nom d'utilisateur */
+    char   *pw_passwd;     /* Mot de passe de l'utilisateur */
+    uid_t   pw_uid;        /* ID de l'utilisateur */
+    gid_t   pw_gid;        /* ID du groupe */
+    char   *pw_gecos;      /* Information utilisateur */
+    char   *pw_dir;        /* Répertoire personnel */
+    char   *pw_shell;      /* Interpréteur de commande */
+};
+.fi
+.in
+.PP
+Pour plus d'informations à propos des champs de cette structure, consultez
+\fBpasswd\fP(5).
+.SH "VALEUR RENVOYÉE"
+La fonction \fBgetpwent\fP() renvoie un pointeur sur une structure \fIpasswd\fP,
+ou NULL si une erreur s'est produite ou s'il n'y a plus d'enregistrement. En
+cas d'erreur, \fIerrno\fP est positionnée en conséquence. Si vous souhaitez
+vérifier \fIerrno\fP après l'appel, celle\-ci doit être positionnée à zéro avant
+l'appel.
+
+La valeur de retour peut pointer vers une zone statique et donc être écrasée
+par des appels successifs à \fBgetpwent\fP(), \fBgetpwnam\fP(3) ou
+\fBgetpwuid\fP(3). (Ne pas passer le pointeur renvoyé à \fBfree\fP(3).)
+.SH ERREURS
+.TP 
+\fBEINTR\fP
+Un signal a été intercepté.
+.TP 
+\fBEIO\fP
+Erreur d'entrée\-sortie.
+.TP 
+\fBEMFILE\fP
+Le nombre maximal (\fBOPEN_MAX\fP) de fichiers ouverts par le processus est
+atteint.
+.TP 
+\fBENFILE\fP
+Le nombre maximal de fichiers ouverts sur le système est atteint.
+.TP 
+\fBENOMEM\fP
+.\" not in POSIX
+.\" to allocate the passwd structure, or to allocate buffers
+Pas assez de mémoire pour allouer la structure \fIpasswd\fP.
+.TP 
+\fBERANGE\fP
+L'espace tampon fourni est insuffisant.
+.SH FICHIERS
+.TP 
+\fI/etc/passwd\fP
+Base de données des mots de passe locaux
+.SH ATTRIBUTS
+.SS "Multithreading (voir pthreads(7))"
+La fonction \fBgetpwent()\fP n'est pas sûre dans un contexte multithread.
+.LP
+Les fonctions \fBsetpwent()\fP et \fBendpwent()\fP sont sûres dans un contexte
+multithread.
+.SH CONFORMITÉ
+SVr4, 4.3BSD, POSIX.1\-2001. Le champ \fIpw_gecos\fP n'est pas spécifié dans
+POSIX, mais il est présent sur la plupart des implémentations.
+.SH "VOIR AUSSI"
+\fBfgetpwent\fP(3), \fBgetpw\fP(3), \fBgetpwent_r\fP(3), \fBgetpwnam\fP(3),
+\fBgetpwuid\fP(3), \fBputpwent\fP(3), \fBpasswd\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2004-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

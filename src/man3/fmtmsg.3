@@ -1,0 +1,265 @@
+.\"  Copyright 2002 walter harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\"  adapted glibc info page
+.\"
+.\"  This should run as 'Guru Meditation' (amiga joke :)
+.\"  The function is quite complex and deserves an example
+.\"
+.\"  Polished, aeb, 2003-11-01
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FMTMSG 3 "21 juin 2013" "" "Manuel du programmeur Linux"
+.SH NOM
+fmtmsg \- Afficher des messages d'erreur formatés
+.SH SYNOPSIS
+.nf
+\fB#include <fmtmsg.h>\fP
+.sp
+\fBint fmtmsg(long \fP\fIclassification\fP\fB, const char *\fP\fIlabel\fP\fB,\fP
+.br
+\fB           int \fP\fIseverity\fP\fB, const char *\fP\fItext\fP\fB,\fP
+.br
+\fB           const char *\fP\fIaction\fP\fB, const char *\fP\fItag\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Cette fonction affiche un message décrit par ses arguments sur le(s)
+périphérique(s) spécifié(s) par le paramètre \fIclassification\fP. Pour les
+messages écrits sur \fIstderr\fP, le format dépend de la variable
+d'environnement \fBMSGVERB\fP.
+.LP
+Le paramètre \fIlabel\fP identifie la source du message. La chaîne doit être
+composée en deux parties, séparées par le caractère deux\-points «\ :\ », où
+la première partie ne comporte pas plus de 10 caractères et la seconde, pas
+plus de 14.
+.LP
+Le paramètre \fItext\fP décrit la condition de l'erreur.
+.LP
+Le paramètre \fIaction\fP décrit les étapes possibles pour récupérer
+l'erreur. Si elle est affichée, elle sera préfixée par «\TO FIX:\ ».
+.LP
+Le paramètre \fItag\fP est une référence à la documentation en ligne où l'on
+pourra trouver plus d'informations. Il devrait contenir la valeur \fIlabel\fP
+et un numéro d'identification unique.
+.SS "Paramètres factices"
+Chacun des paramètres peut avoir une valeur factice. La valeur de
+classification factice \fBMM_NULLMC\fP (0L) ne spécifie aucune sortie, ainsi,
+rien n'est affiché. La valeur de sévérité factice \fBNO_SEV\fP (0) signifie
+qu'aucune sévérité n'est fournie. Les valeurs \fBMM_NULLLBL\fP, \fBMM_NULLTXT\fP,
+\fBMM_NULLACT\fP, \fBMM_NULLTAG\fP sont des synonymes de \fI((char\ *) 0)\fP, la
+chaîne vide, et \fBMM_NULLSEV\fP est un synonyme de \fBNO_SEV\fP.
+.SS "Le paramètre classification"
+Le paramètre \fIclassification\fP est la somme de valeurs décrivant 4 types
+d'informations.
+.br
+.sp
+La première valeur définit le canal de sortie.
+.TP  12n
+\fBMM_PRINT\fP
+Sortie sur \fIstderr\fP.
+.TP 
+\fBMM_CONSOLE\fP
+Sortie sur la console du système.
+.TP 
+\fBMM_PRINT | MM_CONSOLE\fP
+Sortie sur les deux.
+.PP
+La deuxième valeur est la source de l'erreur\ :
+.TP  12n
+\fBMM_HARD\fP
+Une erreur matérielle est survenue.
+.TP 
+\fBMM_FIRM\fP
+Une erreur micro\-logicielle («\ firmware\ ») est survenue.
+.TP 
+\fBMM_SOFT\fP
+Une erreur logicielle est survenue.
+.PP
+La troisième valeur encode le détecteur du problème\ :
+.TP  12n
+\fBMM_APPL\fP
+L'erreur a été détectée par une application.
+.TP 
+\fBMM_UTIL\fP
+L'erreur a été détectée par un utilitaire.
+.TP 
+\fBMM_OPSYS\fP
+L'erreur a été détectée par le système d'exploitation.
+.PP
+La quatrième valeur indique la gravité de l'incident\ :
+.TP  12n
+\fBMM_RECOVER\fP
+L'erreur est récupérable.
+.TP 
+\fBMM_NRECOV\fP
+L'erreur n'est pas récupérable.
+.SS "Le paramètre «\ severity\ »"
+Le paramètre \fIseverity\fP peut prendre l'une des valeurs suivantes\ :
+.TP  12n
+\fBMM_NOSEV\fP
+Aucune sévérité ne sera affichée.
+.TP 
+\fBMM_HALT\fP
+Cette valeur est affichée en tant que HALT.
+.TP 
+\fBMM_ERROR\fP
+Cette valeur est affichée en tant que ERROR.
+.TP 
+\fBMM_WARNING\fP
+Cette valeur est affichée en tant que WARNING.
+.TP 
+\fBMM_INFO\fP
+Cette valeur est affichée en tant que INFO.
+.PP
+Les valeurs numériques sont comprises entre 0 et 4. Utiliser
+\fBaddseverity\fP(3) ou la variable d'environnement \fBSEV_LEVEL\fP vous permet
+d'ajouter plus de niveaux et d'afficher des messages.
+.SH "VALEUR RENVOYÉE"
+La fonction peut retourner 4 valeurs\ :
+.TP  12n
+\fBMM_OK\fP
+Tout c'est bien passé.
+.TP 
+\fBMM_NOTOK\fP
+Échec complet.
+.TP 
+\fBMM_NOMSG\fP
+Erreur lors de l'écriture sur \fIstderr\fP.
+.TP 
+\fBMM_NOCON\fP
+Erreur lors de l'écriture sur la console.
+.SH ENVIRONNEMENT
+La variable d'environnement \fBMSGVERB\fP («\ verbosité du message\ ») peut
+être utilisée pour supprimer des parties de la sortie vers \fIstderr\fP (cela
+n'a pas d'influence sur la sortie vers la console). Lorsque cette variable
+est définie, non vide et que c'est une liste de mots clés valides séparés
+par le caractère deux\-points, seules les parties du message correspondant à
+ces mots clés seront affichées. Les mots\-clés valides sont «\ label\ », «\ severity\ », «\ text\ », «\ action\ » et «\ tag\ ».
+.PP
+La variable d'environnement \fBSEV_LEVEL\fP peut être utilisée afin
+d'introduire de nouveaux niveaux de sévérité. Par défaut, seuls les cinq
+niveaux de sévérité décrits précédemment sont disponibles. Toute autre
+valeur numérique fera que la fonction \fBfmtmsg\fP() n'affichera rien. Si
+l'utilisateur positionne \fBSEV_LEVEL\fP avec un format comme
+.sp
+.RS
+SEV_LEVEL=[description[:description[:...]]]
+.RE
+.sp
+dans l'environnement du processus avant le premier appel à \fBfmtmsg\fP(), où
+chaque description est de la forme
+.sp
+.RS
+sévérité, niveau, chaîne
+.RE
+.sp
+alors \fBfmtmsg\fP() acceptera également les valeurs indiquées pour le niveau
+(en plus des niveaux standard [0, 4]), et utilisera la chaîne indiquée
+lorsqu'un tel niveau surviendra.
+.LP
+La partie «\ sévérité\ » n'est pas utilisée par \fBfmtmsg\fP() mais elle doit
+être présente. La partie «\ niveau\ » est la représentation alphabétique
+d'un nombre. La valeur numérique doit être un nombre strictement supérieur à
+4. Cette valeur doit être utilisée dans le paramètre «\ sévérité\ » de
+\fBfmtmsg\fP() pour sélectionner cette classe. Il n'est pas possible de
+surcharger les classes prédéfinies. La partie «\ chaîne\ » est la chaîne qui
+sera affichée lorsqu'un message de cette classe est traité par \fBfmtmsg\fP().
+.SH VERSIONS
+\fBfmtmsg\fP() est fournie par la glibc depuis la version\ 2.1.
+.SH ATTRIBUTS
+.SS "Multithreading (voir pthreads(7))"
+Avant glibc\ 2.16, la fonction \fBfmtmsg\fP() utilisait une variable statique
+non protégée, et n’était donc pas sûre dans un contexte multithread.
+
+.\" Modified in commit 7724defcf8873116fe4efab256596861eef21a94
+Depuis glibc\ 2.16, la fonction \fBfmtmsg\fP() utilise un verrou de protection
+de la variable statique, donc elle est sûre dans un contexte multithread.
+.SH CONFORMITÉ
+Les fonctions \fBfmtmsg\fP(), \fBaddseverity\fP(3), les variables d'environnement
+\fBMSGVERB\fP et \fBSEV_LEVEL\fP proviennent de System\ V. La fonction \fBfmtmsg\fP()
+et la variable d'environnement \fBMSGVERB\fP sont décrites dans POSIX.1\-2001.
+.SH NOTES
+Les pages de manuel System\ V et UnixWare disent que ces fonctions ont été
+remplacées par «\ pfmt() et addsev()\ » ou par «\ pfmt(), vpfmt(), lfmt(),
+et vlfmt()\ », et seront supprimées par la suite.
+.SH EXEMPLE
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+#include <fmtmsg.h>
+
+int
+main(void)
+{
+    long class = MM_PRINT | MM_SOFT | MM_OPSYS | MM_RECOVER;
+    int err;
+
+    err = fmtmsg(class, "util\-linux:mount", MM_ERROR,
+                "unknown mount option", "See mount(8).",
+                "util\-linux:mount:017");
+    switch (err) {
+    case MM_OK:
+        break;
+    case MM_NOTOK:
+        printf("Nothing printed\en");
+        break;
+    case MM_NOMSG:
+        printf("Nothing printed to stderr\en");
+        break;
+    case MM_NOCON:
+        printf("No console output\en");
+        break;
+    default:
+        printf("Unknown error from fmtmsg()\en");
+    }
+    exit(EXIT_SUCCESS);
+}
+.fi
+.PP
+La sortie devrait être\ :
+.nf
+
+    util\-linux:mount: ERROR: unknown mount option
+    TO FIX: See mount(8).  util\-linux:mount:017
+
+.fi
+et après
+.nf
+
+    MSGVERB=text:action; export MSGVERB
+
+.fi
+la sortie devient\ :
+.nf
+
+    unknown mount option
+    TO FIX: See mount(8).
+.fi
+.SH "VOIR AUSSI"
+\fBaddseverity\fP(3), \fBperror\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2004-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

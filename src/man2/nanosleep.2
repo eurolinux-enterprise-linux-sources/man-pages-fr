@@ -1,0 +1,176 @@
+.\" Copyright (C) Markus Kuhn, 1996
+.\" and Copyright (C) Linux Foundation, 2008, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 1996-04-10  Markus Kuhn <mskuhn@cip.informatik.uni-erlangen.de>
+.\"             First version written
+.\" Modified, 2004-10-24, aeb
+.\" 2008-06-24, mtk
+.\"     Minor rewrites of some parts.
+.\"     NOTES: describe case where clock_nanosleep() can be preferable.
+.\"     NOTES: describe CLOCK_REALTIME versus CLOCK_NANOSLEEP
+.\"     Replace crufty discussion of HZ with a pointer to time(7).
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH NANOSLEEP 2 "19 janvier 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+nanosleep \- Sommeil en haute résolution
+.SH SYNOPSIS
+\fB#include <time.h>\fP
+.sp
+\fBint nanosleep(const struct timespec *\fP\fIreq\fP\fB, struct timespec
+*\fP\fIrem\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBnanosleep\fP()\ : _POSIX_C_SOURCE\ >=\ 199309L
+.SH DESCRIPTION
+\fBnanosleep\fP() suspend l'exécution du thread appelant jusqu'à ce que le
+temps indiqué dans \fI*req\fP ait expiré, ou que la réception d'un signal ait
+déclenché l'invocation d'un gestionnaire dans le thread appelant ou ait
+terminé le processus.
+
+Si l'appel est interrompu par un gestionnaire de signal \fBnanosleep\fP()
+renvoie \-1, renseigne \fIerrno\fP avec la valeur \fBEINTR\fP, et inscrit le temps
+restant dans la structure pointée par \fIrem\fP à moins que \fIrem\fP soit
+NULL. La valeur de \fI*rem\fP peut être utilisée pour rappeler à nouveau
+\fBnanosleep\fP() afin de terminer la pause (mais voir la section NOTES plus
+loin).
+
+La structure \fItimespec\fP est utilisée pour indiquer l'intervalle de temps en
+nanosecondes. Elle est définie comme ceci\ :
+.sp
+.in +4n
+.nf
+struct timespec {
+    time_t tv_sec;        /* secondes     */
+    long   tv_nsec;       /* nanosecondes */
+};
+.fi
+.in
+.PP
+La valeur du champ nanosecondes doit être dans l'intervalle 0 à 999\ 999\ 999.
+
+Par rapport à \fBsleep\fP(3) et \fBusleep\fP(3), \fBnanosleep\fP() a les avantages
+suivants\ : il fournit une meilleure résolution pour indiquer la durée du
+sommeil\ ; POSIX.1 indique explicitement qu'il n'interagit avec aucun
+signal\ ; il permet enfin de continuer facilement un sommeil interrompu par
+un signal.
+.SH "VALEUR RENVOYÉE"
+L'appel \fBnanosleep\fP() renvoie 0 s'il réussit à suspendre l'exécution pour
+la durée demandée. Si l'appel est interrompu par un gestionnaire de signal
+ou rencontre une erreur, il renvoie \-1 et \fIerrno\fP contient le code
+d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+Problème lors de la copie d'information à partir de l'espace utilisateur.
+.TP 
+\fBEINTR\fP
+La pause a été interrompue par un signal non bloqué délivré au thread. Le
+temps restant de sommeil a été inscrit dans \fI*rem\fP pour que le thread
+puisse terminer facilement son sommeil en rappelant \fBnanosleep\fP().
+.TP 
+\fBEINVAL\fP
+La valeur du champ \fItv_nsec\fP n'est pas dans l'intervalle 0 à 999\ 999\ 999
+ou \fItv_sec\fP est négatif.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Si l'intervalle indiqué dans \fIreq\fP n'est pas un multiple exact de la
+granularité de l'horloge sous\-jacente (consultez \fBtime\fP(7)), l'intervalle
+est arrondi au multiple supérieur. De plus, après que le sommeil est achevé,
+il y a toujours un délai avant que le processeur ne redevienne complètement
+disponible pour le thread appelant.
+
+Le fait que \fBnanosleep\fP() endorme pour une durée relative peut être
+problématique si l'appel est relancé de manière répétée après avoir été
+interrompu par des signaux, puisque le temps entre les interruptions et les
+redémarrages de l'appel connaîtra une dérive lorsque le sommeil sera
+finalement achevé. Ce problème peut être évité en utilisant
+\fBclock_nanosleep\fP(2) avec une valeur de temps absolu.
+
+.\" See also http://thread.gmane.org/gmane.linux.kernel/696854/
+.\" Subject: nanosleep() uses CLOCK_MONOTONIC, should be CLOCK_REALTIME?
+.\" Date: 2008-06-22 07:35:41 GMT
+POSIX.1 indique que \fBnanosleep\fP() doit mesurer le temps avec l'horloge
+\fBCLOCK_REALTIME\fP. Pourtant, Linux mesure le temps avec l'horloge
+\fBCLOCK_MONOTONIC\fP. Cela n'a probablement pas d'importance car la
+spécification POSIX.1 de \fBclock_settime\fP(2) indique que les modifications
+discontinues dans \fBCLOCK_REALTIME\fP n'affectent pas \fBnanosleep\fP()\ :
+.RS
+.PP
+Configurer la valeur de l'horloge \fBCLOCK_REALTIME\fP avec \fBclock_settime\fP(2)
+ne doit pas avoir d'effet sur les threads bloqués attendant un service de
+temps relatif basé sur cette horloge. Cela inclut la fonction
+\fBnanosleep\fP()\ ; ...En conséquence, ces services de temps doivent expirer
+lorsque la durée relative demandée est atteinte, indépendamment de
+l'ancienne ou la nouvelle valeur de l'horloge.
+.RE
+.SS "Ancien comportement"
+Certaines applications nécessitant des pauses plus précises (par exemple
+pour le contrôle de périphériques matériels avec un délai critique),
+\fBnanosleep\fP() peut aussi offrir des pauses avec une précision plus
+élevée. Si le thread est mis sous le contrôle d'une politique
+d'ordonnancement temps réel comme \fBSCHED_FIFO\fP ou \fBSCHED_RR\fP, les pauses
+jusqu'à 2\ ms seront effectuées avec des boucles actives d'une précision de
+l'ordre de la microseconde. Cette extension spéciale a été supprimée dans le
+noyau 2.5.39, et est donc toujours présente dans les noyaux 2.4, mais pas
+dans les noyaux 2.6.
+.SH BOGUES
+Dans Linux 2.4, si \fBnanosleep\fP() est arrêté par un signal (par exemple,
+\fBSIGTSTP\fP), l'appel échoue avec l'erreur \fBEINTR\fP après que le thread a
+repris avec un signal \fBSIGCONT\fP. Si l'appel système est, par la suite,
+relancé, le temps passé par le thread dans l'état arrêté \fIn'est pas\fP
+comptabilisé dans l'intervalle de sommeil.
+.SH "VOIR AUSSI"
+\fBclock_nanosleep\fP(2), \fBsched_setscheduler\fP(2), \fBtimer_create\fP(2),
+\fBsleep\fP(3), \fBusleep\fP(3), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

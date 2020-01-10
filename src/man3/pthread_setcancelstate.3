@@ -1,0 +1,161 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_SETCANCELSTATE 3 "24 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_setcancelstate, pthread_setcanceltype \- Définir l'état et le type
+d'annulation
+.SH SYNOPSIS
+.nf
+\fB#include <pthread.h>\fP
+
+\fBint pthread_setcancelstate(int \fP\fIstate\fP\fB, int *\fP\fIoldstate\fP\fB);\fP
+\fBint pthread_setcanceltype(int \fP\fItype\fP\fB, int *\fP\fIoldtype\fP\fB);\fP
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+La fonction \fBpthread_setcancelstate\fP() définit l'état d'annulation du
+thread appelant à la valeur indiquée par \fIstate\fP. L'ancien état
+d'annulation du thread est renvoyé dans le tampon pointé par
+\fIoldstate\fP. L'argument \fIstate\fP doit avoir une des valeurs suivantes\ :
+.TP 
+\fBPTHREAD_CANCEL_ENABLE\fP
+Le thread peut être annulé. C'est l'état d'annulation par défaut pour tous
+les nouveaux threads, y compris le thread initial. Le type d'annulation du
+thread détermine quand un thread annulable répondra à une requête
+d'annulation.
+.TP 
+\fBPTHREAD_CANCEL_DISABLE\fP
+Le thread n'est pas annulable. Si une requête d'annulation arrive, elle est
+bloquée jusqu'à ce que l'annulation soit activée.
+.PP
+La fonction \fBpthread_setcanceltype\fP() définit le type d'annulation du
+thread appelant à la valeur indiquée par \fItype\fP. L'ancien type d'annulation
+du thread est renvoyé dans le tampon pointé par \fIoldtype\fP. L'argument
+\fItype\fP doit avoir une des valeurs suivantes\ :
+.TP 
+\fBPTHREAD_CANCEL_DEFERRED\fP
+Une requête d'annulation est retardé jusqu'à ce que le thread appelle une
+fonction qui est un point d'annulation (consultez \fBpthreads\fP(7)). C'est le
+type d'annulation par défaut pour tous les nouveaux threads, y compris le
+thread initial.
+.TP 
+\fBPTHREAD_CANCEL_ASYNCHRONOUS\fP
+Le thread peut être annulé à tout moment. Typiquement, il sera annulé dès
+réception de la requête d'annulation, mais ce n'est pas garanti par le
+système.
+.PP
+Les opérations \fIset\fP/\fIget\fP effectuées par ces fonctions sont atomiques, eu
+égard aux autres threads du processus qui appellent la même fonction.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient 0\ ; en cas d'erreur elles
+renvoient un numéro d'erreur non nul.
+.SH ERREURS
+\fBpthread_setcancelstate\fP() peut échouer avec l'erreur suivante\ :
+.TP 
+\fBEINVAL\fP
+Valeur invalide pour \fIstate\fP.
+.PP
+\fBpthread_setcanceltype\fP() peut échouer avec l'erreur suivante\ :
+.TP 
+\fBEINVAL\fP
+.\" .SH VERSIONS
+.\" Available since glibc 2.0
+Valeur invalide pour \fItype\fP.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Pour des détails sur ce qui se passe quand un thread est annulé, voyez
+\fBpthread_cancel\fP(3).
+
+Désactiver brièvement l'annulation peut être pratique si un thread effectue
+une action critique qui ne doit pas être interrompue par une requête
+d'annulation. Mais attention de ne pas désactiver l'annulation sur de
+longues périodes, ou autour d'opérations qui peuvent ploquer pendant un long
+moment, car cela empêcherait le thread de répondre aux requêtes
+d'annulation.
+
+Le type d'annulation est rarement mis à
+\fBPTHREAD_CANCEL_ASYNCHRONOUS\fP. Comme le thread pourrait être annulé
+n'importe quand, il ne pourrait pas réserver de ressources (par exemple en
+allouant de la mémoire avec \fBmalloc\fP(3)) de manière sûre, acquérir des
+verrous exclusifs (\fImutex\fP), des sémaphores, des verrous, etc. Réserver des
+ressources n'est pas sûr, car l'application n'a aucun moyen de connaître
+l'état de ces ressources quand le thread est annulé\ ; en d'autres termes,
+l'annulation arrive\-t\-elle avant que les ressources n'aient été réservées,
+pendant qu'elles sont réservées, ou après qu'elles ont été libérées\ ? De
+plus, certaines structures de données internes (par exemple la liste chaînée
+des blocs libres gérée par la famille de fonctions \fBmalloc\fP(3)) pourraient
+se retrouver dans un état incohérent si l'annulation se passe au milieu d'un
+appel de fonction. En conséquence de quoi les gestionnaires de nettoyage
+perdent toute utilité. Les fonctions qui peuvent sans risque être annulées
+de manière asynchrone sont appelées des \fIfonctions
+async\-cancel\-safe\fP. POSIX.1\-2001 nécessite seulement que
+\fBpthread_cancel\fP(3), \fBpthread_setcancelstate\fP() et
+\fBpthread_setcanceltype\fP()  soient async\-cancel\-safe. En général, les autres
+fonctions de la bibliothèque ne peuvent pas être appelées de manière sûre
+depuis un thread annulable immédiatement. Une des rares circonstances dans
+lesquelles une annulation immédiate est utile est pour l'annullation d'un
+thread qui est dans une boucle qui ne fait que des calculs.
+
+.\" It looks like at least Solaris, FreeBSD and Tru64 support this.
+Les implémentations de Linux autorisent l'argument \fIoldstate\fP de
+\fBpthread_setcancelstate\fP()  à être NULL, auquel cas l'information au sujet
+de l'état antérieur d'annulation n'est pas renvoyé à l'appelant. Beaucoup
+d'autres implémentations autorisent aussi un argument \fIoldstat\fP NULL, mais
+POSIX.1\-2001 ne spécifie pas ce point, si bien que les applications
+portables devraient toujours donner une valeur non NULL à \fIoldstate\fP. Le
+même type de raisonnement s'applique à l'argument \fIoldtype\fP de
+\fBpthread_setcanceltype\fP().
+.SH EXEMPLE
+Consultez \fBpthread_cancel\fP(3).
+.SH "VOIR AUSSI"
+\fBpthread_cancel\fP(3), \fBpthread_cleanup_push\fP(3), \fBpthread_testcancel\fP(3),
+\fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Denis Barbier (2010).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,225 @@
+.\" Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"	<mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETSERVENT_R 3 "10 septembre 2010" GNU "Manuel du programmeur Linux"
+.SH NOM
+getservent_r, getservbyname_r, getservbyport_r \- Accéder aux informations
+sur les services (version réentrante)
+.SH SYNOPSIS
+.nf
+\fB#include <netdb.h>\fP
+.sp
+\fBint getservent_r(struct servent *\fP\fIresult_buf\fP\fB, char *\fP\fIbuf\fP\fB,\fP
+\fB                size_t \fP\fIbuflen\fP\fB, struct servent **\fP\fIresult\fP\fB);\fP
+.sp
+\fBint getservbyname_r(const char *\fP\fIname\fP\fB, const char *\fP\fIproto\fP\fB,\fP
+\fB                struct servent *\fP\fIresult_buf\fP\fB, char *\fP\fIbuf\fP\fB,\fP
+\fB                size_t \fP\fIbuflen\fP\fB, struct servent **\fP\fIresult\fP\fB);\fP
+.sp
+\fBint getservbyport_r(int \fP\fIport\fP\fB, const char *\fP\fIproto\fP\fB,\fP
+\fB                struct servent *\fP\fIresult_buf\fP\fB, char *\fP\fIbuf\fP\fB,\fP
+\fB                size_t \fP\fIbuflen\fP\fB, struct servent **\fP\fIresult\fP\fB);\fP
+.sp
+.fi
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.ad l
+.in
+.sp
+\fBgetservent_r\fP(), \fBgetservbyname_r\fP(), \fBgetservbyport_r\fP()\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE
+.RE
+.ad b
+.SH DESCRIPTION
+\fBgetservent_r\fP(), \fBgetservbyname_r\fP() et \fBgetservbyport_r\fP() sont
+respectivement les versions réentrantes de \fBgetservent\fP(3),
+\fBgetservbyname\fP(3) et \fBgetservbyport\fP(3). Elles diffèrent car la structure
+\fIservent\fP est renvoyée, les signatures et la valeur renvoyée sont aussi
+différentes. Cette page de manuel décrit juste les différences depuis les
+versions non réentrantes.
+
+Au lieu de renvoyer un pointeur vers une structure \fIservent\fP statiquement
+allouée, ces fonctions copient la structure à l'adresse pointée par
+\fIresult_buf\fP.
+
+.\" I can find no information on the required/recommended buffer size;
+.\" the nonreentrant functions use a 1024 byte buffer -- mtk.
+Le tableau \fIbuf\fP est utilisé pour sauvegarder les champs de la chaîne
+pointée par la structure \fIservent\fP renvoyée (les fonctions non réentrantes
+allouent ces chaînes de façon statique). La taille du tableau est spécifiée
+avec \fIbuflen\fP. Si \fIbuf\fP est trop petit, l'appel échoue avec l'erreur
+\fBERANGE\fP, et l'appelant doit essayer de nouveau avec un tableau plus grand
+(un tableau de 1024 octets est en général suffisant).
+
+Si la fonction réussie à obtenir un enregistrement de service, alors
+\fI*result\fP pointe vers \fIresult_buf\fP, sinon \fI*result\fP est défini à NULL.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, ces fonctions renvoient zéro. En cas d'erreur, une valeur
+d'erreur positive listée dans ERREURS est renvoyée.
+
+En cas d'erreur, «\ enregistrement non trouvé\ » (\fBgetservbyname_r\fP(),
+\fBgetservbyport_r\fP()) ou «\ fin de l'entrée\ » (\fBgetservent_r\fP()),
+\fIresult\fP est défini à NULL.
+.SH ERREURS
+.TP 
+\fBENOENT\fP
+(\fBgetservent_r\fP()) Plus d'enregistrement dans la base de données.
+.TP 
+\fBERANGE\fP
+\fIbuf\fP est trop petit. Ré\-essayer avec un tampon plus grand (et augmentez
+\fIbuflen\fP).
+.SH CONFORMITÉ
+Ces fonctions sont des extensions GNU. Des fonctions avec des noms
+similaires existent sur d'autres systèmes, bien que en général avec des
+signatures d'appels différent.
+.SH EXEMPLE
+Le programme ci\-dessous utilise \fBgetservbyport_r\fP() pour récupérer
+l'enregistrement du port et du protocole nommé dans les deux premiers
+arguments de sa ligne de commande. Si un troisième argument (un entier) est
+fourni, il est utilisé comme valeur initiale de \fIbuflen\fP. Si
+\fBgetservbyport_r\fP() échoue avec l'erreur \fBERANGE\fP, le programme recommence
+avec une taille de tampon plus grande. La session shell suivante montre des
+exemples d'utilisation.
+.in +4n
+.nf
+
+$\fB ./a.out 7 tcp 1\fP
+ERANGE! Retrying with larger buffer
+getservbyport_r() returned: 0 (success)  (buflen=87)
+s_name=echo; s_proto=tcp; s_port=7; aliases=
+$\fB ./a.out 77777 tcp\fP
+getservbyport_r() returned: 0 (success)  (buflen=1024)
+Call failed/record not found
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#define _GNU_SOURCE
+#include <ctype.h>
+#include <netdb.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+
+#define MAX_BUF 10000
+
+int
+main(int argc, char *argv[])
+{
+    int buflen, erange_cnt, port, s;
+    struct servent result_buf;
+    struct servent *result;
+    char buf[MAX_BUF];
+    char *protop;
+    char **p;
+
+    if (argc < 3) {
+        printf("Usage: %s port\-num proto\-name [buflen]\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    port = htons(atoi(argv[1]));
+    protop = (strcmp(argv[2], "null") == 0 ||
+	      strcmp(argv[2], "NULL") == 0) ?  NULL : argv[2];
+
+    buflen = 1024;
+    if (argc > 3)
+        buflen = atoi(argv[3]);
+
+    if (buflen > MAX_BUF) {
+        printf("Exceeded buffer limit (%d)\en", MAX_BUF);
+        exit(EXIT_FAILURE);
+    }
+
+    erange_cnt = 0;
+    do {
+        s = getservbyport_r(port, protop, &result_buf,
+                     buf, buflen, &result);
+        if (s == ERANGE) {
+            if (erange_cnt == 0)
+                printf("ERANGE! Retrying with larger buffer\en");
+            erange_cnt++;
+
+            /* Increment a byte at a time so we can see exactly
+               what size buffer was required */
+
+            buflen++;
+
+            if (buflen > MAX_BUF) {
+                printf("Exceeded buffer limit (%d)\en", MAX_BUF);
+                exit(EXIT_FAILURE);
+            }
+        }
+    } while (s == ERANGE);
+
+    printf("getservbyport_r() returned: %s  (buflen=%d)\en",
+            (s == 0) ? "0 (success)" : (s == ENOENT) ? "ENOENT" :
+            strerror(s), buflen);
+
+    if (s != 0 || result == NULL) {
+        printf("Call failed/record not found\en");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("s_name=%s; s_proto=%s; s_port=%d; aliases=",
+                result_buf.s_name, result_buf.s_proto,
+                ntohs(result_buf.s_port));
+    for (p = result_buf.s_aliases; *p != NULL; p++)
+        printf("%s ", *p);
+    printf("\en");
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBgetservent\fP(3), \fBservices\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

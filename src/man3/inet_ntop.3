@@ -1,0 +1,109 @@
+.\" Copyright 2000 Sam Varshavchik <mrsam@courier-mta.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References: RFC 2553
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH INET_NTOP 3 "11 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+inet_ntop \- Convertir des adresses IPv4 et IPv6 sous forme binaire en forme
+texte
+.SH SYNOPSIS
+.nf
+\fB#include <arpa/inet.h>\fP
+.sp
+\fBconst char *inet_ntop(int \fP\fIaf\fP\fB, const void *\fP\fIsrc\fP\fB,\fP
+\fB                      char *\fP\fIdst\fP\fB, socklen_t \fP\fIsize\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Cette fonction convertit une structure d'adresse réseau \fIsrc\fP de la famille
+d'adresse \fIaf\fP en une chaîne de caractères. La chaîne résultante, qui est
+copiée dans le tampon \fIdst\fP, doit être un pointeur non NULL. L'appelant
+spécifie le nombre d'octet de la chaîne avec l'argument \fIsize\fP.
+.PP
+\fBinet_ntop\fP() étend les possibilités de la fonction \fBinet_ntoa\fP(3) pour
+gérer plusieurs familles d'adresses. L'utilisation de \fBinet_ntoa\fP(3) est à
+présent déconseillée au profit de \fBinet_ntop\fP(). Les familles d'adresses
+suivantes sont supportées dès à présent\ :
+.TP 
+\fBAF_INET\fP
+\fIsrc\fP doit pointer sur une structure \fIstruct in_addr\fP (octets stockés dans
+l'ordre du réseau)  qui est convertie en une adresse réseau IPv4 dans le
+format décimal pointé "\fIddd.ddd.ddd.ddd\fP". Le tampon \fIdst\fP doit mesurer au
+minimum \fBINET_ADDRSTRLEN\fP octets.
+.TP 
+\fBAF_INET6\fP
+\fIsrc\fP doit pointer sur une structure \fIstruct in6_addr\fP (octets stockés
+dans l'ordre du réseau)  qui est convertie dans la représentation la plus
+appropriée de l'adresse IPv6. Le tampon \fIdst\fP doit mesurer au minimum
+\fBINET6_ADDRSTRLEN\fP octets.
+.SH "VALEUR RENVOYÉE"
+Si elle réussit, \fBinet_ntop\fP() renvoie un pointeur non NULL vers \fIdst\fP. Si
+une erreur se produit, la fonction renvoie NULL, et \fIerrno\fP contient le
+code d'erreur.
+.SH ERREURS
+.TP 
+\fBEAFNOSUPPORT\fP
+\fIaf\fP n'était pas une famille d'adresses valable.
+.TP 
+\fBENOSPC\fP
+La chaîne d'adresse convertie devrait être supérieure à la taille donnée par
+\fIsize\fP.
+.SH CONFORMITÉ
+.\" 2.1.3: size_t, 2.1.91: socklen_t
+POSIX.1\-2001. Notez que la RFC\ 2553 définit un prototype où le dernier
+paramètre, \fIsize\fP, est de type \fIsize_t\fP. Beaucoup de systèmes suivent
+cette RFC\ 2553. Les glibc 2.0 et 2.1 utilisent \fIsize_t\fP mais 2.2 et
+suivantes utilisent \fIsocklen_t\fP.
+.SH BOGUES
+\fBAF_INET6\fP convertit les adresses IPv4 projetées dans l'espace IPv6 en
+employant le format IPv6.
+.SH EXEMPLE
+Consultez \fBinet_pton\fP(3).
+.SH "VOIR AUSSI"
+\fBgetnameinfo\fP(3), \fBinet\fP(3), \fBinet_pton\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

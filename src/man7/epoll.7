@@ -1,0 +1,388 @@
+.\"  Copyright (C) 2003  Davide Libenzi
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_3_PARA)
+.\"  This program is free software; you can redistribute it and/or modify
+.\"  it under the terms of the GNU General Public License as published by
+.\"  the Free Software Foundation; either version 2 of the License, or
+.\"  (at your option) any later version.
+.\"
+.\"  This program is distributed in the hope that it will be useful,
+.\"  but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\"  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\"  GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"  Davide Libenzi <davidel@xmailserver.org>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH EPOLL 7 "17 avril 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+epoll \- Notifications d'événements d'entrées\-sorties
+.SH SYNOPSIS
+\fB#include <sys/epoll.h>\fP
+.SH DESCRIPTION
+L'interface de programmation (API) \fBepoll\fP réalise une tâche similaire à
+\fBpoll\fP(2)\ : la surveillance de plusieurs descripteurs de fichier pour voir
+si les E/S y sont possibles. L'API \fBepoll\fP peut être déclenchée par niveau
+ou par changement d'état, et s'adapte bien à un grand nombre de descripteurs
+simultanés. Les appels système suivants sont fournis pour créer et
+superviser une instance \fBepoll\fP\ :
+.IP * 3
+\fBepoll_create\fP(2) créé une instance \fBepoll\fP et renvoie un descripteur de
+fichier référençant cette instance (la dernière version
+d'\fBepoll_create1\fP(2) étend les fonctionnalités d'\fBepoll_create\fP(2)).
+.IP *
+L'intérêt pour un descripteur de fichier est ensuite enregistré avec
+\fBepoll_ctl\fP(2). L'ensemble des descripteurs de fichiers actuellement
+enregistrés pour une instance \fBepoll\fP est parfois appelé un ensemble
+\fIepoll\fP.
+.IP *
+\fBepoll_wait\fP(2) attend les événements d'E/S, en bloquant le thread appelant
+si aucun événement n'est actuellement disponible.
+.SS "Détection de niveau et détection de transition"
+L'interface de distribution d'événements de \fBepoll\fP est capable de se
+comporter en détection de niveau (Level Triggered \- LT) ou en détection de
+transition (Edge Triggered \- ET). La différence entre ces deux mécanismes
+est décrite ci\-dessous. Supposons que le scénario suivant se produise\ :
+.IP 1. 3
+Le descripteur de fichier qui représente le côté lecture d'un tube (\fIrfd\fP)
+est enregistré dans l'instance \fBepoll\fP.
+.IP 2.
+Celui qui écrit dans le tube envoie 2\ Ko de données.
+.IP 3.
+Un appel à \fBepoll_wait\fP(2) est effectué et renvoie \fIrfd\fP comme descripteur
+de fichier prêt.
+.IP 4.
+Le lecteur du tube lit 1\ Ko de données depuis \fIrfd\fP.
+.IP 5.
+Un appel de \fBepoll_wait\fP(2) est effectué.
+.PP
+Si le descripteur \fIrfd\fP a été ajouté à l'ensemble \fBepoll\fP en utilisant
+l'attribut \fBEPOLLET\fP (edge\-triggered), l'appel \fBepoll_wait\fP(2), réalisé à
+l'étape \fB5\fP, va probablement bloquer bien qu'il y ait des données toujours
+présentes dans les tampons d'entrée du fichier et le pair distant attendra
+une réponse basée sur les données qu'il a déjà envoyées. La raison en est
+que le mécanisme de distribution d'événements Edge Triggered délivre les
+événements seulement lorsque des événements surviennent sur le fichier
+supervisé. Ainsi, à l'étape \fB5\fP, l'appelant peut attendre des données qui
+sont déjà présentes dans le tampon d'entrée. Dans l'exemple ci\-dessus, un
+événement sur \fIrfd\fP sera déclenché à cause de l'écriture à l'étape \fB2\fP, et
+l'événement est consommé dans \fB3\fP. Comme l'opération de lecture de l'étape
+\fB4\fP ne consomme pas toutes les données du tampon, l'appel à
+\fBepoll_wait\fP(2) effectué à l'étape \fB5\fP peut verrouiller indéfiniment.
+
+Une application qui emploie l'attribut \fBEPOLLET\fP de la fonction \fBepoll\fP
+devrait toujours utiliser des descripteurs non bloquants pour éviter qu'une
+lecture ou une écriture ne bloque, par une famine, une tâche qui gère
+plusieurs descripteurs de fichier. L'utilisation préconisée d'\fBepoll\fP avec
+l'interface en détection de changements (\fBEPOLLET\fP) est la suivante\ :
+.RS
+.TP  4
+\fBi\fP
+avec des descripteurs non bloquants\ ; et
+.TP 
+\fBii\fP
+en attendant seulement après qu'un \fBread\fP(2) ou un \fBwrite\fP(2) a renvoyé
+\fBEAGAIN\fP.
+.RE
+.PP
+Au contraire, lorsqu'il est utilisé avec l'interface en détection de niveau
+(par défaut si \fBEPOLLET\fP n'est pas spécifié), \fBepoll\fP est une alternative
+plus rapide à \fBpoll\fP(2), et peut être employé chaque fois que ce dernier
+est utilisé, car il utilise la même sémantique.
+
+Même dans un \fBepoll\fP de type Edge Triggered, plusieurs événements peuvent
+être générés à la réception de nombreux blocs de données. L'appelant peut,
+en spécifiant l'attribut \fBEPOLLONESHOT\fP, faire désactiver par \fBepoll\fP le
+descripteur de fichier associé, après la réception d'un événement avec
+\fBepoll_wait\fP(2). Lorsque l'attribut \fBEPOLLONESHOT\fP est spécifié, il est de
+la responsabilité de l'appelant de réarmer le descripteur en utilisant
+\fBepoll_ctl\fP(2) avec \fBEPOLL_CTL_MOD\fP.
+.SS "Interfaces /proc"
+.\" Following was added in 2.6.28, but them removed in 2.6.29
+.\" .TP
+.\" .IR /proc/sys/fs/epoll/max_user_instances " (since Linux 2.6.28)"
+.\" This specifies an upper limit on the number of epoll instances
+.\" that can be created per real user ID.
+Les interfaces suivantes peuvent être utilisées pour limiter la quantité de
+mémoire du noyau utilisée par epoll\ :
+.TP 
+\fI/proc/sys/fs/epoll/max_user_watches\fP (depuis Linux\ 2.6.28)
+.\" 2.6.29 (in 2.6.28, the default was 1/32 of lowmem)
+Cela définit une limite au nombre total de descripteurs de fichiers qu'un
+utilisateur peut enregistrer au travers de toutes les instances epoll du
+système. La limite est imposée par identifiant d'utilisateur réel. Chaque
+descripteur de fichier enregistré coûte environ 90\ octets sur un noyau
+32\ bits et environ 160\ octets sur un noyau 64\ bits. Actuellement la valeur
+par défaut pour \fImax_user_watches\fP est de 1/25 (4%) de la mémoire basse
+disponible, divisé par le coût d'allocation en octets.
+.SS "Exemple d'utilisation"
+Tandis que l'utilisation de \fBepoll\fP avec un déclenchement par niveau
+correspond à la même sémantique que \fBpoll\fP(2), le déclenchement par
+changement d'état nécessite plus d'explication pour éviter les cas de
+blocage. Dans cet exemple, le lecteur emploie une socket non bloquante sur
+laquelle \fBlisten\fP(2) a été appelée. La fonction \fIdo_use_fd()\fP va utiliser
+le nouveau descripteur de fichier, jusqu'à ce que \fBEAGAIN\fP soit renvoyé par
+\fBread\fP(2) ou par \fBwrite\fP(2). Une application fonctionnant par transition
+d'état devrait, après réception d'\fBEAGAIN\fP, enregistrer l'état en cours,
+afin que l'appel suivant de \fIdo_use_fd()\fP continue avec le \fBread\fP(2) ou le
+\fBwrite\fP(2) où il s'est arrêté.
+
+.in +4n
+.nf
+#define MAX_EVENTS 10
+struct epoll_event ev, events[MAX_EVENTS];
+int listen_sock, conn_sock, nfds, epollfd;
+
+/* Set up listening socket, \(aqlisten_sock\(aq (socket(),
+   bind(), listen()) */
+
+epollfd = epoll_create(10);
+if (epollfd == \-1) {
+    perror("epoll_create");
+    exit(EXIT_FAILURE);
+}
+
+ev.events = EPOLLIN;
+ev.data.fd = listen_sock;
+if (epoll_ctl(epollfd, EPOLL_CTL_ADD, listen_sock, &ev) == \-1) {
+    perror("epoll_ctl: listen_sock");
+    exit(EXIT_FAILURE);
+}
+
+for (;;) {
+    nfds = epoll_wait(epollfd, events, MAX_EVENTS, \-1);
+    if (nfds == \-1) {
+        perror("epoll_pwait");
+        exit(EXIT_FAILURE);
+    }
+
+    for (n = 0; n < nfds; ++n) {
+        if (events[n].data.fd == listen_sock) {
+            conn_sock = accept(listen_sock,
+                            (struct sockaddr *) &local, &addrlen);
+            if (conn_sock == \-1) {
+                perror("accept");
+                exit(EXIT_FAILURE);
+            }
+            setnonblocking(conn_sock);
+            ev.events = EPOLLIN | EPOLLET;
+            ev.data.fd = conn_sock;
+            if (epoll_ctl(epollfd, EPOLL_CTL_ADD, conn_sock,
+                        &ev) == \-1) {
+                perror("epoll_ctl: conn_sock");
+                exit(EXIT_FAILURE);
+            }
+        } else {
+            do_use_fd(events[n].data.fd);
+        }
+    }
+}
+.fi
+.in
+
+Lorsqu'on utilise une détection de changement d'états, pour des raisons de
+performances, il est possible d'ajouter le descripteur de fichier dans
+l'interface \fBepoll\fP (\fBEPOLL_CTL_ADD\fP) une fois, en spécifiant
+(\fBEPOLLIN\fP|\fBEPOLLOUT\fP). Cela évite de basculer sans cesse entre \fBEPOLLIN\fP
+et \fBEPOLLOUT\fP lors des appels \fBepoll_ctl\fP(2) avec \fBEPOLL_CTL_MOD\fP.
+.SS Questions/Réponses
+.TP  4
+\fBQ0\fP
+Quelle est la clé utilisée pour distinguer les descripteurs de fichier
+enregistrés dans un ensemble \fBepoll\fP\ ?
+.TP 
+\fBA0\fP
+La clé est une combinaison du numéro du descripteur de fichier et de la
+description du fichier ouvert (aussi connue comme «\ open file handle\ », la
+représentation interne au noyau d'un fichier ouvert).
+.TP 
+\fBQ1\fP
+Que se passe\-t\-il si on enregistre deux fois le même descripteur de fichier
+dans une instance \fBepoll\fP\ ?
+.TP 
+\fBA1\fP
+.\" But a descriptor duplicated by fork(2) can't be added to the
+.\" set, because the [file *, fd] pair is already in the epoll set.
+.\" That is a somewhat ugly inconsistency.  On the one hand, a child process
+.\" cannot add the duplicate file descriptor to the epoll set.  (In every
+.\" other case that I can think of, descriptors duplicated by fork have
+.\" similar semantics to descriptors duplicated by dup() and friends.)  On
+.\" the other hand, the very fact that the child has a duplicate of the
+.\" descriptor means that even if the parent closes its descriptor, then
+.\" epoll_wait() in the parent will continue to receive notifications for
+.\" that descriptor because of the duplicated descriptor in the child.
+.\"
+.\" See http://thread.gmane.org/gmane.linux.kernel/596462/
+.\" "epoll design problems with common fork/exec patterns"
+.\"
+.\" mtk, Feb 2008
+Vous aurez probablement un \fBEEXIST\fP. Cependant il est possible d'ajouter un
+duplicat de descripteur (\fBdup\fP(2), \fBdup2\fP(2), \fBfcntl\fP(2) \fBF_DUPFD\fP) sur
+la même instance \fBepoll\fP. Cela peut être une technique utile pour le
+filtrage d'événements, si les descripteurs duplicats sont enregistrés avec
+un masque d'événements \fIevents\fP différent.
+.TP 
+\fBQ2\fP
+Deux instances \fBepoll\fP peuvent\-elles attendre le même descripteur de
+fichier\ ? Si oui, les événements seront\-ils reportés sur les deux
+descripteurs de fichier \fBepoll\fP en même temps\ ?
+.TP 
+\fBA2\fP
+Oui, et les événements seront rapportés aux deux. Toutefois, une
+programmation soignée est nécessaire pour que cela soit fait correctement.
+.TP 
+\fBQ3\fP
+Peut\-on utiliser le descripteur de \fBepoll\fP lui\-même avec poll/epoll/select\ ?
+.TP 
+\fBA3\fP
+Oui. Si un descripteur de fichier \fBepoll\fP a des événements en attente,
+alors il indiquera qu'il est lisible.
+.TP 
+\fBQ4\fP
+Que se passe\-t\-il si on cherche à placer un descripteur de \fBepoll\fP dans son
+propre ensemble\ ?
+.TP 
+\fBA4\fP
+L'appel à \fBepoll_ctl\fP(2) échouera (\fBEINVAL\fP). Toutefois vous pouvez
+ajouter un descripteur de \fBepoll\fP dans un autre ensemble \fBepoll\fP.
+.TP 
+\fBQ5\fP
+Puis\-je envoyer le descripteur de \fBepoll\fP à travers une socket UNIX vers un
+autre processus\ ?
+.TP 
+\fBA5\fP
+Oui, mais il n'y a aucune raison de faire ça, puisque le processus récepteur
+n'aura pas de copie des descripteurs de fichier de l'ensemble \fBepoll\fP.
+.TP 
+\fBQ6\fP
+Est\-ce que la fermeture d'un descripteur le supprime automatiquement de tous
+les ensembles \fBepoll\fP\ ?
+.TP 
+\fBA6\fP
+Oui, mais prenez note des points suivants. Un descripteur de fichier est une
+référence vers la description d'un fichier ouvert (consultez \fBopen\fP(2)). À
+chaque fois qu'un descripteur est dupliqué avec \fBdup\fP(2), \fBdup2\fP(2),
+\fBfcntl\fP(2) \fBF_DUPFD\fP ou \fBfork\fP(2), un nouveau descripteur de fichier qui
+se réfère au même fichier ouvert est créé. Une description de fichier ouvert
+continue d'exister jusqu'à ce que tous les descripteurs de fichier qui s'y
+réfèrent soient fermés. Un descripteur de fichier n'est retiré d'un ensemble
+\fBepoll\fP qu'après la fermeture de tous les descripteurs de fichier qui se
+réfèrent à la description de fichier ouvert sous\-jacente (ou avant si le
+descripteur est explicitement retiré en utilisant \fBepoll_ctl\fP(2)
+\fBEPOLL_CTL_DEL\fP). Cela signifie que même après la fermeture d'un
+descripteur de fichier d'un ensemble \fBepoll\fP, des événements peuvent
+toujours être remontés pour ce descripteur de fichier si d'autres
+descripteurs de fichier, se référant à la même description de fichier
+sous\-jacente, restent ouverts.
+.TP 
+\fBQ7\fP
+Si plus d'un événement surviennent entre deux appels \fBepoll_wait\fP(2),
+sont\-ils combinés ou rapportés séparément\ ?
+.TP 
+\fBA7\fP
+Ils sont combinés.
+.TP 
+\fBQ8\fP
+Est\-ce qu'une opération sur un descripteur affecte les événements déjà
+collectés mais pas encore rapportés\ ?
+.TP 
+\fBA8\fP
+Vous pouvez faire deux choses sur un descripteur existant. Une suppression
+serait sans signification dans ce cas. Une modification revérifie les
+entrées\-sorties disponibles.
+.TP 
+\fBQ9\fP
+Dois\-je lire/écrire sans cesse un descripteur jusqu'à obtenir \fBEAGAIN\fP avec
+l'attribut \fBEPOLLET\fP (comportement edge\-triggered)\ ?
+.TP 
+\fBA9\fP
+La réception d'un événement depuis \fBepoll_wait\fP(2) suggère qu'un
+descripteur est prêt pour l'opération d'E/S désirée. Vous devez le
+considérer prêt jusqu'à ce que la prochaine lecture ou écriture (non
+bloquante) remonte un \fBEAGAIN\fP. Quand et comment utiliser le descripteur
+dépend de vous.
+.sp
+Pour les fichiers orientés paquet ou jeton (par exemple, une socket
+datagramme ou un terminal en mode canonique), la seule façon de détecter la
+fin de l'espace d'entrée\-sortie pour les lectures ou écritures est de
+continuer à lire ou écrire jusqu'à la réception d'un \fBEAGAIN\fP.
+.sp
+Pour les fichiers orientés flux (par exemple, les tubes, FIFO ou sockets en
+mode flux), la disponibilité des entrées\-sorties peut\-être vérifiée par la
+quantité de données lues ou écrites avec le descripteur. Par exemple, si
+vous appelez \fBread\fP(2) en demandant la lecture d'une certaine quantité de
+données et que \fBread\fP(2) en renvoie moins, vous pouvez être sûrs d'avoir
+consommé tout le tampon d'entrée pour le descripteur. La même chose est
+vraie pour l'appel système \fBwrite\fP(2). (Évitez cette dernière technique si
+vous ne pouvez garantir que le descripteur de fichier surveillé correspond
+toujours à un fichier de type flux)
+.SS "Erreurs possibles et moyens de les éviter"
+.TP 
+\fBo Famine (edge\-triggered)\fP
+.PP
+S'il y a un gros volume d'entrées\-sorties, il est possible qu'en essayant de
+les traiter, d'autres fichiers ne soient pas pris en compte, ce qu'on
+appelle un cas de famine. Ce problème n'est pas spécifique à \fBepoll\fP.
+.PP
+La solution est de maintenir une liste de descripteurs prêts et de les
+marquer comme tels dans leur structure associée, permettant à l'application
+de savoir quels fichiers traiter, en organisant l'ordre au mieux. Cela
+permet aussi d'ignorer les événements ultérieurs sur des descripteurs prêts.
+.TP 
+\fBo Utilisation d'un cache d'événements...\fP
+.PP
+Si vous utilisez un cache d'événement, ou stockez tous les descripteurs
+renvoyés par \fBepoll_wait\fP(2), alors assurez\-vous de disposer d'un moyen de
+marquer dynamiquement leurs fermetures (causées par un événement
+précédent). Supposons que vous recevez 100 événements de \fBepoll_wait\fP(2),
+et que l'événement 47 implique de fermer le descripteur 13. Si vous
+supprimez la structure et utilisez \fBclose\fP(2), alors votre cache peut
+encore contenir des événements pour ce descripteur, et poser des problèmes
+de cohérence.
+.PP
+Une solution est d'invoquer, pendant le traitement de l'événement 47,
+\fBepoll_ctl\fP(\fBEPOLL_CTL_DEL\fP) pour supprimer le descripteur 13, le fermer
+avec \fBclose\fP(2), et marquer sa structure associée comme supprimée. Si vous
+rencontrez un autre événement pour le descripteur 13 dans votre traitement,
+vous verrez qu'il a été supprimé précédemment, sans que cela ne prête à
+confusion.
+.SH VERSIONS
+.\" Its interface should be finalized in Linux kernel 2.5.66.
+L'API \fBepoll\fP a été introduite dans le noyau Linux\ 2.5.44. La prise en
+charge par la glibc a été ajoutée dans la version\ 2.3.2.
+.SH CONFORMITÉ
+L'API \fBepoll\fP est spécifique à Linux. Certains autres systèmes fournissent
+des mécanismes similaires. Par exemple, FreeBSD propose \fIkqueue\fP et Solaris
+\fI/dev/poll\fP.
+.SH "VOIR AUSSI"
+\fBepoll_create\fP(2), \fBepoll_create1\fP(2), \fBepoll_ctl\fP(2), \fBepoll_wait\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

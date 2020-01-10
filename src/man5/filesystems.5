@@ -1,0 +1,200 @@
+.\" Copyright 1996 Daniel Quinlan (Daniel.Quinlan@linux.org)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 2007-12-14 mtk Added Reiserfs, XFS, JFS.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FILESYSTEMS 5 "5 août 2012" Linux "Manuel du programmeur Linux"
+.nh
+.SH NOM
+filesystems \- Types des systèmes de fichiers sous Linux\ : minix, ext, ext2,
+ext3, ext4, Reiserfs, XFS, JFS, xia, msdos, umsdos, vfat, ntfs, proc, nfs,
+iso9660, hpfs, sysv, smb, ncpfs
+.SH DESCRIPTION
+Lorsque, ce qui est habituel, le système de fichiers \fBproc\fP est monté sur
+\fI/proc\fP, vous pouvez trouver dans le fichier \fI/proc/filesystems\fP la liste
+des systèmes de fichiers gérés par le noyau actuel. Si vous avez besoin
+d'utiliser un système de fichiers listé ci\-dessous et non géré, vous pouvez
+insérer le module correspondant dans votre noyau, ou bien le recompiler avec
+l'option correspondante.
+
+Pour pouvoir utiliser un système de fichiers, vous devez le \fImonter\fP\ ;
+consultez \fBmount\fP(8).
+
+Voici une description des divers types de systèmes de fichiers\ :
+.TP  10
+\fBminix\fP
+est le système de fichiers utilisé par le système d'exploitation Minix, le
+premier à avoir fonctionné sous Linux. Il a de nombreuses limitations (un
+maximum de 64\ Mo par partition, des noms de fichiers courts, un seul
+horodatage, etc.). Néanmoins, il reste très appréciable pour les disquettes
+et les disques en mémoire vive.
+.TP 
+\fBext\fP
+est une extension élaborée du système de fichiers \fBminix\fP. Il a été
+complètement remplacé par sa seconde version (\fBext2\fP) et supprimé du noyau
+(depuis la version 2.1.21).
+.TP 
+\fBext2\fP
+est un système de fichiers de hautes performances, utilisé par Linux pour
+les disques fixes tout autant que pour les supports amovibles. Le second
+système de fichiers étendu a été conçu comme une extension du système
+(\fBext\fP). \fBext2\fP offre les meilleures performances (en termes de vitesse et
+de consommation CPU) de tous les systèmes de fichiers gérés par Linux.
+.TP 
+\fBext3\fP
+est une version d'ext2 gérant la journalisation. On peut basculer facilement
+d'ext2 à ext3, et inversement.
+.TP 
+\fBext4\fP
+est un ensemble de mises à jour d'ext3 qui apporte des améliorations
+notables en terme de performance et de stabilité, ainsi qu'une augmentation
+importante des limites des volumes, fichiers et tailles de répertoire.
+.TP 
+\fBReiserfs\fP
+est un système de fichiers journalisé, conçu par Hans Reiser, qui a été
+intégré dans Linux avec la version 2.4.1 du noyau
+.TP 
+\fBXFS\fP
+est un système de fichiers journalisé, développé par CGI, qui a été intégré
+dans Linux avec la version 2.4.20 du noyau
+.TP 
+\fBJFS\fP
+est un système de fichiers journalisé, développé par IBM, qui a été intégré
+dans Linux avec la version 2.4.24 du noyau
+.TP 
+\fBxiafs\fP
+a été conçu et implémenté, à partir du code du système de fichiers Minix,
+pour être un système de fichiers sûr et stable. Il procure les
+fonctionnalités de base sans complications excessives. Le système de
+fichiers \fBxia\fP n'est plus développé ni maintenu. Il a été retiré du noyau
+depuis la version 2.1.21.
+.TP 
+\fBmsdos\fP
+est le système de fichiers utilisé sous DOS, Windows, et certains
+ordinateurs sous OS/2. Les noms de fichiers sous \fBmsdos\fP sont limités à 8
+caractères suivis éventuellement d'un point et jusqu'à 3 caractères
+d'extension.
+.TP 
+\fBumsdos\fP
+est un système de fichiers DOS étendu utilisé par Linux. Il ajoute la
+possibilité d'utiliser des noms de fichier longs, les UID/GID, les
+autorisations POSIX, les fichiers spéciaux (périphériques, tubes nommés,
+etc.), au système de fichiers DOS, sans sacrifier la compatibilité avec
+celui\-ci.
+.TP 
+\fBvfat\fP
+est un système de fichiers DOS étendu utilisé par Microsoft Windows95 et
+Windows NT. VFAT ajoute la possibilité d'utiliser des noms de fichiers longs
+au système de fichiers MSDOS.
+.TP 
+\fBntfs\fP
+remplace le système de fichiers FAT (VFAT, FAT32) de Microsoft Window. Il
+apporte des améliorations en terme de fiabilité et de performance, et une
+meilleure utilisation de l'espace disque, ainsi que des fonctionnalités
+comme les ACL, la journalisation, le chiffrage, etc.
+.TP 
+\fBproc\fP
+est un pseudosystème de fichiers qui est utilisé comme interface avec les
+structures de données du noyau plutôt que de lire et interpréter
+\fI/dev/kmem\fP. En particulier, ses fichiers n'occupent aucun espace
+disque. Consultez \fBproc\fP(5).
+.TP 
+\fBiso9660\fP
+est un système de fichiers pour CD\-ROM, conforme à la norme ISO\ 9660.
+.RS
+.TP 
+\fBHigh Sierra\fP
+Linux gère le format «\ High Sierra\ », précurseur de la norme ISO\ 9660 pour
+les CD\-ROM. Ce format est automatiquement reconnu par le gestionnaire du
+système de fichiers \fBiso9660\fP de Linux.
+.TP 
+\fBRock Ridge\fP
+Linux gère également le format «\ System Use Sharing Protocol\ » spécifié par
+le «\ Rock Ridge Interchange Protocol\ ». Ils sont utilisés pour décrire plus
+en profondeur les fichiers contenus dans un système de fichiers \fBiso9660\fP à
+destination d'un hôte UNIX, et pour fournir des informations telles que les
+noms de fichiers longs, les UID/GID, les autorisations POSIX, et les
+fichiers de périphériques. Ce format est automatiquement reconnu par le
+gestionnaire du système de fichiers \fBiso9660\fP de Linux.
+.RE
+.TP 
+\fBhpfs\fP
+est le système de fichiers «\ High Performance Filesystem\ » utilisé par
+OS/2. Ce système de fichiers est en lecture seule sous Linux en raison du
+manque de documentation disponible.
+.TP 
+\fBsysv\fP
+est une implémentation du système de fichiers SystemV/Coherent pour
+Linux. Il implémente tous les protocoles Xenix\ FS, SystemV/386\ FS, et
+Coherent\ FS.
+.TP 
+\fBnfs\fP
+est le système de fichiers par le réseau utilisé pour accéder à des disques
+situés sur des ordinateurs distants.
+.TP 
+\fBsmb\fP
+est un système de fichiers par le réseau gérant le protocole SMB, utilisé
+par Windows pour Workgroups, Windows NT, et Lan Manager.
+.sp
+Pour utiliser le système \fBsmb\fP, il vous faut un programme spécial de
+montage, disponible dans le paquet ksmbfs que vous trouverez à
+.UR ftp://sunsite.unc.edu\:/pub\:/Linux\:/system\:/Filesystems\:/smbfs
+.UE .
+.TP 
+\fBncpfs\fP
+est un système de fichiers par le réseau gérant le protocole NCP, utilisé
+par Novell NetWare.
+.sp
+Pour utiliser le système \fBncpfs\fP, il vous faut un programme spécial
+disponible à\
+.UR ftp://linux01.gwdg.de\:/pub\:/ncpfs
+.UE .
+.SH "VOIR AUSSI"
+\fBproc\fP(5), \fBfsck\fP(8), \fBmkfs\fP(8), \fBmount\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,57 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CSIN 3 "11 août 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+csin, csinf, csinl \- Fonction sinus complexe
+.SH SYNOPSIS
+\fB#include <complex.h>\fP
+.sp
+\fBdouble complex csin(double complex \fP\fIz\fP\fB);\fP
+.br
+\fBfloat complex csinf(float complex \fP\fIz\fP\fB);\fP
+.br
+\fBlong double complex csinl(long double complex \fP\fIz\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.SH DESCRIPTION
+La fonction sinus complexe est définie par\ :
+.nf
+
+    csin(z) = (exp(i * z) \- exp(\-i * z)) / (2 * i)
+.fi
+.SH VERSIONS
+Ces fonctions ont été introduites dans la glibc dans sa version\ 2.1.
+.SH CONFORMITÉ
+C99.
+.SH "VOIR AUSSI"
+\fBcabs\fP(3), \fBcasin\fP(3), \fBccos\fP(3), \fBctan\fP(3), \fBcomplex\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,203 @@
+.\" Copyright (c) 2012 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" with some material from a draft by
+.\" Stephan Mueller <stephan.mueller@atsec.com>
+.\" in turn based on Andi Kleen's recvmmsg.2 page.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SENDMMSG 2 "16 décembre 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+sendmmsg \- Envoyer plusieurs message sur une socket
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP
+\fB#include <sys/socket.h>\fP
+
+\fBint sendmmsg(int \fP\fIsockfd\fP\fB, struct mmsghdr *\fP\fImsgvec\fP\fB, unsigned int \fP\fIvlen\fP\fB,\fP
+\fB             unsigned int \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+.\" See commit 228e548e602061b08ee8e8966f567c12aa079682
+L'appel système \fBsendmmsg\fP() est une extension de \fBsendmsg\fP(2) qui permet
+à l'appelant de transmettre plusieurs messages sur une socket en utilisant
+un seul appel système. (Cela améliore les performances pour certaines
+applications.)
+
+Le paramètre \fIsockfd\fP est le descripteur de fichier de la socket
+destinataire.
+
+L'argument \fImsgvec\fP est un pointeur vers un tableau de structures
+\fImmsghdr\fP. La taille de ce tableau est précisée dans \fIvlen\fP.
+
+La structure \fImmsghdr\fP est définie dans \fI<sys/socket.h>\fP comme
+ceci\ :
+
+.in +4n
+.nf
+struct mmsghdr {
+    struct msghdr msg_hdr;  /* En\-tête du message  */
+    unsigned int  msg_len;  /* Nombre d'octets transmis */
+};
+.fi
+.in
+.PP
+Le champ \fImsg_hdr\fP est une structure  \fImsghdr\fP, conformément à
+\fBsendmsg\fP(2). Le champ \fImsg_len\fP est le nombre d'octets du message dans
+\fImsg_hdr\fP qui ont été envoyés. Ce champ a la même valeur que la valeur de
+retour de la simple commande \fBsendmsg\fP(2).
+
+L'argument \fIflags\fP contient le OU binaire de la collection des
+attributs. Les attributs sont ceux documentés pour \fBsendmsg\fP(2).
+
+Un appel bloquant \fBsendmmsg\fP() bloque jusqu'à ce que \fIvlen\fP messages aient
+été envoyés. Un appel non bloquant envoie autant de messages que possible
+(jusqu'à la limite indiquée par \fIvlen\fP) et retourne immédiatement.
+
+Au retour de \fBsendmmsg\fP(), les champs \fImsg_len\fP des éléments successifs de
+\fImsgvec\fP sont mis à jour pour contenir le nombre d'octets transmis depuis
+le \fImsg_hdr\fP correspondant. La valeur de retour de l'appel indique le
+nombre d'éléments de \fImsgvec\fP mis à jour.
+.SH "VALEUR RENVOYÉE"
+En cas du succès, \fBsendmmsg\fP() retourne le nombre de messages envoyés
+depuis \fImsgvec\fP\ ; Si ce nombre est strictement inférieur à \fIvlen\fP,
+l'appelant peut réessayer avec un nouvel appel \fBsendmmsg\fP() pour envoyer
+les messages restants.
+
+En cas d'erreur, \-1 est renvoyé et \fIerrno\fP est définie pour préciser
+l'erreur.
+.SH ERREURS
+.\" commit 728ffb86f10873aaf4abd26dde691ee40ae731fe
+.\"     ... only return an error if no datagrams could be sent.
+.\"     If less than the requested number of messages were sent, the application
+.\"     must retry starting at the first failed one and if the problem is
+.\"     persistent the error will be returned.
+.\"
+.\"     This matches the behaviour of other syscalls like read/write - it
+.\"     is not an error if less than the requested number of elements are sent.
+Les erreurs sont les mêmes que pour \fBsendmsg\fP(2). Une erreur n'est
+retournée seulement si aucun datagramme n'a pu être envoyé.
+.SH VERSIONS
+L'appel système \fBsendmmsg\fP() a été ajouté dans Linux\ 3.0. La prise en
+charge dans la glibc a été ajoutée dans la version\ 2.14.
+.SH CONFORMITÉ
+\fBsendmmsg\fP() est spécifique à Linux.
+.SH NOTES
+.\" commit 98382f419f32d2c12d021943b87dea555677144b
+.\"     net: Cap number of elements for sendmmsg
+.\"
+.\"     To limit the amount of time we can spend in sendmmsg, cap the
+.\"     number of elements to UIO_MAXIOV (currently 1024).
+.\"
+.\"     For error handling an application using sendmmsg needs to retry at
+.\"     the first unsent message, so capping is simpler and requires less
+.\"     application logic than returning EINVAL.
+La valeur indiquée dans \fIvlen\fP ne peut pas dépasser \fBUIO_MAXIOV\fP (1024).
+.SH EXEMPLE
+L'exemple ci\-dessous utilise \fBsendmmsg\fP() pour envoyer \fIundeux\fP et
+\fItrois\fP dans deux datagrammes UDP distincts en utilisant un seul appel
+système. Les contenus des premiers datagrammes proviennent d'une paire de
+tampons.
+
+.nf
+#define _GNU_SOURCE
+#include <netinet/ip.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+
+int
+main(void)
+{
+    int sockfd;
+    struct sockaddr_in sa;
+    struct mmsghdr msg[2];
+    struct iovec msg1[2], msg2;
+    int resultat;
+
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd == \-1) {
+        perror("socket()");
+        exit(EXIT_FAILURE);
+    }
+
+    sa.sin_family = AF_INET;
+    sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    sa.sin_port = htons(1234);
+    if (connect(sockfd, (struct sockaddr *) &sa, sizeof(sa)) == \-1) {
+        perror("connect()");
+        exit(EXIT_FAILURE);
+    }
+
+    memset(msg1, 0, sizeof(msg1));
+    msg1[0].iov_base = "un";
+    msg1[0].iov_len = 2;
+    msg1[1].iov_base = "deux";
+    msg1[1].iov_len = 4;
+
+    memset(&msg2, 0, sizeof(msg2));
+    msg2.iov_base = "trois";
+    msg2.iov_len = 5;
+
+    memset(msg, 0, sizeof(msg));
+    msg[0].msg_hdr.msg_iov = msg1;
+    msg[0].msg_hdr.msg_iovlen = 2;
+
+    msg[1].msg_hdr.msg_iov = &msg2;
+    msg[1].msg_hdr.msg_iovlen = 1;
+
+    resultat = sendmmsg(sockfd, msg, 2, 0);
+    if (resultat == \-1)
+        perror("sendmmsg()");
+    else
+        printf("%d messages envoyés\en", resultat);
+
+    exit(0);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBrecvmmsg\fP(2), \fBsendmsg\fP(2), \fBsocket\fP(2), \fBsocket\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,85 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 19:01:20 1993 by Rik Faith (faith@cs.unc.edu)
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LOCALECONV 3 "21 juin 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+localeconv \- Obtenir des informations sur les formats numériques
+.SH SYNOPSIS
+.nf
+\fB#include <locale.h>\fP
+.sp
+\fBstruct lconv *localeconv(void);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBlocaleconv\fP() renvoie un pointeur sur une \fIstruct lconv\fP
+conforme à la localisation en cours. Cette structure est décrite dans
+\fBlocale\fP(7) qui contient toutes les valeurs associées aux catégories de
+localisation \fBLC_NUMERIC\fP et \fBLC_MONETARY\fP. Les applications peuvent
+également utiliser les fonctions \fBprintf\fP(3) et \fBstrfmon\fP(3) dont les
+comportements sont en accord avec la localisation en cours.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBlocaleconv\fP() renvoie un pointeur vers une \fIstruct lconv\fP
+remplie. Cette structure peut être (\fIest\fP dans la glibc) allouée
+statiquement et est susceptible d'être écrasée par les appels
+suivants. D'après POSIX, l'appelant ne devrait pas modifier le contenu de
+cette structure. La fonction \fBlocaleconv\fP() réussit toujours.
+.SH ATTRIBUTS
+.SS "Multithreading (voir pthreads(7))"
+La fonction \fBlocaleconv\fP() n'est pas sûre dans un contexte multithread, car
+elle renvoie un pointeur vers une structure susceptible d'être écrasée par
+les appels suivants.
+.SH CONFORMITÉ
+C89, C99.
+.SH BOGUES
+La famille de fonctions \fBprintf\fP(3) peut honorer ou non la localisation.
+.SH "VOIR AUSSI"
+\fBlocale\fP(1), \fBlocaledef\fP(1), \fBisalpha\fP(3), \fBnl_langinfo\fP(3),
+\fBsetlocale\fP(3), \fBstrcoll\fP(3), \fBstrftime\fP(3), \fBlocale\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

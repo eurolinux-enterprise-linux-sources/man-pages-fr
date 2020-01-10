@@ -1,0 +1,1146 @@
+.\" Copyright (c) 2008 Silicon Graphics, Inc.
+.\"
+.\" Author: Paul Jackson (http://oss.sgi.com/projects/cpusets)
+.\"
+.\" %%%LICENSE_START(GPLv2_MISC)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License
+.\" version 2 as published by the Free Software Foundation.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CPUSET 7 "12 février 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+cpuset \- Confiner des processus à des sous\-ensembles de processeurs et de
+nœuds mémoire
+.SH DESCRIPTION
+Le système de fichiers cpuset (N.d.T.\ : «\ cpuset\ » signifie mot à mot
+«\ ensemble de CPU\ », mais comme il ne s'agit pas uniquement d'ensembles de
+CPU, le terme cpuset sera utilisé par la suite) est une interface sous forme
+d'un pseudosystème de fichiers pour le mécanisme «\ cpuset\ » du noyau, qui
+permet de contrôler le placement de processus sur des processeurs ou en
+mémoire. Il est habituellement monté dans \fI/dev/cpuset\fP.
+.PP
+Sur les systèmes dont le noyau a été compilé avec la prise en charge des
+cpusets, tous les processus sont attachés à un cpuset, et les cpusets sont
+toujours présents. Si un système prend en charge les cpusets, alors il aura
+une entrée \fBnodev cpuset\fP dans le fichier \fI/proc/filesystems\fP. En montant
+le système de fichiers cpuset (consultez la section \fBEXEMPLE\fP ci\-dessous),
+l'administrateur peut configurer les cpusets d'un système pour contrôler le
+placement des processus sur les CPU et dans la mémoire. Par défaut, si la
+configuration des cpusets d'un système n'est pas modifiée ou si le système
+de fichiers cpuset n'est même pas monté, le mécanisme des cpusets, même s'il
+est présent, n'a pas d'effets sur le comportement du système.
+.PP
+Un cpuset définit une liste de CPU et de nœuds mémoire.
+.PP
+Les CPU d'un système comprennent toutes les unités de traitement logiques
+sur lesquelles peuvent s'exécuter des processus, comprenant, s'il y en a,
+les différents cœurs d'un processeur et les Hyper\-Threads d'un cœur de
+processeur. Les nœuds mémoire comprennent tous les bancs distinct de
+mémoire\ ; les petits systèmes et les systèmes SMP ont typiquement un seul
+nœud mémoire qui contient toute la mémoire du système, alors que les
+systèmes NUMA («\ non\-uniform memory access\ »\ : accès non uniforme à la
+mémoire) ont plusieurs nœuds mémoire.
+.PP
+Les cpusets sont représentés par des répertoires dans un pseudosystème de
+fichiers hiérarchique dont le répertoire de plus haut niveau
+(\fI/dev/cpuset\fP) représente le système complet (tous les CPU et nœuds
+mémoire en ligne). Tout cpuset fils (le descendant) d'un autre cpuset père
+contient un sous\-ensemble des CPU et des nœuds mémoire du père. Les
+répertoires et les fichiers qui représentent les cpusets ont les permissions
+habituelles des systèmes de fichiers.
+.PP
+Chaque processus du système appartient à un unique cpuset. Un processus est
+obligé de s'exécuter sur les CPU du cpuset auquel il appartient et est
+obligé d'allouer de la mémoire uniquement sur les nœuds mémoire de ce
+cpuset. Quand un processus crée un fils avec \fBfork\fP(2), le processus fils
+est placé dans le même cpuset que le processus père. S'il a les privilèges
+suffisants, le processus fils peut se déplacer d'un cpuset à un autre et les
+CPU ou nœuds mémoire d'un cpuset existant peuvent être changés.
+.PP
+Au début du démarrage du système, un seul cpuset est défini qui comprend
+tous les CPU et tous les nœuds mémoire du système et tous les processus se
+trouvent dans ce cpuset. Pendant le démarrage ou par la suite lors de
+l'exécution normale du système, d'autres cpusets peuvent être créés, en tant
+que sous\-répertoire de ce cpuset de plus haut niveau, sous le contrôle de
+l'administrateur système. Des processus peuvent être placés dans ces autres
+cpusets.
+.PP
+Les cpusets sont intégrés dans le noyau avec le mécanisme d'affinité
+d'ordonnancement de \fBsched_setaffinity\fP(2) et les mécanismes de placement
+en mémoire de \fBmbind\fP(2) et \fBset_mempolicy\fP(2). Aucun de ces mécanismes ne
+permettent à un processus d'utiliser un CPU ou un nœud mémoire qui n'est pas
+autorisé par le cpuset du processus. Si une modification du cpuset entre en
+conflit avec ces autres mécanismes, le placement dans le cpuset est forcé,
+même si cela signifie qu'il faut outrepasser ces autres mécanismes. Ceci est
+fait silencieusement par le noyau en restreignant les CPU et nœuds mémoire
+demandés par ces autres mécanismes à ceux qui sont autorisés par le cpuset
+du processus appelant. Ces autres appels peuvent alors renvoyer une erreur
+si, par exemple, ils sont amenés à demander un ensemble vide de CPU ou de
+nœuds mémoire après que la demande est restreinte au cpuset du processus
+appelant.
+.PP
+Typiquement, un cpuset est utilisé pour gérer le confinement dans des CPU ou
+des nœuds mémoire pour un ensemble de processus qui coopèrent entre eux,
+comme un ordonnanceur de tâches, et ces autres mécanismes permettent de
+gérer le placement de chacun des processus ou des régions mémoire pour
+chacune de ces tâches.
+.SH FICHIERS
+Chaque répertoire de \fI/dev/cpuset\fP représente un cpuset et contient un
+ensemble définit de pseudofichiers qui décrivent l'état de ce cpuset.
+.PP
+Les nouveaux cpusets sont créés avec l'appel système \fBmkdir\fP(2) ou la
+commande \fBmkdir\fP(1). Les propriétés d'un cpuset, comme ses drapeaux, les
+CPU et nœuds mémoire autorisés et les processus attachés sont récupérés ou
+modifiés en lisant ou écrivant dans le fichier approprié du répertoire du
+cpuset. Ces fichiers sont décrits ci\-dessous.
+.PP
+Les pseudofichiers dans chaque répertoire d'un cpuset sont créés
+automatiquement quand le cpuset est créé, suite à l'appel à \fBmkdir\fP(2). Il
+n'est pas possible d'ajouter ou de supprimer directement ces pseudofichiers.
+.PP
+Le répertoire d'un cpuset qui ne contient pas de répertoire pour un cpuset
+fils et n'a pas de processus lui étant attaché peut être supprimé à l'aide
+de \fBrmdir\fP(2) ou \fBrmdir\fP(1). Il n'est pas nécessaire, ou possible, de
+supprimer les pseudofichiers du répertoire avant de le supprimer.
+.PP
+Les pseudofichiers des répertoires d'un cpuset sont de petits fichiers
+textes qui peuvent être lus ou écrits en utilisant les outils traditionnels
+comme \fBcat\fP(1) et \fBecho\fP(1) ou depuis un programme en utilisant des
+fonctions d'une bibliothèque d'entrées sorties ou des appels système, comme
+\fBopen\fP(2), \fBread\fP(2), \fBwrite\fP(2) et \fBclose\fP(2).
+.PP
+.\" ====================== tasks ======================
+Les pseudofichiers dans un répertoire d'un cpuset représentent l'état
+interne du noyau et n'ont pas de représentation persistante sur le
+disque. Les fichiers d'un cpuset sont listés et décrits ci\-dessous.
+.TP 
+\fItasks\fP
+Liste des identifiants de processus (PID) des processus dans ce cpuset. La
+liste contient une série de nombres décimaux au format ASCII, chacun suivit
+d'une nouvelle ligne. Un processus peut être ajouté à un cpuset (ce qui le
+supprime automatiquement du cpuset qui le contenait auparavant) en écrivant
+son PID dans le fichier \fItasks\fP du cpuset (avec ou sans nouvelle ligne à la
+fin).
+
+.\" =================== notify_on_release ===================
+\fBAttention\ :\fP un seul PID peut être écrit à la fois dans le fichier
+\fItasks\fP. Si une chaîne est écrite et qu'elle contient plus d'un PID, seul
+le premier sera utilisé.
+.TP 
+\fInotify_on_release\fP
+.\" ====================== cpus ======================
+Drapeau (0 ou 1). Lorsqu'il est activé (1), ce cpuset sera géré de façon
+particulière une fois qu'il sera libéré, c'est\-à\-dire après que tous les
+processus cessent de l'utiliser (c'est\-à\-dire se terminent ou ont été
+déplacés dans un autre ensemble de CPU) et que tous les répertoires des
+cpusets fils ont été supprimés. Consultez la section \fBNotification à la
+libération\fP ci\-dessous.
+.TP 
+\fIcpuset.cpus\fP
+Liste des numéros physiques des CPU sur lesquels les processus de ce cpuset
+ont le droit de s'exécuter. Consultez la section \fBFormat des listes\fP
+ci\-dessous pour une description du format de \fIcpus\fP.
+
+.\" ==================== cpu_exclusive ====================
+Les CPU autorisés pour un cpuset peuvent être changés en écrivant une
+nouvelle liste dans la fichier \fIcpus\fP.
+.TP 
+\fIcpuset.cpu_exclusive\fP
+Drapeau (0 ou 1). S'il est activé (1), le cpuset a un accès exclusif à ses
+CPU (des cpusets frères ou cousins ne peuvent pas partager de CPU). Par
+défaut, il est désactivé (0). Les cpusets nouvellement créés ont aussi ce
+drapeau de désactivé (0).
+
+.\" ====================== mems ======================
+Deux cpusets sont \fIfrères\fP s'ils ont le même cpuset père dans la hiérarchie
+\fI/dev/cpuset\fP. Deux cpusets sont \fIcousins\fP si aucun n'est l'ancêtre de
+l'autre. Indépendamment du paramètre \fIcpu_exclusive\fP, si un cpuset est
+l'ancêtre d'un autre et si ces deux cpusets ont des listes de CPU (\fIcpus\fP)
+non vides, alors leurs listes de CPU doivent se chevaucher parce que la
+liste \fIcpus\fP d'un cpuset est toujours un sous ensemble de la liste \fIcpus\fP
+de son cpuset père.
+.TP 
+\fIcpuset.mems\fP
+.\" ==================== mem_exclusive ====================
+Liste des nœuds mémoire sur lesquels les processus de ce cpuset ont le droit
+d'allouer de la mémoire. Consultez la section \fBFormat des listes\fP
+ci\-dessous pour une description du format de \fImems\fP.
+.TP 
+\fIcpuset.mem_exclusive\fP
+Drapeau (0 ou 1). S'il est activé (1), le cpuset a un accès exclusif à ses
+nœuds mémoire (pas de partage entre frères ou cousins). S'il est activé, il
+s'agit également d'un cpuset «\ \fBHardwall\fP\ » (voir ci\-dessous). Par défaut,
+il est désactivé (0). Les cpusets nouvellement créés ont aussi ce drapeau de
+désactivé (0).
+
+.\" ==================== mem_hardwall ====================
+Indépendamment du paramètre \fImem_exclusive\fP, si un cpuset est l'ancêtre
+d'un autre, alors leurs nœuds mémoires doivent se chevaucher parce que
+l'ensemble des nœuds mémoire d'un cpuset est toujours un sous ensemble des
+nœuds mémoire du cpuset père.
+.TP 
+\fIcpuset.mem_hardwall\fP (depuis Linux\ 2.6.26)
+.\" ==================== memory_migrate ====================
+Drapeau (0 ou 1). S'il est activé, le cpuset est de type \fBHardwall\fP (voir
+ci\-dessous). Contrairement à \fBmem_exclusive\fP, des cpusets marqués avec
+\fBmem_hardwall\fP peuvent partager des nœuds mémoire avec des cpusets frères
+ou cousins. Par défaut, il est désactivé (0). Les cpusets nouvellement créés
+ont aussi ce drapeau de désactivé (0).
+.TP 
+\fIcpuset.memory_migrate\fP (depuis Linux\ 2.6.16)
+.\" ==================== memory_pressure ====================
+Drapeau (0 ou 1). S'il est activé (1), alors la migration mémoire est
+activée. Par défaut, il est désactivé. Consultez la section \fBMigration
+mémoire\fP ci\-dessous.
+.TP 
+\fIcpuset.memory_pressure\fP (depuis Linux\ 2.6.16)
+.\" ================= memory_pressure_enabled =================
+Une mesure de la pression mémoire causée par les processus d'un
+cpuset. Consultez la section \fBPression mémoire\fP ci\-dessous. À moins que
+\fImemory_pressure_enabled\fP soit activé, il vaut toujours zéro. Ce fichier
+est en lecture seule. Consultez la section \fBAVERTISSEMENTS\fP ci\-dessous.
+.TP 
+\fIcpuset.memory_pressure_enabled\fP (depuis Linux\ 2.6.16)
+.\" ================== memory_spread_page ==================
+Drapeau (0 ou 1). Ce fichier n'est présent que dans le cpuset racine, qui
+est normalement \fI/dev/cpuset\fP. S'il est activé (1), les calculs de
+\fImemory_pressure\fP sont activés pour tous les cpusets du système. Par
+défaut, il est désactivé (0). Consultez la section \fBPression mémoire\fP
+ci\-dessous.
+.TP 
+\fIcpuset.memory_spread_page\fP (depuis Linux\ 2.6.17)
+.\" ================== memory_spread_slab ==================
+Drapeau (0 ou 1). S'il est activé (1), les pages du cache de pages du noyau
+(les tampons des systèmes de fichiers) sont distribuées uniformément dans
+les cpusets. Par défaut, il est désactivé (0) dans le cpuset racine et
+hérité du cpuset père pour les cpusets nouvellement créés. Consultez la
+section \fBRépartition mémoire\fP ci\-dessous.
+.TP 
+\fIcpuset.memory_spread_slab\fP (depuis Linux\ 2.6.17)
+.\" ================== sched_load_balance ==================
+Drapeau (0 ou 1). S'il est activé (1), les caches slab (N.d.T.\ : tampons
+pré\-alloués par le noyau) pour les entrées\-sorties de fichiers (des
+structures pour des répertoires ou inœuds) sont répartis uniformément dans
+le cpuset. Par défaut, ce drapeau est désactivé (0) dans le cpuset racine et
+les nouveaux cpusets héritent du drapeau de leur père quand ils sont
+créés. Consultez la section \fBRépartition mémoire\fP ci\-dessous.
+.TP 
+\fIcpuset.sched_load_balance\fP (depuis Linux\ 2.6.24)
+.\" ================== sched_relax_domain_level ==================
+Drapeau (0 ou 1). S'il est activé (1, la valeur par défaut), le noyau
+répartira automatiquement la charge des processus du cpuset au travers les
+CPU autorisés pour le cpuset. S'il est désactivé (0), le noyau ne répartira
+pas la charge des processus du cpuset, \fIà moins\fP qu'un autre cpuset qui
+partage des CPU avec lui n'ait son drapeau \fIsched_load_balance\fP
+activé. Consultez la section \fBRépartition de la charge par l'ordonnanceur\fP
+ci\-dessous pour plus de détails.
+.TP 
+\fIcpuset.sched_relax_domain_level\fP (depuis Linux\ 2.6.26)
+.\" ================== proc cpuset ==================
+Entier, compris entre \-1 et une petite valeur
+positive. \fIsched_relax_domain_level\fP contrôle la largeur de l'intervalle
+des CPU pour lesquels le noyau effectue une répartition immédiate des tâches
+exécutables. Si \fIsched_load_balance\fP est désactivé, alors
+\fIsched_relax_domain_level\fP ne compte pas, puisqu'il n'y a pas de
+répartition de la charge. Si \fIsched_load_balance\fP est activé, alors plus
+\fIsched_relax_domain_level\fP est important, plus l'intervalle des CPU sur
+lesquels le noyau essaie de répartir la charge est important. Consultez la
+section \fBNiveau du domaine de détente de l'ordonnanceur\fP ci\-dessous pour
+plus de détails.
+.PP
+.\" ================== proc status ==================
+En plus des pseudofichiers décrits ci\-dessus, dans chaque répertoire de
+\fI/dev/cpuset\fP, chaque processus a un pseudofichier,
+\fI/proc/<pid>/cpuset\fP, qui indique le chemin vers le répertoire du
+cpuset du processus, relativement à la racine du système de fichiers cpuset.
+.PP
+Quatre lignes sont également ajoutées dans le fichier
+\fI/proc/<pid>/status\fP, fournissant pour chaque processus les
+champs\ : \fICpus_allowed\fP (sur quels CPU il peut être ordonnancé) et
+\fIMems_allowed\fP (sur quels nœuds mémoire de la mémoire peut être allouée),
+avec l'\fBAffichage sous forme de masque\fP et l'\fBAffichage sous forme de
+liste\fP (voir ci\-dessous). Voici un exemple\ :
+.PP
+.RS
+.nf
+Cpus_allowed:   ffffffff,ffffffff,ffffffff,ffffffff
+Cpus_allowed_list:     0\-127
+Mems_allowed:   ffffffff,ffffffff
+Mems_allowed_list:     0\-63
+.fi
+.RE
+.PP
+.\" ================== EXTENDED CAPABILITIES ==================
+Les champs «\ allowed\ » ont été ajoutés dans Linux\ 2.6.24\ ; les champs
+«\ allowed_list\ » ont été ajoutés dans Linux\ 2.6.26.
+.SH "CAPACITÉS ÉTENDUES"
+.\" ================== Exclusive Cpusets ==================
+En plus de contrôler quels CPU (\fIcpus\fP) et nœuds mémoire (\fImems\fP) un
+processus à le droit d'utiliser, les cpusets fournissent les fonctionnalités
+étendues suivantes.
+.SS "Ensembles de CPU exclusifs"
+Si un cpuset est marqué avec \fIcpu_exclusive\fP ou \fImem_exclusive\fP, aucun
+autre cpuset, autre que des ancêtres ou descendants directs, peuvent
+partager des CPU ou des nœuds mémoire avec ce cpuset.
+.PP
+.\" ================== Hardwall ==================
+Un cpuset dont \fImem_exclusive\fP est activé restreint les allocations du
+noyau pour les pages des tampons de cache et autres données internes du
+noyau communément partagées par le noyau au travers différents
+utilisateurs. Tous les cpusets, que \fImem_exclusive\fP soit activé ou non,
+restreignent l'allocation de mémoire depuis l'espace utilisateur. Ceci
+permet de configurer un système de telle sorte que différentes tâches
+puissent partager des données du noyau, tout en isolant toutes les
+allocations en mode utilisateur des tâches dans leur propre cpuset. Pour
+ceci, il faut créer un gros cpuset, avec \fImem_exclusive\fP activé, pour
+contenir toutes les tâches, et créer des cpuset fils sans \fImem_exclusive\fP
+pour chacune des tâches. Seule une petite partie de la mémoire du noyau,
+comme les requêtes des gestionnaires d'interruptions, est autorisée à être
+placée sur des nœuds mémoire en dehors d'un cpuset, même si \fImem_exclusive\fP
+est activé.
+.SS Hardwall
+Un cpuset pour lequel \fImem_exclusive\fP ou \fImem_hardwall\fP est activé est un
+cpuset \fIhardwall\fP. Un cpuset \fIhardwall\fP restreint les allocations mémoire
+du noyau pour les pages, tampons et toutes autre données partagés
+fréquemment par le noyau au travers différents utilisateurs. Tous les
+cpusets, \fIhardwall\fP ou non, restreignent les allocations mémoire pour
+l'espace utilisateur.
+.PP
+Ceci permet de configurer un système de telle sorte que différentes tâches
+indépendantes puissent partager des données du noyau, comme des pages des
+systèmes de fichiers, tout en isolant les allocations de l'espace
+utilisateur de chaque tâche dans leur cpuset. Pour ceci, il faut créer un
+gros cpuset \fIhardwall\fP qui contiendra toutes les tâches et créer des
+cpusets fils (non \fIhardwall\fP) pour chacune des tâches.
+.PP
+.\" ================== Notify On Release ==================
+Seule une petite quantité de mémoire noyau, comme les demandes des
+gestionnaires d'interruption, peut être utilisée à l'extérieur d'un cpuset
+\fIhardwall\fP.
+.SS "Notification à la libération"
+Si le drapeau \fInotify_on_release\fP d'un cpuset est activé (1), alors quand
+le dernier processus quitte le cpuset (il se termine ou s'attache à un autre
+cpuset) et que le dernier cpuset fils de ce cpuset a été supprimé, le noyau
+exécutera la commande \fI/sbin/cpuset_release_agent\fP en lui fournissant le
+chemin (relatif au point de montage du système de fichiers cpuset) du cpuset
+abandonné. Ceci permet de supprimer automatiquement les cpusets abandonnés.
+.PP
+Le drapeau \fInotify_on_release\fP du cpuset racine est désactivé (0) par
+défaut au moment du démarrage. La valeur par défaut pour les autres cpusets
+lors de leur création est égale à la valeur de \fInotify_on_release\fP de leur
+cpuset parent.
+.PP
+La commande \fI/sbin/cpuset_release_agent\fP est appelée, avec dans \fIargv[1]\fP
+le nom (un chemin relatif à \fI/dev/cpuset\fP) du cpuset à supprimer.
+.PP
+Le contenu habituel de la commande \fI/sbin/cpuset_release_agent\fP est
+simplement le script shell suivant\ :
+.in +4n
+.nf
+
+#!/bin/sh
+rmdir /dev/cpuset/$1
+.fi
+.in
+.PP
+.\" ================== Memory Pressure ==================
+Comme pour les autres drapeaux ci\-dessous, ce drapeau peut être modifié en
+écrivant un 0 ou un 1 ASCII (avec ou sans fin de ligne) dans le fichier pour
+respectivement désactiver ou activer le drapeau.
+.SS "Pression mémoire"
+Le fichier \fImemory_pressure\fP d'un cpuset indique la moyenne instantanée du
+taux auquel les processus du cpuset tentent de libérer de la mémoire
+utilisée sur les nœuds du cpuset pour satisfaire les nouvelles demandes de
+mémoire.
+.PP
+Ceci permet à un gestionnaire de tâches de superviser les tâches qui
+s'exécutent dans des cpuset dédiés et détecter efficacement la pression
+mémoire qu'une tâche produit.
+.PP
+Ceci est utile à la fois pour les systèmes très surveillés qui exécutent
+diverses tâches qui leurs sont fournies et peuvent choisir de terminer ou de
+changer la priorité des tâches qui essaient d'utiliser plus de mémoire que
+les nœuds mémoire qui leurs ont été assignés leurs permettent, et les
+systèmes pour du calcul scientifique avec des tâches parallèles, fortement
+couplées, au temps d'exécution important, qui ne pourraient plus fournir les
+performances demandées si elles se mettaient à utiliser plus de mémoire
+qu'elles n'en ont droit.
+.PP
+Ce mécanisme fourni un moyen très économique pour détecter des signes de
+pression mémoire sur un cpuset. L'action à effectuer lorsqu'un signe de
+pression mémoire est détecté est laissé au libre arbitre du gestionnaire des
+tâches ou autre code utilisateur.
+.PP
+À moins que le calcul de la pression mémoire soit activé par le
+pseudo\-fichier \fI/dev/cpuset/cpuset.memory_pressure_enabled\fP, cette pression
+mémoire n'est calculée pour aucun cpuset et les lectures dans les fichiers
+\fImemory_pressure\fP renvoient toujours zéro, c'est\-à\-dire la chaîne ASCII
+«\ 0\en\ ». Consultez la section \fBAVERTISSEMENTS\fP ci\-dessous.
+.PP
+Une moyenne instantanée par cpuset est utilisée pour les raisons suivantes\ :
+.IP * 3
+Comme cette métrique est par cpuset plutôt que par processus ou par région
+mémoire virtuelle, la charge du système due à la supervision de cette
+métrique par un gestionnaire de tâches est fortement réduite sur les gros
+systèmes, étant donné qu'il n'est pas nécessaire de parcourir la liste des
+tâches à chaque fois.
+.IP *
+Comme cette métrique est une moyenne instantanée plutôt qu'un compteur, un
+gestionnaire de tâches obtient la pression mémoire en une seule lecture sans
+avoir à lire et se souvenir des résultats pendant un certain temps.
+.IP *
+Comme cette métrique est par cpuset plutôt que par processus, le
+gestionnaire de tâches peut obtenir l'information importante, la pression
+mémoire dans un cpuset, en une seule lecture sans nécessiter d'obtenir et de
+se souvenir des résultats pour tous les processus d'un cpuset (la liste des
+processus peut changer dynamiquement).
+.PP
+La pression mémoire d'un cpuset est calculée en utilisant un simple filtre
+digital par cpuset dans le noyau. Pour chaque cpuset, ce filtre suit le taux
+auquel les processus attachés à ce cpuset demandent au noyau de réutiliser
+de la mémoire.
+.PP
+Ces demandes de réutilisation de mémoire se produisent quand un processus
+doit satisfaire une demande de page mémoire en trouvant d'abord une page à
+réutiliser, du fait de l'absence de page disponible déjà prête. Les pages
+sales des systèmes de fichiers sont réutilisées en les écrivant d'abord sur
+le disque. Les tampons des systèmes de fichiers qui n'ont pas été modifiés
+sont réutilisés tout simplement en les abandonnant, mais si cette page est
+nécessaire de nouveau, il faudra la relire sur le disque.
+.PP
+.\" ================== Memory Spread ==================
+Le fichier \fIcpuset.memory_pressure\fP fournit un nombre entier qui représente
+le taux des demandes récentes (la demi\-vie est de 10\ secondes) de
+réutilisation de mémoire par les processus du cpuset, l'unité étant le
+nombre de demandes par seconde fois 1000.
+.SS "Répartition mémoire"
+Il y a deux fichiers, par cpuset, pour des drapeaux booléens qui contrôlent
+où le noyau alloue les pages pour les tampons des systèmes de fichiers et
+les structures de données liées internes au noyau. Ces fichiers sont
+\fIcpuset.memory_spread_page\fP et \fIcpuset.memory_spread_slab\fP.
+.PP
+Si le drapeau booléen \fIcpuset.memory_spread_page\fP est activé, alors le
+noyau répartit les tampons des systèmes de fichiers (les caches des pages)
+équitablement sur tous les nœuds autorisés pour le processus qui demande la
+page, au lieu de placer ces pages de préférence sur le nœud sur lequel
+s'exécute le processus.
+.PP
+Si le drapeau booléen \fIcpuset.memory_spread_slab\fP d'un cpuset est activé,
+alors le noyau répartira uniformément les caches slab liés aux systèmes de
+fichiers, comme ceux pour des entrées d'inœuds ou de répertoires, sur tous
+les nœuds autorisés pour le processus qui demande de la mémoire, plutôt que
+de préférer mettre ces pages sur le nœud sur lequel s'exécute le processus.
+.PP
+La configuration de ces drapeaux n'affecte pas les pages du segment de
+données (consultez \fBbrk\fP(2)) ou du segment de la pile d'un processus.
+.PP
+Par défaut, les deux types de répartition de la mémoire sont désactivé et le
+noyau préfère allouer la mémoire sur le nœud local où s'exécute le
+processus. Si ce nœud n'est pas autorisé par la politique NUMA du processus
+ou par la configuration des cpusets ou s'il n'y a plus suffisamment de pages
+mémoire disponibles sur ce nœud, alors le noyau recherche le nœud le plus
+proche étant autorisé et ayant suffisamment de pages disponibles.
+.PP
+Quand un nouveau cpuset est créé, il hérite de la configuration de
+répartition mémoire de son père.
+.PP
+Activer la répartition mémoire a pour effet d'ignorer la politique mémoire
+NUMA du processus pour les allocations de pages ou de caches slab, qui sont
+alors éparpillées. Cependant, les changements dus à la répartition mémoire
+demandée par un cpuset ne sont pas visibles pour les appels système
+\fBmbind\fP(2) ou \fBset_mempolicy\fP(2). Ces deux appels système liés à la
+politique mémoire NUMA semble se comporter comme si aucune répartition
+mémoire n'était demandée par un cpuset, même si c'est le cas. Si la
+répartition mémoire est par la suite désactivée pour les cpuset, la dernière
+politique mémoire NUMA définie par ces appels est automatiquement appliquée
+de nouveau.
+.PP
+\fIcpuset.memory_spread_page\fP et \fIcpuset.memory_spread_slab\fP sont tous les
+deux des fichiers contenant des drapeaux booléens. Par défaut, ils
+contiennent un «\ 0\ », ce qui signifie que la fonctionnalité est désactivée
+pour ce cpuset. Si un «\ 1\ » est écrit dans le fichier, la fonctionnalité
+correspondante est activée.
+.PP
+La répartition mémoire d'un cpuset se comporte de façon similaire à ce qui
+est connu (dans d'autres contextes) comme le placement mémoire à tour de
+rôle («\ round\-robin\ ») ou entrelacé («\ interleave\ »).
+.PP
+La configuration d'une stratégie de répartition mémoire pour un cpuset peut
+améliorer significativement les performances pour les tâches qui\ :
+.IP a) 3
+nécessitent de placer les données locales des threads dans des nœuds mémoire
+proches des CPU qui exécutent les threads qui accèdent le plus fréquemment à
+ces données\ ; mais aussi
+.IP b)
+nécessitent d'accéder à de gros ensembles de données de systèmes de fichiers
+qui doivent être répartis sur différents nœuds du cpuset de la tâche du fait
+de leurs tailles.
+.PP
+.\" ================== Memory Migration ==================
+Sans cette politique, la répartition des allocations mémoire sur les nœuds
+du cpuset de la tâche peut ne pas être équitable, particulièrement pour les
+tâches qui n'auraient qu'un thread chargé de l'initialisation ou de la
+lecture des données d'entrée.
+.SS "Migration mémoire"
+Normalement, avec la configuration de \fIcpuset.memory_migrate\fP par défaut
+(désactivé), une fois qu'une page est allouée (une page physique de la
+mémoire lui est donnée), cette page reste sur le nœud où elle a été allouée,
+tant qu'elle reste allouée, même si la politique de placement mémoire du
+cpuset (\fImems\fP) change par la suite.
+.PP
+Quand la migration mémoire est activée pour un cpuset, si la configuration
+de \fImems\fP est modifiée alors toute page mémoire utilisée par un processus
+du cpuset qui se trouverait sur un nœud mémoire qui n'est plus autorisé sera
+déplacée sur un nœud mémoire qui est autorisé.
+.PP
+De plus, si un processus est déplacé dans un cpuset dont le drapeau
+\fImemory_migrate\fP est activé, toutes les pages mémoire qu'il utilise et qui
+se trouvent sur des nœuds mémoire qui étaient autorisés dans son cpuset
+précédant mais ne le sont plus dans le nouveau cpuset seront déplacées sur
+un nœud mémoire autorisé pour le nouveau cpuset.
+.PP
+.\" ================== Scheduler Load Balancing ==================
+L'emplacement relatif d'un page déplacée d'un cpuset est préservé si
+possible lors de ces opérations de déplacement. Par exemple, si la page se
+trouvait sur le deuxième nœud valable du précédent cpuset, alors la page
+sera placée sur le deuxième nœud valable du nouveau cpuset, si c'est
+possible.
+.SS "Répartition de la charge par l'ordonnanceur"
+L'ordonnanceur du noyau répartit automatiquement la charge des processus. Si
+un CPU est sous\-utilisé, le noyau recherchera des processus sur d'autres CPU
+plus chargés et déplacera ces processus sur le CPU sous\-utilisé à condition
+que les mécanismes comme les cpuset et \fBsched_setaffinity\fP(2) le
+permettent.
+.PP
+Le coût de l'algorithme de répartition de la charge et son impact sur les
+structures de données partagées du noyau, comme la liste des processus,
+augmente plus que linéairement avec le nombre de CPU qui interviennent pour
+la répartition de la charge. Par exemple le coût pour la répartition de la
+charge dans un grand ensemble de CPU sera supérieur à celui pour la
+répartition de la charge dans deux ensembles ayant moitié moins de CPU. (La
+relation entre le nombre de CPU intervenant dans la répartition de la charge
+et le coût de cette répartition de charge dépend de l'implémentation de
+l'ordonnanceur de processus du noyau, qui change dans le temps quand de
+meilleurs algorithmes d'ordonnancement sont implémentés)
+.PP
+Le drapeau \fIsched_load_balance\fP d'un cpuset permet de supprimer cette
+répartition automatique de la charge dans les cas où elle n'est pas
+nécessaire et que sa suppression améliorerait les performances.
+.PP
+Par défaut, la répartition de la charge se fait sur tous les CPU, à
+l'exception de ceux marqués comme étant isolés en utilisant au moment du
+démarrage le paramètre du noyau «\ isolcpus=\ ». (Consultez la section
+\fBNiveau du domaine de détente de l'ordonnanceur\fP ci\-dessous pour changer le
+comportement par défaut)
+.PP
+Cette répartition de la charge par défaut n'est pas bien adaptée aux
+situations suivantes\ :
+.IP * 3
+Sur les gros systèmes, la répartition de la charge sur beaucoup de CPU est
+très coûteuse. Si le système est géré avec des cpusets pour placer les
+tâches indépendantes sur différents ensembles de CPU, une répartition de la
+charge complète n'est pas nécessaire.
+.IP *
+Les systèmes avec une prise en charge temps\-réel sur certains CPU doivent
+minimiser la surcharge du système sur ces CPU et donc éviter la répartition
+de la charge des processus si elle n'est pas nécessaire.
+.PP
+Quand le drapeau \fIsched_load_balance\fP d'un cpuset est activé (ce qui est le
+cas par défaut), une répartition de la charge sur tous les CPU autorisés par
+le cpuset est demandé, à condition que le processus puisse être déplacé d'un
+CPU du cpuset à un autre CPU (c'est\-à\-dire qu'il n'ait pas été attaché à des
+CPU avec, par exemple, \fBsched_setaffinity\fP(2)).
+.PP
+Quand le drapeau \fIsched_load_balance\fP d'un cpuset est désactivé, alors
+l'ordonnanceur évitera de déplacer des processus pour répartir la charge des
+CPU du cpuset, \fIsauf\fP si un autre cpuset partage le même CPU et a son
+drapeau \fIsched_load_balance\fP activé.
+.PP
+Ainsi, par exemple, si le cpuset racine a son drapeau \fIsched_load_balance\fP
+activé, alors l'ordonnanceur répartira la charge sur tous les CPU et la
+configuration du drapeau \fIsched_load_balance\fP des autres cpusets n'a pas
+d'effet, puisqu'une répartition complète de la charge est déjà demandée.
+.PP
+Dans les deux situations ci\-dessus, le drapeau \fIsched_load_balance\fP devrait
+donc être désactivé sur le cpuset racine et seuls les cpusets fils plus
+petits devraient l'activer.
+.PP
+Lorsque vous faites ceci, vous ne devez généralement pas laisser un
+processus non attaché à un CPU dans le cpuset racine qui pourrait utiliser
+les CPU de façon non négligeable. De cette façon les processus peuvent être
+artificiellement contraints à un sous ensemble des CPU en fonction de la
+configuration de ce drapeau dans les cpusets descendants. Même si ce
+processus pourrait utiliser des cycles CPU inutilisés par certains CPU,
+l'ordonnanceur du noyau ne cherchera pas à répartir la charge du processus
+sur le CPU sous utilisé.
+.PP
+.\" ================== Scheduler Relax Domain Level ==================
+Bien sûr, les processus attachés à un CPU particulier peuvent être laissés
+dans un cpuset qui désactive \fIsched_load_balance\fP puisque ces processus ne
+peuvent être déplacés de toute façon.
+.SS "Niveau du domaine de détente de l'ordonnanceur"
+L'ordonnanceur du noyau effectue une répartition de la charge immédiate
+lorsqu'un CPU devient disponible ou lorsqu'une autre tâche est prête. Cette
+répartition de la charge permet de s'assurer que le plus de CPU possibles
+sont utilisés efficacement en exécutant des tâches. Le noyau effectue aussi
+une répartition de la charge de façon plus sporadique sur la base de
+l'horloge logicielle décrite dans \fItime\fP(7). La configuration de
+\fIsched_relax_domain_level\fP ne s'applique qu'à la répartition de charge
+automatique. Indépendamment de la configuration de
+\fIsched_relax_domain_level\fP, une répartition de charge sporadique est
+effectuée à travers tous les CPU (sauf si cela a été désactivé avec
+\fIsched_load_balance\fP). Dans tous les cas, bien sûr, les tâches ne seront
+exécutées que sur les CPU autorisés par leur cpuset et par les appels
+systèmes \fBsched_setaffinity\fP(2).
+.PP
+Sur les petits systèmes, avec peu de CPU, la répartition de charge immédiate
+est utile pour améliorer l'interactivité du système et minimiser les cycles
+CPU inutilisés. Mais sur les gros systèmes, essayer de répartir la charge
+immédiatement sur un nombre important de CPU peut être plus coûteux que ce
+que ça ne rapporte, en fonction des performances des différentes tâches et
+du matériel.
+.PP
+La signification exacte des petites valeurs de \fIsched_relax_domain_level\fP
+dépendra de l'implémentation de l'ordonnanceur du noyau et de l'architecture
+non uniforme du matériel. Ces deux paramètres évolueront dans le temps et
+dépendent de l'architecture du système et de la version du noyau.
+.PP
+À ce jour, quand cette capacité a été introduite sous Linux\ 2.6.26, la
+signification des valeurs positives de \fIsched_relax_domain_level\fP est la
+suivante pour certaines des architectures les plus courantes\ :
+.sp
+.PD 0
+.IP \fB(1)\fP 4
+Effectuer immédiatement une répartition de la charge sur les différents
+Hyper\-Thread frères d'un même cœur.
+.IP \fB(2)\fP
+Effectuer immédiatement une répartition de la charge sur les différents
+cœurs d'un processeur.
+.IP \fB(3)\fP
+Effectuer immédiatement une répartition de la charge sur les différents CPU
+d'un même nœud ou d'une même lame.
+.IP \fB(4)\fP
+Effectuer immédiatement une répartition de la charge sur les différents
+(détail d'implémentation) nœuds [pour les systèmes NUMA].
+.IP \fB(5)\fP
+Effectuer immédiatement une répartition de la charge sur tous les CPU d'un
+système [pour les systèmes NUMA].
+.PD
+.PP
+La valeur zéro (0) pour \fIsched_relax_domain_level\fP signifie toujours qu'il
+n'y a pas de répartition de charge immédiate, et donc la répartition de la
+charge s'effectue périodiquement et non pas immédiatement quand un CPU
+devient disponible ou qu'une tâche peut être exécutée.
+.PP
+La valeur \-1 pour \fIsched_relax_domain_level\fP signifie toujours qu'il faut
+utiliser la valeur par défaut du système. La valeur par défaut du système
+peut varier en fonction de l'architecture et du noyau. Cette valeur par
+défaut du système peut être modifiée en fournissant au noyau un paramètre
+«\ relax_domain_level=\ » lors du démarrage.
+.PP
+Si des cpusets partagent des CPU et ont des valeurs de
+\fIsched_relax_domain_level\fP incompatibles, alors la valeur la plus élevée
+s'applique à tous les CPU de ces cpusets. Dans ce cas, la valeur \fBmoins un
+(\-1)\fP est la valeur la plus faible, remplacée par toute autre valeur et la
+valeur \fBzéro (0)\fP est la valeur la plus faible suivante.
+.SH FORMATS
+.\" ================== Mask Format ==================
+Les formats suivants sont utilisés pour représenter des ensembles de CPU et
+de nœuds mémoire.
+.SS "Affichage sous forme de masque"
+L'\fBAffichage sous forme de masque\fP est utilisé pour représenter les masques
+de bits des CPU et nœuds mémoire dans le fichier
+\fI/proc/<pid>/status\fP.
+.PP
+Ce format affiche chaque mot de 32\ bits au format hexadécimal (en utilisant
+les caractères ASCII «\ 0\ » \- «\ 9\ » et «\ a\ » \- «\ f\ »)\ ; le début des mots est
+complété par des zéros si nécessaire. Pour les masques de plus d'un mot, une
+virgule est utilisée pour séparer les mots. Les mots sont affiché au format
+grand boutiste, avec le bit le plus significatif en premier. Les chiffres
+hexadécimaux d'un mot utilise aussi l'ordre grand boutiste.
+.PP
+Le nombre de mots de 32\ bits affichés est le nombre minimal nécessaire pour
+afficher tous les bits du masque, en fonction de la taille du masque de
+bits.
+.PP
+Exemple d'\fBAffichage sous forme de masque\fP\ :
+.PP
+.RS
+.nf
+00000001                        # seul le bit 0
+40000000,00000000,00000000      # seul le bit 94
+00000001,00000000,00000000      # seul le bit 64
+000000ff,00000000               # seuls les bits 32\-39
+00000000,000E3862               # les bits 1,5,6,11\-13,17\-19
+.fi
+.RE
+.PP
+Un masque avec les bits 0, 1, 2, 4, 8, 16, 32 et 64 activés sera affiché de
+cette façon\ :
+.PP
+.RS
+.nf
+00000001,00000001,00010117
+.fi
+.RE
+.PP
+.\" ================== List Format ==================
+Le premier «\ 1\ » correspond au bit 64, le second au bit 32, le troisième au
+bit 16, le quatrième au bit 8, le cinquième au bit 4 et le «\ 7\ » correspond
+aux bits 2, 1 et 0.
+.SS "Affichage sous forme de liste"
+L'\fBAffichage sous forme de liste\fP pour les fichiers \fIcpus\fP et \fImems\fP est
+une liste de numéros ou intervalles de CPU ou de nœuds mémoire séparés par
+des virgules, en décimal au format ASCII.
+.PP
+Exemple d'\fBAffichage sous forme de liste\fP\ :
+.PP
+.RS
+.nf
+0\-4,9           # bits 0, 1, 2, 3, 4 et 9 activés
+0\-2,7,12\-14     # bits 0, 1, 2, 7, 12, 13 et 14 activés
+.fi
+.RE
+.\" ================== RULES ==================
+.SH RÈGLES
+Les règles suivantes s'appliquent à chaque cpuset\ :
+.IP * 3
+Ses CPU et nœuds mémoire doivent être des sous\-ensembles de ceux de leur
+parent (ou les mêmes ensembles).
+.IP *
+Il ne peut être marqué avec \fIcpu_exclusive\fP que si son parent l'est.
+.IP *
+Il ne peut être marqué avec \fImem_exclusive\fP que si son parent l'est.
+.IP *
+S'il est marqué avec \fIcpu_exclusive\fP, ses CPU ne doivent pas être partagés
+avec ses frères.
+.IP *
+.\" ================== PERMISSIONS ==================
+S'il est marqué avec \fImemory_exclusive\fP, ses nœuds mémoire ne doivent pas
+être partagés avec ses frères.
+.SH PERMISSIONS
+Les permissions d'un cpuset sont déterminées par les permissions des
+répertoires et pseudofichiers du système de fichiers cpuset, normalement
+monté dans \fI/dev/cpuset\fP.
+.PP
+Par exemple, un processus peut se placer dans un autre cpuset s'il peut
+écrire dans le fichier \fItasks\fP de ce cpuset. Ceci nécessite les permission
+d'exécution des répertoires à traverser et la permission d'écrire dans le
+fichier \fItasks\fP.
+.PP
+Une contrainte supplémentaire s'applique aux demandes de déplacement
+d'autres processus dans un cpuset. Un processus ne peut pas attacher un
+autre processus à un cpuset à moins qu'il ait la permission d'envoyer un
+signal à ce processus (consultez \fBkill\fP(2)).
+.PP
+Un processus peut créer un cpuset fils s'il a accès et peut écrire dans le
+répertoire du cpuset père. Il peut modifier les CPU et nœuds mémoire d'un
+cpuset s'il a accès au répertoire de ce cpuset (les permissions d'exécuter
+tous les répertoires parents) et s'il peut écrire dans les fichiers
+correspondants \fIcpus\fP ou \fImems\fP.
+.PP
+Il y a une petite différence entre la manière dont ces permissions sont
+évaluées et la manière dont sont évaluées les permissions pour les
+opérations sur des systèmes de fichiers normaux. Le noyau interprète les
+chemins relatifs en fonction du répertoire de travail actuel d'un
+processus. Même quand on opère sur un fichier d'un cpuset, les chemins
+relatifs sont interprétés en fonction du répertoire de travail du processus,
+et non pas relativement au cpuset actuel du processus. Les seules façons
+pour que les chemins de cpusets soient interprétés relativement au cpuset
+actuel du processus sont soit que le processus utilise le répertoire du
+cpuset comme répertoire de travail (il a d'abord effectué un \fBcd\fP ou
+\fBchdir\fP(2) dans le répertoire de son cpuset dans \fI/dev/cpuset\fP, ce qui est
+plutôt inhabituel), soit que du code utilisateur convertit le chemin relatif
+au cpuset en un chemin absolu.
+.PP
+.\" ================== WARNINGS ==================
+En théorie, ceci signifie que le code utilisateur devrait indiquer les
+cpusets en utilisant des chemins absolus, ce qui nécessite de connaître le
+point de montage du système de fichier cpuset (d'habitude, mais sans que ce
+soit nécessaire, \fI/dev/cpuset\fP). En pratique, à la connaissance de
+l'auteur, tous les utilitaires en mode utilisateur supposent que si le
+système de fichier cpuset est monté, alors il est monté dans
+\fI/dev/cpuset\fP. De plus, une pratique assez courante utilisé pour du code
+écrit soigneusement consiste à vérifier la présence du pseudofichier
+\fI/dev/cpuset/tasks\fP afin de vérifier que le pseudosystème de fichiers
+cpuset est bien monté.
+.SH AVERTISSEMENTS
+.SS "Activation de memory_pressure"
+Par défaut, le fichier \fIcpuset.memory_pressure\fP d'un cpuset vaut zéro
+(0). À moins que cette fonctionnalité soit activée en écrivant «\ 1\ » dans le
+pseudofichier \fI/dev/cpuset/cpuset.memory_pressure_enabled\fP, le noyau ne
+calcule pas les valeurs des fichiers \fImemory_pressure\fP de chaque cpusets .
+.SS "Utilisation de la commande echo"
+.\" Gack!  csh(1)'s echo does this
+Lorsque la commande \fBecho\fP est utilisée dans un interpréteur de commandes
+pour changer les valeurs des fichiers d'un cpuset, soyez conscient que la
+commande \fBecho\fP interne à certains interpréteurs de commandes n'affiche pas
+de message d'erreur si l'appel système \fBwrite\fP(2) échoue. Par exemple, si
+la commande\ :
+.in +4n
+.nf
+
+echo 19 > cpuset.mems
+
+.fi
+.in
+échoue parce que le nœud mémoire numéro\ 19 n'est pas autorisé (par exemple
+le système n'a pas de nœud mémoire numéro\ 19), alors la commande \fBecho\fP
+peut n'afficher aucune erreur. If faut mieux utiliser la commande externe
+\fB/bin/echo\fP pour changer la configuration d'un fichier d'un cpuset puisque
+cette commande affichera les erreurs de \fBwrite\fP(2), comme par exemple\ :
+.in +4n
+.nf
+
+/bin/echo 19 > cpuset.mems
+/bin/echo\ : erreur d'écriture\ : argument invalide
+.fi
+.in
+.\" ================== EXCEPTIONS ==================
+.SH EXCEPTIONS
+.SS "Placement mémoire"
+Les contraintes des cpusets ne s'appliquent pas à toutes les allocations de
+mémoire système pour les raisons suivantes\ :
+.PP
+Si la fonctionnalité de connexion à chaud est utilisée pour supprimer tous
+les CPU d'un cpuset, alors le noyau mettra à jour automatiquement la liste
+de CPU autorisés (\fIcpus_allowed\fP) de tous les processus attachés aux CPU du
+cpuset et autorisera tous les CPU. Le comportement est similaire lorsque la
+fonctionnalité de connexion à chaud est utilisée pour la mémoire. En
+général, le noyau préfère ne pas tenir compte du placement sur les CPU ou
+les nœuds mémoire plutôt que d'abandonner un processus dont tous les CPU ou
+nœuds mémoire autorisés sont déconnectés. Le code utilisateur devrait
+reconfigurer les cpusets pour ne mentionner que les CPU et les nœuds mémoire
+en ligne lorsque la fonctionnalité de connexion à chaud est utilisée pour
+ajouter ou retirer ces ressources.
+.PP
+Quelques demandes d'allocation mémoire critiques et internes au noyau,
+marquées GFP_ATOMIC, doivent être satisfaites immédiatement. Le noyau peut
+rater des demandes ou ne pas fonctionner correctement si certaines de ces
+allocations échouent. Si une de ces demandes ne peut être satisfaite par le
+cpuset du processus en cours, alors les contraintes du cpuset sont relâchées
+et le noyau recherche de la mémoire là où il peut en trouver. Il est
+préférable de ne pas respecter un cpuset plutôt que de stresser le noyau.
+.PP
+Les allocations de mémoire demandées par des pilotes du noyau lors du
+traitement d'une interruption ne se trouvent dans le contexte d'aucun
+processus et ne sont donc pas contraintes par les cpusets.
+.SS "Renommer des cpusets"
+.\" ================== ERRORS ==================
+Vous pouvez utiliser l'appel système \fBrename\fP(2) pour renommer des
+cpusets. Seuls des renommages simples sont pris en charge\ ; c'est\-à\-dire que
+changer le nom du répertoire d'un cpuset est autorisé, mais déplacer le
+répertoire d'un cpuset dans un autre répertoire n'est pas autorisé.
+.SH ERREURS
+L'implémentation des cpusets du noyau Linux positionne \fIerrno\fP pour
+indiquer la raison de l'échec d'un appel système lié à un cpuset.
+.PP
+Les valeurs possible pour \fIerrno\fP et leurs significations, lors d'un échec
+d'un appel système lié à un cpuset sont listées ci\-dessous\ :
+.TP 
+\fBE2BIG\fP
+Tentative d'écriture (\fBwrite\fP(2)) dans un fichier spécial d'un cpuset avec
+une longueur supérieure à la longueur autorisée par le noyau pour ces
+écritures.
+.TP 
+\fBEACCES\fP
+Tentative d'écriture (\fBwrite\fP(2)) d'un identifiant de processus (PID) dans
+le fichier \fItasks\fP d'un cpuset alors que l'appelant n'est pas autorisé à
+déplacer le processus.
+.TP 
+\fBEACCES\fP
+Tentative d'ajout, avec \fBwrite\fP(2), d'un CPU ou d'un nœud mémoire dans un
+cpuset alors que ce CPU ou ce nœud mémoire ne se trouve pas dans le cpuset
+parent.
+.TP 
+\fBEACCES\fP
+Tentative d'activation, avec \fBwrite\fP(2), de \fIcpuset.cpu_exclusive\fP ou de
+\fIcpuset.mem_exclusive\fP sur un cpuset dont le parent n'a pas ces propriétés.
+.TP 
+\fBEACCES\fP
+Tentative d'écriture (\fBwrite\fP(2)) dans un fichier
+\fIcpuset.memory_pressure\fP.
+.TP 
+\fBEACCES\fP
+Tentative de création d'un fichier dans le répertoire d'un cpuset.
+.TP 
+\fBEBUSY\fP
+Tentative de suppression, avec \fBrmdir\fP(2), d'un cpuset auquel sont attachés
+des processus.
+.TP 
+\fBEBUSY\fP
+Tentative de suppression, avec \fBrmdir\fP(2), d'un cpuset ayant des ensembles
+de CPU fils.
+.TP 
+\fBEBUSY\fP
+Tentative de suppression d'un CPU ou d'un nœud mémoire d'un cpuset alors que
+le CPU ou le nœud mémoire se trouve également dans un des fils du cpuset.
+.TP 
+\fBEEXIST\fP
+Tentative de création, avec \fBmkdir\fP(2), d'un cpuset qui existe déjà.
+.TP 
+\fBEEXIST\fP
+Tentative de renommage (\fBrename\fP(2)) d'un cpuset avec un nom déjà utilisé.
+.TP 
+\fBEFAULT\fP
+Tentative de lecture (\fBread\fP(2)) ou d'écriture (\fBwrite\fP(2)) dans un
+fichier d'un cpuset en utilisant un tampon en dehors de l'espace mémoire
+accessible par le processus appelant.
+.TP 
+\fBEINVAL\fP
+Tentative de modification d'un cpuset, en utilisant \fBwrite\fP(2), de telle
+sorte que les attributs \fIcpu_exclusive\fP ou \fImem_exclusive\fP ne soient plus
+respectés pour ce cpuset ou ses frères.
+.TP 
+\fBEINVAL\fP
+Tentative d'écriture (avec \fBwrite\fP(2)) d'une liste vide dans \fIcpuset.cpus\fP
+ou \fIcpuset.mems\fP pour un cpuset auquel sont déjà attachés des processus ou
+des cpuset fils.
+.TP 
+\fBEINVAL\fP
+Tentative d'écriture (avec \fBwrite\fP(2)) dans \fIcpuset.cpus\fP ou
+\fIcpuset.mems\fP d'une liste qui comprend un intervalle dont la borne
+supérieure est inférieure à la borne inférieure.
+.TP 
+\fBEINVAL\fP
+Tentative d'écriture (avec \fBwrite\fP(2)) dans \fIcpuset.cpus\fP ou
+\fIcpuset.mems\fP d'une liste dont la chaîne comprend un caractère non valable.
+.TP 
+\fBEINVAL\fP
+Tentative d'écriture (avec \fBwrite\fP(2)) dans le fichier \fIcpuset.cpus\fP d'une
+liste qui ne comprend aucun CPU en ligne.
+.TP 
+\fBEINVAL\fP
+Tentative d'écriture (avec \fBwrite\fP(2)) dans le fichier \fIcpuset.mems\fP d'une
+liste qui ne comprend aucun nœud mémoire en ligne.
+.TP 
+\fBEINVAL\fP
+Tentative d'écriture (avec \fBwrite\fP(2)) dans le fichier \fIcpuset.mems\fP d'une
+liste qui comprend un nœud qui ne contient pas de mémoire.
+.TP 
+\fBEIO\fP
+Tentative d'écriture (avec \fBwrite\fP(2)) dans le fichier \fItasks\fP d'un cpuset
+d'une chaîne qui ne commence pas par un entier décimal au format ASCII.
+.TP 
+\fBEIO\fP
+Tentative de renommage (avec \fBrename\fP(2)) d'un cpuset dans un autre
+répertoire.
+.TP 
+\fBENAMETOOLONG\fP
+Tentative de lecture (avec \fBread\fP(2)) du fichier
+\fI/proc/<pid>/cpuset\fP d'un cpuset, pour lequel le chemin est plus
+long que la taille des pages du noyau.
+.TP 
+\fBENAMETOOLONG\fP
+Tentative de création, avec \fBmkdir\fP(2), d'un cpuset dont le nom du
+répertoire de base fait plus de 255\ caractères.
+.TP 
+\fBENAMETOOLONG\fP
+Tentative de création, avec \fBmkdir\fP(2), d'un cpuset dont le chemin complet,
+préfixe du point de montage compris (typiquement «\ /dev/cpuset/\ »), fait
+plus de 4095\ caractères.
+.TP 
+\fBENODEV\fP
+Le cpuset a été supprimé par un autre processus en même temps qu'une
+tentative d'écriture (avec \fBwrite\fP(2)) sur un des pseudofichiers du
+répertoire du cpuset.
+.TP 
+\fBENOENT\fP
+Tentative de création, avec \fBmkdir\fP(2), d'un cpuset dans un cpuset parent
+qui n'existe pas.
+.TP 
+\fBENOENT\fP
+Tentative d'accéder à (avec \fBaccess\fP(2)) ou d'ouvrir (avec \fBopen\fP(2)) un
+fichier inexistant du répertoire d'un cpuset.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire disponible pour le noyau\ ; ceci peut se produire pour
+différents appels système liés aux cpusets, mais seulement si le système
+manque beaucoup de mémoire.
+.TP 
+\fBENOSPC\fP
+Tentative d'écriture (avec \fBwrite\fP(2)) de l'identifiant d'un processus dans
+le fichier \fItasks\fP d'un cpuset alors que les fichiers \fIcpuset.cpus\fP ou
+\fIcpuset.mems\fP sont vides.
+.TP 
+\fBENOSPC\fP
+Tentative d'écriture (avec \fBwrite\fP(2)) d'un fichier \fIcpuset.cpus\fP ou
+\fIcpuset.mems\fP vide dans un cpuset auquel sont attachées des tâches.
+.TP 
+\fBENOTDIR\fP
+Tentative de renommage (avec \fBrename\fP(2)) d'un cpuset qui n'existe pas.
+.TP 
+\fBEPERM\fP
+Tentative de suppression d'un fichier dans le répertoire d'un cpuset.
+.TP 
+\fBERANGE\fP
+Une liste pour \fIcpuset.cpus\fP ou \fIcpuset.mems\fP a été fournie au noyau mais
+comprend un nombre trop grand pour que le noyau l'ajoute à son champ de
+bits.
+.TP 
+\fBESRCH\fP
+.\" ================== VERSIONS ==================
+Tentative d'écriture (avec \fBwrite\fP(2)) de l'identifiant d'un processus
+inexistant dans le fichier \fItasks\fP d'un cpuset.
+.SH VERSIONS
+.\" ================== NOTES ==================
+Les cpusets sont apparus dans la version\ 2.6.12 du noyau Linux.
+.SH NOTES
+.\" ================== BUGS ==================
+Contrairement à ce que son nom indique, le paramètre \fIpid\fP est en fait un
+identifiant de thread. Chaque thread d'un groupe de threads peut être
+attaché un cpuset différent. La valeur renvoyée par un appel à \fBgettid\fP(2)
+peut être fournie comme paramètre \fIpid\fP.
+.SH BOGUES
+.\" ================== EXAMPLE ==================
+Les fichiers \fIcpuset.memory_pressure\fP peuvent être ouverts en écriture en
+demandant une création ou troncature, mais dans ce cas \fBwrite\fP(2) échouera
+en positionnant \fIerrno\fP à \fBEACCES\fP, et les options de création ou de
+troncature de \fBopen\fP(2) n'ont aucun effet.
+.SH EXEMPLE
+Voici des exemples pour l'affichage et la modification d'options d'un cpuset
+à l'aide d'un interpréteur de commandes.
+.SS "Créer et s'attacher à un cpuset."
+Voici les étapes pour créer un nouveau cpuset et lui attacher l'interpréteur
+de commandes en cours\ :
+.sp
+.PD 0
+.IP 1) 4
+mkdir /dev/cpuset (si ce n'est déjà fait)
+.IP 2)
+mount \-t cpuset none /dev/cpuset (si ce n'est déjà fait)
+.IP 3)
+Créer un nouveau cpuset avec \fBmkdir\fP(1).
+.IP 4)
+Assigner des CPU et nœuds mémoire au nouveau cpuset.
+.IP 5)
+Attacher l'interpréteur de commandes au nouveau cpuset.
+.PD
+.PP
+Par exemple, la séquence de commandes suivante définira un cpuset appelé
+«\ Charlie\ », ne contenant que les CPU 2 et 3 et le nœud mémoire 1, et
+attachera l'interpréteur de commandes en cours à ce cpuset.
+.in +4n
+.nf
+
+$\fB mkdir /dev/cpuset\fP
+$\fB mount \-t cpuset cpuset /dev/cpuset\fP
+$\fB cd /dev/cpuset\fP
+$\fB mkdir Charlie\fP
+$\fB cd Charlie\fP
+$\fB /bin/echo 2\-3 > cpuset.cpus\fP
+$\fB /bin/echo 1 > cpuset.mems\fP
+$\fB /bin/echo $$ > tasks\fP
+# Le shell en cours s'exécute désormais dans le cpuset Charlie
+# La ligne suivante devrait afficher «\ /Charlie\ »
+$\fB cat /proc/self/cpuset\fP
+.fi
+.in
+.SS "Déplacer des tâches sur d'autres nœuds mémoire."
+Pour déplacer les tâches attachées à un cpuset sur d'autres CPU et d'autres
+nœuds mémoire du système et déplacer les pages mémoires actuellement
+allouées par ces processus, effectuez les étapes suivantes\ :
+.sp
+.PD 0
+.IP 1) 4
+Supposons qu'il faille déplacer les tâches du cpuset \fIalpha\fP (les CPU 4\-7
+et nœuds mémoire 2\-3) vers un autre cpuset \fIbeta\fP (CPU 16\-19 et nœuds
+mémoire 8\-9).
+.IP 2)
+Créer d'abord le nouveau cpuset \fIbeta\fP.
+.IP 3)
+Autoriser les CPU 16\-19 et les nœuds mémoire 8\-9 pour \fIbeta\fP.
+.IP 4)
+Activer \fImemory_migration\fP dans \fIbeta\fP.
+.IP 5)
+Déplacer chaque tâche d'\fIalpha\fP vers \fIbeta\fP.
+.PD
+.PP
+La séquence de commandes suivante effectue cela.
+.in +4n
+.nf
+
+$\fB cd /dev/cpuset\fP
+$\fB mkdir beta\fP
+$\fB cd beta\fP
+$\fB /bin/echo 16\-19 > cpuset.cpus\fP
+$\fB /bin/echo 8\-9 > cpuset.mems\fP
+$\fB /bin/echo 1 > cpuset.memory_migrate\fP
+$\fB while read i; do /bin/echo $i; done < ../alpha/tasks > tasks\fP
+.fi
+.in
+.PP
+La séquence ci\-dessus déplace tous les processus de \fIalpha\fP vers \fIbeta\fP et
+déplace toute mémoire utilisée par ces processus sur les nœuds mémoire 2\-3
+vers les nœuds mémoire 8\-9.
+.PP
+Notez que la dernière étape de la séquence ci\-dessus n'était pas\ :
+.in +4n
+.nf
+
+$\fB cp ../alpha/tasks tasks\fP
+.fi
+.in
+.PP
+La boucle \fIwhile\fP, plutôt que l'utilisation de la commande \fBcp\fP(1), est
+nécessaire par ce qu'un seul identifiant de processus à la fois peut être
+écrit dans le fichier \fItasks\fP.
+.PP
+La même chose (l'écriture d'un PID à la fois) peut se faire plus
+efficacement qu'avec la boucle \fIwhile\fP, en moins de caractère et dans une
+syntaxe qui fonctionne avec tous les interpréteurs de commandes mais
+malheureusement de façon moins intelligible, en utilisant l'option \fB\-u\fP
+(sans tampon) de \fBsed\fP(1)\ :
+.in +4n
+
+.nf
+$\fB sed \-un p < ../alpha/tasks > tasks\fP
+.fi
+.in
+.\" ================== SEE ALSO ==================
+.SH "VOIR AUSSI"
+\fBtaskset\fP(1), \fBget_mempolicy\fP(2), \fBgetcpu\fP(2), \fBmbind\fP(2),
+\fBsched_getaffinity\fP(2), \fBsched_setaffinity\fP(2), \fBsched_setscheduler\fP(2),
+\fBset_mempolicy\fP(2), \fBCPU_SET\fP(3), \fBproc\fP(5), \fBnuma\fP(7),
+\fBmigratepages\fP(8), \fBnumactl\fP(8)
+.PP
+\fIDocumentation/cpusets.txt\fP dans les sources du noyau Linux
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

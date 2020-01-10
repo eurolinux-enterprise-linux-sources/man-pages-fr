@@ -1,0 +1,114 @@
+.\" This manpage is Copyright (C) 2006, Michael Kerrisk
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FUTIMESAT 2 "10 mai 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+futimesat \- Modifier les horodatages d'un fichier relativement à un
+descripteur de fichier de répertoire
+.SH SYNOPSIS
+.nf
+\fB#include <fcntl.h> /* Définition des constantes AT_* */\fP
+\fB#include <sys/time.h>\fP
+.sp
+\fBint futimesat(int \fP\fIdirfd\fP\fB, const char *\fP\fIpathname\fP\fB,\fP
+\fB              const struct timeval \fP\fItimes\fP\fB[2]);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBfutimesat\fP(): _GNU_SOURCE
+.SH DESCRIPTION
+Cet appel système est obsolète. Utilisez \fButimensat\fP(2) à la place.
+
+L'appel système \fBfutimesat\fP() fonctionne exactement comme \fButimes\fP(2), les
+seules différences étant celles décrites sur cette page.
+
+Si le chemin donné dans \fIpathname\fP est relatif, il est interprété par
+rapport au répertoire référencé par le descripteur de fichier \fIdirfd\fP
+(plutôt que relativement au répertoire de travail courant du processus
+appelant, comme cela est fait par \fButimes\fP(2) pour un chemin relatif).
+
+Si \fIpathname\fP est un chemin relatif, et si \fIdirfd\fP a la valeur spéciale
+\fBAT_FDCWD\fP, alors \fIpathname\fP est interprété par rapport au répertoire
+courant du processus appelant, comme dans \fButimes\fP(2).
+
+Si \fIpathname\fP est un chemin absolu, \fIdirfd\fP est ignoré.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBfutimesat\fP() renvoie zéro. En cas d'erreur, il renvoie \-1 et
+remplit \fIerrno\fP avec la valeur d'erreur.
+.SH ERREURS
+Les mêmes erreurs qui apparaissent pour \fButimes\fP(2) peuvent apparaître pour
+\fBfutimesat\fP(). Les erreurs supplémentaires suivantes peuvent également se
+produire pour \fBfutimesat\fP()\ :
+.TP 
+\fBEBADF\fP
+\fIdirfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBENOTDIR\fP
+\fIpathname\fP est relatif, et le descripteur de fichier \fIdirfd\fP est associé à
+un fichier, pas à un répertoire.
+.SH VERSIONS
+\fBfutimesat\fP() a été ajouté au noyau Linux dans sa version 2.6.16\ ; la glibc
+le gère depuis la version\ 2.4.
+.SH CONFORMITÉ
+Cet appel système n'est pas standard. Il a été implémenté à partir d'une
+spécification qui avait été proposée pour POSIX.1, mais cette spécification
+a été remplacée par celle pour \fButimensat\fP(2).
+
+Un appel système similaire existe sur Solaris.
+.SH NOTES
+.SS "Notes sur la glibc"
+.\" The Solaris futimesat() also has this strangeness.
+Si \fIpathname\fP est NULL, la fonction enveloppe \fBfutimesat\fP() de la glibc
+met à jour les horodatages du fichier référencé par \fIdirfd\fP.
+.SH "VOIR AUSSI"
+\fBstat\fP(2), \fButimensat\fP(2), \fButimes\fP(2), \fBfutimes\fP(3),
+\fBpath_resolution\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

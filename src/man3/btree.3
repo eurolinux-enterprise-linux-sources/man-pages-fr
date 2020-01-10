@@ -1,0 +1,235 @@
+.\" Copyright (c) 1990, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"	@(#)btree.3	8.4 (Berkeley) 8/18/94
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH BTREE 3 "23 avril 2012" "" "Manuel du programmeur Linux"
+.\".UC 7
+.SH NOM
+btree \- Méthodes d'accès à une base de données en arbre binaire
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>
+#include <db.h>\fP
+.fi
+.SH DESCRIPTION
+\fINOTE\fP: cette page décrit des interfaces founies par la glibc jusque dans
+sa version\ 2.1. Depuis la version\ 2.2, la glibc ne fournit plus ces
+interfaces. Veuillez consulter les API fournies par la bibliothèque
+\fIlibdb\fP.
+
+La routine \fBdbopen\fP(3) est l'interface de bibliothèque pour les fichiers de
+base de données. L'un des formats de fichier supportés est l'arbre binaire
+de fichiers. La description générale des méthodes d'accès à une base de
+données est fournie dans la page de manuel \fBdbopen\fP(3). La présente page ne
+décrit que les informations spécifiques aux arbres binaires.
+.PP
+Une telle structure de données est un arbre équilibré, trié, mémorisant les
+paires «\ clés\-données\ » associées.
+.PP
+La structure de données spécifique aux méthodes d'accès aux arbres binaires
+que l'on fournit à \fBdbopen\fP(3) est définie dans le fichier d'en\-tête
+\fI<db.h>\fP comme suit\ :
+.in +4n
+.nf
+
+typedef struct {
+    unsigned long flags;
+    unsigned int  cachesize;
+    int           maxkeypage;
+    int           minkeypage;
+    unsigned int  psize;
+    int         (*compare)(const DBT *key1, const DBT *key2);
+    size_t      (*prefix)(const DBT *key1, const DBT *key2);
+    int           lorder;
+} BTREEINFO;
+.fi
+.in
+.PP
+Les éléments de cette structure sont les suivants\ :
+.TP 
+\fIflags\fP
+La valeur de ce champ est calculée avec un \fIOU\fP binaire sur certaines des
+constantes suivantes\ :
+.RS
+.TP 
+\fBR_DUP\fP
+Autoriser les clés dupliquées dans l'arbre, c'est\-à\-dire, permettre
+l'insertion même si la clé existe déjà dans l'arbre. Le comportement par
+défaut, comme décrit dans \fBdbopen\fP(3), est d'écraser une clé correspondante
+lors de l'insertion d'une nouvelle clé, ou d'échouer si le drapeau
+\fBR_NOOVERWRITE\fP est indiqué. Le drapeau \fBR_NOOVERWRITE\fP a priorité sur le
+drapeau \fBR_DUP\fP, et si \fBR_NOOVERWRITE\fP est spécifié, une tentative
+d'insertion d'une clé déjà existante échouera.
+.IP
+Si la base de données contient des clés dupliquées, l'ordre de récupération
+des paires «\ clé\-valeur\ » est indéfini si l'on utilise la routine
+\fIget\fP. Toutefois la routine \fIseq\fP avec le drapeau \fBR_CURSOR\fP positionné
+renvoie la clé «\ logiquement première\ » de chaque groupe de clés
+dupliquées.
+.RE
+.TP 
+\fIcachesize\fP
+Une suggestion de taille maximale (en octets) du cache mémoire. Cette valeur
+est \fBseulement\fP indicative, et les méthodes d'accès alloueront plus de
+mémoire plutôt que d'échouer. Comme chaque recherche examine la page racine
+de l'arbre, le cache des pages les plus récemment consultées améliore les
+temps d'accès. De plus, les écritures physiques sont retardées aussi
+longtemps que possible, ainsi un cache, même modeste, peut réduire
+sensiblement le nombre d'opérations d'entrée\-sortie. Bien sûr, l'utilisation
+d'un cache augmente (et seulement augmente) la probabilité de corruption ou
+de perte de données si le système plante alors qu'un arbre est en cours de
+modification. Si \fIcachesize\fP vaut 0 (pas de taille indiquée) un cache est
+utilisé par défaut.
+.TP 
+\fImaxkeypage\fP
+.\" The maximum number of keys which will be stored on any single page.
+.\" Because of the way the btree data structure works,
+.\" .I maxkeypage
+.\" must always be greater than or equal to 2.
+.\" If
+.\" .I maxkeypage
+.\" is 0 (no maximum number of keys is specified) the page fill factor is
+.\" made as large as possible (which is almost invariably what is wanted).
+Le nombre maximal de clés qui seront stockées sur une seule page. Pas encore
+implémenté.
+.TP 
+\fIminkeypage\fP
+Le nombre minimal de clés qui seront stockées sur la même page. Cette valeur
+est utilisée pour déterminer quelles clés seront stockées sur des pages de
+débordement. Par exemple, lorsqu'une clé ou une donnée est plus grande que
+la taille de page divisée par le nombre minimal de clés, elle est stockée
+sur des pages de débordement plutôt que sur la page elle\-même. Si
+\fIminkeypage\fP est nulle (aucun nombre minimal de clés indiqué), une valeur
+de 2 est utilisé.
+.TP 
+\fIpsize\fP
+Taille (en octets) des pages utilisées pour les nœuds de l'arbre. La taille
+minimale est de 512\ octets, et la taille maximale de 64\ ko. Si \fIpsize\fP
+vaut 0, (aucune taille indiquée), la taille de la page est choisie en
+fonction de la taille des blocs d'entrée\-sortie du système de fichiers
+sous\-jacent.
+.TP 
+\fIcompare\fP
+Fonction de comparaison de clé. Elle doit renvoyer un entier inférieur, égal
+ou supérieur à zéro lorsque le premier argument est respectivement
+inférieur, égal ou supérieur au second. La même fonction de comparaison doit
+toujours être utilisée pour un arbre donné pendant son ouverture. Si
+\fIcompare\fP vaut NULL (aucune fonction indiquée), les clés sont comparées de
+manière lexicographique\ ; les clés les plus courtes sont considérées comme
+inférieures aux clés les plus longues.
+.TP 
+\fIprefix\fP
+Fonction de comparaison avec préfixe. Si elle est spécifiée, cette routine
+doit renvoyer le nombre d'octets du second argument (une clé) qui sont
+nécessaires pour déterminer s'il est supérieur au premier argument (une
+clé). Si les clés sont égales, la longueur de la clé devrait être
+retournée. Remarquez que l'utilité de cette routine dépend dans une très
+large mesure du type de données manipulées, mais il arrive que cette routine
+fournisse des réductions significatives de taille d'arbre et de temps de
+recherche. Si \fIprefix\fP vaut NULL (aucune fonction indiquée), \fIet\fP si
+aucune fonction de comparaison n'est mentionnée, une routine de comparaison
+lexicographique est employée. Si \fIprefix\fP est NULL et si une routine de
+comparaison est spécifiée, aucune comparaison de préfixe n'est effectuée.
+.TP 
+\fIlorder\fP
+L'ordre des octets des entiers stockés dans la base de données. Ce nombre
+doit représenter l'ordre sous forme d'entier. Par exemple, l'ordre poids
+faible poids fort (gros boutiste) est représenté par le nombre 4321. Si
+\fIlorder\fP vaut 0 (aucun ordre indiqué), on utilise l'ordre des octets du
+système hôte.
+.PP
+Si le fichier existe déjà (et si le drapeau \fBO_TRUNC\fP n'est pas spécifié),
+les valeurs indiquées par les paramètres \fIflags\fP, \fIlorder\fP, et \fIpsize\fP
+sont ignorées, et remplacées par les valeurs utilisées lors de la création
+de l'arbre.
+.PP
+Le balayage séquentiel de l'arbre vers l'avant se déroule de la plus petite
+clé vers la plus grande.
+.PP
+L'espace libéré par la destruction des paires «\ clés\-données\ » n'est
+jamais récupéré, bien qu'il soit théoriquement disponible pour être
+réutilisé. Cela signifie qu'une base de données en arbre binaire ne fait que
+grandir. Il faut donc éviter les suppressions exagérées, ou reconstruire
+régulièrement un nouvel arbre depuis un balayage de l'ancien.
+.PP
+Les recherches, les insertions et les suppressions dans un arbre binaire
+s'effectuent en O log base N, où base représente le facteur de remplissage
+moyen. Souvent, l'insertion de données déjà ordonnées dans un arbre binaire
+résulte en un facteur d'insertion faible. Cette implémentation a été
+modifiée pour rendre l'insertion d'éléments ordonnés encore plus
+profitable. Cela donne un facteur de remplissage de pages encore meilleur.
+.SH ERREURS
+Les routines d'accès \fIbtree\fP peuvent échouer et définir \fIerrno\fP avec le
+code de toutes les erreurs indiquées pour les routines de la bibliothèque
+\fBdbopen\fP(3).
+.SH BOGUES
+Seuls les ordres d'octets gros boutiste (big\-endian) et petit boutiste
+(little\-endian) fonctionnent.
+.SH "VOIR AUSSI"
+\fBdbopen\fP(3), \fBhash\fP(3), \fBmpool\fP(3), \fBrecno\fP(3)
+
+\fIThe Ubiquitous B\-tree\fP, Douglas Comer, ACM Comput. Surv. 11, 2 (June
+1979), 121\-138.
+
+\fIPrefix B\-trees\fP, Bayer and Unterauer, ACM Transactions on Database
+Systems, Vol. 2, 1 (March 1977), 11\-26.
+
+\fIThe Art of Computer Programming Vol. 3: Sorting and Searching\fP,
+D.E. Knuth, 1968, pp 471\-480.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

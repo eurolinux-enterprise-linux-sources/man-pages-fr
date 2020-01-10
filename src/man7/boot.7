@@ -1,0 +1,193 @@
+.\" Written by Oron Peled <oron@actcom.co.il>.
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" May be distributed subject to the GPL.
+.\" %%%LICENSE_END
+.\"
+.\" I tried to be as much generic in the description as possible:
+.\" - General boot sequence is applicable to almost any
+.\" OS/Machine (DOS/PC, Linux/PC, Solaris/SPARC, CMS/S390)
+.\" - kernel and init(8) is applicable to almost any UNIX/Linux
+.\" - boot scripts are applicable to SYSV-R4 based UNIX/Linux
+.\"
+.\" Modified 2004-11-03 patch from Martin Schulze <joey@infodrom.org>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH BOOT 7 "19 septembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+boot\-scripts \- Description générale du démarrage du système
+.SH DESCRIPTION
+.LP
+La séquence de démarrage est variable en fonction du système mais peut
+globalement être découpée selon les étapes suivantes\ : (i) amorçage
+matériel, (ii) chargeur de démarrage du système d'exploitation, (iii)
+démarrage du noyau, (iv) \fBinit\fP et \fBinittab\fP, (v) scripts de
+démarrage. Nous allons décrire chacune d'entre elles plus en détail
+ci\-dessous.
+.SS "Amorçage matériel"
+Après la mise sous tension ou un reset matériel, un programme stocké en
+mémoire morte (souvent une PROM) prend le contrôle. Sur les PC, on appelle
+généralement ce programme le \fBBIOS\fP.
+
+Ce programme effectue normalement un autotest de la machine et accède à la
+mémoire non volatile pour y lire quelques paramètres. Dans les PC, cette
+mémoire est maintenue par une batterie de type CMOS. Ainsi la plupart des
+gens l'appellent \fBCMOS\fP, alors qu'en dehors du monde des PC, elle est
+généralement appelée \fBnvram\fP (non\-volatile ram).
+
+Les paramètres stockés dans la nvram varient d'un système à l'autre, mais au
+minimum, le programme d'amorçage matériel devrait savoir quel est le
+périphérique d'amorçage, ou à défaut quels périphériques il faut essayer
+pour amorcer le système.
+
+Ensuite, la phase de démarrage matériel accède au périphérique d'amorçage,
+charge le chargeur de démarrage, qui est situé à une position fixe sur le
+périphérique d'amorçage, et lui passe le contrôle.
+.TP 
+Note\ :
+Nous n'abordons pas ici le démarrage à partir du réseau. Ceux qui
+s'intéressent à ce sujet devraient rechercher du côté de DHCP, TFTP, PXE,
+Etherboot.
+.SS "Chargeur de démarrage"
+Sur les PC, le chargeur de démarrage est situé sur le premier secteur du
+périphérique d'amorçage \- c'est le \fBMBR\fP (Master Boot Record).
+
+Sur la plupart des systèmes, ce chargeur initial est très limité du fait de
+diverses contraintes. Même sur des systèmes autres que le PC, il existe des
+limitations concernant la taille et la complexité de ce chargeur, mais la
+taille du MBR des PC est limitée \- 512\ octets y compris la table de
+partition (64\ octets) et un identifiant de disque (2\ octets) ne laissent que
+446\ octets pour le code \- et rend quasiment impossible le stockage d'un
+chargeur de démarrage complet.
+
+Ainsi, sur la plupart des systèmes d'exploitation, le chargeur initial
+appelle un chargeur de démarrage secondaire situé sur une partition du
+disque.
+
+Sous Linux, le chargeur de démarrage est normalement \fBlilo\fP(8) ou
+\fBgrub\fP(8). Chacun peut être installé soit en tant que chargeur secondaire
+(si le MBR installé par DOS pointe vers eux), soit en tant que chargeur en
+deux parties, car ils fournissent un MBR spécial contenant un code
+d'amorçage pour charger la seconde partie du chargeur à partir de la
+partition principale.
+
+Le rôle principal du chargeur de démarrage est de localiser le noyau sur le
+disque, le charger et l'exécuter. La plupart des chargeurs de démarrage sont
+interactifs, pour permettre la spécification d'un noyau alternatif (par
+exemple un noyau de sauvegarde dans le cas où la dernière version compilée
+ne fonctionne pas) et le passage de paramètres optionnels au noyau.
+.SS "Démarrage du noyau"
+Quand le noyau est chargé, il initialise les périphériques (via leurs
+pilotes), démarre le gestionnaire de swap (c'est un «\ processus noyau\ »,
+appelé \fBkswapd\fP sur les noyaux Linux modernes), et monte le système de
+fichiers racine \- appelé \fBroot filesystem\fP \- (/).
+
+Quelques paramètres relatifs à cela peuvent être passés au noyau (par
+exemple\ : on peut spécifier un autre système de fichiers racine que celui
+par défaut). Pour plus d'informations sur les paramètres du noyau Linux,
+consultez \fBbootparam\fP(7).
+
+C'est uniquement à cet instant que le noyau crée un premier (en espace
+utilisateur) processus, qui porte le numéro\ 1. Ce processus exécute le
+programme \fI/sbin/init\fP, en lui passant tout paramètre qui n'est pas déjà
+géré par le noyau.
+.SS "init et inittab"
+Quand init démarre, il lit \fI/etc/inittab\fP pour y trouver ses
+instructions. Ce fichier définit ce qui doit s'exécuter dans les différents
+modes de fonctionnement (\fIrun\-levels\fP).
+
+Cela donne à l'administrateur système une méthode simple de gestion dans
+laquelle chaque run\-level est associé à un ensemble de services (par
+exemple\ : \fBS\fP correspond à un mode maintenance (\fIsingle\-user\fP), en
+run\-level \fB2\fP, la plupart des services réseaux sont
+actifs). L'administrateur peut changer le run\-level courant par \fBinit\fP(8)
+et connaître le run\-level courant par \fBrunlevel\fP(8).
+
+Toutefois, comme il n'est pas pratique de gérer les services
+individuellement en éditant ce fichier, inittab se limite à l'appel d'un
+ensemble de scripts qui démarrent/arrêtent les services.
+.SS "Scripts de démarrage"
+.TP 
+Note\ :
+La description suivante s'applique aux systèmes basés sur System\ V
+release\ 4, ce qui couvre actuellement la plupart des systèmes UNIX
+commerciaux (Solaris, HP\-UX, Irix, Tru64) ainsi que les distributions
+majeures de Linux (Red Hat, Debian, Mandriva, SUSE, Ubuntu). Certains
+systèmes (Slackware Linux, FreeBSD, OpenBSD) utilisent un procédé quelque
+peu différent pour les scripts de démarrage.
+.LP
+Pour chaque service géré (messagerie, serveur nfs, cron, etc.) il y a un
+script de démarrage simple stocké dans un répertoire spécifique
+(\fI/etc/init.d\fP dans la majorité des versions de Linux). Chacun de ces
+scripts accepte en unique argument le mot «\ start\ » \(em dont l'effet est
+le lancement du service \(em, ou le mot «\ stop\ » \(em pour arrêter le
+service. Le script peut éventuellement accepter d'autres paramètres
+pratiques (par exemple\ : «\ restart\ », enchaîne un «\ stop\ » suivi d'un
+«\ start\ », «\ status\ » donne l'état du service). Un appel du script sans
+argument permet d'afficher tous ceux possibles.
+.SS "Répertoires d'ordonnancement"
+Pour permettre aux scripts spécifiques de démarrer/arrêter dans un run\-level
+spécifique et dans un ordre particulier, il y a des \fBrépertoires
+d'ordonnancement\fP. Ce sont généralement \fI/etc/rc[0\-6S].d\fP. Dans chacun de
+ces répertoires, il y a des liens (généralement symboliques) vers les
+scripts du répertoire \fI/etc/init.d\fP.
+
+Un premier script (souvent \fI/etc/rc\fP) est appelé par \fBinittab\fP(5) et
+appelle lui\-même les scripts des services grâce aux liens des répertoires
+d'ordonnancement. Tous les liens dont le nom commence par «\ S\ » sont
+appelés avec l'argument «\ start\ » (et démarrent le service concerné). Tous
+les liens dont le nom commence par «\ K\ » sont appelés avec l'argument «\ stop\ » (et arrêtent le service concerné).
+
+Pour définir l'ordre de démarrage ou d'arrêt au sein d'un même run\-level,
+les noms des liens contiennent des numéros d'ordre. Aussi, pour plus de
+clarté, ils se terminent par le nom du service auquel il se réfère. Exemple\ : Le lien \fI/etc/rc2.d/S80sendmail\fP démarre le service sendmail dans le
+run\-level\ 2. Cela est fait après l'exécution de \fI/etc/rc2.d/S12syslog\fP mais
+avant celle de \fI/etc/rc2.d/S90xfs\fP.
+
+Pour gérer l'ordre de démarrage et les run\-levels, on doit gérer ces
+liens. Toutefois, sur beaucoup de versions de Linux, il existe des outils
+qui facilitent cela. (exemple\ : \fBchkconfig\fP(8)).
+.SS "Configuration de démarrage"
+Habituellement, les démons démarrés peuvent éventuellement recevoir des
+options et arguments sur leur ligne de commande. Pour permettre aux
+administrateurs systèmes de modifier ces paramètres sans éditer le script,
+des fichiers de configuration sont utilisés. Ils sont stockés dans un
+répertoire spécifique (\fI/etc/sysconfig\fP sur les systèmes Red Hat et
+Mandrake), et sont utilisés par les scripts de démarrage.
+
+Sur les anciens systèmes UNIX, ces fichiers contenaient les options de ligne
+de commande pour les démons, mais sur les systèmes Linux modernes (et aussi
+sur HP\-UX), ces fichiers contiennent uniquement des variables shell. Les
+scripts de démarrage du répertoire \fI/etc/init.d\fP \fBsourcent\fP (par la
+commande interne «\ \fB.\fP\ » du shell) les fichiers de configuration et
+utilisent ensuite les variables.
+.SH FICHIERS
+.LP
+\fI/etc/init.d/\fP, \fI/etc/rc[S0\-6].d/\fP, \fI/etc/sysconfig/\fP
+.SH "VOIR AUSSI"
+\fBinittab\fP(5), \fBbootparam\fP(7), \fBinit\fP(8), \fBrunlevel\fP(8), \fBshutdown\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+François Micaux (2003),
+Alain Portal <http://manpagesfr.free.fr/> (2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

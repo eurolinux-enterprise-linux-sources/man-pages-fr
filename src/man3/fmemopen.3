@@ -1,0 +1,258 @@
+.\" Copyright 2005 walter harms (walter.harms@informatik.uni-oldenburg.de),
+.\" and Copyright 2005, 2012 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under the GPL.
+.\" %%%LICENSE_END
+.\"
+.\" 2008-12-04, Petr Baudis <pasky@suse.cz>: Document open_wmemstream()
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FMEMOPEN 3 "28 avril 2012" GNU "Manuel du programmeur Linux"
+.SH NOM
+fmemopen, open_memstream, open_wmemstream  \- Ouvrir de la mémoire comme un
+flux
+.SH SYNOPSIS
+.nf
+\fB#include <stdio.h>\fP
+
+\fBFILE *fmemopen(void *\fP\fIbuf\fP\fB, size_t \fP\fIsize\fP\fB, const char *\fP\fImode\fP\fB);\fP
+
+\fBFILE *open_memstream(char **\fP\fIptr\fP\fB, size_t *\fP\fIsizeloc\fP\fB);\fP
+
+\fB#include <wchar.h>\fP
+
+\fBFILE *open_wmemstream(wchar_t **\fP\fIptr\fP\fB, size_t *\fP\fIsizeloc\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBfmemopen\fP(), \fBopen_memstream\fP(), \fBopen_wmemstream\fP()\ :
+.PD 0
+.ad l
+.RS 4
+.TP  4
+Depuis la glibc 2.10\ :
+_XOPEN_SOURCE\ >=\ 700 || _POSIX_C_SOURCE\ >=\ 200809L
+.TP 
+Avant la glibc 2.10\ :
+_GNU_SOURCE
+.RE
+.ad
+.PD
+.SH DESCRIPTION
+La fonction \fBfmemopen\fP() ouvre un flux qui permet l'accès spécifié par
+\fImode\fP. Le flux permet d'effectuer des entrées sorties sur la chaîne ou la
+mémoire du tampon pointée par \fIbuf\fP. Ce tampon doit au moins être d'une
+longueur de \fIsize\fP octets.
+.PP
+L'argument \fImode\fP est le même que celui de la fonction \fBfopen\fP(3). Si
+\fImode\fP indique un mode d'ajout («\ append mode\ »), alors la position
+initiale du fichier est définie à la position du premier octet nul («\ \e0\ »)
+du tampon\ ; sinon la position initiale est définie au début du
+tampon. Depuis la glibc\ 2.9, la lettre «\ b\ » peut être indiquée comme
+second caractère de \fImode\fP. Cela fournit le mode binaire\ : une écriture
+n'implique pas d'ajouter un octet nul final et \fBfseek\fP(3) \fBSEEK_END\fP est
+relative à la fin du tampon (c'est\-à\-dire la valeur indiquée par \fIsize\fP) au
+lieu de la taille de la chaîne actuelle.
+.PP
+Lorsqu'un flux ouvert en écriture est vidé (consultez \fBfflush\fP(3)), ou
+fermé (consultez \fBfclose\fP(3)), un octet nul est écrit à la fin du tampon
+s'il y a de la place. L'appelant devrait s'assurer qu'un octet
+supplémentaire est disponible dans le tampon (et que \fIsize\fP en tient
+compte) pour permettre ceci.
+
+.\" See http://sourceware.org/bugzilla/show_bug.cgi?id=1995
+.\" and
+.\" http://sources.redhat.com/ml/libc-alpha/2006-04/msg00064.html
+Essayer d'écrire plus de \fIsize\fP octets dans le tampon crée une erreur. (Par
+défaut, de telles erreurs ne sont seulement visibles que lorsque le tampon
+\fIstdio\fP est vidé. Désactiver la mise en tampon avec \fIsetbuf(fp,\ NULL)\fP
+peut être utile pour détecter les erreurs au moment d'une opération de
+sortie. Alternativement, l'appelant peut explicitement définir \fIbuf\fP comme
+un tampon de flux stdio, au même moment en informant stdio de la taille du
+tampon avec \fIsetbuffer(fp, buf, size)\fP).
+.PP
+Avec un flux ouvert en lecture, un octet nul dans le tampon ne crée pas
+d'opérations de lecture et renvoie une indication de fin de fichier. Une
+lecture depuis le tampon indiquera seulement la fin du fichier quand le
+pointeur de fichier aura avancé de plus de \fIsize\fP octets par rapport au
+début du tampon.
+.PP
+Si l'argument \fIbuf\fP vaut NULL, alors la fonction \fBfmemopen\fP() alloue
+dynamiquement un tampon de \fIsize\fP octets. C'est utile pour les applications
+qui veulent écrire des données dans un tampon temporaire et les lire
+ensuite. Le tampon est automatiquement supprimé lorsque le flux est
+fermé. Notez que l'appelant ne peut pas obtenir un pointeur vers le tampon
+alloué temporairement avec cette fonction (c'est possible avec
+\fBopen_memstream\fP(), ci\-dessous).
+
+La fonction \fBopen_memstream\fP() ouvre un flux en écriture vers un tampon. Le
+tampon est dynamiquement alloué (comme avec \fBmalloc\fP(3)) et grandit
+automatiquement à la demande. Après la fermeture du flux, l'appelant doit
+libérer (\fBfree\fP(3)) ce tampon.
+
+Lorsqu'un flux est fermé (\fBfclose\fP(3)) ou vidé (\fBfflush\fP(3)), les adresses
+pointées par \fIptr\fP et \fIsizeloc\fP sont mises à jour, avec respectivement, un
+pointeur vers le tampon et la taille du tampon actuel. Ces valeurs restent
+valides tant que l'appelant n'effectue pas de sortie sur le flux. Si
+d'autres sorties sont réalisées, alors le flux doit être ne nouveau vidé
+avant d'essayer d'accéder à ces variables.
+
+Un octet nul est conservé à la fin du tampon. Cet octet \fIn'est pas\fP inclus
+dans la valeur de la taille stockée dans \fIsizeloc\fP.
+
+La position du flux de fichier peut être changée avec \fBfseek\fP(3) ou
+\fBfseeko\fP(3). Déplacer la position après la fin des données déjà écrites
+remplit l'intervalle vide avec des zéros.
+
+La fonction \fBopen_wmemstream\fP() est similaire à \fBopen_memstream\fP(), mais
+elle opère sur les caractères larges et non sur des octets.
+.SH "VALEUR RENVOYÉE"
+Si elles réussissent intégralement, les fonctions \fBfmemopen\fP(),
+\fBopen_memstream\fP() et \fBopen_wmemstream\fP()  renvoient un pointeur de type
+\fIFILE\fP. Sinon, elles renvoient NULL et \fIerrno\fP est définie avec le code
+d'erreur.
+.SH VERSIONS
+\fBfmemopen\fP() est \fBopen_memstream\fP() sont déjà disponibles dans la
+glibc\ 1.0.x. \fBopen_wmemstream\fP() est disponible depuis la glibc\ 2.4.
+.SH CONFORMITÉ
+POSIX.1\-2008. Ces fonctions ne sont pas spécifiées dans POSIX.1\-2001 et ne
+sont que rarement disponible sur d'autres systèmes.
+
+.\" http://austingroupbugs.net/view.php?id=396
+POSIX.1\-2008 spécifie que «\ b\ » dans \fImode\fP sera ignoré. Cependant,
+Technical Corrigendum 1 ajuste la norme pour permettre un traitement
+spécifique à l'implémentation dans ce cas, permettant ainsi à la glibc de
+traiter «\ b\ ».
+.SH NOTES
+Il n'y a pas de descripteur de fichier associé avec le flux renvoyé par ces
+fonctions (par exemple, \fBfileno\fP(3) retournera une erreur si elle est
+appelée avec un tel flux).
+.SH BOGUES
+.\" http://sourceware.org/bugzilla/show_bug.cgi?id=1996
+Avant la glibc\ 2.7, un positionnement après la fin d'un flux crée par
+\fBopen_memstream\fP() n'agrandit pas le tampon\ ; à la place, l'appel à
+\fBfseek\fP() échoue et renvoie \-1.
+
+.\" FIXME http://sourceware.org/bugzilla/show_bug.cgi?id=11216
+Si \fIsize\fP est indiqué comme nul, \fBfmemopen\fP() échoue avec l'erreur
+\fBEINVAL\fP. Il serait plus cohérent dans ce cas de créer un flux renvoyant la
+fin de fichier au premier essai de lecture. De plus, POSIX.1\-2008 ne
+spécifie pas d'échec dans ce cas.
+
+.\" FIXME http://sourceware.org/bugzilla/show_bug.cgi?id=13152
+Indiquer un mode d'ajout («\ a\ » ou «\ a+\ ») pour \fBfmemopen\fP() définit la
+position initiale du fichier au premier octet nul, mais (si le décalage du
+fichier est réinitialisé à un autre endroit que la fin du flux) ne force pas
+les écritures suivantes à ajouter à la fin du flux.
+
+.\" FIXME http://sourceware.org/bugzilla/show_bug.cgi?id=13151
+Si l'argument \fImode\fP de \fBfmemopen\fP() indique un ajout («\ a\ » ou «\ a+\ »),
+et que l'argument \fIsize\fP ne couvre pas d'octet nul dans \fIbuf\fP, alors,
+d'après POSIX.1\-2008, la position initiale du fichier devrait être définie à
+l'octet qui suit la fin du tampon. Cependant, dans ce cas le \fBfmemopen\fP()
+de la glibc définie la position du fichier à \-1.
+
+.\" FIXME http://sourceware.org/bugzilla/show_bug.cgi?id=12836
+Pour indiquer le mode binaire de \fBfmemopen\fP(), le «\ b\ » doit être le
+deuxième caractère de \fImode\fP. Ainsi, par exemple, «\ wb+\ » a le comportement
+attendu, mais pas «\ w+b\ ». Ce n'est pas cohérent avec le traitement de
+\fImode\fP par \fBfopen\fP(3).
+
+.\" http://sourceware.org/bugzilla/show_bug.cgi?id=6544
+L'ajout du mode «\ binaire\ » dans la glibc\ 2.9 pour \fBfmemopen\fP() a modifié
+silencieusement l'ABI\ : auparavant, \fBfmemopen\fP() ignorait «\ b\ » dans
+\fImode\fP.
+.SH EXEMPLE
+Le programme ci\-dessous utilise \fBfmemopen\fP() pour ouvrir un tampon d'entrée
+et \fBopen_memstream\fP() pour ouvrir un tampon de sortie de taille
+dynamique. Ce programme scrute la chaînes en entrée (récupérée du premier
+argument de la ligne de commande du programme) sous forme d'entiers, et
+écrit le carré de ces entiers dans le tampon de sortie. Voici un exemple de
+la sortie produite par ce programme\ :
+.in +4n
+.nf
+
+$\fB ./a.out \(aq1 23 43\(aq\fP
+size=11; ptr=1 529 1849
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#define _GNU_SOURCE
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define handle_error(msg) \e
+    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+int
+main(int argc, char *argv[])
+{
+    FILE *out, *in;
+    int v, s;
+    size_t size;
+    char *ptr;
+
+    if (argc != 2) {
+	fprintf(stderr, "Usage: %s <file>\en", argv[0]);
+	exit(EXIT_FAILURE);
+    }
+
+    in = fmemopen(argv[1], strlen(argv[1]), "r");
+    if (in == NULL)
+        handle_error("fmemopen");
+
+    out = open_memstream(&ptr, &size);
+    if (out == NULL)
+        handle_error("open_memstream");
+
+    for (;;) {
+        s = fscanf(in, "%d", &v);
+        if (s <= 0)
+            break;
+
+        s = fprintf(out, "%d ", v * v);
+        if (s == \-1)
+            handle_error("fprintf");
+    }
+    fclose(in);
+    fclose(out);
+    printf("size=%ld; ptr=%s\en", (long) size, ptr);
+    free(ptr);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBfopen\fP(3), \fBfopencookie\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

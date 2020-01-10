@@ -1,0 +1,150 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\" and Copyright (c) 2004 by Michael Kerrisk (mtk.manpages@gmail.com)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 13:32:44 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Mon Jun 23 14:09:52 1997 by aeb - add EINTR.
+.\" Modified Tue Jul  7 12:26:42 1998 by aeb - changed return value wait3
+.\" Modified 2004-11-11, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Rewrote much of this page, and removed much duplicated text,
+.\"		replacing with pointers to wait.2
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH WAIT4 2 "23 septembre 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+wait3, wait4 \- Attendre la fin d'un processus \- Style BSD
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <sys/time.h>\fP
+\fB#include <sys/resource.h>\fP
+\fB#include <sys/wait.h>\fP
+.sp
+\fBpid_t wait3(int *\fP\fIstatus\fP\fB, int \fP\fIoptions\fP\fB,\fP
+\fB            struct rusage *\fP\fIrusage\fP\fB);\fP
+.sp
+\fBpid_t wait4(pid_t \fP\fIpid\fP\fB, int *\fP\fIstatus\fP\fB, int \fP\fIoptions\fP\fB,\fP
+\fB            struct rusage *\fP\fIrusage\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBwait3\fP()\ :
+.RS 4
+_BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.RE
+.br
+\fBwait4\fP()\ :
+.RS 4
+_BSD_SOURCE
+.RE
+.ad
+.SH DESCRIPTION
+Ces fonctions sont obsolètes, \fBwaitpid\fP(2) ou \fBwaitid\fP(2) doivent être
+utilisés dans les nouveaux programmes.
+
+Les appels système \fBwait3\fP() et \fBwait4\fP() sont similaires à \fBwaitpid\fP(2),
+mais retournent également des informations sur l'utilisation des ressources
+par le fils dans la structure pointée par \fIrusage\fP.
+.PP
+À part l'utilisation de l'argument \fIrusage\fP, l'appel \fBwait3\fP() suivant\ :
+.nf
+
+    wait3(status, options, rusage);
+
+.fi
+est équivalent à\ :
+.nf
+
+    waitpid(\-1, status, options);
+
+.fi
+De même, l'appel \fBwait4\fP() suivant\ :
+.nf
+
+    wait4(pid, status, options, rusage);
+
+.fi
+est équivalent à\ :
+.nf
+
+    waitpid(pid, status, options);
+
+.fi
+En d'autres mots, \fBwait3\fP() attend n'importe quel fils, et \fBwait4\fP() peut
+être utilisé pour sélectionner un ou des fils spécifique(s) à
+attendre. Consultez \fBwait\fP(2) pour plus de détails.
+.PP
+Si \fIrusage\fP n'est pas NULL, La \fIstruct rusage\fP sur laquelle il pointe sera
+remplie avec les informations de comptabilité. Consultez \fBgetrusage\fP(2)
+pour plus de détails.
+.SH "VALEUR RENVOYÉE"
+Comme pour \fBwaitpid\fP(2).
+.SH ERREURS
+Comme pour \fBwaitpid\fP(2).
+.SH CONFORMITÉ
+BSD\ 4.3.
+
+SUSv1 spécifiait \fBwait3\fP()\ ; SUSv2 spécifiait \fBwait3\fP() en la marquant
+obsolète\ ; SUSv3 a supprimé cette fonction.
+.SH NOTES
+L'inclusion de \fI<sys/time.h>\fP n'est plus obligatoire, mais améliore
+la portabilité. (En fait, \fI<sys/resource.h>\fP définit la structure
+\fIrusage\fP qui contient des champs de type \fIstruct timeval\fP, défini dans
+\fI<sys/time.h>\fP).
+
+Sous Linux, \fBwait3\fP() est une fonction de bibliothèque implémentée au à
+l'aide de l'appel système \fBwait4\fP().
+.SH "VOIR AUSSI"
+\fBfork\fP(2), \fBgetrusage\fP(2), \fBsigaction\fP(2), \fBsignal\fP(2), \fBwait\fP(2),
+\fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

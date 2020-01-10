@@ -1,0 +1,125 @@
+.\" Copyright (c) 1994 Michael Haardt (michael@moria.de), 1994-06-04
+.\" Copyright (c) 1995 Michael Haardt
+.\"      (michael@cantor.informatik.rwth-aachen.de), 1995-03-16
+.\" Copyright (c) 1996 Andries Brouwer (aeb@cwi.nl), 1996-01-13
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 1996-01-13 aeb: merged in some text contributed by Melvin Smith
+.\"   (msmith@falcon.mercer.peachnet.edu) and various other changes.
+.\" Modified 1996-05-16 by Martin Schulze (joey@infodrom.north.de)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PERROR 3 "17 avril 2012" "" "Manuel du programmeur Linux"
+.SH NOM
+perror \- Afficher un message d'erreur système
+.SH SYNOPSIS
+\fB#include <stdio.h>\fP
+.sp
+\fBvoid perror(const char *\fP\fIs\fP\fB);\fP
+.sp
+\fB#include <errno.h>\fP
+.sp
+\fBconst char *\fP\fIsys_errlist\fP\fB[];\fP
+.br
+\fBint \fP\fIsys_nerr\fP\fB;\fP
+.br
+\fBint \fP\fIerrno\fP\fB;\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fIsys_errlist\fP, \fIsys_nerr\fP\ : _BSD_SOURCE
+.SH DESCRIPTION
+La fonction \fBperror\fP() affiche un message sur la sortie d'erreur standard,
+décrivant la dernière erreur rencontrée durant un appel système ou une
+fonction de bibliothèque. D'abord, (si \fIs\fP n'est pas NULL et \fI*s\fP n'est
+pas un octet nul), la chaîne de caractère \fIs\fP est imprimée, suivie d'un
+deux points («\ :\ ») ou d'un blanc, puis le message, suivi d'un saut de
+ligne.
+
+La chaîne de caractères contient généralement le nom de la fonction où s'est
+produit l'erreur. Le numéro d'erreur est obtenu à partir de la variable
+externe \fIerrno\fP, qui contient le code d'erreur lorsqu'un problème survient,
+mais qui n'est pas effacé lorsqu'un appel est réussi.
+
+La liste globale d'erreurs \fIsys_errlist\fP[] indexée par \fIerrno\fP peut être
+utilisée pour obtenir le message d'erreur sans le saut de ligne. Le plus
+grand numéro de message contenu dans cette table est \fIsys_nerr\fP \- 1. Soyez
+prudents lors des accès directs dans cette liste, car de nouvelles erreurs
+n'ont peut\-être pas de message dans \fIsys_errlist\fP[]. L'utilisation de
+\fIsys_errlist\fP[] est maintenant obsolète.
+
+Quand un appel système échoue, il renvoie habituellement \-1, et place le
+code d'erreur dans \fIerrno\fP (les codes sont décrits dans
+\fI<errno.h>\fP). Beaucoup de fonctions de bibliothèque se comportent
+également ainsi. La fonction \fBperror\fP() permet de traduire les codes
+d'erreur en une forme humainement lisible. Notez que \fIerrno\fP est indéfinie
+après un appel de fonction de bibliothèque réussi. Cette fonction peut
+modifier \fIerrno\fP même si elle réussit, ne serait\-ce que par des appels
+système internes qui peuvent échouer. Ainsi, si un appel qui échoue n'est
+pas immédiatement suivi par \fBperror\fP, la valeur de \fIerrno\fP doit être
+sauvegardée.
+.SH CONFORMITÉ
+La fonction \fBperror\fP() et la variable externe \fIerrno\fP (consultez
+\fBerrno\fP(3)) sont conformes à C89, C99, BSD\ 4.3, POSIX.1\-2001. Les
+variables externes \fIsys_nerr\fP et \fIsys_errlist\fP sont conformes à BSD.
+.SH NOTES
+.\" and only when _BSD_SOURCE is defined.
+.\" When
+.\" .B _GNU_SOURCE
+.\" is defined, the symbols
+.\" .I _sys_nerr
+.\" and
+.\" .I _sys_errlist
+.\" are provided.
+Les variables externes \fIsys_nerr\fP et \fIsys_errlist\fP sont définies par la
+glibc, mais dans \fI<stdio.h>\fP.
+.SH "VOIR AUSSI"
+\fBerr\fP(3), \fBerrno\fP(3), \fBerror\fP(3), \fBstrerror\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

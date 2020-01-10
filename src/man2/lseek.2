@@ -1,0 +1,208 @@
+.\" t
+.\" Copyright (c) 1980, 1991 Regents of the University of California.
+.\" and Copyright (c) 2011, Michael Kerrisk <mtk.manpages@gmail.com>
+.\" All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     @(#)lseek.2	6.5 (Berkeley) 3/10/91
+.\"
+.\" Modified 1993-07-23 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1995-06-10 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 1996-10-31 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1998-01-17 by Michael Haardt
+.\"   <michael@cantor.informatik.rwth-aachen.de>
+.\" Modified 2001-09-24 by Michael Haardt <michael@moria.de>
+.\" Modified 2003-08-21 by Andries Brouwer <aeb@cwi.nl>
+.\" 2011-09-18, mtk, Added SEEK_DATA + SEEK_HOLE
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LSEEK 2 "27 mars 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+lseek \- Positionner la tête de lecture/écriture dans un fichier
+.SH SYNOPSIS
+\fB#include <sys/types.h>\fP
+.br
+\fB#include <unistd.h>\fP
+.sp
+\fBoff_t lseek(int \fP\fIfd\fP\fB, off_t \fP\fIoffset\fP\fB, int \fP\fIwhence\fP\fB);\fP
+.SH DESCRIPTION
+La fonction \fBlseek\fP() place la tête de lecture/écriture à la position
+\fIoffset\fP dans le fichier associé au descripteur \fIfd\fP en suivant la
+directive \fIwhence\fP ainsi\ :
+.TP 
+\fBSEEK_SET\fP
+La tête est placée à \fIoffset\fP octets depuis le début du fichier.
+.TP 
+\fBSEEK_CUR\fP
+La tête de lecture/écriture est avancée de \fIoffset\fP octets.
+.TP 
+\fBSEEK_END\fP
+La tête est placée à la fin du fichier plus \fIoffset\fP octets.
+.PP
+La fonction \fBlseek\fP() permet de placer la tête au\(hydelà de la fin
+actuelle du fichier (mais cela ne modifie pas la taille du fichier). Si des
+données sont écrites à cet emplacement, une lecture ultérieure de l'espace
+intermédiaire (un «\ trou\ ») retournera des octets nul («\ \e0\ ») jusqu'à
+ce que d'autres données y soient écrites.
+.SS "Recherche de données et trous de fichiers"
+Depuis la version\ 3.1, Linux accepte de plus les valeurs suivantes de
+\fIwhence\fP\ :
+.TP 
+\fBSEEK_DATA\fP
+Positionner la tête sur le prochain (supérieur ou égal à \fIoffset\fP)
+emplacement du fichier contenant des données. Si \fIoffset\fP pointe sur des
+données, la tête est placée sur \fIoffset\fP.
+.TP 
+\fBSEEK_HOLE\fP
+Positionner la tête sur le prochain (supérieur ou égal à \fIoffset\fP) trou du
+fichier. Si \fIoffset\fP pointe au milieu d'un trou, la tête est placée sur
+\fIoffset\fP. S'il n'y a pas de trou après \fIoffset\fP, la tête est positionnée à
+la fin du fichier (c'est\-à\-dire qu'il y a un trou implicite à la fin de tous
+les fichiers).
+.PP
+Dans les deux cas précédents, \fBlseek\fP() échoue si \fIoffset\fP pointe après la
+fin du fichier.
+
+Ces opérations permettent aux applications d'établir une projection des
+trous dans un fichier fractionné. Cela peut servir aux applications du type
+outils de sauvegarde, qui peuvent économiser de l'espace lors de la création
+de sauvegardes et conserver les trous, si elles disposent d'un mécanisme
+permettant de trouver les trous.
+
+.\" https://lkml.org/lkml/2011/4/22/79
+.\" http://lwn.net/Articles/440255/
+.\" http://blogs.oracle.com/bonwick/entry/seek_hole_and_seek_data
+Pour ces opérations, un trou est une suite de zéros qui n'a (normalement)
+pas été allouée au stockage sous\-jacent du fichier. Cependant, un système de
+fichiers n'est pas forcé de signaler les trous, donc ces opérations ne
+permettent pas de garantir la projection de l'espace de stockage vraiment
+alloué à un fichier (de plus, une suite de zéros vraiment écrite sur le
+stockage sous\-jacent pourrait ne pas être signalée comme un trou). La plus
+simple implémentation de ses opérations pour un système de fichier, serait
+avec \fBSEEK_HOLE\fP renvoyant toujours la position de fin de fichier, et
+\fBSEEK_DATA\fP renvoyant toujours \fIoffset\fP (c'est\-à\-dire, même si \fIoffset\fP
+pointe à l'emplacement d'un trou, la suite de zéros peut être considérée
+comme des données).
+
+La macro de test de fonctionnalités \fB_GNU_SOURCE\fP doit être définie pour
+accéder aux définitions de \fBSEEK_DATA\fP et \fBSEEK_HOLE\fP depuis
+\fI<unistd.h>\fP.
+.SH "VALEUR RENVOYÉE"
+\fBlseek\fP(), si elle réussit, renvoie le nouvel emplacement, mesuré en octets
+depuis le début du fichier. En cas d'échec, la valeur \fI(off_t)\ \-1\fP est
+renvoyée, et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier ouvert.
+.TP 
+\fBEINVAL\fP
+.\" Some systems may allow negative offsets for character devices
+.\" and/or for remote file systems.
+Soit \fIwhence\fP n'est pas valable, soit la position demandée serait négative,
+ou après la fin d'un périphérique.
+.TP 
+\fBEOVERFLOW\fP
+.\" HP-UX 11 says EINVAL for this case (but POSIX.1 says EOVERFLOW)
+La position résultante dans le fichier ne peut être représentée dans un
+\fIoff_t\fP.
+.TP 
+\fBESPIPE\fP
+\fIfd\fP est associé à un tube (pipe), une socket, ou une file FIFO.
+.TP 
+\fBENXIO\fP
+\fIwhence\fP est \fBSEEK_DATA\fP ou \fBSEEK_HOLE\fP, et la position demandée est
+après la fin d'un périphérique.
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3, POSIX.1\-2001.
+
+.\" FIXME . Review http://austingroupbugs.net/view.php?id=415 in the future
+\fBSEEK_DATA\fP et \fBSEEK_HOLE\fP sont des extensions non normalisées existant
+aussi sous Solaris, FreeBSD et DragonFly BSD. Leur intégration est proposée
+pour la prochaine révision de POSIX (Issue\ 8).
+.SH NOTES
+Certains périphériques ne permettent pas de positionnement direct, POSIX ne
+précise quels périphériques doivent gérer \fBlseek\fP().
+
+.\" Other systems return the number of written characters,
+.\" using SEEK_SET to set the counter. (Of written characters.)
+Sous Linux, l'utilisation de \fBlseek\fP() sur un périphérique terminal (tty)
+renvoie \fBESPIPE\fP.
+
+Lors de la conversion d'un ancien code, substituez les valeurs de \fIwhence\fP
+par les macros suivantes\ :
+.TS
+c c
+l l.
+ancien	nouveau
+0	SEEK_SET
+1	SEEK_CUR
+2	SEEK_END
+L_SET	SEEK_SET
+L_INCR	SEEK_CUR
+L_XTND	SEEK_END
+.TE
+.\" .PP
+.\" SVr1-3 returns \fIlong\fP instead of \fIoff_t\fP,
+.\" (ancient) BSD returns \fIint\fP.
+.PP
+Notez que les descripteurs de fichier dupliqués par \fBdup\fP(2) ou \fBfork\fP(2)
+partagent le même pointeur de position. Ainsi le déplacement sur de tels
+fichiers peut conduire à des problèmes d'accès concurrents.
+.SH "VOIR AUSSI"
+\fBdup\fP(2), \fBfork\fP(2), \fBopen\fP(2), \fBfseek\fP(3), \fBlseek64\fP(3),
+\fBposix_fallocate\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

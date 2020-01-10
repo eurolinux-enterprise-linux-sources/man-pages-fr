@@ -1,0 +1,136 @@
+.\" Copyright 2002 Ian Redfern (redferni@logica.com)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     FreeBSD 4.4 man pages
+.\"
+.\" Minor additions, aeb, 2013-06-21
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ETHER_ATON 3 "4 juillet 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+ether_aton, ether_ntoa, ether_ntohost, ether_hosttonn, ether_line,
+ether_ntoa_r, ether_aton_r \- Routines de manipulation d'adresses Ethernet
+.SH SYNOPSIS
+.nf
+\fB#include <netinet/ether.h>\fP
+.sp
+\fBchar *ether_ntoa(const struct ether_addr *\fP\fIaddr\fP\fB);\fP
+.sp
+\fBstruct ether_addr *ether_aton(const char *\fP\fIasc\fP\fB);\fP
+.sp
+\fBint ether_ntohost(char *\fP\fIhostname\fP\fB, const struct ether_addr *\fP\fIaddr\fP\fB);\fP
+.sp
+\fBint ether_hostton(const char *\fP\fIhostname\fP\fB, struct ether_addr *\fP\fIaddr\fP\fB);\fP
+.sp
+\fBint ether_line(const char *\fP\fIline\fP\fB, struct ether_addr *\fP\fIaddr\fP\fB,\fP
+\fB               char *\fP\fIhostname\fP\fB);\fP
+.sp
+/* Extensions GNU */
+.br
+\fBchar *ether_ntoa_r(const struct ether_addr *\fP\fIaddr\fP\fB, char *\fP\fIbuf\fP\fB);\fP
+.sp
+\fBstruct ether_addr *ether_aton_r(const char *\fP\fIasc\fP\fB,\fP
+\fB                                struct ether_addr *\fP\fIaddr\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBether_aton\fP() convertit une adresse d'hôte Ethernet sur 48\-bits \fIasc\fP de
+la notation «\ standard hexadécimal et séparateurs deux\-points\ » en données
+binaire dans l'ordre des octets du réseau et renvoie un pointeur dans un
+tampon alloué de manière statique, que les appels ultérieurs
+écraseront. \fBether_aton\fP() renvoie NULL si l'adresse est invalide.
+.PP
+La fonction \fBether_ntoa\fP() convertit l'adresse d'hôte Ethernet \fIaddr\fP dans
+l'ordre des octets du réseau en une chaîne dans la notation standard «\ hexadécimal et deux\-points\ », en omettant les zéros en tête. La chaîne est
+renvoyée dans un tampon alloué statiquement, que les appels ultérieurs
+écraseront.
+.PP
+La fonction \fBether_ntohost\fP() met en correspondance une adresse Ethernet
+avec un nom d'hôte trouvé dans \fI/etc/ethers\fP et renvoie une valeur non
+nulle si elle ne trouve rien.
+.PP
+La fonction \fBether_hostton\fP() met en correspondance un nom d'hôte et une
+adresse Ethernet de \fI/etc/ethers\fP et renvoie une valeur non nulle si elle
+ne trouve aucune correspondance.
+.PP
+La fonction \fBether_line\fP() examine une ligne dans le format de
+\fI/etc/ethers\fP (adresse Ethernet suivi de blancs et d'un nom d'hôte\ ; «\ #\ » introduit un commentaire) et renvoie une paire adresse et nom d'hôte, ou
+une valeur non nulle si le fichier ne peut être lu. Le tampon pointé par
+\fIhostname\fP doit être assez grand, par exemple avoir la même longueur que la
+ligne \fIline\fP.
+.PP
+Les fonctions \fBether_ntoa_r\fP() et \fBether_aton_r\fP() sont les versions
+réentrantes et multithread sûres de \fBether_ntoa\fP() et \fBether_aton\fP()
+respectivement, et n'utilisent pas de tampons statiques.
+.PP
+La structure \fIether_addr\fP est définie dans \fI<net/ethernet.h>\fP
+ainsi\ :
+.sp
+.in +4n
+.nf
+struct ether_addr {
+    uint8_t ether_addr_octet[6];
+}
+.fi
+.in
+.SH ATTRIBUTS
+.SS "Multithreading (voir pthreads(7))"
+Les fonctions \fBether_aton\fP() et \fBether_ntoa\fP() ne sont pas sûres dans un
+contexte multithread.
+.LP
+Les fonctions \fBether_ntohost\fP(), \fBether_hostton\fP(), \fBether_line\fP(),
+\fBether_ntoa_r\fP() et \fBether_aton_r\fP() sont sûres dans un contexte
+multithread.
+.SH CONFORMITÉ
+4.3BSD, SunOS.
+.SH BOGUES
+L'implémentation de \fBether_line\fP() dans la glibc 2.2.5 est erronée.
+.SH "VOIR AUSSI"
+\fBethers\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

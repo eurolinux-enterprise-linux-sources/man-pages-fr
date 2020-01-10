@@ -1,0 +1,145 @@
+.\" Copyright (c) 2001 Andreas Dilger (adilger@turbolinux.com)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" FIXME Over time, the slabinfo format has gone through
+.\" version changes. These should be documented:
+.\"
+.\"     slabinfo 1.0 - Linux 2.2 (precisely: 2.1.23)
+.\"     slabinfo 1.1 - Linux 2.4 (precisely: 2.4.0-test3)
+.\"     slabinfo 1.2 - Linux 2.5.45
+.\"     slabinfo 2.0 - Linux 2.6 (precisely: 2.5.71)
+.\"     slabinfo 2.1 - Linux 2.6.10
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SLABINFO 5 "30 septembre 2007" "" "Manuel du programmeur Linux"
+.SH NOM
+/proc/slabinfo \- Statistiques de l'allocateur slab du noyau
+.SH SYNOPSIS
+\fBcat /proc/slabinfo\fP
+.SH DESCRIPTION
+Les objets fréquemment utilisés dans le noyaux Linux (têtes de tampon,
+inodes, entrées de répertoire...) ont leur propres caches. Le fichier
+\fI/proc/slabinfo\fP en fournit les statistiques. Par exemple\ :
+.LP
+.in +4n
+.nf
+% cat /proc/slabinfo
+slabinfo \- version: 1.1
+kmem_cache            60     78    100    2    2    1
+blkdev_requests     5120   5120     96  128  128    1
+mnt_cache             20     40     96    1    1    1
+inode_cache         7005  14792    480 1598 1849    1
+dentry_cache        5469   5880    128  183  196    1
+filp                 726    760     96   19   19    1
+buffer_head        67131  71240     96 1776 1781    1
+vm_area_struct      1204   1652     64   23   28    1
+\&...
+size\-8192              1     17   8192    1   17    2
+size\-4096             41     73   4096   41   73    1
+\&...
+.fi
+.in
+.LP
+Il fournit pour chaque cache slab, le nom du cache, le nombre d'objets
+actuellement actifs, le nombre total d'objets disponibles, la taille de
+l'objet en octets, le nombre de pages ayant au moins un objet actif, le
+nombre total de pages allouées, et le nombre de pages par slab.
+
+Notez qu'en raison de l'alignement des objets et du surcoût dû au cache
+slab, les objets ne sont habituellement pas accolés dans les pages. Les
+pages n'ayant même qu'un seul objet en cours d'utilisation sont considérées
+comme utilisées et ne peuvent pas être libérées.
+
+Les noyaux ayant été compilés avec l'option des statistiques slab affichent
+«\ (statistics)\ » sur la première ligne, et ils proposent cinq colonnes
+supplémentaires qui sont\ : la limite supérieure du nombre d'objets actifs,
+le nombre de fois que les objets ont été alloués, le nombre de fois que le
+cache a grossi (que de nouvelles pages ont été ajoutées au cache), le nombre
+de fois que le cache a diminué (que des pages inutilisées en ont été
+retirées), et le nombre d'erreurs d'allocation de nouvelles pages dans ce
+cache. Si les statistiques de cache slab n'ont pas été activées lors de la
+compilation du noyau, ces colonnes ne seront pas affichées.
+
+Pour les systèmes SMP, on trouvera également «\ (SMP)\ » sur la première ligne
+affichée, et deux colonnes supplémentaires, indiquant la politique slab
+d'allocation pour le cache local du CPU (afin de réduire le besoin de
+synchronisation entre les CPU lors d'allocation d'objets depuis le
+cache). La première colonne est la limite propre à chaque CPU\ : nombre
+maximal d'objets mis en cache pour chacune des CPU. La seconde colonne est
+un nombre global\ : nombre maximal d'objets libres dans le cache global qui
+seront transférés au cache par CPU s'il est vide, ou le nombre d'objets qui
+sera retourné vers le cache global si le cache propre à la CPU est plein.
+
+Si les statistiques du cache slab et SMP sont définis simultanément, il y
+aura quatre colonnes supplémentaires, indiquant les statistiques du cache
+par CPU. Les deux premières indiquent le nombre de réussites et d'échecs
+d'allocation dans le cache propre à chaque par CPU\ : le nombre de fois où un
+objet était ou n'était pas disponible pour allocation depuis le cache propre
+à chaque CPU. Les deux suivantes indiquent le nombre de réussites et
+d'échecs de libération pour le cache propre à chaque CPU\ : nombre de fois
+qu'un objet libéré a pu ou non rester dans les limites du cache propre à
+chaque CPU, avant que les objets ne soient déplacés vers le cache global.
+
+Il est possible d'ajuster les limites du cache slab propre à chaque CPU et
+du nombre global de transferts avec\ :
+
+.in +4n
+.nf
+echo "\fInom_cache limite nombre_global\fP" > /proc/slabinfo
+.fi
+.in
+.SH FICHIERS
+\fI<linux/slab.h>\fP
+.SH VERSIONS
+\fI/proc/slabinfo\fP existe depuis Linux 2.1.23. Les caches SMP propres à
+chaque CPU existent depuis Linux 2.4.0\-test3.
+.SH NOTES
+Depuis Lunux 2.6.15, le fichier \fI/proc/slabinfo\fP n'est présent que si
+l'option de configuration \fBCONFIG_SLAB\fP est validée.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

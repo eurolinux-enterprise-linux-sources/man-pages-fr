@@ -1,0 +1,96 @@
+.\" Copyright (C) 2002 Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" This replaces an earlier man page written by Walter Harms
+.\" <walter.harms@informatik.uni-oldenburg.de>.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH QECVT 3 "21 juin 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+qecvt, qfcvt, qgcvt \- Conversion de nombres réels en chaînes
+.SH SYNOPSIS
+\fB#include <stdlib.h>\fP
+.sp
+\fBchar *qecvt(long double \fP\fInombre\fP\fB, int \fP\fInb_chiffres\fP\fB, int
+*\fP\fIdecpt\fP\fB,\fP \fBint *\fP\fIsign\fP\fB);\fP
+.sp
+\fBchar *qfcvt(long double \fP\fInombre\fP\fB, int \fP\fInb_chiffres\fP\fB, int
+*\fP\fIdecpt\fP\fB,\fP \fBint *\fP\fIsign\fP\fB);\fP
+.sp
+\fBchar *qgcvt(long double \fP\fInombre\fP\fB, int \fP\fInb_chiffres\fP\fB, char
+*\fP\fIbuf\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBqecvt\fP(), \fBqfcvt\fP(), \fBqgcvt\fP()\ : _SVID_SOURCE
+.ad b
+.SH DESCRIPTION
+Les fonctions \fBqecvt\fP(), \fBqfcvt\fP() et \fBqgcvt\fP() sont identiques à
+\fBecvt\fP(3), \fBfcvt\fP(3) et \fBgcvt\fP(3) respectivement, excepté qu'elles
+prennent un nombre au format \fIlong double\fP via l'argument
+\fInombre\fP. Consultez \fBecvt\fP(3) et \fBgcvt\fP(3).
+.SH ATTRIBUTS
+.SS "Multithreading (voir pthreads(7))"
+Les fonctions \fBqecvt\fP() et \fBqfcvt\fP() ne sont pas sûres dans un contexte
+multithread.
+.LP
+La fonction \fBqgcvt\fP() est sûre dans un contexte multithread.
+.SH CONFORMITÉ
+SVr4. Ces fonctions sont absentes de la majorité des implémentations UNIX, à
+l'exception notable de SunOS. Elles ne sont pas supportées par libc4 et
+libc5 mais le sont par la glibc.
+.SH NOTES
+Ces fonctions sont obsolètes. L'utilisation de \fBsprintf\fP(3) est recommandée
+à la place de ces fonctions.
+.SH "VOIR AUSSI"
+\fBecvt\fP(3), \fBecvt_r\fP(3), \fBgcvt\fP(3), \fBsprintf\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

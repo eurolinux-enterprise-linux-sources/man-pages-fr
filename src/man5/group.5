@@ -1,0 +1,84 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de),
+.\"     Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 17:06:03 1993 by Rik Faith (faith@cs.unc.edu)
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GROUP 5 "21 octobre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+group \- Fichier des groupes d'utilisateurs
+.SH DESCRIPTION
+Le fichier \fI/etc/group\fP est un fichier texte qui définit les groupes du
+système. Il y a une entrée par ligne, au format suivant\ :
+.sp
+.RS
+nom_du_groupe:mot_de_passe:GID:liste_utilisateurs
+.RE
+.sp
+Les champs sont les suivants\ :
+.TP  12
+\fInom_du_groupe\fP
+nom du groupe.
+.TP 
+\fImot_de_passe\fP
+mot de passe chiffré du groupe. Si ce champ est vide, aucun mot de passe
+n'est nécessaire.
+.TP 
+\fIGID\fP
+identifiant numérique du groupe.
+.TP 
+\fIliste_utilisateurs\fP
+une liste de nom d'utilisateurs membres du groupe, séparés par des virgules.
+.SH FICHIERS
+/etc/group
+.SH BOGUES
+Comme l'indique la page de manuel BSD\ 4.2 \fBinitgroups\fP(3), personne ne
+semble tenir à jour \fI/etc/group\fP.
+.SH "VOIR AUSSI"
+\fBlogin\fP(1), \fBnewgrp\fP(1), \fBgetgrent\fP(3), \fBgetgrnam\fP(3), \fBpasswd\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

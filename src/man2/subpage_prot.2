@@ -1,0 +1,139 @@
+.\" Copyright (c) 2010 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" based on a proposal from Stephan Mueller <smueller@atsec.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of
+.\" this manual under the conditions for verbatim copying, provided that
+.\" the entire resulting derived work is distributed under the terms of
+.\" a permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume
+.\" no responsibility for errors or omissions, or for damages resulting
+.\" from the use of the information contained herein.  The author(s) may
+.\" not have taken the same level of care in the production of this
+.\" manual, which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Various pieces of text taken from the kernel source and the commentary
+.\" in kernel commit fa28237cfcc5827553044cbd6ee52e33692b0faa
+.\" both written by Paul Mackerras <paulus@samba.org>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SUBPAGE_PROT 2 "13 juillet 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+subpage_prot \- Définir une protection des sous\-pages pour un intervalle
+d'adresses
+.SH SYNOPSIS
+.nf
+\fBlong subpage_prot(unsigned long \fP\fIaddr\fP\fB, unsigned long \fP\fIlen\fP\fB,\fP
+\fB                  uint32_t *\fP\fImap\fP\fB);\fP
+.fi
+
+\fIRemarque\fP\ : il n'existe pas de fonction glibc autour de cet appel
+système\ ; consultez \fBNOTES\fP.
+.SH DESCRIPTION
+L'appel système \fBsubpage_prot\fP() spécifique aux PowerPC fournit la
+possibilité de contrôler les permissions d'accès sur des sous\-pages de 4\ ko
+sur des systèmes configurés avec une taille de page de 64\ ko.
+
+La table de protection est appliquée aux pages de mémoire dans la région
+démarrant à \fIaddr\fP et sur \fIlen\fP octets. Ces deux paramètres doivent être
+alignés sur des frontières de 64\ ko.
+
+La table de protection est spécifiée dans le tampon dont l'adresse est
+fournie dans \fImap\fP. La table contient 2\ bits par sous\-page de 4\ ko\ ; ainsi
+chaque mot de 32\ bits spécifie les protections de 16\ sous\-pages de 4\ ko dans
+une page de 64\ ko (on voit donc que le nombre de mots 32\ bits pointés par
+\fImap\fP doit valoir le nombre de pages de 64\ ko indiqué par \fIlen\fP). Chaque
+champ de 2\ bits dans la table de protection vaut soit 0 pour autoriser tout
+accès, soit 1 pour interdire l'écriture, soit 2 ou 3 pour interdire tout
+accès.
+.SH "VALEUR RENVOYÉE"
+S'il réussit \fBsubpage_prot\fP() renvoie 0. Sinon il renvoie un des codes
+d'erreur définis ci\-dessous.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+Le tampon indiqué par \fImap\fP n'est pas accessible.
+.TP 
+\fBEINVAL\fP
+Les paramètres \fIaddr\fP ou \fIlen\fP sont incorrects. Ces deux paramètres
+doivent être alignés sur un multiple de taille de page du système, et ne
+doivent pas désigner une région en dehors de l'espace d'adressage du
+processus ou une région qui contient des pages immenses.
+.TP 
+\fBENOMEM\fP
+Plus de mémoire disponible.
+.SH VERSIONS
+Cet appel système est disponible sur les architectures PowerPC depuis
+Linux\ 2.6.25. L'appel système n'est disponible que si le noyau a été
+configuré avec \fBCONFIG_PPC_64K_PAGES\fP. Aucune prise en charge dans l'espace
+utilisateur n'est disponible.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux.
+.SH NOTES
+La glibc ne fournit pas de fonction autour de cet appel système\ ; appelez\-le
+avec \fBsyscall\fP(2).
+
+Les protections de page habituelles (au niveau de chaque page de 64\ ko)
+s'appliquent aussi\ ; le mécanisme de protection des sous\-pages est une
+contrainte supplémentaire, ainsi un 0 dans un champ sur 2\ bits ne permettra
+pas d'écrire sur une page qui est par ailleurs protégée en écriture.
+.SS Justification
+.\" In the initial implementation, it was the case that:
+.\"     In fact the whole process is switched to use 4k hardware pages when the
+.\"     subpage_prot system call is used, but this could be improved in future
+.\"     to switch only the affected segments.
+.\" But Paul Mackerass says (Oct 2010): I'm pretty sure we now only switch
+.\" the affected segment, not the whole process.
+Cet appel système est fourni pour aider l'écriture d'émulateurs qui opèrent
+avec des pages de 64\ ko sur des systèmes PowerPC. Quand on émule des
+systèmes x86, qui utilisent une taille de page inférieure, l'émulateur ne
+peut plus utiliser l'unité de gestion de la mémoire (\fImemory\-management
+unit\fP, ou MMU) et les appels système habituels pour contrôler les
+protections de pages (l'émulateur pourrait émuler le MMU en vérifiant, et
+éventuellement traduisant, chaque adresse mémoire, mais cela est
+lent). L'idée est que l'émulateur fournisse un tableau de masques de
+protections à appliquer sur un intervalle donné d'adresses virtuelles. Ces
+masques sont appliqués au niveau où les entrées de tables de pages
+(\fIpage\-table entries\fP, ou PTE) matérielles sont insérées dans la table de
+pages matérielles basées sur les PTE Linux, si bien que les PTE Linux ne
+sont pas affectées. Il en résulte que les régions de l'espace d'adressage
+qui sont protégées basculent vers des pages matérielles de 4\ ko au lieu de
+64\ ko (pour les machines qui prennent en charge des pages matérielles de
+64\ ko).
+.SH "VOIR AUSSI"
+\fBmprotect\fP(2), \fBsyscall\fP(2)
+
+\fIDocumentation/vm/hugetlbpage.txt\fP dans les sources du noyau Linux.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,185 @@
+.\" Copyright (c) 2009 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_GETCPUCLOCKID 3 "8 février 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_getcpuclockid \- Récupérer l'identifiant d'horloge de temps CPU d'un
+thread
+.SH SYNOPSIS
+.nf
+\fB#include <pthread.h>\fP
+\fB#include <time.h>\fP
+
+\fBint pthread_getcpuclockid(pthread_t \fP\fIthread\fP\fB, clockid_t *\fP\fIclock_id);\fP
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+.\" The clockid is constructed as follows:
+.\" *clockid = CLOCK_THREAD_CPUTIME_ID | (pd->tid << CLOCK_IDFIELD_SIZE)
+.\" where CLOCK_IDFIELD_SIZE is 3.
+La fonction \fBpthread_getcpuclockid\fP() renvoie l'identifiant d'horloge pour
+l'horloge de temps CPU du thread \fIthread\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, cette fonction renvoie 0\ ; en cas d'erreur, elle renvoie
+un numéro d'erreur non nul.
+.SH ERREURS
+.TP 
+\fBENOENT\fP
+.\" CLOCK_THREAD_CPUTIME_ID not defined
+.\"
+.\" Looking at nptl/pthread_getcpuclockid.c an ERANGE error would
+.\" be possible if kernel thread IDs took more than 29 bits (which
+.\" they currently cannot).
+Les horloges de temps CPU par thread ne sont pas pris en charge par le
+système.
+.TP 
+\fBESRCH\fP
+Aucun thread avec pour identifiant \fIthread\fP n'a pu être trouvé.
+.SH VERSIONS
+Cette fonction est disponible dans la glibc depuis la version\ 2.2.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Quand \fIthread\fP se rapporte au thread appelant, cette fonction renvoie un
+identifiant qui indique la même horloge que celle manipulée par
+\fBclock_gettime\fP(2) et \fBclock_settime\fP(2) avec l'identifiant d'horloge
+\fBCLOCK_THREAD_CPUTIME_ID\fP.
+.SH EXEMPLE
+Le programme ci\-dessous crée un thread puis utilise \fBclock_gettime\fP(2) pour
+récupérer le temps CPU total du processus et le temps CPU utilisé par chacun
+des deux threads. La session suivante montre un exemple d'exécution\ :
+.in +4n
+.nf
+$ \fB./a.out\fP
+Main thread sleeping
+Subthread starting infinite loop
+Main thread consuming some CPU time...
+Process total CPU time:    1.368
+Main thread CPU time:      0.376
+Subthread CPU time:        0.992
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+/* Effectuez l'édition des liens avec l'option "\-lrt" */
+
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <string.h>
+#include <errno.h>
+
+#define handle_error(msg) \e
+        do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+#define handle_error_en(en, msg) \e
+        do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
+
+static void *
+thread_start(void *arg)
+{
+    printf("Subthread starting infinite loop\en");
+    for (;;)
+        continue;
+}
+
+static void
+pclock(char *msg, clockid_t cid)
+{
+    struct timespec ts;
+
+    printf("%s", msg);
+    if (clock_gettime(cid, &ts) == \-1)
+        handle_error("clock_gettime");
+    printf("%4ld.%03ld\en", ts.tv_sec, ts.tv_nsec / 1000000);
+}
+
+int
+main(int argc, char *argv[])
+{
+    pthread_t thread;
+    clockid_t cid;
+    int j, s;
+
+    s = pthread_create(&thread, NULL, thread_start, NULL);
+    if (s != 0)
+        handle_error_en(s, "pthread_create");
+
+    printf("Main thread sleeping\en");
+    sleep(1);
+
+    printf("Main thread consuming some CPU time...\en");
+    for (j = 0; j < 2000000; j++)
+        getppid();
+
+    pclock("Process total CPU time: ", CLOCK_PROCESS_CPUTIME_ID);
+
+    s = pthread_getcpuclockid(pthread_self(), &cid);
+    if (s != 0)
+        handle_error_en(s, "pthread_getcpuclockid");
+    pclock("Main thread CPU time:   ", cid);
+
+    /* The preceding 4 lines of code could have been replaced by:
+       pclock("Main thread CPU time:   ", CLOCK_THREAD_CPUTIME_ID); */
+
+    s = pthread_getcpuclockid(thread, &cid);
+    if (s != 0)
+        handle_error_en(s, "pthread_getcpuclockid");
+    pclock("Subthread CPU time: 1    ", cid);
+
+    exit(EXIT_SUCCESS);         /* Terminates both threads */
+}
+.fi
+.SH "VOIR AUSSI"
+\fBclock_gettime\fP(2), \fBclock_settime\fP(2), \fBtimer_create\fP(2),
+\fBclock_getcpuclockid\fP(3), \fBpthread_self\fP(3), \fBpthreads\fP(7), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

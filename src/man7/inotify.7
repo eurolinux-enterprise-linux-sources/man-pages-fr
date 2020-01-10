@@ -1,0 +1,354 @@
+.\" t
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH INOTIFY 7 "21 juin 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+inotify \- Surveiller les événements des systèmes de fichiers
+.SH DESCRIPTION
+L'API \fIinotify\fP fournit un mécanisme pour surveiller les événements au
+niveau des systèmes de fichiers. Inotify peut être utilisé pour surveiller
+des fichiers individuels ou des répertoires. Quand un répertoire est
+surveillé, inotify va signaler des événements pour le répertoire lui\-même et
+pour les fichiers de ce répertoire.
+
+Les appels système suivants sont utilisés avec cette API\ :
+\fBinotify_init\fP(2) (ou \fBinotify_init1\fP(2)), \fBinotify_add_watch\fP(2),
+\fBinotify_rm_watch\fP(2), \fBread\fP(2) et \fBclose\fP(2).
+
+\fBinotify_init\fP(2) crée une instance inotify et renvoie un descripteur de
+fichier se référant à cette instance inotify. L'appel système plus récent
+\fBinotify_init1\fP(2) est comme \fBinotify_init\fP(2), mais fournit des
+fonctionnalités supplémentaires.
+
+\fBinotify_add_watch\fP(2) manipule la «\ liste de surveillance\ » associée à
+une instance inotify. Chaque élément («\ watch\ ») de la liste de
+surveillance spécifie le chemin d'un fichier ou d'un répertoire, avec un
+ensemble d'événements que le noyau doit surveiller pour le fichier indiqué
+par ce chemin. \fBinotify_add_watch\fP(2) crée un nouvel élément de
+surveillance ou modifie un élément existant. Chaque élément a un unique «\ descripteur de surveillance\ », un entier renvoyé par
+\fBinotify_add_watch\fP(2) lorsque cet élément est créé.
+
+\fBinotify_rm_watch\fP(2) retire un élément d'une liste de surveillance
+inotify.
+
+Quand tous les descripteurs de fichier se référant à une instance inotify
+ont été fermés, l'objet sous\-jacent et ses ressources sont libérés pour être
+réutilisés par le noyau\ ; tous les éléments de surveillance associés sont
+automatiquement libérés.
+
+Pour déterminer quels événements ont eu lieu, une application va lire avec
+\fBread\fP(2) le descripteur de fichier inotify. Si aucun événement n'a eu
+lieu, alors, en supposant qu'il s'agisse d'un descripteur de fichier
+bloquant, \fBread\fP(2) se bloquera jusqu'à ce qu'au moins un événement ait
+lieu (à moins qu'elle ne soit interrompue par un signal, auquel cas l'appel
+échouera avec l'erreur \fBEINTR\fP\ ; consultez \fBsignal\fP(7)).
+
+Chaque lecture (avec \fBread\fP(2)) réussie renvoie un tampon contenant une ou
+plusieurs des structures suivantes\ :
+.in +4n
+.nf
+
+.\" FIXME . The type of the 'wd' field should probably be "int32_t".
+.\" I submitted a patch to fix this.  See the LKML thread
+.\" "[patch] Fix type errors in inotify interfaces", 18 Nov 2008
+.\" Glibc bug filed: http://sources.redhat.com/bugzilla/show_bug.cgi?id=7040
+struct inotify_event {
+    int      wd;       /* Descripteur d'élément de surveillance */
+    uint32_t mask;     /* Masque d'événements */
+    uint32_t cookie;   /* Cookie unique d'association des
+                          événements (pour rename(2)) */
+    uint32_t len;      /* Taille du champ \fIname\fP */
+    char     name[];   /* Nom optionnel terminé par un nul */
+};
+.fi
+.in
+
+\fIwd\fP identifie l'élément de surveillance pour lequel cet événement a
+lieu. Il s'agit de l'un des descripteurs de fichier renvoyés par un
+précédent appel à \fBinotify_add_watch\fP(2).
+
+\fImask\fP contient des bits qui décrivent l'événement qui a eu lieu (voir
+ci\-dessous).
+
+\fIcookie\fP est un entier unique qui relie les événements. Ce n'est
+actuellement utilisé que pour les événements de renommage, et permet à la
+paire d'événements \fBIN_MOVED_FROM\fP et \fBIN_MOVED_TO\fP en résultant d'être
+associés par l'application. Pour tous les autres types d'événements,
+\fIcookie\fP est mis à 0.
+
+Le champ \fIname\fP n'est présent que lorsqu'un événement est renvoyé pour un
+fichier au sein d'un répertoire surveillé. Il identifie le chemin du fichier
+par rapport au répertoire surveillé. Ce chemin est terminé par un caractère
+nul et peut inclure d'autres octets nuls («\ \e0\ ») pour ajuster des
+lectures successives à une limite d'adressage convenable.
+
+Le champ \fIlen\fP compte tous les octets de \fIname\fP, incluant les caractères
+nuls. La longueur de chaque structure \fIinotify_event\fP vaut donc
+\fIsizeof(structinotify_event)+len\fP.
+
+Le comportement lorsque le tampon donné à \fBread\fP(2) est trop petit pour
+renvoyer l'information sur le prochain événement dépend de la version du
+noyau\ : avant 2.6.21, \fBread\fP(2) renvoie 0\ ; depuis le noyau\ 2.6.21,
+\fBread\fP(2) échoue avec l'erreur \fBEINVAL\fP. Indiquer un tampon de taille
+
+    sizeof(struct inotify_event) + NAME_MAX + 1
+
+est suffisant pour lire au moins un événement.
+.SS "Événements inotify"
+L'argument \fImask\fP passé à \fBinotify_add_watch\fP(2) et le champ \fImask\fP de la
+structure \fIinotify_event\fP renvoyés lors de la lecture avec \fBread\fP(2) d'un
+descripteur de fichier inotify sont tous deux des bits de masquage
+identifiant les événements inotify. Les bits suivants peuvent être définis
+dans l'argument \fImask\fP lors de l'appel à \fBinotify_add_watch\fP(2) et peuvent
+être renvoyés via le champ \fImask\fP retourné par \fBread\fP(2)\ :
+.RS 4
+.sp
+.PD 0
+.TP  18
+\fBIN_ACCESS\fP
+Accès au fichier (lecture) (*).
+.TP 
+\fBIN_ATTRIB\fP
+Modification des métadonnées, par exemple, les permissions, les horodatages,
+les attributs étendus, le compteur de liens (depuis Linux\ 2.6.25), UID, GID,
+etc. (*).
+.TP 
+\fBIN_CLOSE_WRITE\fP
+Fichier ouvert en écriture fermé (*).
+.TP 
+\fBIN_CLOSE_NOWRITE\fP
+Fichier non ouvert en écriture fermé (*).
+.TP 
+\fBIN_CREATE\fP
+Fichier/rép. créé dans le répertoire surveillé (*).
+.TP 
+\fBIN_DELETE\fP
+Fichier/répertoire supprimé dans le répertoire surveillé (*).
+.TP 
+\fBIN_DELETE_SELF\fP
+Fichier/répertoire surveillé supprimé.
+.TP 
+\fBIN_MODIFY\fP
+Fichier modifié (*).
+.TP 
+\fBIN_MOVE_SELF\fP
+Fichier/répertoire surveillé déplacé.
+.TP 
+\fBIN_MOVED_FROM\fP
+Fichier déplacé hors du répertoire surveillé (*).
+.TP 
+\fBIN_MOVED_TO\fP
+Fichier déplacé dans le répertoire surveillé (*).
+.TP 
+\fBIN_OPEN\fP
+Fichier ouvert (*).
+.PD
+.RE
+.PP
+Lors de la surveillance d'un répertoire, les événements marqués par un
+astérisque (*) ci\-dessus peuvent avoir lieu pour des fichiers du répertoire,
+auquel cas le champ \fIname\fP dans la structure \fIinotify_event\fP renvoyée
+identifie le nom du fichier dans ce répertoire.
+.PP
+La macro \fBIN_ALL_EVENTS\fP est définie comme un bit de masquage de tous les
+événements décrits ci\-dessus. Cette macro peut être utilisée comme
+l'argument \fImask\fP lors de l'appel à \fBinotify_add_watch\fP(2).
+
+Deux macros supplémentaires sont disponibles\ : \fBIN_MOVE\fP, équivalent à
+IN_MOVED_FROM|IN_MOVED_TO, et \fBIN_CLOSE\fP, équivalent à
+IN_CLOSE_WRITE|IN_CLOSE_NOWRITE.
+.PP
+Les bits supplémentaires suivants peuvent être indiqués dans l'argument
+\fImask\fP lors de l'appel à \fBinotify_add_watch\fP(2)\ :
+.RS 4
+.sp
+.PD 0
+.TP  18
+\fBIN_DONT_FOLLOW\fP (depuis Linux\ 2.6.15)
+Ne pas déréférencer \fIpathname\fP s'il s'agit d'un lien symbolique.
+.TP 
+\fBIN_EXCL_UNLINK\fP (depuis Linux\ 2.6.36)
+.\" commit 8c1934c8d70b22ca8333b216aec6c7d09fdbd6a6
+Par défaut, lors de la surveillance d'événements sur les entrées d'un
+répertoire, des événements sont créés pour ces entrées même après leur
+suppression du répertoire. De nombreux événements inintéressants pour
+certaines applications peuvent ainsi être créés (par exemple, lors de la
+surveillance de \fI/tmp\fP, où de nombreuses applications créent des fichiers
+temporaires donc les noms sont immédiatement supprimés). Indiquer
+\fBIN_EXCL_UNLINK\fP modifie le comportement par défaut, de telle sorte
+qu'aucun événement n'est créé pour ces entrées après leur suppression du
+répertoire surveillé.
+.TP 
+\fBIN_MASK_ADD\fP
+Ajouter les événements au masque de surveillance de ce fichier s'il existe
+déjà (au lieu de remplacer le masque).
+.TP 
+\fBIN_ONESHOT\fP
+Surveiller \fIpathname\fP jusqu'au premier événement, puis le supprimer de la
+liste de surveillance
+.TP 
+\fBIN_ONLYDIR\fP (depuis Linux\ 2.6.15)
+Ne surveiller \fIpathname\fP que si c'est un répertoire.
+.PD
+.RE
+.PP
+Les bits suivants peuvent avoir été définis dans le champ \fImask\fP renvoyé
+par \fBread\fP(2)\ :
+.RS 4
+.sp
+.PD 0
+.TP  18
+\fBIN_IGNORED\fP
+Le surveillant a été retiré explicitement (\fBinotify_rm_watch\fP(2)) ou
+automatiquement (le fichier a été effacé, ou le système de fichiers a été
+démonté)
+.TP 
+\fBIN_ISDIR\fP
+Le sujet de cet événement est un répertoire.
+.TP 
+\fBIN_Q_OVERFLOW\fP
+Queue des événements surchargée (\fIwd\fP vaut alors \-1).
+.TP 
+\fBIN_UNMOUNT\fP
+Le système de fichiers contenant l'objet surveillé a été démonté.
+.PD
+.RE
+.SS "Interfaces /proc"
+Les interfaces suivantes peuvent être utilisées pour limiter la quantité de
+mémoire du noyau utilisée par inotify\ :
+.TP 
+\fI/proc/sys/fs/inotify/max_queued_events\fP
+La valeur dans ce fichier est utilisée lorsqu'une application appelle
+\fBinotify_init\fP(2) pour définir la limite maximale du nombre des événements
+qui peuvent entrer dans la file d'attente de l'instance inotify
+correspondante. Les événements au\-delà de cette limite sont annulés, mais un
+événement \fBIN_Q_OVERFLOW\fP est systématiquement généré.
+.TP 
+\fI/proc/sys/fs/inotify/max_user_instances\fP
+Cela spécifie la limite maximale du nombre d'instances inotify qui peuvent
+être créées par identifiant utilisateur réel.
+.TP 
+\fI/proc/sys/fs/inotify/max_user_watches\fP
+Cela spécifie la limite maximale du nombre de «\ watches\ » qui peuvent être
+créées par identifiant utilisateur réel.
+.SH VERSIONS
+Inotify a été inclus dans le noyau Linux\ 2.6.13. Les interfaces bibliothèque
+nécessaires ont été ajoutées à glibc dans la version\ 2.4 (\fBIN_DONT_FOLLOW\fP,
+\fBIN_MASK_ADD\fP et \fBIN_ONLYDIR\fP ont été ajoutées dans la version\ 2.5).
+.SH CONFORMITÉ
+L'API inotify est spécifique Linux.
+.SH NOTES
+Les descripteurs de fichier inotify peuvent être surveillés en utilisant
+\fBselect\fP(2), \fBpoll\fP(2) et \fBepoll\fP(7). Lorsqu'un événement est disponible,
+le descripteur de fichier indique qu'il est accessible en lecture.
+
+Depuis Linux\ 2.6.25, il est possible d'être notifié par des signaux pour des
+entrées\-sorties des descripteurs de fichier inotify\ ; consultez la
+discussion de \fBF_SETFL\fP (pour la configuration de l'attribut \fBO_ASYNC\fP),
+\fBF_SETOWN\fP, et \fBF_SETSIG\fP dans \fBfcntl\fP(2). La structure \fIsiginfo_t\fP
+(décrite dans \fBsigaction\fP(2)) qui est passée au gestionnaire de signal a
+les champs suivants définis\ : \fIsi_fd\fP est défini avec le numéro de
+descripteur de fichiers inotify\ ; \fIsi_signo\fP est défini avec le numéro du
+signal\ ; \fIsi_code\fP est défini avec \fBPOLL_IN\fP\ ; et \fIsi_band\fP est défini
+avec \fBPOLLIN\fP.
+
+Si deux événements inotify de sortie successifs produits sur le descripteur
+de fichier inotify sont identiques (\fIwd\fP, \fImask\fP, \fIcookie\fP, et \fIname\fP
+identiques), alors ils sont fusionnés en un seul événement si l'événement le
+plus ancien n'a toujours pas été lu (mais consultez la section BOGUES).
+
+Les événements renvoyés lors de la lecture d'un descripteur de fichier
+inotify forment une file ordonnée. Ainsi, par exemple, il est garanti que
+lors du renommage d'un répertoire, les événements seront produits dans
+l'ordre convenable sur le descripteur de fichier inotify.
+
+L'\fBioctl\fP(2) \fBFIONREAD\fP renvoie le nombre d'octets disponibles pour la
+lecture d'un descripteur de fichier inotify.
+.SS "Limites et réserves"
+La surveillance inotify des répertoires n'est pas récursive\ : pour
+surveiller les sous\-répertoires, des éléments de surveillance
+supplémentaires doivent être créés. Cela peut être assez long pour les
+répertoires contenant une grande arborescence.
+
+L'interface inotify ne fournit aucun renseignement sur l'utilisateur ou le
+processus qui a déclenché l'événement inotify. En particulier, un processus
+en train de surveiller des événements à l'aide d'inotify ne dispose d'aucun
+moyen facile pour distinguer les événements qu'il déclenche lui\-même de ceux
+qui ont été déclenchés par d'autres processus.
+
+Veuillez noter que la file d'événements peut déborder. Dans ce cas, des
+événements sont perdus. Les applications robustes doivent gérer correctement
+la possibilité de perdre des événements.
+
+L'interface inotify identifie les fichiers affectés par leur nom. Cependant,
+au moment où l'application traite un événement inotify, ce nom de fichier
+peut avoir déjà été supprimé ou renommé.
+
+Si la surveillance concerne un répertoire dans son intégralité, et si un
+nouveau sous\-répertoire est créé dans ce répertoire, faites bien attention
+qu'au moment ou vous créez un élément de surveillance sur le nouveau
+sous\-répertoire, de nouveaux fichiers peuvent avoir déjà été créés dans le
+sous\-répertoire. Ainsi, vous devriez analyser le contenu du sous\-répertoire
+immédiatement après avoir ajouté l'élément de surveillance.
+.SH BOGUES
+Dans les noyaux antérieurs à 2.6.16, l'attribut \fBIN_ONESHOT\fP de \fImask\fP ne
+fonctionne pas.
+
+Avant le noyau\ 2.6.25, le code du noyau qui était sensé regrouper deux
+événements successifs (c'est\-à\-dire que les deux événements les plus récents
+pouvaient être fusionnés si le plus ancien des deux n'avait toujours pas été
+lu) vérifiait à la place si l'événement le plus récent pouvait être fusionné
+à l'événement non lu \fIle plus ancien\fP.
+.SH "VOIR AUSSI"
+\fBinotify_add_watch\fP(2), \fBinotify_init\fP(2), \fBinotify_init1\fP(2),
+\fBinotify_rm_watch\fP(2), \fBread\fP(2), \fBstat\fP(2)
+
+\fIDocumentation/filesystems/inotify.txt\fP dans les sources du noyau Linux
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

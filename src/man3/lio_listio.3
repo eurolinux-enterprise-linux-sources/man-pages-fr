@@ -1,0 +1,163 @@
+.\" Copyright (C) 2010, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LIO_LISTIO 3 "8 mai 2012" "" "Manuel du programmeur Linux"
+.SH NOM
+lio_listio \- Initier une liste de requêtes d'E/S
+.SH SYNOPSIS
+.nf
+\fB#include <aio.h>\fP
+
+\fBint lio_listio(int \fP\fImode\fP\fB, struct aiocb *const \fP\fIaiocb_list\fP\fB[],\fP
+\fB               int \fP\fInitems\fP\fB, struct sigevent *\fP\fIsevp\fP\fB);\fP
+
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP.
+.fi
+.SH DESCRIPTION
+La fonction \fBlio_listio\fP initie la liste des opérations E/S décrite par le
+tableau \fIaiocb_list\fP.
+
+Le champ \fImode\fP peut prendre une des valeurs suivantes\ :
+.TP  12
+\fBLIO_WAIT\fP
+L'appel est bloquant tant que toutes les opérations ne sont pas
+complétées. L'argument \fIsevp\fP est ignoré.
+.TP 
+\fBLIO_NOWAIT\fP
+Les opérations d'E/S sont mises en file d'attente pour traitement et l'appel
+renvoie immédiatement. Lorsque toutes les opérations d'E/S se terminent, une
+notification asynchrone est émise, comme spécifié dans le paramètre
+\fIsevp\fP\ ; consultez \fBsigevent\fP(7) pour plus de détails. Si \fIsevp\fP est
+NULL, aucune notification asynchrone n'est émise.
+.PP
+Le paramètre \fIaiocb_list\fP est un tableau de pointeurs vers des structures
+\fIaiocb\fP qui décrivent les opérations d'E/S. Ces opérations sont exécutées
+dans un ordre non spécifié. Le paramètre \fInitems\fP spécifie la taille du
+tableau \fIaiocb_list\fP. Les pointeurs NULL dans \fIaiocb_list\fP sont ignorés.
+
+Dans chaque bloc de contrôle d'\fIaiocb_list\fP, le champ \fIaio_lio_opcode\fP
+spécifie l'opération d'E/S à initier comme ci\-dessous\ :
+.TP  10
+\fBLIO_READ\fP
+Initier une opération de lecture. L'opération est mise en file d'attente
+comme lors d'un appel à \fBaio_read\fP(3) spécifiant ce bloc de contrôle.
+.TP 
+\fBLIO_WRITE\fP
+Initier une opération d'écriture. L'opération est mise en file d'attente
+comme pour un appel à \fBaio_write\fP(3) spécifiant ce bloc de contrôle.
+.TP 
+\fBLIO_NOP\fP
+Ignorer ce bloc de contrôle.
+.PP
+Les champs restants dans chaque bloc de contrôle ont le même sens que pour
+\fBaio_read\fP(3) et \fBaio_write\fP(3). Les champs \fIaio_sigevent\fP de chaque bloc
+de contrôle  peuvent être utilisés pour spécifier des notifications pour
+chaque opération d'E/S (consultez \fBsigevent\fP(7)).
+.SH "VALEUR RENVOYÉE"
+Si \fImode\fP vaut \fBLIO_NOWAIT\fP, \fBlio_listio\fP() renvoie 0 si toutes les
+opérations d'E/S ont été mises avec succès en file d'attente. Sinon, elle
+renvoie \-1 et définit \fIerrno\fP en conséquence.
+
+Si \fImode\fP vaut \fBLIO_WAIT\fP, \fBlio_listio\fP() renvoie 0 lorsque toutes les
+opérations d'E/S se sont terminées avec succès. Sinon, elle renvoie \-1 et
+définit \fIerrno\fP en conséquence.
+
+La valeur de retour de \fBlio_listio\fP() fournit seulement des informations à
+propos de l'appel lui\-même, et non à propos de chaque opération d'E/S. Une
+ou plusieurs opérations peuvent échouer, mais cela n'empêche pas les autres
+opérations de se terminer. L'état de chaque opération d'E/S de \fIaiocb_list\fP
+peut être obtenu avec \fBaio_error\fP(3). Lorsqu'une opération s'est terminée,
+son code de retour peut être obtenu avec \fBaio_return\fP(3). Chaque opération
+d'E/S peut échouer pour les raisons décrites dans \fBaio_read\fP(3) et
+\fBaio_write\fP(3).
+.SH ERREURS
+La fonction \fBlio_listio\fP() peut échouer pour les raisons suivantes\ :
+.TP 
+\fBEAGAIN\fP
+Ressources insuffisantes.
+.TP 
+\fBEAGAIN\fP
+.\" Doesn't happen in glibc(?)
+Le nombre d'opérations d'E/S spécifié dans \fInitems\fP dépasse la valeur
+limite \fBAIO_MAX\fP.
+.TP 
+\fBEINVAL\fP
+.\" Doesn't happen in glibc(?)
+\fImode\fP est non valable, ou \fInitems\fP dépasse la valeur limite
+\fBAIO_LISTIO_MAX\fP.
+.TP 
+\fBEINTR\fP
+\fImode\fP valait \fBLIO_WAIT\fP et un signal a été attrapé avant que toutes les
+opérations d'E/S ne soient terminées (il peut s'agir de l'un des signaux
+utilisés pour les notifications asynchrones de fin d'opération d'E/S).
+.TP 
+\fBEIO\fP
+.\" e.g., ioa_reqprio or aio_lio_opcode was invalid
+Une ou plusieurs opérations spécifiées dans \fIaiocb_list\fP ont
+échoué. L'application peut vérifier l'état de chaque opération avec
+\fBaio_return\fP(3).
+.PP
+Si \fBlio_listio\fP() échoue avec l'erreur \fBEAGAIN\fP, \fBEINTR\fP ou \fBEIO\fP, alors
+certaines des opérations définies dans \fIaiocb_list\fP peuvent avoir été
+initiées. Si \fBlio_listio\fP() échoue pour tout autre raison, alors aucune des
+opérations d'E/S n'aura été initiée.
+.SH VERSIONS
+La fonction \fBlio_listio\fP() est disponible depuis la glibc\ 2.1.
+.SH CONFORMITÉ
+POSIX.1\-2001, POSIX.1\-2008.
+.SH NOTES
+.\" or the control block of the operation
+C'est une bonne idée de mettre à zéro le bloc de contrôle avant de
+l'utiliser. Les blocs de contrôle ne doivent pas être changés pendant que
+des opérations d'E/S sont en cours. Les tampons qui seront lus ou écrits ne
+doivent pas être accédés durant les opérations ou des résultats indéterminés
+peuvent se produire. Les zones mémoires utilisées doivent rester valables.
+
+Des opérations d'E/S simultanées spécifiant la même structure \fIaiocb\fP
+produisent des résultats indéfinis.
+.SH "VOIR AUSSI"
+\fBaio_cancel\fP(3), \fBaio_error\fP(3), \fBaio_fsync\fP(3), \fBaio_return\fP(3),
+\fBaio_suspend\fP(3), \fBaio_write\fP(3), \fBaio\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

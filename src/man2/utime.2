@@ -1,0 +1,155 @@
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified 1993-07-24 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1995-06-10 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2004-10-10 by Andries Brouwer <aeb@cwi.nl>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UTIME 2 "6 août 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+utime, utimes \- Modifier la date d'accès ou de modification d'un fichier
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+.br
+\fB#include <utime.h>\fP
+.sp
+\fBint utime(const char *\fP\fIfilename\fP\fB, const struct utimbuf *\fP\fItimes\fP\fB);\fP
+.sp
+\fB#include <sys/time.h>\fP
+.sp
+\fBint utimes(const char *\fP\fIfilename\fP\fB, const struct timeval \fP\fItimes\fP\fB[2]);\fP
+.fi
+.SH DESCRIPTION
+L'appel système \fButime\fP() change les dates d'accès et de modification de
+l'inœud indiqué par \fIfilename\fP pour les valeurs contenues respectivement
+dans les champs \fIactime\fP et \fImodtime\fP de \fItimes\fP.
+
+Si \fItimes\fP est NULL, les dates d'accès et de modification sont mises à
+l'heure actuelle.
+
+La modification des horodatages est permise lorsque soit le processus a les
+privilèges appropriés, soit l'UID effectif est égal à l'UID du fichier, soit
+\fItimes\fP est nul et le processus a la permission d'écriture sur le fichier.
+
+La structure \fIutimbuf\fP est la suivante\ :
+
+.in +4n
+.nf
+struct utimbuf {
+    time_t actime;       /* heure d'accès  */
+    time_t modtime;      /* heure de modification */
+};
+.fi
+.in
+
+L'appel système \fButime\fP() permet des spécifications d'horodatages avec une
+résolution d'une seconde.
+
+L'appel système \fButimes\fP() est similaire mais le paramètre \fItimes\fP fait
+référence à un tableau au lieu d'une structure. Les éléments de ce tableau
+sont des structures \fItimeval\fP, qui permet une résolution d'une microseconde
+pour les horodatages. La structure \fItimeval\fP est la suivante\ :
+
+.in +4n
+.nf
+struct timeval {
+    long tv_sec;        /* secondes      */
+    long tv_usec;       /* microsecondes */
+};
+.fi
+.in
+.PP
+\fItimes\fP[0] indique la nouvelle heure d'accès, et \fItimes\fP[1] indique la
+nouvelle heure de modification. Si \fItimes\fP est NULL, de manière analogue à
+\fButime\fP(), les heures d'accès et modification du fichier sont définies à
+l'heure actuelle.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+La permission de parcours est refusée pour un des répertoires contenu dans
+le chemin \fIpath\fP. (Consultez aussi \fBpath_resolution\fP(7))
+.TP 
+\fBEACCES\fP
+\fItimes\fP est NULL, l'UID effectif de l'appelant ne correspond pas au
+propriétaire du fichier, l'appelant n'a pas la permission d'écriture sur le
+fichier et l'appelant n'est pas privilégié (Linux\ : n'a ni la capacité
+\fBCAP_DAC_OVERRIDE\fP, ni la capacité \fBCAP_FOWNER\fP).
+.TP 
+\fBENOENT\fP
+\fIfilename\fP n'existe pas.
+.TP 
+\fBEPERM\fP
+\fItimes\fP n'est pas NULL, l'UID effectif de l'appelant ne correspond pas au
+propriétaire du fichier et l'appelant n'est pas privilégié (Linux\ : n'a pas
+la capacité \fBCAP_FOWNER\fP).
+.TP 
+\fBEROFS\fP
+\fIpath\fP se trouve sur un système de fichiers en lecture seule.
+.SH CONFORMITÉ
+\fButime\fP()\ : SVr4, POSIX.1\-2001. POSIX.1\-2008 marque \fButime\fP() comme étant
+obsolète.
+.br
+\fButimes\fP()\ : BSD\ 4.3, POSIX.1\-2001.
+.SH NOTES
+Linux n'autorise pas la modification d'horodatages sur les fichiers
+immuables, ou l'horodatage avec autre chose que la date courante sur les
+fichiers en ajout seulement.
+
+Dans libc4 et libc5, \fButimes\fP() est juste une enveloppe à \fButime\fP() et ne
+permet donc pas des résolutions inférieure à la seconde.
+.SH "VOIR AUSSI"
+\fBchattr\fP(1), \fBfutimesat\fP(2), \fBstat\fP(2), \fButimensat\fP(2), \fBfutimens\fP(3),
+\fBfutimes\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

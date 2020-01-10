@@ -1,0 +1,185 @@
+.\" Copyright (c) 2003 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH DL_ITERATE_PHDR 3 "18 mai 2007" GNU "Manuel du programmeur Linux"
+.SH NOM
+dl_iterate_phdr \- Parcourir une liste d'objets partagés
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP         /* Consultez feature_test_macros(7) */
+\fB#include <link.h>\fP
+
+\fBint dl_iterate_phdr(\fP
+\fB          int (*\fP\fIcallback\fP\fB) (struct dl_phdr_info *\fP\fIinfo\fP\fB,\fP
+\fB                           size_t \fP\fIsize\fP\fB, void *\fP\fIdata\fP\fB,\fP
+\fB          void *\fP\fIdata\fP\fB;\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBdl_iterate_phdr\fP() permet à une application de s'informer lors
+de son exécution, des objets partagés qu'elle a chargé.
+
+La fonction \fBdl_iterate_phdr\fP() parcourt la liste des objets partagés par
+une application et appelle la fonction \fIcallback\fP sur chaque objet jusqu'à
+ce que tous les objets partagés aient été traités ou que la fonction
+\fIcallback\fP ait renvoyé une valeur non nulle.
+
+Chaque appel de \fIcallback\fP prend trois arguments\ : \fIinfo\fP qui est un
+pointeur vers une structure contenant des informations sur les objets
+partagés\ ; \fIsize\fP qui est la taille de la structure pointée par \fIinfo\fP\ ;
+et \fIdata\fP qui est une copie de toute valeur qui est passée par le programme
+appelant dans le second argument (également nommé \fIdata\fP) lors de l'appel
+de \fBdl_iterate_phdr\fP().
+
+L'argument \fIinfo\fP est une structure du type suivant\ :
+
+.in +4n
+.nf
+struct dl_phdr_info {
+    ElfW(Addr)        dlpi_addr;  /* Adresse de base de l'objet */
+    const char       *dlpi_name;  /* Nom de l'objet (terminée par
+                                     un octet nul */
+    const ElfW(Phdr) *dlpi_phdr;  /* Pointeur vers un tableau des
+                                     en\-têtes ELF du programme
+                                     de cet objet */
+    ElfW(Half)        dlpi_phnum; /* Nombre d'éléments dans
+                                     \fIdlpi_phdr\fP */
+};
+.fi
+.in
+
+(La macro \fIElfW\fP() convertit son argument en un nom de type de données ELF
+adapté à l'architecture matériel. Par exemple, sur un système 32\-bits,
+ElfW(Addr) produit le type de données nommé Elf32_Addr. Des informations
+supplémentaires sur ces types peuvent être trouvées dans les fichiers
+d'en\-tête \fI<elf.h>\fP et \fI<link.h>\fP).
+
+Le champ \fIdlpi_addr\fP indique l'adresse de base de l'objet partagé (la
+différence entre l'adresse en mémoire virtuelle de l'objet partagé et le
+décalage avec cet objet dans le fichier depuis lequel il a été chargé). Le
+champ \fIdlpi_name\fP est une chaîne de caractères terminée par un caractère
+nul indiquant le chemin à partir duquel l'objet partagé a été chargé.
+
+Pour comprendre le sens des champs \fIdlpi_phdr\fP et \fIdlpi_phnum\fP, il faut se
+rendre compte que les objets partagés ELF sont un nombre de segments, chacun
+d'eux possédant un en\-tête décrivant le segment. Le champ \fIdlpi_phdr\fP est
+un pointeur vers un tableau des en\-têtes du programme de cet objet
+partagé. Le champ \fIdlpi_phnum\fP est la taille de ce tableau.
+
+Ces en\-têtes de programme sont structurés sous la forme suivantes\ :
+.in +4n
+.nf
+
+typedef struct
+  {
+    Elf32_Word  p_type;    /* Type de segment */
+    Elf32_Off   p_offset;  /* Décalage du fichier de segment (?) */
+    Elf32_Addr  p_vaddr;   /* Adresse virtuelle du segment */
+    Elf32_Addr  p_paddr;   /* Adresse physique du segment */
+    Elf32_Word  p_filesz;  /* Taille du segment dans le fichier */
+    Elf32_Word  p_memsz;   /* Taille du segment en mémoire */
+    Elf32_Word  p_flags;   /* Drapeau du segment */
+    Elf32_Word  p_align;   /* Alignement du segment */
+} Elf32_Phdr;
+.fi
+.in
+
+Notez que la position d'un en\-tête de programme, \fIx\fP, en mémoire virtuelle
+est calculée avec la formule suivante\ :
+
+.nf
+  addr == info\->dlpi_addr + info\->dlpi_phdr[x].p_vaddr;
+.fi
+.SH "VALEUR RENVOYÉE"
+La fonction \fBdl_iterate_phdr\fP() renvoie quoi qu'il en soit la valeur
+renvoyée par le dernier appel à \fIcallback\fP.
+.SH VERSIONS
+\fBdl_iterate_phdr\fP() est géré par la glibc depuis la version 2.2.4.
+.SH CONFORMITÉ
+La fonction \fBdl_iterate_phdr\fP() est spécifique à Linux et ne doit pas être
+utilisée pour des applications portables.
+.SH EXEMPLE
+Le programme suivant affiche la liste des chemins des objets partagés qu'il
+a chargé. Pour chaque objet partagé, le programme liste les adresses
+virtuelles auxquelles les segments ELF de l'objet sont chargés.
+
+.nf
+#define _GNU_SOURCE
+#include <link.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+static int
+callback(struct dl_phdr_info *info, size_t size, void *data)
+{
+    int j;
+
+    printf("name=%s (%d segments)\en", info\->dlpi_name,
+        info\->dlpi_phnum);
+
+    for (j = 0; j < info\->dlpi_phnum; j++)
+         printf("\et\et header %2d: address=%10p\en", j,
+             (void *) (info\->dlpi_addr + info\->dlpi_phdr[j].p_vaddr));
+    return 0;
+}
+
+int
+main(int argc, char *argv[])
+{
+    dl_iterate_phdr(callback, NULL);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBldd\fP(1), \fBobjdump\fP(1), \fBreadelf\fP(1), \fBdlopen\fP(3), \fBelf\fP(5),
+\fBld.so\fP(8)
+
+«\ \fIExecutable and Linking Format Specification\fP\ » disponible en ligne à
+divers endroits.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,122 @@
+.\" Copyright 2001 Andries Brouwer <aeb@cwi.nl>.
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CEIL 3 "21 juin 2013" "" "Manuel du programmeur Linux"
+.SH NOM
+ceil, ceilf, ceil \- Plus petit entier supérieur ou égal à x
+.SH SYNOPSIS
+.nf
+\fB#include <math.h>\fP
+.sp
+\fBdouble ceil(double \fP\fIx\fP\fB);\fP
+.br
+\fBfloat ceilf(float \fP\fIx\fP\fB);\fP
+.br
+\fBlong double ceill(long double \fP\fIx\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBceilf\fP(), \fBceill\fP()\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE
+|| _POSIX_C_SOURCE\ >=\ 200112L
+.br
+ou \fIcc\ \-std=c99\fP
+.RE
+.ad
+.SH DESCRIPTION
+Ces fonctions renvoient le plus petit nombre entier n'étant pas strictement
+inférieur à \fIx\fP.
+
+Par exemple, \fIceil(0,5)\fP vaut 1,0 et \fIceil(\-0,5)\fP vaut 0,0.
+.SH "VALEUR RENVOYÉE"
+Ces fonctions renvoient la partie entière de \fIx\fP par excès.
+
+Si \fIx\fP est un nombre entier, +0, \-0, NaN ou une valeur infinie, la valeur
+\fIx\fP elle\-même est renvoyée.
+.SH ERREURS
+Aucune erreur ne se produit. POSIX.1\-2001 documente une série d'erreurs pour
+les dépassements, mais consultez la section NOTES.
+.SH ATTRIBUTS
+.SS "Multithreading (voir pthreads(7))"
+Les fonctions \fBceil\fP(), \fBceilf\fP() et \fBceill\fP() sont sûres dans un
+contexte multithread.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001. La variante renvoyant un \fIdouble\fP est également conforme
+à SVr4, BSD\ 4.3 et C89.
+.SH NOTES
+.\" The POSIX.1-2001 APPLICATION USAGE SECTION discusses this point.
+Les spécifications SUSv2 et POSIX.1\-2001 contiennent un passage sur les
+dépassements (qui peuvent remplir \fIerrno\fP avec \fBERANGE\fP ou déclencher une
+exception \fBFE_OVERFLOW\fP). En pratique, aucun dépassement ne peut se
+produire sur les machines actuelles, ce qui rend inutile cette gestion
+d'erreur. Plus précisément, le dépassement ne peut se produire que si la
+valeur maximale de l'exposant est plus petite que le nombre de bits de la
+mantisse. Pour les nombres en virgule flottante 32\ bits et 64\ bits
+obéissant à la norme IEEE\-754, la valeur maximale de l'exposant est 128
+(resp. 1024) et le nombre de bits de la mantisse est 24 (resp. 53).
+
+La partie entière renvoyée par ces fonctions peut être trop grande pour être
+stockée dans un type entier (\fIint\fP, \fIlong\fP, etc.). Pour éviter les
+dépassements, qui produiront des résultats indéfinis, une application
+devrait vérifier la validité de la valeur renvoyée avec l'intervalle accepté
+avant de l'affecter à un type entier.
+.SH "VOIR AUSSI"
+\fBfloor\fP(3), \fBlrint\fP(3), \fBnearbyint\fP(3), \fBrint\fP(3), \fBround\fP(3),
+\fBtrunc\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

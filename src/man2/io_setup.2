@@ -1,0 +1,102 @@
+.\" Copyright (C) 2003 Free Software Foundation, Inc.
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" This file is distributed according to the GNU General Public License.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH IO_SETUP 2 "21 juin 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+io_setup \- Créer un contexte d'entrées\-sorties asynchrones
+.SH SYNOPSIS
+.nf
+\fB#include <linux/aio_abi.h>\fP          /* Définit les types nécessaires */
+
+\fBint io_setup(unsigned \fP\fInr_events\fP\fB, aio_context_t *\fP\fIctx_idp\fP\fB);\fP
+.fi
+
+\fIRemarque\fP\ : il n'existe pas de fonction glibc autour de cet appel
+système\ ; consultez \fBNOTES\fP.
+.SH DESCRIPTION
+.PP
+L'appel système \fBio_setup\fP() crée un contexte d'E/S asynchrone capable de
+traiter simultanément \fInr_events\fP. L'argument \fIctx_idp\fP ne doit pas
+pointer sur un contexte déjà existant et doit être initialisé à zéro avant
+l'appel. Si la création de contexte réussit, \fI*ctx_idp\fP est rempli avec le
+descripteur résultant.
+.SH "VALEUR RENVOYÉE"
+\fBio_setup\fP() renvoie zéro s'il réussit. Pour les valeurs de retour en cas
+d'échec, consultez la section NOTES.
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+La valeur \fInr_events\fP dépasse la limite de l'utilisateur en événements
+disponibles, telle que définie par \fI/proc/sys/fs/aio\-max\-nr\fP.
+.TP 
+\fBEFAULT\fP
+Un pointeur invalide a été transmis comme \fIctx_idp\fP.
+.TP 
+\fBEINVAL\fP
+\fIctx_idp\fP n'est pas initialisé ou la valeur \fInr_events\fP dépasse les
+limites internes. \fInr_events\fP doit être supérieur à zéro.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.TP 
+\fBENOSYS\fP
+\fBio_setup\fP() n'est pas implémenté sur cette architecture.
+.SH VERSIONS
+.PP
+Les appels système d'entrées\-sorties asynchrones sont apparus dans
+Linux\ 2.5.
+.SH CONFORMITÉ
+.PP
+\fBio_setup\fP() est spécifique à Linux et ne doit pas être utilisé dans des
+programmes destinés à être portables.
+.SH NOTES
+.\" http://git.fedorahosted.org/git/?p=libaio.git
+La glibc ne fournit pas de fonction autour de cet appel système. Vous
+pourriez l'invoquer en utilisant \fBsyscall\fP(2), mais vous préférerez sans
+doute utiliser la fonction enveloppe \fBio_setup\fP() fournie par \fIlibaio\fP.
+
+.\" But glibc is confused, since <libaio.h> uses 'io_context_t' to declare
+.\" the system call.
+Remarquez que la fonction enveloppe \fIlibaio\fP utilise un autre type
+(\fIio_context_t\ *\fP) pour l'argument \fIctx_idp\fP. Remarquez également que
+l'enveloppe \fIlibaio\fP ne suit pas les conventions classiques de la
+bibliothèque\ C concernant l'indication des erreurs\ : en cas d'erreur, la
+fonction renvoie un nombre négatif (la valeur négative de l'une des valeurs
+indiquées dans la section \fBERREURS\fP). Si l'appel système est invoqué avec
+\fBsyscall\fP(2), la valeur de retour suit les conventions classiques pour
+indiquer l'erreur\ : \-1 avec \fIerrno\fP contenant le code (positif) de
+l'erreur.
+.SH "VOIR AUSSI"
+.\" .SH AUTHOR
+.\" Kent Yoder.
+\fBio_cancel\fP(2), \fBio_destroy\fP(2), \fBio_getevents\fP(2), \fBio_submit\fP(2),
+\fBaio\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

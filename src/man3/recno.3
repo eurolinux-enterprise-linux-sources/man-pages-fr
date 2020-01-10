@@ -1,0 +1,209 @@
+.\" Copyright (c) 1990, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"	@(#)recno.3	8.5 (Berkeley) 8/18/94
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RECNO 3 "23 avril 2012" "" "Manuel du programmeur Linux"
+.UC 7
+.SH NOM
+recno \- Méthodes d'accès aux bases de données avec enregistrements numérotés
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>
+#include <db.h>\fP
+.fi
+.SH DESCRIPTION
+\fINOTE\fP: cette page décrit des interfaces founies par la glibc jusque dans
+sa version\ 2.1. Depuis la version\ 2.2, la glibc ne fournit plus ces
+interfaces. Veuillez consulter les API fournies par la bibliothèque
+\fIlibdb\fP.
+
+La routine \fBdbopen\fP(3) est l'interface de bibliothèque pour les fichiers de
+base de données. L'un des formats de fichier supportés est celui avec
+enregistrements numérotés. La description générale des méthodes d'accès à
+une base de données est fournie dans la page de manuel \fBdbopen\fP(3). La page
+présente ne décrit que les informations spécifiques aux enregistrements
+numérotés.
+.PP
+La structure de cette base de données est une série d'enregistrements de
+longueurs variables ou fixes, stockés dans un fichier linéaire, et auxquels
+on accède par les numéros logiques d'enregistrement. L'existence de
+l'enregistrement numéro 5 implique l'existence des enregistrements 1 à 4, et
+l'effacement du numéro entraîne la renumérotation de l'enregistrement 5 en
+4, ainsi que le déplacement d'un cran du curseur s'il était positionné après
+l'enregistrement 1.
+.PP
+La structure de données spécifique pour l'accès aux enregistrements
+numérotés, et que l'on transmet à \fBdbopen\fP(3) est définie dans
+\fI<db.h>\fP ainsi\ :
+.PP
+.in +4n
+.nf
+typedef struct {
+    unsigned long flags;
+    unsigned int  cachesize;
+    unsigned int  psize;
+    int           lorder;
+    size_t        reclen;
+    unsigned char bval;
+    char         *bfname;
+} RECNOINFO;
+.fi
+.in
+.PP
+Les éléments de cette structure sont les suivants\ :
+.TP 
+flags
+La valeur de ce champ est calculée avec un \fIOU\fP binaire sur certaines des
+constantes suivantes\ :
+.RS
+.TP 
+\fBR_FIXEDLEN\fP
+Les enregistrements ont une taille fixe, et non pas délimités. Le champ
+\fIreclen\fP de la structure indique la longueur de l'enregistrement, et le
+champ \fIbval\fP contient le caractère à utiliser pour les remplissages
+éventuels. Tout enregistrement, inséré dans la base de données, ayant moins
+de \fIreclen\fP octets de long sera automatiquement allongé.
+.TP 
+\fBR_NOKEY\fP
+Avec l'interface spécifiée par \fBdbopen\fP(3), le parcours séquentiel
+renseigne à la fois la structure \fIclé\fP de l'appelant, et la structure des
+\fIdonnées\fP. Si l'argument \fBR_NOKEY\fP est utilisé les routines de gestion du
+\fIcurseur\fP ne sont pas obligées de remplir la structure clé. Cela permet aux
+applications d'accéder à des enregistrements en fin de fichier sans avoir à
+relire tous les enregistrements précédents.
+.TP 
+\fBR_SNAPSHOT\fP
+Ce drapeau demande qu'une image du fichier soit saisie lorsque \fBdbopen\fP(3)
+est ouvert, plutôt que de lire tout enregistrement non modifié dans le
+fichier original.
+.RE
+.TP 
+\fIcachesize\fP
+Une taille maximale suggérée de mémoire cache, en octets. Cela n'a qu'une
+valeur \fBindicative\fP, et les méthodes d'accès alloueront plus de mémoire
+plutôt que d'échouer. Si \fIcachesize\fP vaut 0 (pas de taille indiquée) on
+utilise une valeur par défaut.
+.TP 
+\fIpsize\fP
+La méthode d'accès recno stocke les copies en mémoire de ses enregistrements
+dans un arbre B\-tree. Cette valeur est la taille (en octets) des pages à
+utiliser pour les nœuds de cet arbre. Si \fIpsize\fP vaut 0 (pas de taille
+indiquée), une taille de page est choisie en fonction des tailles de blocs
+d'entrée\-sortie du système de fichiers sous\-jacent. Consultez \fBbtree\fP(3)
+pour plus d'informations.
+.TP 
+\fIlorder\fP
+L'ordre des octets des entiers stockés dans la base de données. Ce nombre
+doit représenter l'ordre sous forme d'entier. Par exemple, l'ordre poids
+faible poids fort (gros boutiste) est représenté par le nombre 4321. Si
+\fIlorder\fP vaut 0 (aucun ordre indiqué), on utilise l'ordre des octets du
+système hôte.
+.TP 
+\fIreclen\fP
+La longueur des enregistrements de taille fixe.
+.TP 
+\fIbval\fP
+L'octet de marquage servant à délimiter les enregistrements de longueurs
+variables, et l'octet de remplissage pour les enregistrements de taille
+fixe. Si aucune valeur n'est indiquée, le caractère fin\-de\-ligne «\ \en\ »
+est utilisé comma délimiteur et les enregistrements de tailles fixes sont
+complétés avec des espaces.
+.TP 
+\fIbfname\fP
+La méthode d'accès recno stocke les copies en mémoire de ses enregistrements
+dans un arbre B\-tree. Si \fIbfname\fP n'est pas NULL, il indique le nom du
+fichier B\-tree, comme s'il s'agissait du nom du fichier pour un appel à
+\fBdbopen\fP(3).
+.PP
+La partie «\ donnée\ » des paires clés/donnéees utilisées par la méthode
+d'accès \fIrecno\fP est la même que pour les autres méthodes d'accès. La clé
+est différente. Le champ \fIdata\fP de la clé doit être un pointeur sur un
+emplacement mémoire du type \fIrecno_t\fP, tel qu'il est défini dans le fichier
+d'en\-tête \fI<db.h>\fP. Ce type est normalement le plus grand des types
+d'entiers non signés disponibles pour l'implémentation. Le champ \fIsize\fP
+doit contenir la longueur de ce type de donnée.
+.PP
+Comme il ne peut pas y avoir de méta\-données associées aux fichiers
+sous\-jacent aux méthodes recno, tout changement par rapport aux valeurs par
+défaut (par exemple longueur des enregistrements fixes, ou caractère
+séparateur) doit être indiqué explicitement à chaque fois que le fichier est
+ouvert.
+.PP
+Avec l'interface indiquée par \fBdbopen\fP(3), l'utilisation de la routine
+\fIput\fP pour créer un nouvel enregistrement causera la création de plusieurs
+enregistrements vides si le numéro d'enregistrement est supérieur de plus
+d'une unité au plus grand numéro déjà présent dans la base de données.
+.SH ERREURS
+Les routines des méthodes d'accès \fIrecno\fP peuvent échouer et remplir
+\fIerrno\fP avec n'importe quelle erreur indiquée par la routine \fBdbopen\fP(3)
+ou la suivante\ :
+.TP 
+\fBEINVAL\fP
+On a essayé d'ajouter un enregistrement trop grand dans une base de données
+avec longueurs fixes.
+.SH BOGUES
+Seuls les ordres d'octets gros boutiste (big\-endian) et petit boutiste
+(little\-endian) fonctionnent.
+.SH "VOIR AUSSI"
+\fBbtree\fP(3), \fBdbopen\fP(3), \fBhash\fP(3), \fBmpool\fP(3)
+
+\fIDocument Processing in a Relational Database System\fP, Michael Stonebraker,
+Heidi Stettner, Joseph Kalash, Antonin Guttman, Nadene Lynn, Memorandum
+No. UCB/ERL M82/32, May 1982.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

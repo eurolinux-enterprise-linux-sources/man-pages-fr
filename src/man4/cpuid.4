@@ -1,0 +1,97 @@
+.\" Copyright (c) 2009 Intel Corporation, Author Andi Kleen
+.\" Description based on comments in arch/x86/kernel/cpuid.c
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CPUID 4 "31 mars 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+cpuid \- Périphérique d'accès aux identifiant de CPU x86
+.SH DESCRIPTION
+CPUID fournit une interface pour demander des informations concernant un CPU
+x86.
+
+On accède à ce périphérique en utilisant \fBlseek\fP(2) ou \fBpread\fP(2) avec le
+niveau CPUID approprié et en lisant des blocs de 16 octets. Des lectures
+plus importantes indique la lecture de plusieurs niveau consécutifs.
+
+Les 32 bits de poids faible de la position dans le fichier sont utilisés
+comme registre d'entrée \fI%eax\fP, et les 32 bits de poids fort comme registre
+d'entrée \fI%ecx\fP, ce dernier étant utilisé pour «\ compter\ » les niveaux
+\fIeax\fP, comme pour \fIeax=4\fP.
+
+Ce pilote utilise \fI/dev/cpu/CPUNUM/cpuid\fP, où \fICPUNUM\fP est le numéro
+mineur, et sur un système multiprocesseur enverra les accès au CPU numéro
+\fICPUNUM\fP d'après la liste dans \fI/proc/cpuinfo\fP.
+
+Ce fichier est protégé de telle sorte que seul l'utilisateur \fIroot\fP ou les
+membres du groupe \fIroot\fP puissent y accéder.
+.SH NOTES
+L'instruction CPUID peut être exécutée directement par un programme
+utilisant de l'assembleur en ligne. Cependant ce périphérique fournit une
+méthode d'accès commode à tous les CPU sans changer l'affinité du processus.
+
+La plupart des informations de \fIcpuid\fP est renvoyé par le noyau de façon
+formatée dans \fI/proc/cpuinfo\fP ou dans les sous répertoires de
+\fI/sys/devices/system/cpu\fP. Un accès direct à CPUID par ce périphérique ne
+doit être utilisé que dans des cas exceptionnels.
+
+Le pilote \fIcpuid\fP n'est pas chargé automatiquement. Avec les noyaux
+modulaires vous pouvez avoir besoin d'utiliser la commande suivante pour le
+charger explicitement avant son utilisation\ :
+
+     $ \fImodprobe cpuid\fP
+
+Il n'y a pas de prise en charge des fonctions CPUID qui nécessitent des
+registres d'entrée supplémentaires.
+
+Les processeurs x86 très anciens n'ont pas de prise en charge pour CPUID.
+.SH "VOIR AUSSI"
+Intel Corporation, Intel 64 and IA\-32 Architectures Software Developer's
+Manuel Volume 2A\ : Instruction Set Reference, A\-M, 3\-180 CPUID reference.
+
+Intel Corporation, Intel Processor Identification and the CPUID Instruction,
+Application note 485.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

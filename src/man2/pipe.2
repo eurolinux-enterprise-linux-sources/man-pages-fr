@@ -1,0 +1,184 @@
+.\" Copyright (C) 2005, 2008, Michael Kerrisk <mtk.manpages@gmail.com>
+.\" (A few fragments remain from an earlier (1992) version by
+.\" Drew Eckhardt <drew@cs.colorado.edu>.)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified 1993-07-23 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1996-10-22 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 2004-06-17 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2005, mtk: added an example program
+.\" Modified 2008-01-09, mtk: rewrote DESCRIPTION; minor additions
+.\"     to EXAMPLE text.
+.\" 2008-10-10, mtk: add description of pipe2()
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PIPE 2 "14 février 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+pipe, pipe2 \- Créer un tube
+.SH SYNOPSIS
+.nf
+\fB#include <unistd.h>\fP
+.sp
+\fBint pipe(int \fP\fIpipefd\fP\fB[2]);\fP
+.sp
+\fB#define _GNU_SOURCE\fP             /* Consultez feature_test_macros(7) */
+\fB#include <fcntl.h>\fP              /* Obtenir les définition de constante O_* */
+\fB#include <unistd.h>\fP
+.sp
+\fBint pipe2(int \fP\fIpipefd\fP\fB[2], int \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBpipe\fP() crée un tube, un canal unidirectionnel de données qui peut être
+utilisé pour la communication entre processus. Le tableau \fIpipefd\fP est
+utilisé pour renvoyer deux descripteurs de fichier faisant référence aux
+extrémités du tube. \fIpipefd[0]\fP fait référence à l'extrémité de lecture du
+tube. \fIpipefd[1]\fP fait référence à l'extrémité d'écriture du tube. Les
+données écrites sur l'extrémité d'écriture du tube sont mises en mémoire
+tampon par le noyau jusqu'à ce qu'elles soient lues sur l'extrémité de
+lecture du tube. Pour plus de détails, consultez \fBpipe\fP(7).
+
+Si \fIflags\fP est nul, alors \fBpipe2\fP() est identique à \fBpipe\fP(). Les valeurs
+suivantes peuvent être incluses à l'aide d'un OU binaire dans \fIflags\fP pour
+obtenir différents comportements\ :
+.TP  12
+\fBO_NONBLOCK\fP
+Placer l'attribut d'état de fichier \fBO_NONBLOCK\fP sur les deux nouveaux
+descripteurs de fichiers ouverts. Utiliser cet attribut économise des appels
+supplémentaires à \fBfcntl\fP(2) pour obtenir le même résultat.
+.TP 
+\fBO_CLOEXEC\fP
+Placer l'attribut «\ close\-on\-exec\ » (\fBFD_CLOEXEC\fP) sur les deux nouveaux
+descripteurs de fichiers. Consultez la description de cet attribut dans
+\fBopen\fP(2) pour savoir pourquoi ça peut être utile.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fIpipefd\fP est invalide.
+.TP 
+\fBEINVAL\fP
+(\fBpipe2\fP()) Valeur incorrecte dans \fIflags\fP.
+.TP 
+\fBEMFILE\fP
+Trop de descripteurs de fichier sont utilisés par le processus.
+.TP 
+\fBENFILE\fP
+La limite du nombre total de fichiers ouverts sur le système a été atteinte.
+.SH VERSIONS
+\fBpipe2\fP() a été ajouté à Linux dans la version\ 2.6.27\ ; sa prise en charge
+par la glibc est disponible depuis la version 2.9.
+.SH CONFORMITÉ
+\fBpipe\fP()\ : POSIX.1\-2001.
+
+\fBpipe2\fP() est spécifique à Linux.
+.SH EXEMPLE
+.\" fork.2 refers to this example program.
+Le programme suivant crée un tube, puis invoque \fBfork\fP(2) pour créer un
+processus fils\ ; le fils hérite d'un jeu de descripteurs de fichier qui se
+rapportent au même tube. Après le \fBfork\fP(2), chaque processus ferme les
+descripteurs dont il n'a pas besoin pour le tube (consultez \fBpipe\fP(7)). Le
+père écrit alors la chaîne contenue dans l'argument de ligne de commande du
+programme dans le tube, et le fils lit cette chaîne un octet à la fois dans
+le tube, et l'affiche sur la sortie standard.
+.nf
+
+#include <sys/wait.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+
+int
+main(int argc, char *argv[])
+{
+    int pipefd[2];
+    pid_t cpid;
+    char buf;
+
+    if (argc != 2) {
+	fprintf(stderr, "Usage: %s <string>\en", argv[0]);
+	exit(EXIT_FAILURE);
+    }
+
+    if (pipe(pipefd) == \-1) {
+        perror("pipe");
+        exit(EXIT_FAILURE);
+    }
+
+    cpid = fork();
+    if (cpid == \-1) {
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
+
+    if (cpid == 0) {    /* Le fils lit dans le tube */
+        close(pipefd[1]);          /* Fermeture du descripteur en écriture inutilisé */
+
+        while (read(pipefd[0], &buf, 1) > 0)
+            write(STDOUT_FILENO, &buf, 1);
+
+        write(STDOUT_FILENO, "\en", 1);
+        close(pipefd[0]);
+        _exit(EXIT_SUCCESS);
+
+    } else {            /* Le père écrit argv[1] dans le tube */
+        close(pipefd[0]);          /* Fermeture du descripteur en lecture inutilisé*/
+        write(pipefd[1], argv[1], strlen(argv[1]));
+        close(pipefd[1]);          /* Le lecteur verra EOF */
+        wait(NULL);                /* Attente du fils */
+        exit(EXIT_SUCCESS);
+    }
+}
+.fi
+.SH "VOIR AUSSI"
+\fBfork\fP(2), \fBread\fP(2), \fBsocketpair\fP(2), \fBwrite\fP(2), \fBpopen\fP(3),
+\fBpipe\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

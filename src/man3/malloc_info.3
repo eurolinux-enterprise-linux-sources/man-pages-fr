@@ -1,0 +1,257 @@
+.\" Copyright (c) 2012 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MALLOC_INFO 3 "19 avril 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+malloc_info \- Exporter l'état de malloc vers un flux
+.SH SYNOPSIS
+.nf
+\fB#include <malloc.h>\fP
+.sp
+\fBint malloc_info(int \fP\fIoptions\fP\fB, FILE *\fP\fIfp\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBmalloc_info\fP() exporte un flux XML décrivant l'état actuel
+d'allocation mémoire pour l'appelant. Cette chaîne de caractères est
+affichée sur le descripteur de fichier \fIfp\fP. Cette chaîne contient les
+informations concernant tous les enclos mémoires («\ arenas\ »), consultez
+\fBmalloc\fP(3).
+
+Dans la mise en œuvre actuelle, le paramètre \fIoptions\fP doit être nul.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBmalloc_info\fP() renvoie zéro. En cas d'erreur, \-1 est
+renvoyé et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+Le paramètre \fIoptions\fP n'était pas nul.
+.SH VERSIONS
+\fBmalloc_info\fP() est disponible depuis la glibc 2.10.
+.SH CONFORMITÉ
+Cette fonction est une extension GNU.
+.SH NOTES
+L'information d'allocation mémoire est fournie sous forme de flux XML
+(plutôt que de structure C) car les informations fournies pourront évoluer
+dans le futur, en raison de modifications dans le code mis en œuvre. La
+sortie XML comporte un champ de version.
+
+La fonction \fBopen_memstream\fP(3) peut être utilisée pour envoyer la sortie
+de \fBmalloc_info\fP() directement dans un tampon en mémoire plutôt que dans un
+fichier.
+
+La fonction \fBmalloc_info\fP() est conçue pour combler les manques de
+\fBmalloc_stats\fP(3) et \fBmallinfo\fP(3).
+.SH EXEMPLE
+Le programme ci\-dessous accepte jusqu'à quatre paramètres en ligne de
+commande, dont les trois premiers sont obligatoires. Le premier paramètre
+indique le nombre de processus légers («\ threads\ ») que le programme doit
+créer. Tous les threads, thread principal compris, allouent le nombre de
+blocs de mémoire indiqué en deuxième paramètre. Le troisième paramètre
+contrôle la taille des blocs à allouer. Le thread principal crée des blocs
+de cette taille, le deuxième thread créé par le programme alloue des blocs
+deux fois plus grands, le troisième thread alloue des blocs trois fois plus
+grands, ainsi de suite.
+
+Le programme appelle \fBmalloc_info\fP() deux fois pour afficher l'état de
+l'allocation mémoire. Le premier appel est effectué avant la création de
+thread ou l'allocation de mémoire. Le deuxième appel est effectué une fois
+que tous les threads ont alloué de la mémoire.
+
+Dans l'exemple suivant, les paramètres commandent la création d'un thread
+additionnel, allouant 10000 blocs de mémoire, comme le thread principal. Une
+fois les blocs de mémoire alloués, \fBmalloc_info\fP() affiche l'état des deux
+enclos mémoire.
+.in +4
+.nf
+
+$ \fBgetconf GNU_LIBC_VERSION\fP
+glibc 2.13
+$ \fB./a.out 1 10000 100\fP
+============ Avant allocation des blocs ============
+<malloc version="1">
+<heap nr="0">
+<sizes>
+</sizes>
+<total type="fast" count="0" size="0"/>
+<total type="rest" count="0" size="0"/>
+<system type="current" size="135168"/>
+<system type="max" size="135168"/>
+<aspace type="total" size="135168"/>
+<aspace type="mprotect" size="135168"/>
+</heap>
+<total type="fast" count="0" size="0"/>
+<total type="rest" count="0" size="0"/>
+<system type="current" size="135168"/>
+<system type="max" size="135168"/>
+<aspace type="total" size="135168"/>
+<aspace type="mprotect" size="135168"/>
+</malloc>
+
+============ Après allocation des blocs ============
+<malloc version="1">
+<heap nr="0">
+<sizes>
+</sizes>
+<total type="fast" count="0" size="0"/>
+<total type="rest" count="0" size="0"/>
+<system type="current" size="1081344"/>
+<system type="max" size="1081344"/>
+<aspace type="total" size="1081344"/>
+<aspace type="mprotect" size="1081344"/>
+</heap>
+<heap nr="1">
+<sizes>
+</sizes>
+<total type="fast" count="0" size="0"/>
+<total type="rest" count="0" size="0"/>
+<system type="current" size="1032192"/>
+<system type="max" size="1032192"/>
+<aspace type="total" size="1032192"/>
+<aspace type="mprotect" size="1032192"/>
+</heap>
+<total type="fast" count="0" size="0"/>
+<total type="rest" count="0" size="0"/>
+<system type="current" size="2113536"/>
+<system type="max" size="2113536"/>
+<aspace type="total" size="2113536"/>
+<aspace type="mprotect" size="2113536"/>
+</malloc>
+.fi
+.in
+.SS "Source du programme"
+.nf
+
+#include <unistd.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <malloc.h>
+#include <errno.h>
+
+static size_t tailleBloc;
+static int nbThreads, nbBlocs;
+
+#define errExit(msg)    do { perror(msg); exit(EXIT_FAILURE); \e
+                        } while (0)
+
+static void *
+thread_func(void *arg)
+{
+    int j;
+    int tn = (int) arg;
+
+    /* Le multiplicateur \(aq(2 + tn)\(aq s'assure que chaque thread (dont
+       le thread principal) alloue une quantité de mémoire différente */
+
+    for (j = 0; j < nbBlocs; j++)
+        if (malloc(tailleBloc * (2 + tn)) == NULL)
+            errExit("malloc\-thread");
+
+    sleep(100);         /* Attendre que le thread principal se termine */
+    return NULL;
+}
+
+int
+main(int argc, char *argv[])
+{
+    int j, tn, tpsSommeil;
+    pthread_t *thr;
+
+    if (argc < 4) {
+        fprintf(stderr,
+                "%s nb\-threads nb\-blocs taille\-bloc [tps\-sommeil]\en",
+                argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    nbThreads = atoi(argv[1]);
+    nbBlocs = atoi(argv[2]);
+    tailleBloc = atoi(argv[3]);
+    tpsSommeil = (argc > 4) ? atoi(argv[4]) : 0;
+
+    thr = calloc(nbThreads, sizeof(pthread_t));
+    if (thr == NULL)
+        errExit("calloc");
+
+    printf("============ Avant allocation des blocs ============\en");
+    malloc_info(0, stdout);
+
+    /* Crée les threads allouant des quantités de mémoire différentes */
+
+    for (tn = 0; tn < nbThreads; tn++) {
+        errno = pthread_create(&thr[tn], NULL, thread_func,
+                               (void *) tn);
+        if (errno != 0)
+            errExit("pthread_create");
+
+        /* Si un intervalle de sommeil existe après le démarrage de
+           chaque thread, les threads ne vont sans doute pas se battre
+           pour les mutex malloc, et par conséquent les enclos mémoire
+           supplémentaires ne seront pas alloués (consultez malloc(3)).
+           */
+
+        if (tpsSommeil > 0)
+            sleep(tpsSommeil);
+    }
+
+    /* Le thread principal alloue également de la mémoire */
+
+    for (j = 0; j < nbBlocs; j++)
+        if (malloc(tailleBloc) == NULL)
+            errExit("malloc");
+
+    sleep(2);           /* Donne à tous les threads une chance
+                           de terminer les allocations */
+
+    printf("\en============ Après allocation des blocs ============\en");
+    malloc_info(0, stdout);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBmallinfo\fP(3), \fBmalloc\fP(3), \fBmalloc_stats\fP(3), \fBmallopt\fP(3),
+\fBopen_memstream\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

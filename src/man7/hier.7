@@ -1,0 +1,464 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sun Jul 25 11:05:58 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sat Feb 10 16:18:03 1996 by Urs Thuermann (urs@isnogud.escape.de)
+.\" Modified Mon Jun 16 20:02:00 1997 by Nicolás Lichtmaier <nick@debian.org>
+.\" Modified Mon Feb  6 16:41:00 1999 by Nicolás Lichtmaier <nick@debian.org>
+.\" Modified Tue Feb  8 16:46:45 2000 by Chris Pepper <pepper@tgg.com>
+.\" Modified Fri Sep  7 20:32:45 2001 by Tammy Fox <tfox@redhat.com>
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH HIER 7 "5 août 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+hier \- Description de la hiérarchie du système de fichiers
+.SH DESCRIPTION
+Un système Linux typique contient, entre autres, les répertoires suivants\ :
+.TP 
+\fI/\fP
+Le répertoire racine (root). Le point de départ de toute l'arborescence.
+.TP 
+\fI/bin\fP
+Ce répertoire contient les programmes exécutables nécessaires en mode
+mono\-utilisateur pour démarrer ou réparer le système.
+.TP 
+\fI/boot\fP
+Contient les fichiers statiques utilisés par le chargeur du système. Ce
+répertoire ne contient que les fichiers nécessaires pour le chargeur. Les
+fichiers de configuration pour l'installation du chargeur doivent résider
+dans \fI/sbin\fP et \fI/etc\fP.
+.TP 
+\fI/dev\fP
+Fichiers spéciaux ou fichiers se rapportant à des périphériques
+physiques. Consultez \fBmknod\fP(1).
+.TP 
+\fI/etc\fP
+Contient les fichiers de configuration spécifiques à la machine. Certains
+ensembles de programmes volumineux, comme X11, peuvent disposer de leurs
+propres sous\-répertoires dans \fI/etc\fP. Les fichiers de configuration
+relatifs au site entier devraient se trouver dans \fI/usr/etc\fP. Néanmoins,
+les programmes doivent toujours les chercher dans \fI/etc\fP et l'on peut avoir
+des liens en direction des fichiers de \fI/usr/etc\fP.
+.TP 
+\fI/etc/opt\fP
+Fichiers de configuration spécifiques à l'hôte, pour les applications
+installées dans \fI/opt\fP.
+.TP 
+\fI/etc/sgml\fP
+Ce répertoire contient les fichiers de configuration pour SGML et XML
+(facultatif).
+.TP 
+\fI/etc/skel\fP
+Quand un nouveau compte utilisateur est créé, les fichiers de ce répertoire
+sont habituellement copiés dans le répertoire personnel du nouveau compte.
+.TP 
+\fI/etc/X11\fP
+Fichiers de configuration pour le système X\-Window.
+.TP 
+\fI/home\fP
+Sur les machines offrant des répertoires personnels pour les utilisateurs,
+ils sont généralement placés sous ce répertoire, directement ou avec une
+arborescence définie par l'administration locale.
+.TP 
+\fI/lib\fP
+Ce répertoire doit contenir les bibliothèques partagées nécessaires pour
+démarrer le système et utiliser les commandes de la partition racine.
+.TP 
+\fI/media\fP
+Contient des points de montage pour les périphériques amovibles comme les
+CD, les DVD, ou les clés USB.
+.TP 
+\fI/mnt\fP
+Point de montage pour un système de fichiers monté temporairement. Dans
+certaines distributions, \fI/mnt\fP contient des sous\-répertoires censés être
+utilisés comme points de montages temporaires pour plusieurs systèmes de
+fichiers.
+.TP 
+\fI/opt\fP
+Ce répertoire peut contenir les paquetages additionnels.
+.TP 
+\fI/proc\fP
+est le point de montage pour le système de fichiers \fIproc\fP, qui fournit des
+informations sur les processus en cours et sur le noyau. Ce pseudosystème de
+fichiers est décrit dans \fBproc\fP(5).
+.TP 
+\fI/root\fP
+Ce répertoire est habituellement celui personnel du superutilisateur.
+.TP 
+\fI/sbin\fP
+Comme \fI/bin\fP, ce répertoire contient les commandes nécessaires au démarrage
+du système, mais qui ne sont pas exécutées par des utilisateurs normaux.
+.TP 
+\fI/srv\fP
+Ce répertoire contient les données spécifiques du site qui sont servies par
+ce système.
+.TP 
+\fI/tmp\fP
+Ce répertoire sert à contenir des fichiers temporaires que l'on peut
+détruire régulièrement, par un script périodique, ou au démarrage du
+système.
+.TP 
+\fI/usr\fP
+Ce répertoire est généralement monté depuis une partition séparée. Il ne
+devrait contenir que des données partageables, en lecture seule, afin d'être
+monté par plusieurs machines utilisant Linux.
+.TP 
+\fI/usr/X11R6\fP
+Le système X\-Window, version\ 11 release\ 6.
+.TP 
+\fI/usr/X11R6/bin\fP
+Les exécutables appartenant au système X\-Window. Souvent il existe un lien
+symbolique depuis \fI/usr/bin/X11\fP vers ce répertoire.
+.TP 
+\fI/usr/X11R6/lib\fP
+Les fichiers de données associés au système X\-Window.
+.TP 
+\fI/usr/X11R6/lib/X11\fP
+Ce répertoire contient divers fichiers nécessaire pour exécuter X. Il y a
+souvent un lien symbolique depuis \fI/usr/lib/X11\fP pointant sur ce
+répertoire.
+.TP 
+\fI/usr/X11R6/include/X11\fP
+contient les fichiers d'en\-tête nécessaires pour compiler des programmes
+utilisant X11. Il existe souvent un lien symbolique depuis
+\fI/usr/include/X11\fP vers ce répertoire.
+.TP 
+\fI/usr/bin\fP
+Il s'agit du répertoire principal pour les programmes exécutables. La
+plupart des programmes nécessaires aux utilisateurs, et pas indispensables
+pour démarrer ou réparer le système sont placés ici, à l'exception des
+programmes installés uniquement sur cette machine.
+.TP 
+\fI/usr/bin/X11\fP
+est un emplacement tradition pour les exécutables X11. Sous Linux il s'agit
+généralement d'un lien symbolique vers \fI/usr/X11R6/bin\fP.
+.TP 
+\fI/usr/dict\fP
+Remplacé par \fI/usr/share/dict\fP.
+.TP 
+\fI/usr/doc\fP
+Remplacé par \fI/usr/share/doc\fP.
+.TP 
+\fI/usr/etc\fP
+Les fichiers de configuration à partager entre plusieurs machines d'un site
+donné peuvent être stockés dans ce répertoire. Néanmoins, les programmes
+devraient toujours faire référence aux fichiers dans \fI/etc\fP. On construit
+alors des liens symboliques depuis \fI/etc\fP vers les fichiers appropriés de
+\fI/usr/etc\fP.
+.TP 
+\fI/usr/games\fP
+Fichiers exécutables des jeux et programmes éducatifs (facultatif).
+.TP 
+\fI/usr/include\fP
+Fichiers d'en\-tête pour le compilateur C.
+.TP 
+\fI/usr/include/X11\fP
+Fichiers d'en\-tête pour le compilateur C et le système X\-Window. C'est
+généralement un lien symbolique vers \fI/usr/X11R6/include/X11\fP.
+.TP 
+\fI/usr/include/asm\fP
+Les fichiers d'en\-tête déclarant des fonctions en assembleur. Il s'agit
+généralement d'un lien vers \fI/usr/src/linux/include/asm\fP.
+.TP 
+\fI/usr/include/linux\fP
+Contient les informations qui peuvent changer suivant la version de
+noyau. C'est souvent un lien symbolique vers
+\fI/usr/src/linux/include/linux\fP, qui permet d'accéder aux informations
+spécifique à la version en cours du noyau.
+
+Notez qu'il faut placer ici les fichiers d'en\-tête corrects pour la
+bibliothèque C. Toutefois les sources du noyau Linux ne sont pas prévues
+pour être utilisées dans les programmes utilisateurs, et ne connaissent pas
+la bibliothèque C utilisée. Il est probable que des problèmes se produiront
+si on laisse \fI/usr/include/asm\fP ou \fI/usr/include/linux\fP pointer vers
+n'importe quelle version des sources du noyau. Les systèmes Debian ne
+fonctionnent pas ainsi, et utilisent les en\-têtes provenant d'une version
+bien connue du noyau, fournir dans le paquetage libc*\-dev.
+.TP 
+\fI/usr/include/g++\fP
+Les fichiers d'en\-tête utilisés avec le compilateur GNU C++.
+.TP 
+\fI/usr/lib\fP
+Contient les bibliothèques, y compris les bibliothèques dynamiques, ainsi
+que quelques exécutables qu'on n'invoque normalement pas directement. Des
+applications complexes peuvent disposer de leurs propres sous\-répertoires
+ici.
+.TP 
+\fI/usr/lib/X11\fP
+L'emplacement habituel pour les fichiers de données associés aux programmes
+X11, ainsi que les fichiers de configuration du système X lui\-même. Sous
+Linux, il s'agit souvent d'un lien symbolique vers \fI/usr/X11R6/lib/X11\fP.
+.TP 
+\fI/usr/lib/gcc\-lib\fP
+contient des fichiers de bibliothèques associés au compilateur GNU C,
+\fBgcc\fP(1).
+.TP 
+\fI/usr/lib/groff\fP
+Fichiers pour le système de mise en forme de documents GNU groff.
+.TP 
+\fI/usr/lib/uucp\fP
+Fichiers pour \fBuucp\fP(1).
+.TP 
+\fI/usr/local\fP
+Emplacement habituel pour les programmes spécifiques à la machine ou au
+site.
+.TP 
+\fI/usr/local/bin\fP
+Contient les programmes exécutables spécifiques au site.
+.TP 
+\fI/usr/local/doc\fP
+Contient la documentation locale.
+.TP 
+\fI/usr/local/etc\fP
+Contient les fichiers de configuration de programmes installés localement.
+.TP 
+\fI/usr/local/games\fP
+Fichiers exécutables des jeux installé localement.
+.TP 
+\fI/usr/local/lib\fP
+Contient les fichiers associés aux programmes installés localement.
+.TP 
+\fI/usr/local/include\fP
+Fichiers d'en\-tête personnalisés pour le compilateur C.
+.TP 
+\fI/usr/local/info\fP
+Pages d'informations associées aux programmes installés localement.
+.TP 
+\fI/usr/local/man\fP
+Pages de manuel des applications installées localement.
+.TP 
+\fI/usr/local/sbin\fP
+Programmes d'administration installés localement.
+.TP 
+\fI/usr/local/share\fP
+Données des applications installées localement, qui peuvent être partagées
+entre différentes architectures fonctionnant avec le même OS.
+.TP 
+\fI/usr/local/src\fP
+Fichiers sources des applications développées ou installées localement.
+.TP 
+\fI/usr/man\fP
+Remplacé par \fI/usr/share/man\fP.
+.TP 
+\fI/usr/sbin\fP
+contient les programmes d'administration du système qui ne sont pas
+indispensables pour le démarrage, pour monter \fI/usr\fP, ou pour les
+réparations du système de fichiers.
+.TP 
+\fI/usr/share\fP
+contient des sous\-répertoires avec les données des applications,
+susceptibles d'être partagées entre différentes architectures avec le même
+système d'exploitation. On trouve souvent ici des choses qui se trouvaient
+auparavant dans \fI/usr/doc\fP ou \fI/usr/lib\fP ou encore \fI/usr/man\fP.
+.TP 
+\fI/usr/share/dict\fP
+Ce répertoire regroupe les fichiers contenant les listes de mots utilisées
+par les vérificateurs orthographiques (N.d.T.\ : on peut y trouver des
+sous\-répertoires en fonction de la langue utilisée).
+.TP 
+\fI/usr/share/doc\fP
+Documentation à propos des programmes installés.
+.TP 
+\fI/usr/share/games\fP
+Données statiques pour les jeux de \fI/usr/games\fP.
+.TP 
+\fI/usr/share/info\fP
+Pages de la commande info.
+.TP 
+\fI/usr/share/locale\fP
+Informations pour l'internationalisation.
+.TP 
+\fI/usr/share/man\fP
+Les pages de manuel sont placées dans des sous\-répertoires en fonction de la
+section.
+.TP 
+\fI/usr/share/man/<locale>/man[1\-9]\fP
+Ces répertoires contiennent les pages de manuel des localisations indiquées
+sous forme de code source. Les systèmes n'utilisant qu'une seule langue pour
+toutes les pages de manuel peuvent ignorer la chaîne <locale>.
+.TP 
+\fI/usr/share/misc\fP
+Données diverses partageables entre différentes architectures pour le même
+système d'exploitation.
+.TP 
+\fI/usr/share/nls\fP
+Catalogues de messages pour la prise en charge de l'internationalisation.
+.TP 
+\fI/usr/share/sgml\fP
+Fichiers pour SGML et XML.
+.TP 
+\fI/usr/share/terminfo\fP
+Base de données pour terminfo.
+.TP 
+\fI/usr/share/tmac\fP
+Macros troff non distribuées avec groff.
+.TP 
+\fI/usr/share/zoneinfo\fP
+Fichiers d'information sur les fuseaux horaires.
+.TP 
+\fI/usr/src\fP
+Fichiers sources de différentes parties du système, inclus à titre de
+référence dans certains paquetages. Ne pas placer ici de projets personnels,
+car les fichiers se trouvant dans \fI/usr\fP doivent être considérés comme
+uniquement accessibles en lecture, sauf durant l'installation de nouveaux
+logiciels.
+.TP 
+\fI/usr/src/linux\fP
+Emplacement traditionnel des sources du noyau. Ceci est important sur les
+systèmes où \fI/usr/include/linux\fP est un lien symbolique pointant dans ce
+répertoire. Si on doit construire un nouveau noyau, il vaut mieux utiliser
+un autre répertoire.
+.TP 
+\fI/usr/tmp\fP
+Obsolète, ce doit être un lien symbolique vers \fI/var/tmp\fP, Présent pour des
+raisons de compatibilité, ne devrait jamais être utilisé.
+.TP 
+\fI/var\fP
+Ce répertoire contient des fichiers qui peuvent changer régulièrement comme
+les fichiers des files d'attente, ou les fichiers de journalisation.
+.TP 
+\fI/var/adm\fP
+Ce répertoire est maintenant remplacé par \fI/var/log\fP et devrait donc être
+un lien symbolique vers ce dernier.
+.TP 
+\fI/var/backups\fP
+Réservé pour des raisons historiques.
+.TP 
+\fI/var/cache\fP
+Données de cache de divers programmes.
+.TP 
+\fI/var/catman/cat[1\-9]\fP ou \fI/var/cache/man/cat[1\-9]\fP
+Ces répertoires contiennent les pages de manuel préformatées des sections
+correspondantes. L'utilisation des pages de manuel préformatées tombe en
+désuétude.
+.TP 
+\fI/var/cron\fP
+Réservé pour des raisons historiques.
+.TP 
+\fI/var/lib\fP
+Données variables pour divers programmes.
+.TP 
+\fI/var/local\fP
+Données variables pour \fI/usr/local\fP.
+.TP 
+\fI/var/lock\fP
+Les fichiers de verrouillage sont placés dans ce répertoire. La convention
+de noms pour ces fichiers est \fILCK..<périphérique>\fP où
+\fI<périphérique>\fP est le nom du périphérique dans le système de
+fichiers. Le format utilisé est celui des fichiers de verrouillage HDU UUCP,
+c'est\-à\-dire ils contiennent un PID sous forme de nombre décimal, au format
+ASCII, de 10\ chiffres, suivi d'un caractère de Retour\-Chariot.
+.TP 
+\fI/var/log\fP
+Divers fichiers de journalisation.
+.TP 
+\fI/var/opt\fP
+Données variables pour \fI/opt\fP.
+.TP 
+\fI/var/mail\fP
+Boîtes à lettres des utilisateurs. Remplace \fI/var/spool/mail\fP.
+.TP 
+\fI/var/msgs\fP
+Réservé pour des raisons historiques.
+.TP 
+\fI/var/preserve\fP
+Réservé pour des raisons historiques.
+.TP 
+\fI/var/run\fP
+Fichiers de variables à l'exécution, comme les fichiers de verrouillage
+contenant le PID, ainsi que la journalisation des connexions \fI(utmp)\fP. Ces
+fichiers sont normalement effacés lors du démarrage.
+.TP 
+\fI/var/spool\fP
+Contient les fichiers spool ou files pour divers programmes.
+.TP 
+\fI/var/spool/at\fP
+Contient les jobs programmés pour \fBat\fP(1).
+.TP 
+\fI/var/spool/cron\fP
+Contient les tâches programmés pour \fBcron\fP(8).
+.TP 
+\fI/var/spool/lpd\fP
+Contient les fichiers en attente d'impression.
+.TP 
+\fI/var/spool/mail\fP
+Remplacé par \fI/var/mail\fP.
+.TP 
+\fI/var/spool/mqueue\fP
+Courriers en attente d'émission.
+.TP 
+\fI/var/spool/news\fP
+Répertoire de fichiers en attente pour les news.
+.TP 
+\fI/var/spool/rwho\fP
+Fichier en attente pour \fBrwhod\fP(8).
+.TP 
+\fI/var/spool/smail\fP
+Contient les fichiers en attente pour le programme \fBsmail\fP(1) de
+distribution du courrier.
+.TP 
+\fI/var/spool/uucp\fP
+contient les fichiers en attente pour \fBuucp\fP(1).
+.TP 
+\fI/var/tmp\fP
+Comme \fI/tmp\fP, ce répertoire contient des fichiers temporaires stockés pour
+une durée indéterminée.
+.TP 
+\fI/var/yp\fP
+Base de données pour NIS.
+.SH CONFORMITÉ
+Norme du système de fichiers Linux, FHS version\ 2.2
+.UR http://www.pathname.com\:/fhs/
+.UE .
+.SH BOGUES
+Cette liste n'est pas exhaustive, certains systèmes peuvent être configurés
+différemment.
+.SH "VOIR AUSSI"
+\fBfind\fP(1), \fBln\fP(1), \fBproc\fP(5), \fBmount\fP(8)
+
+La norme du système de fichiers Linux, FHS.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

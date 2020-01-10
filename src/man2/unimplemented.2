@@ -1,0 +1,76 @@
+.\" Copyright 1995 Michael Chastain (mec@shell.portal.com), 15 April 1995.
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Updated, aeb, 980612
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UNIMPLEMENTED 2 "12 février 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+afs_syscall, break, fattach, fdetach, ftime, getmsg, getpmsg, gtty,
+isastream, lock, madvise1, mpx, prof, profil, putmsg, putpmsg, security,
+stty, tuxcall, ulimit, vserver \- Appels système non implémentés
+.SH SYNOPSIS
+Appels système non implémentés.
+.SH DESCRIPTION
+Ces appels système ne sont pas implémentés dans le noyau Linux.
+.SH "VALEUR RENVOYÉE"
+Tous ces appels système renvoient \-1 et \fIerrno\fP contient le code d'erreur
+\fBENOSYS\fP.
+.SH NOTES
+Remarquez que \fBftime\fP(3), \fBprofil\fP(3), et \fBulimit\fP(3) sont implémentés
+comme des fonctions de bibliothèque.
+
+Certains appels système comme \fBalloc_hugepages\fP(2), \fBfree_hugepages\fP(2),
+\fBioperm\fP(2), \fBiopl\fP(2), et \fBvm86\fP(2) n'existent que sur certaines
+architectures.
+
+Certains appels système comme \fBipc\fP(2), \fBcreate_module\fP(2),
+\fBinit_module\fP(2), et \fBdelete_module\fP(2) n'existent que si le noyau Linux a
+été compilé avec les options de support adéquates.
+.SH "VOIR AUSSI"
+\fBsyscalls\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,224 @@
+.\" t
+.\" Copyright (c) 2001, Michael Kerrisk (mtk.manpages@gmail.com)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" aeb, various minor fixes
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SIGALTSTACK 2 "26 septembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+sigaltstack \- Consultez ou définir la pile de signal
+.SH SYNOPSIS
+\fB#include <signal.h>\fP
+.sp
+\fBint sigaltstack(const stack_t *\fP\fIss\fP\fB, stack_t *\fP\fIoss\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBsigaltstack\fP()\ :
+.ad l
+.RS 4
+.PD 0
+_BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.br
+|| /* Depuis la glibc 2.12\ : */ _POSIX_C_SOURCE\ >=\ 200809L
+.PD
+.RE
+.ad
+.SH DESCRIPTION
+\fBsigaltstack\fP() permet à un processus de définir une nouvelle pile
+spécifique pour les gestionnaires de signaux et/ou de récupérer l'état d'une
+pile spécifique de signal déjà existante. Une pile spécifique de signal est
+utilisée durant l'exécution d'un gestionnaire de signal si la mise en place
+de ce gestionnaire (consultez \fBsigaction\fP(2)) le spécifiait.
+
+La séquence d'actions nominale pour utiliser une pile spécifique de signal
+est la suivante\ :
+.TP  3
+1.
+Allouer une zone mémoire qui sera utilisée comme pile spécifique de signal.
+.TP 
+2.
+Utiliser \fBsigaltstack\fP() afin d'informer le système de l'existence et de la
+position de la pile spécifique de signal.
+.TP 
+3.
+Lors de la mise en place du gestionnaire de signal en utilisant
+\fBsigaction\fP(2), informer le système que ce gestionnaire de signal doit être
+exécuté sur la pile spécifique de signal en positionnant le drapeau
+\fBSA_ONSTACK\fP.
+.P
+L'argument \fIss\fP est utilisé afin de définir une nouvelle pile spécifique de
+signal, tandis que l'argument \fIoss\fP est utilisé afin de récupérer des
+informations sur la pile de signal actuellement en place. Si une seule de
+ces actions vous intéresse, alors l'autre argument peut être positionné à
+NULL. Chacun de ces paramètres est une structure du type suivant\ :
+.sp
+.in +4n
+.nf
+typedef struct {
+    void  *ss_sp;     /* Adresse de base de la pile*/
+    int    ss_flags;  /* drapeaux */
+    size_t ss_size;   /* Nombre d'octets dans la pile */
+} stack_t;
+.fi
+.in
+
+Afin de mettre en place une nouvelle pile spécifique de signal,
+\fIss.ss_flags\fP est positionné à zéro, et \fIss.ss_sp\fP et \fIss.ss_size\fP
+spécifient l'adresse de début et la taille de la pile. La constante
+\fBSIGSTKSZ\fP est définie de façon à être suffisamment grande pour couvrir les
+besoins typiques en espace mémoire d'une pile spécifique de signal, et la
+constante \fBMINSIGSTKSZ\fP définit la taille minimum nécessaire à l'exécution
+d'un gestionnaire de signal.
+
+Lorsqu'un gestionnaire de signal est invoqué sur la pile spécifique, le
+noyau aligne automatiquement l'adresse donnée dans \fIss.ss_sp\fP sur une
+valeur correcte pour l'architecture matérielle utilisée.
+
+Afin de désactiver une pile existante, positionnez \fIss.ss_flags\fP à
+\fBSS_DISABLE\fP. Dans ce cas, les autres champs de \fIss\fP sont ignorés.
+
+Si \fIoss\fP ne vaut pas NULL, alors il est utilisé afin de renvoyer des
+informations sur la pile spécifique de signal qui était utilisée avant
+l'appel à \fBsigaltstack\fP(). Les champs \fIoss.ss_sp\fP et \fIoss.ss_size\fP
+renvoient l'adresse de départ et la taille de cette pile. Le champ
+\fIoss.ss_flags\fP peut renvoyer l'une des valeurs suivantes\ :
+.TP 
+\fBSS_ONSTACK\fP
+Le processus s'exécute actuellement sur la pile spécifique de
+signal. (Remarquez qu'il n'est pas possible de changer la pile spécifique de
+signal si le processus est en train de s'exécuter sur cette dernière.)
+.TP 
+\fBSS_DISABLE\fP
+La pile spécifique de signal est actuellement désactivée.
+.SH "VALEUR RENVOYÉE"
+\fBsigaltstack\fP() renvoie 0 en cas de succès, ou \-1 en cas d'échec en
+positionnant alors \fIerrno\fP pour préciser l'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+L'un des paramètres \fIss\fP ou \fIoss\fP ne vaut pas NULL et pointe vers une zone
+mémoire n'appartenant pas à l'espace d'adressage du processus.
+.TP 
+\fBEINVAL\fP
+\fIss\fP ne vaut pas NULL et le champ \fIss_flags\fP contient une valeur non nulle
+différente de \fBSS_DISABLE\fP.
+.TP 
+\fBENOMEM\fP
+La taille de la nouvelle pile spécifique de signal indiquée (\fIss.ss_size\fP)
+est inférieure à \fBMINSTKSZ\fP.
+.TP 
+\fBEPERM\fP
+On a essayé de modifier la pile spécifique de signal alors que celle\-ci
+était active (c'est\-à\-dire, le processus était déjà en train de s'exécuter
+sur la pile spécifique de signal courante).
+.SH CONFORMITÉ
+SUSv2, SVr4, POSIX.1\-2001.
+.SH NOTES
+Le cas le plus courant d'utilisation d'une pile spécifique est pour la
+gestion du signal \fBSIGSEGV\fP qui est généré si la place disponible pour la
+pile normale du processus est épuisée. Dans ce cas, un gestionnaire pour
+\fBSIGSEGV\fP ne peut pas être exécuté sur la pile du processus\ ; si l'on
+souhaite l'intercepter, on doit utiliser une pile spécifique.
+.P
+La mise en place d'une pile spécifique de signal est utile si un processus
+soupçonne qu'il est susceptible d'épuiser sa pile standard. Cela peut se
+produire, par exemple, lorsque la pile grossit au point de rencontrer la
+limite supérieure du tas, ou si elle atteint une limite établie par un appel
+à \fBsetrlimit(RLIMIT_STACK, &rlim)\fP. Si la pile standard est épuisée, le
+noyau envoie au processus un signal \fBSIGSEGV\fP. Dans ces circonstances, la
+seule façon d'intercepter ce signal est d'utiliser une pile spécifique de
+signal.
+.P
+Sur la plupart des architectures supportées par Linux, les piles s'étendent
+vers les adresses décroissantes. \fBsigaltstack\fP() prend automatiquement en
+charge le sens d'expansion de la pile.
+.P
+Les fonctions appelées depuis un gestionnaire de signal s'exécutant sur une
+pile spécifique de signal utilisent également cette pile. (Cela s'applique
+également à tous les gestionnaires invoqués pour d'autres signaux alors que
+le processus s'exécute sur la pile spécifique de signal.) Contrairement à la
+pile standard, le système n'accroît pas automatiquement la pile spécifique
+de signal. Dépasser la taille allouée pour la pile spécifique de signal
+conduit à des résultats imprévisibles.
+.P
+Un appel \fBexecve\fP(2) réussi détruit toutes piles spécifiques de signal
+existantes. Un processus fils créé avec \fBfork\fP(2) hérite d'une copie des
+paramètres de la pile spécifique de signal de son père.
+.P
+\fBsigaltstack\fP() succède à l'ancien appel \fBsigstack\fP(). Pour des raisons de
+compatibilité, la glibc implémente \fBsigstack\fP(). Toutes les nouvelles
+applications devraient être écrites en utilisant \fBsigaltstack\fP().
+.SS Historique
+BSD\ 4.2 possédait un appel système \fBsigstack\fP(). Il utilisait une
+structure légèrement différente, et avait comme désavantage principal la
+nécessité pour l'appelant de connaître le sens d'expansion de la pile.
+.SH EXEMPLE
+Le segment de code suivant donne un exemple d'utilisation de
+\fBsigaltstack\fP()\ :
+
+.in +4n
+.nf
+stack_t ss;
+
+ss.ss_sp = malloc(SIGSTKSZ);
+if (ss.ss_sp == NULL)
+    /* Traitement de l'erreur */;
+ss.ss_size = SIGSTKSZ;
+ss.ss_flags = 0;
+if (sigaltstack(&ss, NULL) == \-1)
+    /* Traitement de l'erreur */;
+.fi
+.in
+.SH "VOIR AUSSI"
+\fBexecve\fP(2), \fBsetrlimit\fP(2), \fBsigaction\fP(2), \fBsiglongjmp\fP(3),
+\fBsigsetjmp\fP(3), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

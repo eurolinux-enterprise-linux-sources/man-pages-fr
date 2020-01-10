@@ -1,0 +1,163 @@
+.\" This manpage is Copyright (C) 1992 Drew Eckhardt;
+.\"             and Copyright (C) 1993 Michael Haardt, Ian Jackson.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 1993-07-24 by Rik Faith
+.\" Modified 1996-04-26 by Nick Duffek <nsd@bbc.com>
+.\" Modified 1996-11-06 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1997-01-31 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYMLINK 2 "27 janvier 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+symlink \- Créer un nouveau nom pour un fichier
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBint symlink(const char *\fP\fIoldpath\fP\fB, const char *\fP\fInewpath\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBsymlink\fP()\ :
+.RS 4
+_BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED || _POSIX_C_SOURCE\ >=\ 200112L
+.RE
+.ad b
+.SH DESCRIPTION
+\fBsymlink\fP() crée un lien symbolique avec le nom \fInewpath\fP indiqué, et qui
+pointe sur \fIoldpath\fP.
+
+Les liens sont interprétés à l'exécution, comme si le contenu du lien était
+remplacé par le chemin d'accès pour trouver un fichier ou un répertoire.
+
+Les liens symboliques peuvent contenir \fI..\fP pour le chemin, qui (s'il est
+utilisé au début du lien) se réfère aux répertoires parents du lien.
+
+Un lien symbolique (aussi nommé «\ soft link\ ») peut pointer vers un
+fichier existant ou sur un fichier non existant.
+
+Les permissions d'accès à un lien symbolique sont sans importance, le
+propriétaire est ignoré lorsque l'on suit le lien, il n'est vérifié que pour
+supprimer ou renommer le lien si celui\-ci se trouve dans un répertoire avec
+le sticky bit (\fBS_ISVTX\fP) positionné.
+
+Si \fInewpath\fP existe, il ne sera \fIpas\fP écrasé.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+L'écriture dans le répertoire contenant \fInewpath\fP est interdite, ou l'un
+des répertoires composant \fInewpath\fP ne permet pas le parcours. (Consultez
+aussi \fBpath_resolution\fP(7).)
+.TP 
+\fBEDQUOT\fP
+Le quota de ressources de l'utilisateur sur le système de fichiers a été
+atteint. Les ressources peuvent être des inœuds ou des blocs de disque,
+suivant l'implémentation sur le système de fichiers.
+.TP 
+\fBEEXIST\fP
+\fInewpath\fP existe déjà.
+.TP 
+\fBEFAULT\fP
+\fIoldpath\fP ou \fInewpath\fP pointent en dehors de l'espace d'adressage
+accessible.
+.TP 
+\fBEIO\fP
+Une erreur d'entrée\-sortie s'est produite.
+.TP 
+\fBELOOP\fP
+\fInewpath\fP contient une référence circulaire (à travers un lien symbolique).
+.TP 
+\fBENAMETOOLONG\fP
+\fIoldpath\fP ou \fInewpath\fP est trop long.
+.TP 
+\fBENOENT\fP
+Un répertoire dans le chemin \fInewpath\fP n'existe pas ou est un lien
+symbolique pointant nulle part. Ou encore \fIoldpath\fP est une chaîne vide.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.TP 
+\fBENOSPC\fP
+Le périphérique contenant le fichier n'a pas de place pour une nouvelle
+entrée de répertoire.
+.TP 
+\fBENOTDIR\fP
+Un composant utilisé comme un répertoire dans le chemin \fInewpath\fP n'est en
+fait pas un répertoire.
+.TP 
+\fBEPERM\fP
+le système de fichiers contenant \fInewpath\fP ne permet pas la création de
+liens symboliques.
+.TP 
+\fBEROFS\fP
+Le chemin \fInewpath\fP se trouve sur un système de fichiers en lecture seule.
+.SH CONFORMITÉ
+.\" SVr4 documents additional error codes EDQUOT and ENOSYS.
+.\" See
+.\" .BR open (2)
+.\" re multiple files with the same name, and NFS.
+SVr4, BSD\ 4.3, POSIX.1\-2001.
+.SH NOTES
+Il n'y a pas de vérification de l'existence de \fIoldpath\fP.
+
+Effacer le nom référencé par un lien symbolique effacera effectivement le
+fichier (à moins qu'il ait d'autres liens matériels). Si ce comportement est
+indésirable, utiliser \fBlink\fP(2).
+.SH "VOIR AUSSI"
+\fBln\fP(1), \fBlchown\fP(2), \fBlink\fP(2), \fBlstat\fP(2), \fBopen\fP(2), \fBreadlink\fP(2),
+\fBrename\fP(2), \fBsymlinkat\fP(2), \fBunlink\fP(2), \fBpath_resolution\fP(7),
+\fBsymlink\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

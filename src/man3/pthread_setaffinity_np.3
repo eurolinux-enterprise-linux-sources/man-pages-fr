@@ -1,0 +1,194 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_SETAFFINITY_NP 3 "10 septembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_setaffinity_np, pthread_getaffinity_np \- Définir et obtenir
+l'affinité CPU d'un thread
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP             /* Consultez feature_test_macros(7) */
+\fB#include <pthread.h>\fP
+
+\fBint pthread_setaffinity_np(pthread_t \fP\fIthread\fP\fB, size_t \fP\fIcpusetsize\fP\fB,\fP
+\fB                           const cpu_set_t *\fP\fIcpuset\fP\fB);\fP
+\fBint pthread_getaffinity_np(pthread_t \fP\fIthread\fP\fB, size_t \fP\fIcpusetsize\fP\fB,\fP
+\fB                           cpu_set_t *\fP\fIcpuset\fP\fB);\fP
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+La fonction \fBpthread_setaffinity_np\fP() définit le masque d'affinité CPU du
+thread \fIthread\fP comme étant l'ensemble de CPU pointé par \fIcpuset\fP. Si
+l'appel réussit et que le thread n'est pas en cours d'exécution sur un des
+CPU de \fIcpuset\fP, alors il est déplacé sur un de ces CPU.
+
+La fonction \fBpthread_getaffinity_np\fP() renvoie, dans le tampon pointé par
+\fIcpuset\fP, le masque d'affinité CPU du thread \fIthread\fP.
+
+Pour plus de détails sur les masques d'affinité CPU, consultez
+\fBsched_setaffinity\fP(2). Pour une description d'un jeu de macros qui peuvent
+être utilisées pour manipuler et inspecter des ensembles de CPU, consultez
+\fBCPU_SET\fP(3).
+
+Le paramètre \fIcpusetsize\fP est la longueur (en octets) du tampon pointé par
+\fIcpuset\fP. Typiquement, ce paramètre sera \fIsizeof (cpu_set_t)\fP (il peut
+prendre d'autres valeurs, si on utilise les macros décrites dans
+\fBCPU_SET\fP(3) pour allouer dynamiquement un ensemble de CPU).
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient 0\ ; en cas d'erreur elles
+renvoient un numéro d'erreur non nul.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+Une adresse mémoire fournie n'est pas correcte.
+.TP 
+\fBEINVAL\fP
+(\fBpthread_setaffinity_np\fP()) Le masque de bits d'affinité \fImask\fP ne
+contient pas de processeurs qui soit actuellement physiquement sur le
+système et autorisé pour le thread d'après les restrictions imposées par le
+mécanisme d'ensembles de CPU décrit dans \fBcpuset\fP(7).
+.TP 
+\fBEINVAL\fP
+.\" FIXME . ?
+.\" Loic Domaigne commented: it seems that in the future the
+.\" kernel developers want to make cpumask_t dynamic, so
+.\" CONFIG_NR_CPUS might become obsolete in the future.
+.\" cpumask_t
+.\" The raw sched_getaffinity() system call returns the size (in bytes)
+.\" of the cpumask_t type.
+(\fBpthread_setaffinity_np\fP()) Le \fIcpuset\fP indique un CPU en dehors de
+l'ensemble pris en charge par le noyau (l'option de configuration du noyau
+\fBCONFIG_NR_CPUS\fP définie l'intervalle de l'ensemble pris en charge par le
+type de données du noyau utilisé pour représenter les ensembles de CPU).
+.TP 
+\fBEINVAL\fP
+(\fBpthread_getaffinity_np\fP()) \fIcpusetsize\fP est plus petit que le taille du
+masque d'affinité utilisé par le noyau.
+.TP 
+\fBESRCH\fP
+Aucun thread avec pour identifiant \fIthread\fP n'a pu être trouvé.
+.SH VERSIONS
+Ces fonctions sont fournies par la glibc depuis la version\ 2.3.4.
+.SH CONFORMITÉ
+Ces fonctions sont des extensions non standard GNU\ ; c'est la raison du
+suffixe «\ _np\ » (non portable) dans leur nom.
+.SH NOTES
+Après un appel à \fBpthread_setaffinity_np\fP(), l'ensemble de CPU sur lesquels
+le processus s'exécutera est l'intersection de l'ensemble spécifié dans le
+paramètre \fIcpuset\fP et l'ensemble des CPU actuellement présents sur le
+système. Le système peut restreindre encore plus l'ensemble des CPU sur
+lesquels le processus peut tourner si le mécanisme «\ cpuset\ », décrit dans
+\fBcpuset\fP(7), est utilisé. Ces restrictions sur le véritable ensemble de CPU
+sur lesquels le processus peut tourner sont imposées sans avertissement par
+le noyau.
+
+Ces fonctions sont implémentées en utilisant les appels système
+\fBsched_setaffinity\fP(2) et \fBsched_getaffinity\fP(2).
+
+Dans la glibc 2.3.3, uniquement, les versions de ces fonctions n'avaient pas
+de paramètre \fIcpusetsize\fP. À la place, la taille de l'ensemble de CPU
+fourni à l'appel système sous\-jacent était toujours \fIsizeof(cpu_set_t)\fP.
+
+Un nouveau thread créé avec \fBpthread_create\fP(3) hérite d'une copie du
+masque d'affinité CPU de son créateur.
+.SH EXEMPLE
+Dans le programme suivant, le thread principal utilise
+\fBpthread_setaffinity_np\fP() pour définir son masque d'affinité CPU incluant
+les CPU 0 à 7 (qui peuvent ne pas être tous présents sur le système), puis
+appelle \fBpthread_getaffinity_np\fP() pour vérifier le masque d'affinité CPU
+finalement utilisé pour le thread.
+
+.nf
+#define _GNU_SOURCE
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+
+#define handle_error_en(en, msg) \e
+        do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
+
+int
+main(int argc, char *argv[])
+{
+    int s, j;
+    cpu_set_t cpuset;
+    pthread_t thread;
+
+    thread = pthread_self();
+
+    /* Set affinity mask to include CPUs 0 to 7 */
+
+    CPU_ZERO(&cpuset);
+    for (j = 0; j < 8; j++)
+        CPU_SET(j, &cpuset);
+
+    s = pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+    if (s != 0)
+        handle_error_en(s, "pthread_setaffinity_np");
+
+    /* Check the actual affinity mask assigned to the thread */
+
+    s = pthread_getaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+    if (s != 0)
+        handle_error_en(s, "pthread_getaffinity_np");
+
+    printf("Set returned by pthread_getaffinity_np() contained:\en");
+    for (j = 0; j < CPU_SETSIZE; j++)
+        if (CPU_ISSET(j, &cpuset))
+            printf("    CPU %d\en", j);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBsched_setaffinity\fP(2), \fBsched_setscheduler\fP(2),
+\fBpthread_attr_setaffinity_np\fP(3), \fBpthread_self\fP(3), \fBsched_getcpu\fP(3),
+\fBcpuset\fP(7), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

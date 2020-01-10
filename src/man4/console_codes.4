@@ -1,0 +1,643 @@
+.\" t
+.\" Copyright (c) 1996 Andries Brouwer <aeb@cwi.nl>, Mon Oct 31 22:13:04 1996
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" This is combined from many sources.
+.\" For Linux, the definitive source is of course console.c.
+.\" About vt100-like escape sequences in general there are
+.\" the ISO 6429 and ISO 2022 norms, the descriptions of
+.\" an actual vt100, and the xterm docs (ctlseqs.ms).
+.\" Substantial portions of this text are derived from a write-up
+.\" by Eric S. Raymond <esr@thyrsus.com>.
+.\"
+.\" Tiny correction, aeb, 961107.
+.\"
+.\" 2006-05-27, Several corrections - Thomas E. Dickey
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CONSOLE_CODES 4 "5 août 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+console_codes \- Séquence de contrôle des consoles
+.SH DESCRIPTION
+Sous Linux, le gestionnaire de console implémente un sous\-ensemble important
+des séquences de contrôle des terminaux VT102 et ECMA\-48/ISO 6429/ANSI
+X3.64, ainsi que quelques séquences spécifiques pour le changement de
+palette de couleurs, de jeu de caractères, etc. Dans la description
+ci\-dessous, la seconde colonne de la table contient les mnémoniques ECMA\-48
+ou DEC (ces derniers ayant le préfixe DEC) pour chaque fonction
+indiquée. Les séquences sans mnémonique ne correspondent ni à l'ECMA\-48 ni
+au VT102.
+.LP
+Lorsque tout le prétraitement nécessaire à une sortie est terminé, et qu'un
+flux de caractères arrive au gestionnaire de console pour être effectivement
+affiché, la traduction des codes utilisés pour le prétraitement en codes
+utilisés pour l'affichage a lieu avant tout.
+.LP
+Si la console est en mode UTF\-8, les octets arrivant sont tout d'abord
+assemblés en codes sur 16 bits au standard Unicode. Sinon, chaque octet est
+transformé en fonction de la table de correspondance en cours (qui convertit
+chaque octet en une valeur Unicode). Consultez la section \fBJEUX DE
+CARACTÈRES\fP plus bas pour plus de détails.
+.LP
+Normalement, la valeur Unicode est convertie en un index dans la table de
+caractères, qui est alors stocké dans la mémoire vidéo, afin que le symbole
+graphique correspondant (comme ceux qui se trouvent dans la mémoire morte
+vidéo), apparaisse sur l'écran. Notez que l'utilisation de l'Unicode, et la
+conception des PC, permettent de disposer simultanément de 512 symboles
+différents.
+.LP
+Si la valeur Unicode rencontrée est un caractère de contrôle ou si l'on est
+déjà dans le traitement d'une séquence d'échappement, la valeur sera traitée
+de manière particulière. Plutôt que d'être convertie en un index dans la
+table des caractères et affichée comme un symbole, elle peut provoquer un
+déplacement du curseur ou toute autre fonction de contrôle. Consultez le
+paragraphe \fBCONTRÔLE DE LA CONSOLE LINUX\fP plus bas pour plus de détails.
+.LP
+Il vaut mieux éviter en général de coder en dur les contrôles de terminaux
+dans les programmes. Linux propose l'utilisation de la base de données
+\fBterminfo\fP(5) concernant les possibilités des terminaux. Plutôt que
+d'émettre des séquences d'échappement à la main, vous pourrez presque
+toujours utiliser des bibliothèques de gestion de terminaux utilisant
+terminfo ou des utilitaires comme \fBncurses\fP(3), \fBtput\fP(1) ou \fBreset\fP(1).
+.SS "Commandes de la console Linux"
+Ce paragraphe décrit tous les caractères de commande et les séquences
+d'échappement qui déclenchent certaines fonctions spéciales (c'est\-à\-dire
+n'affichant pas un symbole graphique à la position du curseur) sur la
+console Linux.
+.PP
+\fBCaractères de contrôle\fP
+.sp
+Un caractère est dit «\ de contrôle\ » s'il correspond à l'un des 14 codes
+suivants (avant traduction par la table de correspondance en cours)\ : 00
+(NUL), 07 (BEL), 08 (BS), 09 (HT), 0A (LF), 0B (VT), 0C (FF), 0D (CR), 0E
+(SO), 0F (SI), 18 (CAN), 1A (SUB), 1B (ESC), 7F (DEL). Un mode d'affichage
+des caractères de contrôle (voir plus bas), dans lequel les codes 07, 09,
+0B, 18, 1A, et 7F seront quand même affichés sous forme graphique, peut être
+défini. Inversement, en mode UTF\-8, tous les codes de l'intervalle 00\-1F
+sont considérés comme des caractères de contrôle quel que soit le mode
+d'affichage de ces codes.
+.PP
+Lorsqu'un caractère de contrôle est rencontré, il agit immédiatement, puis
+est oublié (même au milieu d'une séquence d'échappement, laquelle continue
+avec le caractère suivant). Toutefois, ESC indique le début d'une nouvelle
+séquence d'échappement, annulant alors une éventuelle séquence déjà
+commencée. De même, CAN et SUB annulent toute séquence d'échappement
+entamée. Les caractères de contrôle reconnus sont BEL, BS, HT, LF, VT, FF,
+CR, SO, SI, CAN, SUB, ESC, DEL, CSI. Ils effectuent les actions suivantes\ :
+.HP
+BEL (0x07, \fB^G\fP) émet un bip,
+.HP
+BS (0x08, \fB^H\fP) revient en arrière d'une colonne (mais ne remonte pas à la
+ligne précédente quand il est invoqué en début de ligne),
+.HP
+HT (0x09, \fB^I\fP) saute à la prochaine tabulation ou à la fin de ligne s'il
+n'y a pas de tabulation d'ici là,
+.HP
+LF (0x0A, \fB^J\fP), VT (0x0B, \fB^K\fP) et FF (0x0C, \fB^L\fP) effectuent tous les
+trois un saut de ligne, et si LF/NL (mode new\-line) est actif, effectue un
+retour\-chariot\ ;
+.HP
+CR (0x0D, \fB^M\fP) déclenche un retour\-chariot,
+.HP
+SO (0x0E, \fB^N\fP) active le jeu de caractères G1,
+.HP
+SI (0x0F, \fB^O\fP) active le jeu de caractères G0,
+.HP
+CAN (0x18, \fB^X\fP) et SUB (0x1A, \fB^Z\fP) interrompent les séquences
+d'échappement,
+.HP
+ESC (0x1B, \fB^[\fP) débute une séquence d'échappement,
+.HP
+DEL (0x7F) est ignoré,
+.HP
+CSI (0x9B) est équivalent à ESC [.
+.PP
+\fBSéquences d'échappement ESC, non CSI\fP
+.TS
+l l l.
+ESC c	RIS	Réinitialisation.
+ESC D	IND	Saut de ligne.
+ESC E	NEL	Nouvelle ligne.
+ESC H	HTS	Positionner une tabulation à la colonne en cours
+ESC M	RI	Saut de ligne inversé.
+ESC Z	DECID	T{
+Identification privée DEC. Le noyau
+renvoie la chaîne ESC [ ? 6 c, simulant
+un VT102.
+T}
+ESC 7	DECSC	T{
+Sauvegarde de l'état en cours (coordonnées curseur,
+attributs, jeux de caractères pointés par G0, G1).
+T}
+ESC 8	DECRC	Restaure l'état sauvegardé le plus récemment
+		par ESC 7.
+ESC [	CSI	Début de séquence de contrôle.
+ESC %		Début de séquence de sélection de jeu de caractère.
+ESC % @		\0\0\0Jeu par défaut (ISO 646/ISO 8859\-1)
+ESC % G		\0\0\0Jeu UTF\-8
+ESC % 8		\0\0\0Jeu UTF\-8 (obsolète)
+ESC # 8	DECALN	Test d'alignement d'écran DEC, remplit l'écran avec
+		des E.
+ESC (		Début de séquence de définition du jeu G0
+ESC ( B		\0\0\0Correspondance par défaut (ISO 8859\-1)
+ESC ( 0		\0\0\0Correspondance VT100 graphique
+ESC ( U		\0\0\0Pas de correspondance \- caractères en ROM
+ESC ( K		\0\0\0Correspondance définie par l'utilisateur
+		\0\0\0avec l'utilitaire \fBmapscrn\fP(8).
+ESC )		Début de séquence de définition du jeu G1
+		(suivi de B, 0, U, K, comme ci\-dessus).
+ESC >	DECPNM	Mode de pavé numérique.
+ESC =	DECPAM	Mode de pavé alphabétique.
+ESC ]	OSC	T{
+(Doit être\ : Operating system command)
+ESC ] P \fInrrvvbb\fP\ : définit la palette, le paramètre est
+fourni avec 7 chiffres hexadécimaux après le P final.
+\fIn\fP est la couleur (0\-15), et \fIrrvvbb\fP indique
+les valeurs rouge/verte/bleue (0\-255).
+ESC ] R\ : réinitialise la palette.
+T}
+.TE
+.PP
+\fBSéquences d'échappement ECMA\-48 CSI\fP
+.sp
+CSI (ou ESC [) est suivi d'une série de paramètres, au plus NPAR (16),
+représentés par des nombres décimaux séparés par des points\-virgules. Un
+paramètre vide ou absent est considéré comme nul. La série de paramètres
+peut être précédée par un point d'interrogation.
+.PP
+Toutefois, après CSI [ (ou ESC [ [) un seul caractère est lu, et le reste de
+la séquence est ignoré. L'idée est d'éliminer les touches de fonctions
+doublées.
+.PP
+L'action déclenchée par une séquence CSI est indiquée par le dernier
+caractère.
+.TS
+l l l.
+@	ICH	Insère le nombre indiqué de caractères blancs.
+A	CUU	Remonter le curseur du nombre de lignes indiqué.
+B	CUD	Descendre le curseur du nombre de lignes indiqué.
+C	CUF	Avancer le curseur du nombre de colonnes indiqué.
+D	CUB	Reculer le curseur du nombre de colonnes indiqué.
+E	CNL	Descendre le curseur du nombre de lignes indiqué, en
+		colonne numéro 1.
+F	CPL	Remonter le curseur du nombre de lignes indiqué,
+		en colonne numéro 1.
+G	CHA	Déplacer le curseur à la ligne indiquée, même colonne.
+H	CUP	Déplacer le curseur à la ligne et à la colonne indiquée
+		(origine en 1, 1).
+J	ED	Effacer l'écran (par défaut depuis la position du curseur
+		jusqu'à la fin de l'écran).
+		ESC [ 1 J\ : efface du début jusqu'au curseur.
+		ESC [ 2 J\ : efface tout l'écran.
+		ESC [ 3 J\ : efface tout l'écran, y compris le tampon de.
+		            défilement arrière (depuis Linux 3.0).
+.\" ESC [ 3 J: commit f8df13e0a901fe55631fed66562369b4dba40f8b
+K	EL	Efface la ligne (par défaut depuis le curseur jusqu'à
+		la fin de la ligne).
+		ESC [ 1 K\ : efface du début de ligne jusqu'au curseur.
+		ESC [ 2 K\ : efface toute la ligne.
+L	IL	Insère le nombre indiqué de lignes blanches.
+M	DL	Supprimer le nombre indiqué de lignes.
+P	DCH	Supprimer le nombre indiqué de caractères sur la ligne
+		en cours.
+X	ECH	Effacer le nombre indiqué de caractères sur la ligne
+		en cours.
+a	HPR	Déplacer le curseur vers la droite du nombre de
+		colonnes indiqué.
+c	DA	Répondre ESC [ ? 6 c\ : «\ Je suis un VT102\ ».
+d	VPA	Placer le curseur sur la ligne indiquée, même colonne.
+e	VPR	Descendre le curseur du nombre indiqué de lignes.
+f	HVP	Placer le curseur aux lignes et colonnes indiquées.
+g	TBC	Sans paramètre\ : effacer la tabulation à la position
+		courante.
+		ESC [ 3 g\ : effacer toutes les tabulations.
+h	SM	Définit le mode (voir plus bas).
+l	RM	Réinitialise le mode (voir plus bas).
+m	SGR	Définit les attributs (voir plus bas).
+n	DSR	Indique l'état (voir plus bas).
+q	DECLL	Définit les LED du clavier.
+		ESC [ 0 q\ : Effacer toutes les LED
+		ESC [ 1 q\ : Allumer LED Scroll\-Lock (Défilement)
+		ESC [ 2 q\ : Allumer LED Num\-Lock (Pavé numérique)
+		ESC [ 3 q\ : Allumer LED Caps\-Lock (Majuscules)
+r	DECSTBM	Indique une région de défilement,
+		les paramètres correspondent aux lignes haute et basse.
+s	?	Mémoriser l'emplacement du curseur.
+u	?	Restituer l'emplacement du curseur.
+\`	HPA	Déplacer le curseur à la colonne indiquée, même ligne.
+.TE
+.PP
+\fBAffichage graphique ECMA\-48\fP
+.sp
+La séquence ECMA\-48 SGR suivante ESC [ \fIparamètres\fP m définit les
+paramètres d'affichage. Plusieurs attributs peuvent être indiqués dans la
+même séquence, séparés par des points\-virgules. Un attribut vide (entre les
+points\-virgules ou en début ou fin de chaîne) est interprété comme valant
+zéro.
+.TS
+l l.
+param	résultat.
+0	réinitialiser tous les attributs à leurs valeurs par défaut.
+1	attribut gras.
+2	attribut demi\-luminosité (simulé par une couleur sur certains
+	écrans couleur).
+4	T{
+attribut soulignement (simulé par une couleur sur certains
+écrans couleur).
+(Les couleurs utilisées pour simuler la demi\-luminosité ou le
+soulignement sont choisies en utilisant ESC ] ...).
+T}
+5	clignotement.
+7	vidéo inversée.
+10	T{
+réinitialise la correspondance des touches, affiche l'état
+de contrôle et modifie l'attribut «\ méta\ » (ECMA\-48 l'appelle «\ fonte principale\ »).
+T}
+11	T{
+active une correspondance nulle, affiche l'état de contrôle et
+réinitialise l'état de l'attribut «\ méta\ » (ECMA\-48 l'appelle «\ première fonte alternative\ »).
+T}
+12	T{
+active une correspondance nulle, affiche l'état de contrôle et
+active l'attribut «\ méta\ » (ECMA\-48 l'appelle «\ seconde fonte alternative\ »).
+Le changement d'attribut méta sert 
+à modifier le bit de poids fort avant la conversion avec la 
+table de correspondance).
+T}
+21	intensité normale (ECMA\-48 l'appelle "doublement souligné")
+22	intensité normale.
+24	pas de soulignement.
+25	pas de clignotement.
+27	pas d'inversion vidéo.
+30	encre noire.
+31	encre rouge.
+32	encre verte.
+33	encre marron.
+34	encre bleue.
+35	encre magenta.
+36	encre cyan.
+37	encre blanche.
+38	soulignement, et couleur d'encre par défaut.
+39	arrêt soulignement et couleur d'encre par défaut.
+40	fond noir.
+41	fond rouge.
+42	fond vert.
+43	fond marron.
+44	fond bleu.
+45	fond magenta.
+46	fond cyan.
+47	fond blanc.
+49	couleur de fond par défaut.
+.TE
+.PP
+\fBModes ECMA\-48\fP
+.TP 
+ESC [ 3 h
+DECCRM (inactif par défaut)\ : afficher les caractères de contrôle.
+.TP 
+ESC [ 4 h
+DECIM (inactif par défaut)\ : mode d'insertion.
+.TP 
+ESC [ 20 h
+.\"
+LF/NL (inactif par défaut)\ : faire suivre les LF, VT ou FF par un CR.
+.PP
+.\"
+\fBDemande de rapport d'état ECMA\-48\fP
+.TP 
+ESC [ 5 n
+Rapport d'état du périphérique (DSR)\ : la réponse est ESC [ 0 n (Terminal
+OK).
+.TP 
+ESC [ 6 n
+.\"
+Rapport de position du curseur (CPR)\ : la réponse est ESC [ \fIy\fP\ ; \fIx\fP R,
+où \fIx,y\fP est la position actuelle du curseur.
+.PP
+\fBModes privés DEC (DECSET/DECRST)\fP
+.sp
+.\"
+Ces modes ne sont pas décrits dans l'ECMA\-48. La liste ci\-dessous présente
+les séquences d'activation des modes, les séquences de désactivation sont
+obtenues en remplaçant le «\ h\ » final par un «\ l\ ».
+.TP 
+ESC [ ? 1 h
+DECCKM (inactif par défaut)\ : les touches de déplacement du curseur
+émettent un préfixe ESC O plutôt que ESC [.
+.TP 
+ESC [ ? 3 h
+DECCOLM (inactif par défaut)\ : bascule de 80\ colonnes à 132\ colonnes. Les
+sources du gestionnaire de console indiquent que ce code n'est pas suffisant
+à lui seul. Certains utilitaires comme \fBresizecons\fP(8) modifient également
+les registres matériels de la carte vidéo.
+.TP 
+ESC [ ? 5 h
+DECSCNM (inactif par défaut)\ : mode d'inversion vidéo.
+.TP 
+ESC [ ? 6 h
+DECOM (inactif par défaut)\ : adressage du curseur relatif au coin haut
+gauche de la région de défilement.
+.TP 
+ESC [ ? 7 h
+DECAWM (actif par défaut)\ : saut de ligne automatique. Un caractère émis
+après la colonne 80 (ou 132 en mode DECCOLM), est affiché au début de la
+ligne suivante.
+.TP 
+ESC [ ? 8 h
+DECARM (actif par défaut)\ : répétition automatique des touches du clavier.
+.TP 
+ESC [ ? 9 h
+État de souris X10 (inactif par défaut)\ : définit le mode de rapport d'état
+de la souris à 1 (ou le réinitialise à 0) \(em voir plus bas.
+.TP 
+ESC [ ? 25 h
+DECTECM (actif par défaut)\ : curseur visible.
+.TP 
+ESC [ ? 1000 h
+.\"
+État de souris X11 (inactif par défaut)\ : définit le mode de rapport d'état
+de la souris à 2 (ou le réinitialise à 0) \(em voir plus bas.
+.PP
+\fBSéquences CSI privées de la console Linux\fP
+.sp
+.\"
+Les séquences suivantes ne sont ni ECMA\-48 ni du VT102 original. Elles sont
+spécifiques au gestionnaire de console de Linux. Les couleurs sont indiquées
+ainsi\ : 0 = noir, 1 = rouge, 2 = vert, 3 = marron, 4 = bleu, 5 = magenta, 6
+= cyan, 7 = blanc.
+.TS
+l l.
+ESC [ 1 ; \fIn\fP ]	Choisit la couleur \fIn\fP pour simuler le soulignement.
+ESC [ 2 ; \fIn\fP ]	Choisit la couleur \fIn\fP pour simuler la demi\-brillance.
+ESC [ 8 ]	Utilise la paire de couleurs actuelle par défaut.
+ESC [ 9 ; \fIn\fP ]	Délai d'économiseur d'écran en minutes.
+ESC [ 10 ; \fIn\fP ]	Fréquence du bip en Hz.
+ESC [ 11 ; \fIn\fP ]	Durée du bip en ms.
+ESC [ 12 ; \fIn\fP ]	Bascule sur la console virtuelle indiquée.
+ESC [ 13 ]	Arrête l'économiseur d'écran.
+ESC [ 14 ; \fIn\fP ]	Indique l'intervalle d'arrêt écran VESA en minutes.
+.TE
+.SS "Caractères de contrôle"
+Le noyau connaît 4 types de traductions des octets en symboles graphiques
+pour la console. Les 4 tables sont a) Latin1 \-> PC, b) VT100 graphique
+\-> PC, c) PC \-> PC, d) spécifique utilisateur.
+.PP
+Il existe deux jeux de caractères, appelés G0 et G1, et l'un d'entre eux est
+sélectionné comme jeu en cours (initialement G0). La frappe de \fB^N\fP
+sélectionne le jeu G1 comme jeu en cours, la frappe de \fB^O\fP sélectionne le
+jeu G0.
+.PP
+Ces variables G0 et G1 pointent vers des tables de traduction, qui peuvent
+être modifiées par l'utilisateur. Initialement elles pointent respectivement
+vers les tables a) et b). Les séquences \fIESC ( B\fP, \fIESC ( 0\fP, \fIESC ( U\fP
+et \fIESC ( K\fP font pointer G0 respectivement vers les tables a), b), c) et
+d). Les séquences \fIESC ) B\fP, \fIESC ) 0\fP, \fIESC ) U\fP, \fIESC ) K\fP font
+pointer G1 vers les tables a), b), c) et d) respectivement.
+.PP
+La séquence ESC c réinitialise le terminal. C'est ce qui doit être effectué
+lorsque l'écran est rempli de codes incompréhensibles. La commande classique
+«\ echo ^V^O\ » sélectionne seulement le jeu G0, elle ne garantit pas que G0
+pointe sur la table a). Dans certaines distributions, on trouve une commande
+\fBreset\fP(1) qui effectue simplement «\ echo ^[c\ ». Si l'entrée de la base
+terminfo pour la console est correcte, et dispose d'une entrée rs1=\eEc
+alors la commande «\ tput reset\ » fonctionnera aussi.
+.PP
+La table de correspondance définie par l'utilisateur peut être construite en
+utilisant \fBmapscrn\fP(8). Cette correspondance agit ainsi\ : si le symbole c
+doit être imprimé, alors le symbole s = map[c] est envoyé à la mémoire
+vidéo. La représentation graphique correspondant à s est placée par défaut
+en mémoire morte, et peut être modifiée en utilisant \fBsetfont\fP(8).
+.SS "Gestion de souris"
+Les possibilités de gestion de souris sont prévues pour fournir un rapport
+d'état de la souris compatible avec \fBxterm\fP(1). Comme le gestionnaire de
+console n'a aucun moyen de connaître le périphérique, ni le type de souris,
+ces rapports sont envoyés dans le flux de saisie de la console uniquement
+quand une requête ioctl de mise à jour de la souris est reçue. Ces requêtes
+doivent être déclenchées par une application utilisateur capable de gérer
+les souris, comme le démon \fBgpm\fP(8).
+.PP
+Les séquences de suivi de souris engendrées par \fBxterm\fP(1) sont encodés
+dans un unique caractère, de code \fIvaleur\fP+040. Par exemple, «\ !\ »
+correspond à 1. Le système de coordonnées d'écran commence à 1.
+.PP
+En mode de compatibilité X10, une séquence d'échappement est envoyée lors de
+l'appui sur un bouton, encodant la position et le numéro du bouton
+pressé. Ce mode est activé avec ESC [ ? 9 h et désactivé par ESC [ ? 9
+l. Lors d'une pression sur un bouton, \fBxterm\fP(1) envoie ESC [ M \fIbxy\fP (6
+caractères). Dans ce message \fIb\fP correspond au numéro de bouton \-1, \fIx\fP et
+\fIy\fP sont les coordonnées de l'emplacement où le bouton a été pressé. Ce
+sont les mêmes codes que ceux produits par le noyau.
+.PP
+En mode de suivi normal (non implémenté sous Linux 2.0.24), une séquence
+d'échappement est envoyée lors de l'appui sur un bouton, mais aussi lors du
+relâchement. Des informations sur les touches de modification (SHIFT,
+CTL...) sont également envoyées. Le mode est activé par ESC [ ? 1000 h et
+désactivé avec ESC [ ? 1000 l. Lors de l'appui ou du relâchement d'un
+bouton, \fBxterm\fP(1) envoie ESC [ M \fIbxy\fP. Les deux bits de poids faible de
+\fIb\fP correspondent à l'état du bouton 0=B1 pressé, 1=B2 pressé, 2=B3 pressé,
+3=relâchement. Les bits de poids forts codent l'éventuelle touche
+modificatrice enfoncée lors de l'appui sur le bouton 4=Shift, 8=Méta,
+16=Control. À nouveau \fIx\fP et \fIy\fP sont les coordonnées de la souris au
+moment de l'événement. Le coin en haut à gauche de l'écran a pour
+coordonnées (1,1).
+.SS "Comparaison avec d'autres terminaux"
+.\"
+Beaucoup d'autres terminaux sont dits compatibles VT100, comme la console
+Linux. Nous allons voir ici les différences entre cette dernière et les deux
+types principaux de terminaux\ : le DEC VT102 et \fBxterm\fP(1).
+.PP
+\fBGestion des caractères de contrôle\fP
+.sp
+Le VT102 reconnaissait les caractères de contrôle supplémentaires suivants\ :
+.HP
+NUL (0x00) était ignoré.
+.HP
+ENQ (0x05) renvoyait un message d'identification.
+.HP
+DC1 (0x11, \fB^Q\fP, XON) reprenait une transaction.
+.HP
+DC3 (0x13, \fB^S\fP, XOFF) demandait au vt100 d'ignorer tous les codes saufs
+XOFF et XON (et d'arrêter également de transmettre).
+.LP
+Une gestion de DC1/DC3 compatible VT100 pouvait être activé par le
+gestionnaire de terminaux.
+.LP
+.\"
+Le programme \fBxterm\fP(1) (en mode VT100) reconnaît les caractères de
+contrôle BEL, BS, HT, LF, VT, FF, CR, SO, SI, ESC.
+.PP
+\fBSéquences d'échappement\fP
+.sp
+Les séquences d'échappement VT100 non implémentées sur la console Linux\ :
+.TS
+l l l.
+ESC N	SS2	Basculement G2 simple. (Sélectionner le jeu G2 pour
+		le caractère suivant uniquement)
+ESC O	SS3	Basculement G3 simple. (Sélectionner le jeu G3 pour
+		le caractère suivant uniquement)
+ESC P	DCS	Chaîne de contrôle de périphérique (terminée par
+		ESC\ \e)
+ESC X	SOS	Début de chaîne.
+ESC ^	PM	Message privé (terminé par ESC \e)
+ESC \e	ST	Fin de chaîne
+ESC * ...		Désigne le jeu de caractère G2
+ESC + ...		Désigne le jeu de caractère G3
+.TE
+.PP
+Le programme \fBxterm\fP(1) (en mode VT100) reconnaît ESC c, ESC # 8, ESC
+>, ESC =, ESC D, ESC E, ESC H, ESC M, ESC N, ESC O, ESC P ... ESC \e,
+ESC Z (il répond ESC [ ? 1 ; 2 c, «\ Je suis un VT100 avec des options vidéo
+avancées\ ») et ESC ^ ... ESC \e avec les mêmes significations que celles
+indiquées plus haut. Il accepte ESC (, ESC ), ESC *, ESC + suivis de 0, A, B
+pour les caractères spéciaux DEC, les tracés de lignes, l'ASCII UK, et
+l'ASCII US, respectivement.
+.PP
+L'utilisateur peut configurer \fBxterm\fP(1) pour qu'il réponde aux séquences
+de contrôle VT220, qui s'identifiera comme VT52, VT100, et au\-delà selon la
+manière dont il est configuré et initialisé.
+.PP
+Il accepte ESC\ ] (OSC) pour définir certaines ressources. En plus de la fin
+de chaîne (ST) ECMA\-48, \fBxterm\fP(1) accepte qu'une chaîne OSC se termine par
+BEL. Il y a quelques séquences de contrôle OSC reconnues par \fBxterm\fP(1)\ :
+.TS
+l l.
+ESC ] 0 ; \fItxt\fP ST	Utiliser \fItxt\fP pour le nom d'icône et le titre de
+	la fenêtre
+ESC ] 1 ; \fItxt\fP ST	Utiliser \fItxt\fP pour le nom d'icône.
+ESC ] 2 ; \fItxt\fP ST	Utiliser \fItxt\fP pour le titre de la fenêtre.
+ESC ] 4 ; \fInum\fP; \fItxt\fP ST	Utiliser \fItxt\fP pour la couleur ANSI \fInum\fP.
+ESC ] 10 ; \fItxt\fP ST	Utiliser \fItxt\fP pour la couleur de texte dynamique
+ESC ] 4 6 ; \fInom\fP ST	Modifier en \fInom\fP le nom du fichier de
+	journalisation (généralement désactivé à la
+	compilation)
+ESC ] 5 0 ; \fIfn\fP ST	Choisir la fonte \fIfn\fP
+.TE
+.PP
+Les codes suivants ont une signification légèrement différente des codes
+originaux (sauvant plus d'états, avec un comportement plus proche de
+VT100/VT220)\ :
+.TS
+l l l.
+ESC 7  DECSC	Mémoriser l'emplacement du curseur.
+ESC 8  DECRC	Restaurer l'emplacement du curseur.
+.TE
+.PP
+Il reconnaît également\ :
+.TS
+l l l.
+ESC F		Curseur en bas à gauche de l'écran (si activé par la
+		ressource \fBhpLowerleftBugCompat\fP de \fBxterm\fP(1))
+ESC l		Verrouillage mémoire (comme les terminaux HP).
+		Verrouille la mémoire sous le curseur.
+ESC m		Déverrouillage mémoire (comme les terminaux HP);
+ESC n	LS2	Invoque le jeu de caractères G2.
+ESC o	LS3	Invoque le jeu de caractères G3.
+ESC |	LS3R	Choisit le jeu G3 comme GR ([NDT] ??)
+ESC }	LS2R	Choisit le jeu G2 comme GR
+ESC ~	LS1R	Choisit le jeu G2 comme GR
+.TE
+.PP
+.\"
+Il reconnaît également ESC % et fournit une implémentation plus complète
+d'UTF\-8 que la console Linux.
+.PP
+\fBSéquences CSI\fP
+.sp
+Les anciennes versions de \fBxterm\fP(1), par exemple depuis X11R5,
+interprètent un SGR clignotant comme un SGR gras. Les versions suivantes
+implémentant les couleurs ANSI, par exemple XFree86\ 3.1.2A en 1995, ont
+amélioré cela en autorisant l'attribut clignotant à être affiché comme une
+couleur. Les versions modernes de xterm implémentent le SGR clignotant sous
+la forme de texte clignotant et autorisent encore le texte coloré comme
+possibilité alternative de rendu des SGR. Les versions de base sous X11R6 ne
+reconnaissaient pas les SGR de choix de couleur avant la publication de
+X11R6.8, qui a incorporé le xterm de XFree86. Toutes les séquences ECMA\-48
+CSI reconnues par Linux le sont aussi par \fBxterm\fP(1), bien que \fBxterm\fP(1)
+implémente plusieurs séquences de contrôle ECMA\-48 et DEC non reconnues par
+Linux.
+.PP
+Le programme \fBxterm\fP(1) reconnaît également toutes les séquences privées
+DEC citées plus haut, mais aucune séquence privée Linux. Pour plus de
+détails sur les séquences privées d'\fBxterm\fP(1) consultez le document
+\fIXterm Control Sequences\fP d'Edward Moy et Stephen Gildea, disponible avec
+la distribution X. Pour une vue générale chronologique,
+.PP
+.RS
+.UR http://invisible\-island.net\:/xterm\:/xterm.log.html
+.UE
+.RE
+.PP
+indique les changements apportés à xterm.
+.PP
+Le programme \fIvttest\fP
+.PP
+.RS
+.UR http://invisible\-island.net\:/vttest/
+.UE
+.RE
+.PP
+montre le fonctionnement de beaucoup de ces séquences de contrôle. La
+distribution source de \fBxterm\fP(1) contient également des scripts d'exemple
+utilisant d'autres fonctionnalités.
+.SH NOTES
+ESC 8 (DECRC) n'est pas capable de revenir au jeu de caractères précédant le
+changement fait avec ESC %.
+.SH BOGUES
+Avec le noyau 2.0.23, CSI fonctionne mal, et les caractères NUL ne sont pas
+ignorés dans les séquences d'échappement.
+.PP
+Certaines versions du noyau (après 2.0) interprètent les séquences de
+contrôle sur 8\ bits. Ces contrôles «\ C1\ » utilisent des codes entre 128
+et 159 pour remplacer ESC [, ESC ] et d'autres initiateurs similaires de
+séquence de contrôle sur deux octets. Il en existe des fragments dans les
+noyaux modernes (soit négligés soit cassés par des changements à la gestion
+UTF\-8), mais l'implémentation est incomplète et ne devrait être considérée
+comme fiable.
+.PP
+Les séquences «\ privées\ » Linux ne suivent pas les règles ECMA\-48 des
+séquences de contrôle en mode privé. En particulier, celles terminant par ]
+n'utilisent pas un caractère de terminaison standard. La séquence OSC (de
+réglage de la palette) pose un problème plus important, puisque \fBxterm\fP(1)
+peut l'interpréter comme une séquence de contrôle exigeant une fin de chaîne
+(«\ string terminator\ » ou ST). Contrairement aux séquences \fBsetterm\fP(1)
+qui seront ignorées (étant des séquences de contrôle invalides), la séquence
+de palette donnera l'impression que \fBxterm\fP(1) s'est figé (bien que presser
+la touche entrée règle ce problème). Pour satisfaire les applications qui
+ont été codées en dur pour utiliser les séquences de contrôle Linux, réglez
+la ressource \fBbrokenLinuxOSC\fP de \fBxterm\fP(1) à vrai.
+.PP
+Une ancienne version de ce document insinuait que Linux reconnaissait la
+séquence de contrôle ECMA\-48 destinée au texte invisible. Elle est ignorée.
+.SH "VOIR AUSSI"
+\fBconsole\fP(4), \fBconsole_ioctl\fP(4), \fBcharsets\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Simon Paillard et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

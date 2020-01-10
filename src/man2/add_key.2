@@ -1,0 +1,129 @@
+.\" Copyright (C) 2006 Red Hat, Inc. All Rights Reserved.
+.\" Written by David Howells (dhowells@redhat.com)
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_ONEPARA)
+.\" This program is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License
+.\" as published by the Free Software Foundation; either version
+.\" 2 of the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ADD_KEY 2 "25 février 2010" Linux "Gestion des clés sous Linux"
+.SH NOM
+add_key \- Ajouter une clé au gestionnaire des clés du noyau
+.SH SYNOPSIS
+.nf
+\fB#include <keyutils.h>\fP
+.sp
+\fBkey_serial_t add_key(const char *\fP\fItype\fP\fB, const char *\fP\fIdescription\fP\fB,\fP
+\fB                     const void *\fP\fIpayload\fP\fB, size_t \fP\fIplen\fP\fB,\fP
+\fB                     key_serial_t \fP\fIkeyring\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBadd_key\fP()  demande au noyau de créer ou de mettre à jour une clé ayant un
+\fItype\fP et une \fIdescription\fP donnés, de l'instancier avec une charge utile
+(\fIpayload\fP) de longueur \fIplen\fP, de l'attacher au trousseau (\fIkeyring\fP)
+spécifié, et de renvoyer son numéro de série.
+.P
+Le type de clé peut rejeter les données s'il est dans un mauvais format ou
+s'il est invalide de toute autre façon.
+.P
+Si le trousseau (\fIkeyring\fP) contient déjà une clé avec ce \fItype\fP et cette
+\fIdescription\fP, alors, si le type de la clé le permet, cette clé sera mise à
+jour au lieu de créer une nouvelle clé. Dans le cas contraire, une nouvelle
+clé sera créée, et le trousseau sera mis à jour pour remplacer le lien vers
+l'ancienne clé par un lien vers la nouvelle.
+.P
+Le numéro de série du trousseau de destination peut être celui d'un
+trousseau déjà existant, ou peut être l'identifiant d'un trousseau spécial\ :
+.TP 
+\fBKEY_SPEC_THREAD_KEYRING\fP
+Pour indiquer le trousseau spécifique au processus léger (\fIthread\fP) de
+l'appelant.
+.TP 
+\fBKEY_SPEC_PROCESS_KEYRING\fP
+Pour indiquer le trousseau spécifique au processus de l'appelant.
+.TP 
+\fBKEY_SPEC_SESSION_KEYRING\fP
+Pour indiquer le trousseau spécifique à la session de l'appelant.
+.TP 
+\fBKEY_SPEC_USER_KEYRING\fP
+Pour indiquer le trousseau spécifique à l'UID de l'appelant.
+.TP 
+\fBKEY_SPEC_USER_SESSION_KEYRING\fP
+Pour indiquer le trousseau spécifique à la session de l'UID de l'appelant.
+.SH "TYPES DE CLÉS"
+Un certain nombre de types de clés sont disponibles dans le code de base du
+gestionnaire des clés, et ils peuvent être utilisés dans cette fonction\ :
+.TP 
+\fBuser\fP
+Les clés de type \fIuser\fP peuvent contenir des données quelconques, et la
+\fIdescription\fP peut être n'importe quelle chaîne valide, bien qu'il soit
+préférable de préfixer la description avec une chaîne représentant le
+service pour lequel la clé est utilisée, suivi du caractère deux\-points (par
+exemple «\ \fBafs:ma\-cle\fP\ »). Pour des clés de ce type, l'argument
+\fIpayload\fP peut être vide ou \fBNULL\fP.
+.TP 
+\fBkeyring\fP
+Les trousseaux (\fIkeyring\fP) sont des types de clé spéciaux qui peuvent
+contenir des liens vers des séquences d'autres clés de tout type. Si cette
+interface est utilisée pour créer un trousseau, alors l'argument \fIpayload\fP
+doit valoir \fBNULL\fP, et \fIplen\fP doit être nul.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBadd_key\fP() renvoie le numéro de série de la clé créée ou
+mise à jour. En cas d'erreur, la valeur \fB\-1\fP est renvoyée et \fIerrno\fP
+contient un code d'erreur approprié.
+.SH ERREURS
+.TP 
+\fBENOKEY\fP
+Le trousseau n'existe pas.
+.TP 
+\fBEKEYEXPIRED\fP
+Le trousseau a expiré.
+.TP 
+\fBEKEYREVOKED\fP
+Le trousseau a été révoqué.
+.TP 
+\fBEINVAL\fP
+La charge utile (\fIpayload\fP) est invalide.
+.TP 
+\fBENOMEM\fP
+Il n'y a pas assez de mémoire pour créer une clé.
+.TP 
+\fBEDQUOT\fP
+Le quota de clés de cet utilisateur serait dépassé si la clé était créée ou
+ajoutée au trousseau.
+.TP 
+\fBEACCES\fP
+Le trousseau n'était pas disponible pour pouvoir être modifié par
+l'utilisateur.
+.SH "ÉDITION DE LIENS"
+Bien qu'il s'agisse d'un appel système Linux, cette fonction n'est pas
+présente dans \fIlibc\fP, mais peut être trouvée dans \fIlibkeyutils\fP. L'édition
+des liens doit être être effectuée avec l'option \fB\-lkeyutils\fP.
+.SH "VOIR AUSSI"
+\fBkeyctl\fP(1), \fBkeyctl\fP(2), \fBrequest_key\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Denis Barbier (2010).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

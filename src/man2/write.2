@@ -1,0 +1,181 @@
+.\" This manpage is Copyright (C) 1992 Drew Eckhardt;
+.\"             and Copyright (C) 1993 Michael Haardt, Ian Jackson.
+.\" and Copyright (C) 2007 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 13:35:59 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Sun Nov 28 17:19:01 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Sat Jan 13 12:58:08 1996 by Michael Haardt
+.\"   <michael@cantor.informatik.rwth-aachen.de>
+.\" Modified Sun Jul 21 18:59:33 1996 by Andries Brouwer <aeb@cwi.nl>
+.\" 2001-12-13 added remark by Zack Weinberg
+.\" 2007-06-18 mtk:
+.\"    	Added details about seekable files and file offset.
+.\"	Noted that write() may write less than 'count' bytes, and
+.\"	gave some examples of why this might occur.
+.\"	Noted what happens if write() is interrupted by a signal.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH WRITE 2 "27 janvier 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+write \- Écrire dans un descripteur de fichier
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBssize_t write(int \fP\fIfd\fP\fB, const void *\fP\fIbuf\fP\fB, size_t \fP\fIcount\fP\fB);\fP
+.SH DESCRIPTION
+\fBwrite\fP() lit au maximum \fIcount\fP octets dans la zone mémoire pointée par
+\fIbuf\fP, et les écrit dans le fichier référencé par le descripteur \fIfd\fP.
+
+Le nombre d'octets écrits peut être inférieur à \fIcount\fP par exemple si la
+place disponible sur le périphérique est insuffisante, ou la limite de
+ressource \fBRLIMIT_FSIZE\fP est atteinte (consultez \fBsetrlimit\fP(2)), ou
+l'appel est interrompu par un gestionnaire de signal après avoir écrit moins
+de \fIcount\fP octets. (Consultez aussi \fBpipe\fP(7).)
+
+Pour un fichier sur lequel \fBlseek\fP(2) est possible (par exemple un fichier
+ordinaire), l'écriture a lieu à la position actuelle dans le fichier, et
+elle est déplacée du nombre d'octets effectivement écrits. Si le fichier
+était ouvert avec \fBO_APPEND\fP, la position avant l'écriture est à la fin du
+fichier. La modification de la position et l'écriture sont effectuées de
+façon atomique.
+
+POSIX réclame qu'une lecture avec \fBread\fP(2) effectuée après le retour d'une
+écriture avec \fBwrite\fP(), renvoie les nouvelles données. Notez que tous les
+systèmes de fichiers ne sont pas compatibles avec POSIX.
+.SH "VALEUR RENVOYÉE"
+\fBwrite\fP() renvoie le nombre d'octets écrits (0 signifiant aucune écriture),
+ou \-1 s'il échoue, auquel cas \fIerrno\fP contient le code d'erreur.
+
+Si \fIcount\fP vaut 0 et si \fIfd\fP correspond à un fichier ordinaire, \fBwrite\fP()
+peut renvoyer un code d'erreur si l'une des erreurs ci\-dessous est
+détectée. Si aucune erreur n'est détectée, 0 sera renvoyé sans autre effet
+de bord. Si \fIcount\fP est nul et \fIfd\fP est un fichier spécial, les résultats
+sont indéfinis.
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+Le descripteur de fichier \fIfd\fP fait référence à un fichier autre qu'une
+socket et a été marqué comme non bloquant (\fBO_NONBLOCK\fP), et l'écriture
+devrait bloquer.
+.TP 
+\fBEAGAIN\fP ou \fBEWOULDBLOCK\fP
+.\" Actually EAGAIN on Linux
+Le descripteur de fichier \fIfd\fP fait référence à un fichier autre qu'une
+socket et a été marqué comme non bloquant (\fBO_NONBLOCK\fP), et l'écriture
+devrait bloquer. POSIX.1\-2001 permet de renvoyer l'une ou l'autre des
+erreurs dans ce cas et n'exige pas que ces constantes aient la même
+valeur. Une application portable devrait donc tester les deux possibilités.
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier valable, ou n'est pas ouvert en
+écriture.
+.TP 
+\fBEDESTADDRREQ\fP
+\fIfd\fP fait référence à une socket de datagramme pour laquelle l'adresse du
+correspondant n'a pas été initialisée avec \fBconnect\fP(2).
+.TP 
+\fBEDQUOT\fP
+Le quota de blocs de disque de l'utilisateur sur le système de fichiers
+contenant le fichier correspondant à \fIfd\fP a été atteint.
+.TP 
+\fBEFAULT\fP
+\fIbuf\fP pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEFBIG\fP
+Tentative d'écrire un fichier dont la taille dépasse un maximum dépendant de
+l'implémentation ou du processus, ou d'écrire à une position qui dépasse le
+maximum autorisé.
+.TP 
+\fBEINTR\fP
+L'appel système a été interrompu par un signal avant d'avoir pu écrire quoi
+que ce soit\ ; consultez \fBsignal\fP(7).
+.TP 
+\fBEINVAL\fP
+\fIfd\fP correspond à un objet sur lequel il est impossible d'écrire. Ou bien
+le fichier a été ouvert avec l'attribut \fBO_DIRECT\fP, et soit l'adresse de
+\fIbuf\fP, soit la valeur de \fIcount\fP, soit la position actuelle dans le
+fichier ne sont pas alignées correctement.
+.TP 
+\fBEIO\fP
+Une erreur d'entrée\-sortie bas niveau s'est produite durant la modification
+de l'inœud.
+.TP 
+\fBENOSPC\fP
+Le périphérique correspondant à \fIfd\fP n'a plus de place disponible.
+.TP 
+\fBEPIPE\fP
+\fIfd\fP est connecté à un tube (pipe) ou une socket dont l'autre extrémité est
+fermée. Quand ceci se produit, le processus écrivain reçoit un signal
+\fBSIGPIPE\fP. (Ainsi la valeur de retour de write n'est vue que si le
+programme intercepte, bloque ou ignore ce signal.
+.PP
+D'autres erreurs peuvent se produire suivant le type d'objet associé à
+\fIfd\fP.
+.SH CONFORMITÉ
+.\" SVr4 documents additional error
+.\" conditions EDEADLK, ENOLCK, ENOLNK, ENOSR, ENXIO, or ERANGE.
+SVr4, BSD\ 4.3, POSIX.1\-2001.
+
+Sous SVr4, un appel \fBwrite\fP() peut être interrompu, et renvoyer \fBEINTR\fP à
+n'importe quel moment, pas seulement avant l'écriture des données.
+.SH NOTES
+Une réussite de \fBwrite\fP() n'offre aucune garantie que les données se
+trouvent sur le disque. En fait, sur certaines implémentations erronées,
+elle ne garantit même pas que l'espace suffisant a été réservé pour les
+données. La seule manière d'être sûr de la réussite est d'invoquer
+\fBfsync\fP(2) après avoir écrit les données.
+
+Si un \fBwrite\fP() est interrompu par un gestionnaire de signaux avant d'avoir
+écrit quoi que ce soit, l'appel échoue avec \fBEINTR\fP\ ; s'il est interrompu
+après avoir écrit au moins un octet, l'appel réussit et renvoie le nombre
+d'octets écrits.
+.SH "VOIR AUSSI"
+\fBclose\fP(2), \fBfcntl\fP(2), \fBfsync\fP(2), \fBioctl\fP(2), \fBlseek\fP(2), \fBopen\fP(2),
+\fBpwrite\fP(2), \fBread\fP(2), \fBselect\fP(2), \fBwritev\fP(2), \fBfwrite\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

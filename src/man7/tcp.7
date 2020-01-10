@@ -1,0 +1,950 @@
+.\" This man page is Copyright (C) 1999 Andi Kleen <ak@muc.de>.
+.\"
+.\" %%%LICENSE_START(VERBATIM_ONE_PARA)
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" %%%LICENSE_END
+.\"
+.\" 2.4 Updates by Nivedita Singhvi 4/20/02 <nivedita@us.ibm.com>.
+.\" Modified, 2004-11-11, Michael Kerrisk and Andries Brouwer
+.\"	Updated details of interaction of TCP_CORK and TCP_NODELAY.
+.\"
+.\" 2008-11-21, mtk, many, many updates.
+.\"     The descriptions of /proc files and socket options should now
+.\"     be more or less up to date and complete as at Linux 2.6.27
+.\"     (other than the remaining FIXMEs in the page source below).
+.\"
+.\" FIXME The following need to be documented
+.\" 	TCP_CONGESTION (new in 2.6.13)
+.\"	    commit 5f8ef48d240963093451bcf83df89f1a1364f51d
+.\"	    Author: Stephen Hemminger <shemminger@osdl.org>
+.\"	TCP_MD5SIG (2.6.20)
+.\"	    commit cfb6eeb4c860592edd123fdea908d23c6ad1c7dc
+.\"	    Author was yoshfuji@linux-ipv6.org
+.\"	    Needs CONFIG_TCP_MD5SIG
+.\"	    From net/inet/Kconfig
+.\"	    bool "TCP: MD5 Signature Option support (RFC2385) (EXPERIMENTAL)"
+.\"	    RFC2385 specifies a method of giving MD5 protection to TCP sessions.
+.\"	    Its main (only?) use is to protect BGP sessions between core routers
+.\"	    on the Internet.
+.\"
+.\"	    There is a TCP_MD5SIG option documented in FreeBSD's tcp(4),
+.\"	    but probably many details are different on Linux
+.\"	    http://thread.gmane.org/gmane.linux.network/47490
+.\"	    http://www.daemon-systems.org/man/tcp.4.html
+.\"	    http://article.gmane.org/gmane.os.netbsd.devel.network/3767/match=tcp_md5sig+freebsd
+.\"	TCP_COOKIE_TRANSACTIONS (2.6.33)
+.\"	    commit 519855c508b9a17878c0977a3cdefc09b59b30df
+.\"	    Author: William Allen Simpson <william.allen.simpson@gmail.com>
+.\"	    commit e56fb50f2b7958b931c8a2fc0966061b3f3c8f3a
+.\"	    Author: William Allen Simpson <william.allen.simpson@gmail.com>
+.\"	TCP_THIN_LINEAR_TIMEOUTS (2.6.34)
+.\"	    commit 36e31b0af58728071e8023cf8e20c5166b700717
+.\"	    Author: Andreas Petlund <apetlund@simula.no>
+.\"	TCP_THIN_DUPACK (2..6.34)
+.\"	    commit 7e38017557bc0b87434d184f8804cadb102bb903
+.\"	    Author: Andreas Petlund <apetlund@simula.no>
+.\"	TCP_USER_TIMEOUT (new in 2.6.37)
+.\"	    Author: Jerry Chu <hkchu@google.com>
+.\"	    commit dca43c75e7e545694a9dd6288553f55c53e2a3a3
+.\"	TCP_REPAIR (3.5)
+.\"	    commit ee9952831cfd0bbe834f4a26489d7dce74582e37
+.\"	    Author: Pavel Emelyanov <xemul@parallels.com>
+.\"	TCP_REPAIR_QUEUE (3.5)
+.\"	    commit ee9952831cfd0bbe834f4a26489d7dce74582e37
+.\"	    Author: Pavel Emelyanov <xemul@parallels.com>
+.\"	TCP_QUEUE_SEQ (3.5)
+.\"	    commit ee9952831cfd0bbe834f4a26489d7dce74582e37
+.\"	    Author: Pavel Emelyanov <xemul@parallels.com>
+.\"	TCP_REPAIR_OPTIONS (3.5)
+.\"	    commit b139ba4e90dccbf4cd4efb112af96a5c9e0b098c
+.\"	    Author: Pavel Emelyanov <xemul@parallels.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TCP 7 "21 juin 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+tcp \- Protocole TCP
+.SH SYNOPSIS
+\fB#include <sys/socket.h>\fP
+.br
+\fB#include <netinet/in.h>\fP
+.br
+\fB#include <netinet/tcp.h>\fP
+.sp
+\fBtcp_socket = socket(AF_INET, SOCK_STREAM, 0);\fP
+.SH DESCRIPTION
+Il s'agit d'une implémentation du protocole TCP défini dans les RFC\ 793,
+RFC\ 1122 et RFC\ 2001 avec les extensions SACK et NewReno. Cela fournit une
+connexion full\-duplex fiable orientée flux entre deux sockets au\-dessus de
+\fBip\fP(7), version\ 4 et 6. TCP garantit que les données arrivent dans l'ordre
+et assure la retransmission des paquets perdus. Il calcule et vérifie une
+somme de contrôle par paquet pour détecter les erreurs de transmission. TCP
+ne préserve pas les limites des enregistrements.
+
+Une socket TCP neuve n'a pas d'adresse locale ou distante et n'est pas
+complètement définie. Pour créer une connexion TCP sortante, utilisez
+\fBconnect\fP(2) pour établir la connexion sur une autre socket TCP. Pour
+recevoir les connexions entrantes, attachez d'abord la socket avec
+\fBbind\fP(2) à une adresse locale et un port, puis appelez \fBlisten\fP(2) pour
+mettre la socket dans un état d'attente. Après cela, une nouvelle socket
+peut être obtenue pour chaque connexion entrante en utilisant
+\fBaccept\fP(2). Une socket sur laquelle on a appelé \fBaccept\fP(2) ou
+\fBconnect\fP(2) avec succès est complètement définie et peut transmettre des
+données. Les données ne peuvent pas circuler sur les socket en attente ou
+non connectées.
+
+Linux prend en charge les extensions TCP à hautes performances RFC\ 1323. Cela inclut la protection contre les numéros de séquence bouclant
+(PAWS), la modification de fenêtre («\ Window Scaling\ ») et les horodatages
+(«\ timestamps\ »). Le Window Scaling permet d'utiliser des fenêtres TCP
+larges (> 64K) pour gérer les liaisons avec une latence ou une bande
+passante élevées. Pour les utiliser, les tailles des tampons d'émission et
+de réception doivent être augmentées. Ils peuvent être définis globalement
+avec les fichiers \fI/proc/sys/net/ipv4/tcp_wmem\fP et
+\fI/proc/sys/net/ipv4/tcp_rmem\fP ou individuellement sur les sockets avec les
+options \fBSO_SNDBUF\fP et \fBSO_RCVBUF\fP de l'appel système \fBsetsockopt\fP(2).
+
+Les tailles maximales pour les tampons déclarés via \fBSO_SNDBUF\fP et
+\fBSO_RCVBUF\fP sont limitées par les valeurs des fichiers
+\fI/proc/sys/net/core/rmem_max\fP et \fI/proc/sys/net/core/wmem_max\fP. Notez que
+TCP alloue en fait deux fois plus de place que la taille demandée avec
+l'appel \fBsetsockopt\fP(2), et qu'un appel \fBgetsockopt\fP(2) réussi ne renverra
+pas la même taille de tampon que celle réclamée dans le
+\fBsetsockopt\fP(2). TCP les utilise à des fins administratives et pour des
+structures internes du noyau, et les valeurs des fichiers de \fI/proc\fP
+renvoient des tailles supérieures à celle des véritables fenêtres TCP. Pour
+les connexions individuelles, la taille du tampon doit être définie avant
+les appels \fBlisten\fP(2) ou \fBconnect\fP(2) pour qu'elle soit prise en
+compte. Consultez \fBsocket\fP(7) pour plus de détails.
+.PP
+TCP permet de d'indiquer des données urgentes. Elles signalent au récepteur
+qu'un message important est dans le flux de données et qu'il doit être
+traité le plus tôt possible. Pour envoyer des données urgentes, indiquez
+l'option \fBMSG_OOB\fP de \fBsend\fP(2). Quand des données urgentes sont reçues,
+le noyau envoie un signal \fBSIGURG\fP au processus ou au groupe de processus
+qui a été indiqué comme propriétaire de la socket avec les ioctls
+\fBSIOCSPGRP\fP ou \fBFIOSETOWN\fP (ou l'opération \fBF_SETOWN\fP de \fBfcntl\fP(2),
+spécifiée par POSIX.1\-2001). Quand l'option de socket \fBSO_OOBINLINE\fP est
+validée, les données urgentes sont mises dans le flux de données normal (et
+peuvent être détectées avec l'ioctl \fBSIOCATMARK\fP), sinon, on ne peut les
+recevoir que lorsque l'attribut \fBMSG_OOB\fP es positionné pour \fBrecv\fP(2) ou
+\fBrecvmsg\fP(2).
+
+Linux\ 2.4 a introduit un certain nombre de changements pour améliorer le
+débit et l'extensibilité, ainsi que des fonctionnalités
+améliorées. Certaines de ces fonctions incluent la prise en charge
+d'émission sans copie avec \fBsendfile\fP(2), la notification de congestion
+explicite (ECN), la nouvelle gestion des sockets TIME_WAIT, les options
+«\ keep\-alive\ » et la prise en charge des extensions SACK dupliqués.
+.SS "Formats d'adresse"
+TCP est construit au\-dessus de IP (consultez \fBip\fP(7)). Les formats
+d'adresse définis pour \fBip\fP(7) s'appliquent pour TCP. TCP ne gère que les
+communications point\-à\-point. Le broadcast et le multicast ne sont pas
+gérés.
+.SS "Interfaces /proc"
+Les paramètres TCP du système sont accessibles avec les fichiers du
+répertoire \fI/proc/sys/net/ipv4/\fP. De plus, la plupart des interfaces
+\fI/proc\fP d'IP s'appliquent à TCP. Consultez \fBip\fP(7). Les variables
+indiquées comme \fIbooléen\fPnes prennent une valeur entière, une valeur
+non\-nulle indiquant que l'option est active, une valeur nulle indiquant que
+l'option est inactive.
+.TP 
+\fItcp_abc\fP (entier\ ; 0 par défaut\ ; depuis Linux\ 2.6.15)
+.\" The following is from 2.6.28-rc4: Documentation/networking/ip-sysctl.txt
+Contrôler l'ABC («\ Appropriate Byte Count\ »\ : décompte d'octets approprié),
+défini dans la RFC\ 3465. ABC est une façon d'augmenter la fenêtre de
+congestion (\fIcwnd\fP\ : «\ congestion window) plus lentement en réponse à des
+acquittements partiels. Les valeurs possibles sont\ :
+.RS
+.IP 0 3
+augment \fIcwnd\fP une fois par acquittement (pas d'ABC)
+.IP 1
+augmenter \fIcwnd\fP une fois par acquittement d'un paquet complet
+.IP 2
+permettre l'augmentation de \fIcwnd\fP par deux si l'acquittement correspond à
+deux segments, pour compenser les acquittements avec délais.
+.RE
+.TP 
+\fItcp_abort_on_overflow\fP (booléen\ ; désactivé par défaut\ ; depuis Linux\ 2.4)
+.\" Since 2.3.41
+Valider la réinitialisation des connexions si le service en écoute est trop
+lent et incapable de les traiter et les accepter. Cela signifie que si un
+débordement se produit à cause d'une surcharge temporaire, la connexion va
+se rattraper. N'activez cette option que si vous êtes SÛRS que le démon en
+écoute ne peut pas être configuré pour accepter les connexions plus
+vite. Cette option peut désorienter les clients de votre serveur.
+.TP 
+\fItcp_adv_win_scale\fP (entier\ ; 2 par défaut\ ; depuis Linux\ 2.4)
+.\" Since 2.4.0-test7
+Calculer le surplus du tampon comme \fIbytes/2^tcp_adv_win_scale\fP, si
+\fItcp_adv_win_scale\fP est supérieur à 0\ ; ou
+\fIbytes\-bytes/2^(\-tcp_adv_win_scale)\fP, si \fItcp_adv_win_scale\fP est inférieur
+ou égal à zéro.
+
+L'espace du tampon de réception de la socket est partagé entre l'application
+et le noyau. TCP conserve une portion du tampon en tant que fenêtre TCP,
+c'est la taille de la fenêtre de réception indiquée au correspondant. Le
+reste de cet espace est utilisé comme tampon d'«\ application\ », pour
+isoler le réseau des latences de l'ordonnanceur et de l'application. La
+valeur par défaut (2) de \fItcp_adv_win_scale\fP indique que l'espace utilisé
+pour le tampon d'application est un quart de l'espace total.
+.TP 
+\fItcp_allowed_congestion_control\fP (chaîne\ ; voir le texte pour la valeur par défaut\ ; depuis Linux\ 2.4.20)
+.\" The following is from 2.6.28-rc4: Documentation/networking/ip-sysctl.txt
+.\" FIXME How are the items in this delimited? Null bytes, spaces, commas?
+Afficher ou définir les choix d'algorithmes de contrôle de congestion
+disponibles pour les processus non privilégiés (voir la description de
+l'option \fBTCP_CONGESTION\fP pour les sockets). La liste est un sous\-ensemble
+des algorithmes de la liste \fItcp_available_congestion_control\fP. La valeur
+par défaut est «\ reno\ » plus le paramètre par défaut de
+\fItcp_congestion_control\fP.
+.TP 
+\fItcp_available_congestion_control\fP (chaîne\ ; lecture seule\ ; depuis Linux\ 2.4.20)
+.\" The following is from 2.6.28-rc4: Documentation/networking/ip-sysctl.txt
+.\" FIXME How are the items in this delimited? Null bytes, spaces, commas?
+Afficher une liste des algorithmes de contrôle de congestion qui sont
+enregistrés. Cette liste limite l'ensemble des algorithmes permis pour la
+liste \fItcp_allowed_congestion_control\fP. Plus d'algorithmes de contrôle de
+congestion peuvent être disponible sous forme de modules, mais non chargés.
+.TP 
+\fItcp_app_win\fP (entier\ ; 31 par défaut\ ; depuis Linux\ 2.4)
+.\" Since 2.4.0-test7
+Cette variable définit combien d'octets de la fenêtre TCP sont réservés pour
+le surplus de tampon.
+
+.\"
+.\" The following is from 2.6.28-rc4: Documentation/networking/ip-sysctl.txt
+Un maximum de (\fIfenetre/2^tcp_app_win\fP, mss)\ octets de la fenêtre est
+réservé pour le tampon d'application. Une valeur nulle indique qu'aucune
+portion n'est réservée.
+.TP 
+\fItcp_base_mss\fP (entier\ ; 512 par défaut\ ; depuis Linux\ 2.6.17)
+.\"
+.\" The following is from 2.6.12: Documentation/networking/ip-sysctl.txt
+La valeur initiale de \fIsearch_low\fP à utiliser pour la découverte du MTU du
+chemin dans la couche de transport (mise en paquets). Si la découverte du
+MTU est activée, il s'agit du MSS de départ utilisé par la connexion.
+.TP 
+\fItcp_bic\fP (booléen\ ; désactivé par défaut\ ; Linux\ 2.4.27/2.6.6 à 2.6.13)
+.\"
+.\" The following is from 2.6.12: Documentation/networking/ip-sysctl.txt
+Activer l'algorithme de contrôle de congestion TCP BIC. BIC\-TCP est une
+modification côté émetteur qui assure une linéarité du RTT (Délai
+d'aller\-retour, «\ Round\-Trip Time\ ») avec de grandes fenêtres, tout en
+permettant un passage à l'échelle et en se bornant à la compatibilité
+TCP. Le protocole combine deux effets appelés augmentation additive et
+recherche binaire. Lorsque la fenêtre de congestion est grande,
+l'augmentation additive avec un incrément grand assure une linéarité du RTT
+et un bon passage à l'échelle. Avec des petites fenêtres de congestion, la
+recherche binaire fournit une compatibilité TCP.
+.TP 
+\fItcp_bic_low_window\fP (entier\ ; 14 par défaut\ ; Linux\ 2.4.27/2.6.6 à 2.6.13)
+.\"
+.\" The following is from 2.6.12: Documentation/networking/ip-sysctl.txt
+Corriger la fenêtre limite (en paquets) pour laquelle BIC TCP commence à
+ajuster la fenêtre de congestion. Sous cette limite, BIC TCP se comporte
+comme l'algorithme TCP Reno par défaut.
+.TP 
+\fItcp_bic_fast_convergence\fP (booléen\ ; activé par défaut\ ; Linux\ 2.4.27/2.6.6 à 2.6.13)
+Forcer BIC TCP à répondre plus vite aux changements de fenêtre de
+congestion. Permet à deux flux partageant la même connexion de converger
+plus vite.
+.TP 
+\fItcp_congestion_control\fP (chaîne\ ; voir le texte pour la valeur par défaut\ ; depuis Linux\ 2.4.13)
+.\" The following is from 2.6.28-rc4: Documentation/networking/ip-sysctl.txt
+Définir l'algorithme de contrôle de congestion à utiliser pour les nouvelles
+connexions. L'algorithme «\ reno\ » est toujours disponible, mais des choix
+supplémentaires sont disponibles en fonction de la configuration du
+noyau. La valeur par défaut pour ce fichier est définie dans la
+configuration du noyau.
+.TP 
+\fItcp_dma_copybreak\fP (entier\ ; 4096 par défaut\ ; depuis Linux\ 2.6.24)
+La limite inférieure, en octets, de la taille des lectures sur une socket
+qui seront délestées sur le moteur de copie DMA, s'il y en a un sur le
+système et si le noyau a été configuré avec l'option \fBCONFIG_NET_DMA\fP.
+.TP 
+\fItcp_dsack\fP (booléen\ ; activé par défaut\ ; depuis Linux\ 2.4)
+.\" Since 2.4.0-test7
+Valide la prise en charge TCP SACK dupliqué de la RFC\ 2883.
+.TP 
+\fItcp_ecn\fP (booléen\ ; désactivé par défaut\ ; depuis Linux\ 2.4)
+.\" Since 2.4.0-test7
+Valide la notification explicite de congestion de la RFC\ 2884. Lorsqu'elle
+est en service, la connectivité avec certaines destinations peut être
+affectée à cause de vieux routeurs mal configurés le long du trajet, et les
+connexions peuvent être rompues.
+.TP 
+\fItcp_fack\fP (booléen\ ; activé par défaut\ ; depuis Linux\ 2.4)
+.\" Since 2.1.92
+Valide la prise en charge TCP Forward Acknowledgement.
+.TP 
+\fItcp_fin_timeout\fP (entier\ ; 60 par défaut\ ; depuis Linux\ 2.2)
+.\" Since 2.1.53
+.\"
+.\" The following is from 2.6.12: Documentation/networking/ip-sysctl.txt
+Nombre de secondes à attendre un paquet final FIN avant que la socket soit
+fermée de force. Strictement parlant, ceci est une violation des
+spécifications TCP, mais est nécessaire pour empêcher les attaques par déni
+de service. La valeur par défaut dans les noyaux\ 2.2 est 180.
+.TP 
+\fItcp_frto\fP (entier\ ; 0 par défaut\ ; depuis Linux\ 2.4.21/2.6)
+.\" Since 2.4.21/2.5.43
+Activer F\-RTO, un algorithme amélioré de récupération pour les
+temporisations de retransmission TCP (RTO\ : «\ retransmission timeouts\ »). Il
+est particulièrement intéressant dans des environnements sans fil, où la
+perte des paquets est typiquement due à des interférences radio aléatoire
+plutôt qu'à la congestion des routeurs intermédiaires. Consultez la RFC\ 4138
+pour plus de détails.
+
+Ce fichier peut prendre une des valeurs suivantes\ :
+.RS
+.IP 0 3
+Désactivé.
+.IP 1
+La version de base de l'algorithme F\-RTO est activée.
+.IP 2
+Active la version améliorée de F\-RTO avec des SACK, si le flux utilise des
+SACK. La version de base peut aussi être utilisée quand des SACK sont
+utilisés, même si dans ce cas des scénarios existent dans lesquels F\-RTO
+interagit mal avec le comptage de paquets du flux TCP utilisant des SACK.
+.RE
+.IP
+Avant Linux\ 2.6.22, ce paramètre était une valeur booléenne, qui ne prenait
+en charge que les valeurs 0 et 1 ci\-dessous.
+.TP 
+\fItcp_frto_response\fP (entier\ ; 0 par défaut\ ; depuis Linux\ 2.6.22)
+Quand F\-RTO a détecté une fausse expiration d'une temporisation
+(c'est\-à\-dire qu'elle aurait pu être évitée si TCP avait eu un délai de
+retransmission plus long), TCP a plusieurs options sur ce qu'il faut faire
+par la suite. Les valeurs possibles sont\ :
+.RS
+.IP 0 3
+Diminution de moitié du débit\ ; une réponse douce et conservatrice qui
+résulte en une diminution de moitié de la fenêtre de congestion (\fIcwnd\fP) et
+du seuil de démarrage lent (\fIssthresh\fP, «\ slow\-start threshold\ ») après un
+délai d'aller\-retour (RTT).
+.IP 1
+Réponse très conservatrice\ ; pas recommandée parce que bien que correcte,
+elle interagit mal avec le reste de TCP sous Linux\ ; réduction de moitié de
+\fIcwnd\fP et de \fIssthresh\fP immédiatement.
+.IP 2
+Réponse agressive\ ; supprime les mesures de contrôle de congestion qui sont
+connues pour ne pas être nécessaire (en ignorant la possibilité d'une perte
+de retransmission qui forcerait TCP à être plus prudent)\ ; \fIcwnd\fP et
+\fIssthresh\fP sont remis aux valeurs antérieures à l'expiration du délai.
+.RE
+.TP 
+\fItcp_keepalive_intvl\fP (entier\ ; 75 par défaut\ ; depuis Linux\ 2.4)
+.\" Since 2.3.18
+L'intervalle en secondes entre deux messages TCP keep\-alive.
+.TP 
+\fItcp_keepalive_probes\fP (entier\ ; 9 par défaut\ ; depuis Linux\ 2.2)
+.\" Since 2.1.43
+Nombre maximal de tentatives TCP keep\-alive à envoyer avant d'abandonner et
+de tuer la connexion si aucune réponse n'est obtenue de l'autre partie.
+.TP 
+\fItcp_keepalive_time\fP (entier\ ; 7200 par défaut\ ; depuis Linux\ 2.2)
+.\" Since 2.1.43
+Nombre de secondes durant lesquelles aucune donnée n'est transmise sur la
+connexion avant d'envoyer un message keep\-alive. Ces messages ne sont
+envoyés que si l'option \fBSO_KEEPALIVE\fP de la socket est validée. La valeur
+par défaut est 7200\ secondes (2\ heures). Une connexion inactive est coupée
+environ 11\ minutes plus tard (9\ tentatives à 75\ secondes d'écart).
+
+.\"
+.\" The following is from 2.6.12: Documentation/networking/ip-sysctl.txt
+Notez que les délais de la couche de transport sous\-jacente, ou de
+l'application peuvent être bien plus courts.
+.TP 
+\fItcp_low_latency\fP (booléen\ ; désactivé par défaut\ ; depuis Linux\ 2.4.21/2.6)
+.\" Since 2.4.21/2.5.60
+S'il est activé, la pile TCP prend des décisions qui favorisent une latence
+plus faible par opposition à un débit plus grand. Si cette option est
+désactivée, un débit plus grand est préféré. Un cas où cette valeur par
+défaut devrait être changée est par exemple un cluster de calcul Beowulf.
+.TP 
+\fItcp_max_orphans\fP (entier\ ; valeur par défaut\ : voir ci\(hydessous\ ; depuis Linux\ 2.4)
+.\" Since 2.3.41
+Le nombre maximal de sockets TCP orphelines (attachées à aucun descripteur
+utilisateur) sur le système. Quand ce nombre est dépassé, la connexion
+orpheline est réinitialisée et un message d'avertissement est affiché. Cette
+limite n'existe que pour éviter les attaques par déni de service\ ; la
+diminuer n'est pas recommandé. Certaines situations peuvent réclamer
+d'augmenter cette limite, mais notez que chaque connexion orpheline peut
+consommer jusqu'à 64\ ko de mémoire non\-swappable. La valeur par défaut est
+égale au paramètre NR_FILE du noyau. Elle est ajustée en fonction de la
+mémoire disponible sur le système.
+.TP 
+\fItcp_max_syn_backlog\fP (entier\ ; valeur par défaut\ : voir ci\(hydessous\ ; depuis Linux\ 2.2)
+.\" Since 2.1.53
+Le nombre maximal de requêtes de connexions en attente, qui n'ont pas encore
+reçu d'acquittement de la part du client se connectant. Si ce nombre est
+atteint, le noyau commencera à abandonner des requêtes. La valeur par
+défaut, 256, est augmentée jusqu'à 1024 si la mémoire présente est
+suffisante (>= 128\ Mo) et peut être diminuée à 128 sur les systèmes
+avec très peu de mémoire (<= 32\ Mo). Il est recommandé, s'il faut
+augmenter cette valeur au dessus de 1024, de modifier TCP_SYNQ_HSIZE dans
+\fIinclude/net/tcp.h\fP pour conserver TCP_SYNQ_HSIZE * 16 <=
+tcp_max_syn_backlog et de recompiler le noyau.
+.TP 
+\fItcp_max_tw_buckets\fP (entier\ ; valeur par défaut\ : voir ci\(hydessous\ ; depuis Linux\ 2.4)
+.\" Since 2.3.41
+Le nombre maximal de sockets dans l'état TIME_WAIT autorisées sur le
+système. Cette limite n'existe que pour éviter les attaques par déni de
+service. La valeur par défaut est NR_FILE*2, ajustée en fonction de la
+mémoire disponible. Si ce nombre est atteint, la socket est fermée et un
+avertissement est affiché.
+.TP 
+\fItcp_moderate_rcvbuf\fP (booléen\ ; activé par défaut\ ; Linux\ 2.4.17/2.6.7)
+.\" The following is from 2.6.28-rc4: Documentation/networking/ip-sysctl.txt
+S'il est activé, TCP effectue un réglage automatique du tampon de réception,
+en essayant de trouver la bonne taille automatiquement (pas plus grand que
+\fItcp_rmem[2]\fP) pour correspondre à la taille nécessaire pour un débit
+maximal sur le chemin.
+.TP 
+\fItcp_mem\fP (depuis Linux\ 2.4)
+.\" Since 2.4.0-test7
+Il s'agit d'un vecteur de trois entiers\ : [bas, charge, haut]. Ces limites,
+mesurées dans une unité qui correspond à la taille des pages système, sont
+utilisées par TCP pour surveiller sa consommation mémoire. Les valeurs par
+défaut sont calculées au moment du démarrage à partir de la mémoire
+disponible. (TCP ne peut utiliser que la \fImémoire basse\fP pour cela, qui est
+limitée aux environs de 900\ Mo sur les systèmes 32\ bits. Les systèmes 64\ bits ne souffrent pas de cette limitation.)
+.RS
+.TP  10
+\fIlow\fP
+TCP ne cherche pas à réguler ses allocations mémoire quand le nombre de
+pages qu'il a alloué est en dessous de ce nombre
+.TP 
+\fIpressure\fP
+Lorsque la taille mémoire allouée par TCP dépasse ce nombre de pages, TCP
+modère sa consommation mémoire. L'état de mémoire chargée se termine lorsque
+le nombre de pages allouées descend en dessous de la marque \fIbas\fP.
+.TP 
+\fIhigh\fP
+Le nombre global maximal de pages que TCP allouera. Cette valeur surcharge
+tout autre limite imposée par le noyau.
+.RE
+.TP 
+\fItcp_mtu_probing\fP (entier\ ; 0 par défaut\ ; Linux\ 2.6.17)
+.\" The following is from 2.6.28-rc4: Documentation/networking/ip-sysctl.txt
+Ce paramètre contrôle la découverte du MTU du chemin de la couche transport
+(«\ TCP Packetization\-Layer Path MTU Discovery\ »). Le fichier peut prendre
+les valeurs suivantes\ :
+.RS
+.IP 0 3
+Désactivé
+.IP 1
+Désactivé par défaut, activé quand un trou noir ICMP est détecté
+.IP 2
+Toujours activé, utilise le MSS de départ de \fItcp_base_mss\fP.
+.RE
+.TP 
+\fItcp_no_metrics_save\fP (booléen\ ; désactivé par défaut\ ; depuis Linux\ 2.6.6)
+.\" The following is from 2.6.28-rc4: Documentation/networking/ip-sysctl.txt
+Par défaut, TCP sauve différentes métriques sur la connexion dans la cache
+des routes quand la connexion est fermée, de telle sorte que les connexions
+ouvertes rapidement après puissent les utiliser comme conditions
+initiales. D'habitude, ceci augmente globalement les performances, mais peut
+parfois dégrader les performances. Si \fItcp_no_metrics_save\fP est activé, TCP
+ne sauvera pas de métrique dans la cache lors de la fermeture des
+connexions.
+.TP 
+\fItcp_orphan_retries\fP (entier\ ; 8 par défaut\ ; depuis Linux\ 2.4)
+.\" Since 2.3.41
+Le nombre maximal de tentatives pour accéder à l'autre extrémité d'une
+connexion dont notre côté a été fermé.
+.TP 
+\fItcp_reordering\fP (entier\ ; 3 par défaut\ ; depuis Linux\ 2.4)
+.\" Since 2.4.0-test7
+Le nombre de réorganisations dans un flux TCP avant de supposer qu'un paquet
+est perdu et reprendre au début. Il n'est pas conseillé de modifier cette
+valeur. C'est une métrique sur la détection des réordonnancements de paquets
+conçue pour minimiser les retransmissions inutiles provoquées par la
+réorganisation des paquets dans une connexion.
+.TP 
+\fItcp_retrans_collapse\fP (booléen\ ; activé par défaut\ ; depuis Linux\ 2.2)
+.\" Since 2.1.96
+Essayer d'envoyer des paquets de tailles complètes durant les réémissions.
+.TP 
+\fItcp_retries1\fP (entier\ ; 3 par défaut\ ; depuis Linux\ 2.2)
+.\" Since 2.1.43
+Le nombre de fois que TCP essayera de retransmettre un paquet sur une
+connexion établie normalement, sans demander de contribution supplémentaire
+de la couche réseau concernée. Une fois ce nombre atteint, on demande au
+niveau réseau de remettre à jour son routage, si possible avant chaque
+nouvelle transmission. La valeur par défaut, 3, est le minimum indiqué dans
+la RFC.
+.TP 
+\fItcp_retries2\fP (entier\ ; 15 par défaut\ ; depuis Linux\ 2.2)
+.\" Since 2.1.43
+Le nombre de fois qu'un paquet TCP est restransmis sur une connexion établie
+avant d'abandonner. La valeur par défaut est 15, ce qui correspond à une
+durée entre 13 et 30\ minutes suivant le délai maximal de retransmission. La
+limite minimale de 100\ secondes spécifiée par la RFC\ 1122 est typiquement
+considérée comme trop courte.
+.TP 
+\fItcp_rfc1337\fP (booléen\ ; désactivé par défaut\ ; depuis Linux\ 2.2)
+.\" Since 2.1.90
+Activer le comportement TCP conformément à la RFC\ 1337. Lorsqu'il n'est pas
+activé, si un RST est reçu en état TIME_WAIT, on ferme la socket
+immédiatement sans attendre la fin de la période TIME_WAIT.
+.TP 
+\fItcp_rmem\fP (depuis Linux\ 2.4)
+.\" Since 2.4.0-test7
+Il s'agit d'un vecteur de trois entiers\ : [min, défaut, max]. Ces
+paramètres sont utilisés par TCP pour régler la taille du tampon de
+réception. TCP ajuste dynamiquement la taille à partir de la valeur par
+défaut, dans l'intervalle de ces valeurs, en fonction de la mémoire
+disponible sur le système.
+.RS
+.TP  10
+\fImin\fP
+taille minimale du tampon de réception utilisée par chaque socket TCP. La
+valeur par défaut est la taille des pages du système (sous Linux\ 2.4, la
+valeur par défaut est de 4\ Ko et descend à \fBPAGE_SIZE\fP\ octets sur les
+systèmes avec peu de mémoire). Cette valeur assure qu'en mode de mémoire
+chargée, les allocations en dessous de cette taille réussiront. Elle n'est
+pas utilisée pour limiter la taille du tampon de réception, déclarée en
+utilisant l'option \fBSO_RCVBUF\fP sur la socket.
+.TP 
+\fIdefault\fP
+la taille par défaut du tampon de réception pour une socket TCP. Cette
+valeur écrase la taille par défaut dans la valeur globale
+\fInet.core.rmem_default\fP définie pour tous les protocoles. La valeur par
+défaut est 87380\ octets (sous Linux\ 2.4, elle descend à 43689 sur les
+systèmes avec peu de mémoire). Si une taille plus grande est désirée, il
+faut augmenter cette valeur (pour affecter toutes les sockets). Pour
+utiliser une grande fenêtre TCP, l'option \fInet.ipv4.tcp_window_scaling\fP
+doit être activée (par défaut).
+.TP 
+\fImax\fP
+la taille maximale du tampon de réception utilisé par chaque socket
+TCP. Cette valeur ne surcharge pas la valeur globale
+\fInet.core.rmem_max\fP. Elle ne permet pas de limiter la taille du tampon de
+réception déclarée avec l'option \fBSO_RCVBUF\fP sur la socket. La valeur par
+défaut est calculé par la formule\ :
+
+    max(87380, min(4MB, \fItcp_mem\fP[1]*PAGE_SIZE/128))
+
+(Sous Linux\ 2.4, la valeur par défaut est de 87380*2\ octets, et descendre à
+87380 sur les systèmes avec peu de mémoire)
+.RE
+.TP 
+\fItcp_sack\fP (booléen\ ; activé par défaut\ ; depuis Linux\ 2.2)
+.\" Since 2.1.36
+Activer l'acquittement TCP sélectif (RFC\ 2018).
+.TP 
+\fItcp_slow_start_after_idle\fP (booléen\ ; activé par défaut\ ; depuis Linux\ 2.6.18)
+.\" The following is from 2.6.28-rc4: Documentation/networking/ip-sysctl.txt
+S'il est activé, le comportement de la RFC\ 2861 est fournit et la fenêtre de
+congestion expire après une période d'inactivité. Une période d'inactivité
+est définie comme le RTO («\ retransmission timeout\ »\ : le délai de
+retransmission). S'il est désactivé, la fenêtre de congestion n'expirera pas
+après une période d'inactivité.
+.TP 
+\fItcp_stdurg\fP (booléen\ ; désactivé par défaut\ ; depuis Linux\ 2.2)
+.\" Since 2.1.44
+.\" RFC 793 was ambiguous in its specification of the meaning of the
+.\" urgent pointer.  RFC 1122 (and RFC 961) fixed on a particular
+.\" resolution of this ambiguity (unfortunately the "wrong" one).
+Activation de l'interprétation RFC\ 1122 du champ TCP Urgent\-Pointer. Selon
+cette interprétation, le pointeur urgent pointe vers le dernier octet de
+données urgentes. Par défaut on utilise une interprétation compatible BSD de
+ce champ, qui pointe vers le premier octet après les données
+urgentes. Valider cette option peut poser des problèmes d'interaction entre
+systèmes.
+.TP 
+\fItcp_syn_retries\fP (entier\ ; 5 par défaut\ ; depuis Linux\ 2.2)
+.\" Since 2.1.38
+Le nombre maximal de fois où un paquet SYN initial sera retransmis pour une
+tentative de connexion TCP active. Cette valeur ne doit pas dépasser 255. La
+valeur par défaut est 5, ce qui correspond approximativement à 180\ secondes.
+.TP 
+\fItcp_synack_retries\fP (entier\ ; 5 par défaut\ ; depuis Linux\ 2.2)
+.\" Since 2.1.38
+Le nombre maximal de fois où un segment SYN/ACK sera retransmis sur une
+connexion TCP passive. Ce nombre ne doit pas dépasser 255.
+.TP 
+\fItcp_syncookies\fP (booléen\ ; depuis Linux\ 2.2)
+.\" Since 2.1.43
+Valider les syncookies TCP. Le noyau doit être compilé avec l'option
+\fBCONFIG_SYN_COOKIES\fP. Envoie des syncookies lorsque la file d'attente des
+connexions sur une socket déborde. Ceci est utilisé pour se protéger d'une
+attaque de type «\ SYN flood\ ». On ne doit l'utiliser qu'en dernier
+ressort. C'est une violation du protocole TCP, et entre en conflit avec
+d'autres fonctions comme les extensions TCP. Cela peut poser des problèmes
+avec les clients ou les relais. Ce mécanisme n'est pas considéré comme un
+moyen de réglage sur un serveur très chargé ou mal configuré. Pour des
+alternatives acceptables, consultez \fItcp_max_syn_backlog\fP,
+\fItcp_synack_retries\fP, \fItcp_abort_on_overflow\fP.
+.TP 
+\fItcp_timestamps\fP (booléen\ ; activé par défaut\ ; depuis Linux\ 2.2)
+.\" Since 2.1.36
+Activer les horodatages TCP (RFC\ 1323).
+.TP 
+\fItcp_tso_win_divisor\fP (entier\ ; 3 par défaut\ ; depuis Linux\ 2.6.9)
+Ce paramètre contrôle quel pourcentage de la fenêtre de congestion peut être
+utilisé par une unique trame de segmentation (TSO\ : «\ TCP Segmentation
+Offload\ »). La valeur de ce paramètre est un compromis entre une
+transmission par rafales et construire des trames avec un TSO plus
+importants.
+.TP 
+\fItcp_tw_recycle\fP (booléen\ ; désactivé par défaut\ ; depuis Linux\ 2.4)
+.\" Since 2.3.15
+.\"
+.\" The following is from 2.6.12: Documentation/networking/ip-sysctl.txt
+Activer le recyclage rapide des sockets TIME_WAIT. Cette option n'est pas
+recommandée car elle peut poser des problèmes avec les redirections NAT
+(Network Address Translation).
+.TP 
+\fItcp_tw_reuse\fP (booléen\ ; désactivé par défaut\ ; depuis Linux\ 2.4.19/2.6)
+.\" Since 2.4.19/2.5.43
+.\"
+.\" The following is from 2.6.12: Documentation/networking/ip-sysctl.txt
+Permet de réutiliser les sockets TIME_WAIT pour les nouvelles connexions
+quand c'est sûr du point de vue du protocole. Cela ne devrait pas être
+modifié sans l'avis ou la demande d'experts techniques.
+.TP 
+\fItcp_vegas_cong_avoid\fP (booléen\ ; désactivé par défaut\ ; Linux\ 2.2 à 2.6.13)
+.\" Since 2.1.8; removed in 2.6.13
+.\"
+.\" The following is from 2.6.12: Documentation/networking/ip-sysctl.txt
+Active l'algorithme TCP Vegas d'évitement de congestion. TCP Vegas est une
+modification côté émetteur de TCP qui anticipe la congestion en estimant la
+bande passante. TCP Vegas ajuste la vitesse d'émission en modifiant la
+fenêtre de congestion. TCP Vegas devrait fournir moins de perte de paquets,
+mais n'est pas aussi agressif que TCP Reno.
+.TP 
+\fItcp_westwood\fP (booléen\ ; désactivé par défaut\ ; Linux\ 2.4.26/2.6.3 à 2.6.13)
+Active l'algorithme TCP Westwood+ de contrôle de congestion. TCP Westwood+
+est une modification côté émetteur de la pile de protocole TCP Reno qui
+optimise la performance du contrôle de congestion TCP. Il est basé sur une
+estimation de bande passante de bout en bout pour définir la fenêtre de
+congestion et un redémarrage lent après un épisode de congestion. Grâce à
+cette estimation, TCP Westwood+ définit de façon adaptative une limite de
+démarrage lent et une fenêtre de congestion qui prennent en compte la bande
+passante utilisée au moment où la congestion se produit. TCP Westwood+
+augmente de façon significative l'équité par rapport à TCP Reno dans les
+réseaux filaires, et le débit sur des liens sans fil.
+.TP 
+\fItcp_window_scaling\fP (booléen\ ; activé par défaut\ ; depuis Linux\ 2.2)
+.\" Since 2.1.36
+Activer le dimensionnement de la fenêtre TCP (RFC\ 1323). Cette
+fonctionnalité permet d'utiliser une grande fenêtre (> 64\ Ko) sur une
+connexion TCP si le correspondant le prend en charge. Normalement, les
+16\ bits du champ de longueur de fenêtre dans l'en\-tête TCP limitent la
+taille à 64\ Ko. Si on désire une fenêtre plus grande, l'application peut
+augmenter la taille du tampon de la socket et activer l'option
+tcp_window_scaling. Si \fItcp_window_scaling\fP est inhibée, TCP ne négociera
+pas l'utilisation du dimensionnement des fenêtres avec le correspondant lors
+de l'initialisation de la connexion.
+.TP 
+\fItcp_wmem\fP (depuis Linux\ 2.4)
+.\" Since 2.4.0-test7
+Il s'agit d'un vecteur de trois entiers\ : [min, défaut, max]. Ces
+paramètres servent à TCP pour réguler la taille du tampon d'émission. La
+taille est ajustée dynamiquement à partir de la valeur par défaut, dans
+l'intervalle de ces valeurs, en fonction de la mémoire disponible.
+.RS
+.TP  10
+\fImin\fP
+La taille minimale du tampon d'émission utilisé par chaque socket TCP. La
+valeur par défaut est la taille des pages du systeème (sous Linux\ 2.4, la
+valeur par défaut est de 4\ Ko). Cette valeur assure qu'en mode de mémoire
+chargée, les allocations en dessous de cette taille réussiront. Elle n'est
+pas utilisée pour limiter la taille du tampon de réception, déclarée en
+utilisant l'option \fBSO_SNDBUF\fP sur la socket.
+.TP 
+\fIdefault\fP
+.\" True in Linux 2.4 and 2.6
+La taille par défaut du tampon d'émission pour une socket TCP. Cette valeur
+surcharge la taille par défaut de valeur globale
+\fI/proc/sys/net/core/wmem_default\fP définie pour tous les protocoles. La
+valeur par défaut est 16\ Ko. Si une taille plus grande est désirée, il faut
+augmenter cette valeur (pour affecter toutes les sockets). Pour utiliser une
+grande fenêtre TCP, \fI/proc/sys/net/ipv4/tcp_window_scaling\fP doit être
+positionné à une valeur non nulle (par défaut).
+.TP 
+\fImax\fP
+\fImax\fP \- la taille maximale du tampon d'émission utilisé par chaque socket
+TCP. Cette valeur ne surcharge pas la valeur globale qui se trouve dans
+\fI/proc/sys/net/core/wmem_max\fP. Elle ne permet pas de limiter la taille du
+tampon de réception déclarée avec l'option \fBSO_SNDBUF\fP sur la socket. La
+valeur par défaut est calculée avec la formule\ :
+
+    max(65536, min(4MB, \fItcp_mem\fP[1]*PAGE_SIZE/128))
+
+Sous Linux\ 2.4, la valeur par défaut est de 128\ Ko et descendre à 64\ Ko
+sur les systèmes avec peu de mémoire)
+.RE
+.TP 
+\fItcp_workaround_signed_windows\fP (booléen\ ; désactivé par défaut\ ; depuis Linux\ 2.6.26)
+S'il est activé, supposer que l'absence de réception d'une option de
+dimensionnement de la fenêtre signifie que la pile TCP distante n'est pas
+correcte et traite la fenêtre comme une quantité signée. S'il est désactivé,
+supposer que les piles TCP distantes ne sont jamais disfonctionnelles même
+si aucune option de dimensionnement de la fenêtre n'est reçue de leur part.
+.SS "Options de sockets"
+.\" or SOL_TCP on Linux
+Pour lire ou écrire une option de socket TCP, appeler \fBgetsockopt\fP(2) pour
+la lecture ou \fBsetsockopt\fP(2) pour l'écriture, avec l'argument niveau de
+socket valant \fBIPPROTO_TCP\fP. Sauf mention contraire, \fIoptval\fP est un
+pointeur vers un \fIint\fP. De plus, la plupart des options de socket
+\fBIPPROTO_IP\fP sont valides sur les sockets TCP. Pour plus de détails, voir
+\fBip\fP(7).
+.TP 
+\fBTCP_CORK\fP (depuis Linux\ 2.2)
+.\" precisely: since 2.1.127
+Ne pas envoyer de trames partielles. Toutes les trames partielles en attente
+sont envoyées lorsque cette option est effacée à nouveau. Ceci permet de
+préparer les en\-têtes avant d'appeler \fBsendfile\fP(2), ou pour optimiser le
+débit. Avec l'implémentation actuelle, il y a une limite de
+200\ millisecondes au temps pendant lequel des données sont agrégées avec
+\fBTCP_CORK\fP. Si cette limite est atteinte, les données mises en attente sont
+automatiquement transmises. Cette option ne peut être combinée avec
+\fBTCP_NODELAY\fP que depuis Linux\ 2.5.71. Cette option ne doit pas être
+utilisée dans du code conçu pour être portable.
+.TP 
+\fBTCP_DEFER_ACCEPT\fP (depuis Linux\ 2.4)
+.\" Precisely: since 2.3.38
+Permettre à un processus en écoute de n'être réveillé que si des données
+arrivent sur la socket. Prend une valeur entière (en secondes),
+correspondant au nombre maximal de tentatives que TCP fera pour terminer la
+connexion. Cette option ne doit pas être utilisée dans du code conçu pour
+être portable.
+.TP 
+\fBTCP_INFO\fP (depuis Linux\ 2.4)
+Fournit des informations sur la socket. Le noyau renvoie une structure
+\fIstruct tcp_info\fP comme définie dans le fichier
+\fI/usr/include/linux/tcp.h\fP. Cette option ne doit pas être utilisée dans du
+code conçu pour être portable.
+.TP 
+\fBTCP_KEEPCNT\fP (depuis Linux\ 2.4)
+.\" Precisely: since 2.3.18
+Le nombre maximal de messages keepalive envoyés par TCP avant d'abandonner
+une connexion. Cette option ne doit pas être utilisée dans du code conçu
+pour être portable.
+.TP 
+\fBTCP_KEEPIDLE\fP (depuis Linux\ 2.4)
+.\" Precisely: since 2.3.18
+La durée (en secondes) d'inactivité sur une connexion avant que TCP commence
+à envoyer les messages keepalive, si l'option \fBSO_KEEPALIVE\fP a été activée
+sur la socket. Cette option ne doit pas être employée dans du code conçu
+pour être portable.
+.TP 
+\fBTCP_KEEPINTVL\fP (depuis Linux\ 2.4)
+.\" Precisely: since 2.3.18
+Délai (en seconde) entre deux messages keepalive. Cette option ne doit pas
+être utilisée dans du code conçu pour être portable.
+.TP 
+\fBTCP_LINGER2\fP (depuis Linux\ 2.4)
+.\" Precisely: since 2.3.41
+La durée des sockets orphelines dans l'état FIN_WAIT2. Cette option peut
+servir à surcharger la valeur du paramètre système du fichier
+\fI/proc/sys/net/ipv4/tcp_fin_timeout\fP spécialement pour la socket. À ne pas
+confondre avec l'option \fBSO_LINGER\fP du niveau \fBsocket\fP(7). Cette option ne
+doit pas être utilisée dans du code conçu pour être portable.
+.TP 
+\fBTCP_MAXSEG\fP
+.\" Present in Linux 1.0
+La taille maximale de segment pour les paquets TCP sortants. Dans Linux\ 2.2
+et les versions précédentes, ainsi que dans Linux\ 2.6.28 et les versions
+suivantes, si cette option est définie avant d'établir la connexion, elle
+modifie également la valeur MSS annoncée à l'autre extrémité, dans le paquet
+initial. Les valeurs supérieures au MTU de l'interface sont ignorées et
+n'ont pas d'effet. TCP imposera ses limites minimales et maximales plutôt
+que les valeurs fournies.
+.TP 
+\fBTCP_NODELAY\fP
+.\" Present in Linux 1.0
+Désactiver l'algorithme Nagle. Ceci signifie que les paquets seront envoyés
+dès que possible, même s'il n'y a que très peu de données. Sinon, les
+données sont conservées jusqu'à ce qu'il y en ait un nombre suffisant, pour
+éviter d'envoyer de fréquents petits paquets, au détriment du réseau. Cette
+option est moins prioritaire que \fBTCP_CORK\fP. Cependant, activer cette
+option force un vidage des données actuellement en attente, même si
+\fBTCP_CORK\fP est actif.
+.TP 
+\fBTCP_QUICKACK\fP (depuis Linux\ 2.4.4)
+Valider le mode quickack, ou l'inhiber si l'option est nulle. En mode
+quickack, les acquittements sont envoyés immédiatement plutôt que retardés
+si besoin par rapport au fonctionnement normal de TCP. Cet attribut n'est
+pas permanent, il s'agit seulement d'un basculement vers ou depuis le mode
+quickack. Les opérations ultérieures du protocole TCP feront à nouveau
+entrer/quitter le mode quickack en fonction des traitements internes du
+protocole et de facteurs tels que les délais d'acquittements retardés, ou
+les transferts de données. Cette option ne doit pas être utilisée dans du
+code conçu pour être portable.
+.TP 
+\fBTCP_SYNCNT\fP (depuis Linux\ 2.4)
+.\" Precisely: since 2.3.18
+Indique le nombre de retransmissions de SYN que TCP doit envoyer avant
+d'annuler la tentative de connexion. Ne doit pas dépasser 255. Cette option
+ne doit pas être utilisée dans du code conçu pour être portable.
+.TP 
+\fBTCP_WINDOW_CLAMP\fP (depuis Linux\ 2.4)
+.\" Precisely: since 2.3.41
+Limite la taille de la fenêtre. Le noyau impose une taille minimale de
+SOCK_MIN_RCVBUF/2. Cette option ne doit pas être employée dans du code conçu
+pour être portable.
+.SS "API des sockets"
+TCP fourni une prise en charge limitée des données hors\-bande, sous la forme
+de données urgentes (un seul octet). Sous Linux cela signifie que si l'autre
+côté envoie de nouvelles données hors\-bande, les données urgentes plus
+anciennes sont insérées comme des données normales dans le flux (même quand
+\fBSO_OOBINLINE\fP n'est pas actif). Cela diffère des piles basées sur BSD.
+.PP
+Linux utilise par défaut une interprétation compatible BSD du champ
+Urgent\-Pointer. Ceci viole la RFC\ 1122, mais est indispensable pour
+l'interopérabilité avec les autres piles. On peut modifier ce comportement
+avec \fI/proc/sys/net/ipv4/tcp_stdurg\fP.
+
+Il est possible de jeter un coup d'œil aux données hors\-bande en utilisant
+l'attribut \fBMSG_PEEK\fP de \fIrecv\fP(2).
+
+Depuis la version\ 2.4, Linux prend en charge l'utilisation de \fBMSG_TRUNC\fP
+dans le paramètre \fIflags\fP de \fBrecv\fP(2) (et \fBrecvmsg\fP(2)). Cet attribut a
+pour effet que les octets de données reçus sont ignorés, plutôt que fournit
+au tampon fournit par l'appelant. Depuis Linux\ 2.4.4, \fBMSG_PEEK\fP a
+également un effet lorsqu'il est combiné à \fBMSG_OOB\fP pour recevoir les
+données hors\-bande.
+.SS Ioctls
+Les \fBioctl\fP(2)s suivants renvoient des informations dans \fIvaleur\fP. La
+syntaxe correcte est\ :
+.PP
+.RS
+.nf
+\fBint\fP\fI valeur\fP\fB;\fP
+\fIerror\fP\fB = ioctl(\fP\fItcp_socket\fP\fB, \fP\fIioctl_type\fP\fB, &\fP\fIvaleur\fP\fB);\fP
+.fi
+.RE
+.PP
+\fIioctl_type\fP est l'une des valeurs suivantes\ :
+.TP 
+\fBSIOCINQ\fP
+.\" FIXME http://sources.redhat.com/bugzilla/show_bug.cgi?id=12002,
+.\" filed 2010-09-10, may cause SIOCINQ to be defined in glibc headers
+Renvoie la quantité de données non lues en attente dans le tampon de
+réception. La socket ne doit pas être dans l'état LISTEN, sinon l'erreur
+\fBEINVAL\fP est renvoyée. \fBSIOCINQ\fP est défini dans
+\fI<linux/sockios.h>\fP. Une alternative est d'utiliser le synonyme
+\fBFIONREAD\fP, défini dans \fI<sys/ioctl.h>\fP.
+.TP 
+\fBSIOCATMARK\fP
+Renvoie vrai (c'est\-à\-dire une \fIvaleur\fP non nulle) si le flux de données
+entrantes est à la marque de données urgentes.
+
+Si l'option \fBSO_OOBINLINE\fP est activée, et \fBSIOCATMARK\fP renvoie vrai, la
+prochaine lecture sur la socket renverra les données urgentes. Si l'option
+\fBSO_OOBINLINE\fP n'est pas activée, et \fBSIOCATMARK\fP renvoie vrai, la
+prochaine lecture sur la socket renverra les octets suivant les données
+urgentes (pour lire les données urgentes, il faut utiliser l'option
+\fBMSG_OOB\fP de \fBrecv\fP()).
+
+Notez qu'une lecture ne lit jamais de part et d'autre de la marque de
+données urgentes. Si une application est informée de la présence de données
+urgentes avec \fBselect\fP(2) (en utilisant l'argument \fIexceptfds\fP) ou par la
+réception du signal \fBSIGURG\fP, il peut avancer jusqu'à la marque avec une
+boucle qui teste de façon répétée \fBSIOCATMARK\fP et fait une lecture
+(demandant un nombre quelconque d'octets) tant que \fBSIOCATMARK\fP renvoie
+faux.
+.TP 
+\fBSIOCOUTQ\fP
+.\" FIXME http://sources.redhat.com/bugzilla/show_bug.cgi?id=12002,
+.\" filed 2010-09-10, may cause SIOCOUTQ to be defined in glibc headers
+Renvoie la quantité de données non envoyées en attente dans le tampon
+d'émission. La socket ne doit pas être dans l'état LISTEN, sinon l'erreur
+\fBEINVAL\fP est renvoyée. \fBSIOCOUTQ\fP est défini dans
+\fI<linux/sockios.h>\fP. Une alternative est d'utiliser le synonyme
+\fBTIOCOUTQ\fP, défini dans \fI<sys/ioctl.h>\fP.
+.SS "Traitement des erreurs"
+Quand une erreur réseau se produit, TCP tente de renvoyer le paquet. S'il ne
+réussit pas après un certain temps, soit \fBETIMEDOUT\fP soit la dernière
+erreur reçue sur la connexion est renvoyée.
+.PP
+Certaines applications demandent une notification d'erreur plus rapide. Ceci
+peut être validé avec l'option de socket \fBIP_RECVERR\fP de niveau
+\fBIPPROTO_IP\fP. Quand cette option est active, toutes les erreurs arrivant
+sont immédiatement passées au programme utilisateur. Employez cette option
+avec précaution, elle rend TCP moins tolérant aux modifications de routage
+et autres conditions réseau normales.
+.SH ERREURS
+.TP 
+\fBEAFNOTSUPPORT\fP
+Le type d'adresse de la socket passée dans \fIsin_family\fP n'était pas
+\fBAF_INET\fP.
+.TP 
+\fBEPIPE\fP
+L'autre extrémité a fermé inopinément la socket, ou une lecture est tentée
+sur une socket terminée.
+.TP 
+\fBETIMEDOUT\fP
+L'autre côté n'a pas acquitté les données retransmises après un certain
+délai.
+.PP
+Toutes les erreurs définies dans \fBip\fP(7) ou au niveau générique des sockets
+peuvent aussi se produire avec TCP.
+.SH VERSIONS
+La prise en charge de notification explicite de congestion, l'émission de
+fichiers sans copie avec \fBsendfile\fP(2), le réordonnancement et certaines
+extensions SACK (DSACK) ont été introduits dans Linux\ 2.4. La prise en
+charge du Forward Acknowledgement (FACK), le recyclage de TIME_WAIT et les
+options keepalive des sockets par connexion ont été introduits dans Linux
+2.3.
+.SH BOGUES
+Toutes les erreurs ne sont pas documentées.
+.br
+.\" Only a single Linux kernel version is described
+.\" Info for 2.2 was lost. Should be added again,
+.\" or put into a separate page.
+.\" .SH AUTHORS
+.\" This man page was originally written by Andi Kleen.
+.\" It was updated for 2.4 by Nivedita Singhvi with input from
+.\" Alexey Kuznetsov's Documentation/networking/ip-sysctl.txt
+.\" document.
+IPv6 n'est pas décrit.
+.SH "VOIR AUSSI"
+\fBaccept\fP(2), \fBbind\fP(2), \fBconnect\fP(2), \fBgetsockopt\fP(2), \fBlisten\fP(2),
+\fBrecvmsg\fP(2), \fBsendfile\fP(2), \fBsendmsg\fP(2), \fBsocket\fP(2), \fBip\fP(7),
+\fBsocket\fP(7)
+.sp
+RFC\ 793 pour les spécifications TCP.
+.br
+RFC\ 1122 pour les nécessités TCP et une description de l'algorithme Nagle.
+.br
+RFC\ 1323 pour les options d'horodatage et la fenêtre TCP.
+.br
+RFC\ 1337 pour une description des dangers de TIME_WAIT.
+.br
+RFC\ 3168 pour une description de la notification explicite de congestion.
+.br
+RFC\ 2581 pour des algorithmes de contrôle de congestion TCP.
+.br
+RFC\ 2018 et RFC\ 2883 pour SACK et ses extensions.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,187 @@
+.\" Copyright (C) 2011, Hewlett-Packard Development Company, L.P.
+.\" Written by Stephen M. Cameron <scameron@beardog.cce.hp.com>
+.\"
+.\" %%%LICENSE_START(GPLv2_ONELINE)
+.\" Licensed under GNU General Public License version 2 (GPLv2)
+.\" %%%LICENSE_END
+.\"
+.\" shorthand for double quote that works everywhere.
+.ds q \N'34'
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH HPSA 4 "5 août 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+hpsa \- pilote pour le HP Smart Array SCSI
+.SH SYNOPSIS
+.nf
+modprobe hpsa [ hpsa_allow_any=1 ]
+.fi
+.SH DESCRIPTION
+\fBhpsa\fP est un pilote SCSI pour les contrôleurs RAID «\ HP Smart Array\ ».
+.SS Options
+\fIhpsa_allow_any=1\fP\ : cette option permet au pilote d'essayer de fonctionner
+avecn'importe quel contrôleur RAID matériel HP Smart Array, même si celui\-ci
+n'est pas explicitementconnu du pilote. Cela permet à du matériel récent de
+fonctionner avec des versions plus anciennes du pilote. Cela est utilisé
+typiquement pour permettre l'installation de systèmes d'exploitation à
+partir de supports antérieurs au contrôleur RAID. Cela peut aussi permettre
+de  faire fonctionner avec \fBhpsa\fP d'anciens contrôleurs qui auraient
+normalement dû être pris en charge par le pilote \fBcciss\fP(4). Ces
+contrôleurs plus anciens n'ont pas été testés et ne sont pas pris en charge
+par \fBhpsa\fP. Le pilote \fBcciss\fP(4) devrait continuer à être utilisé.
+.SS "Matériel pris en charge"
+Le pilote \fBhpsa\fP prend en charge les cartes Smart Array suivantes\ :
+.nf
+
+    Smart Array P700M
+    Smart Array P212
+    Smart Array P410
+    Smart Array P410i
+    Smart Array P411
+    Smart Array P812
+    Smart Array P712m
+    Smart Array P711m
+    StorageWorks P1210m
+.fi
+.SS "Détails de configuration"
+Pour configurer les contrôleurs HP Smart Array, utilisez l'utilitaire de
+configuration (\fBhpacuxe\fP(8) ou bien \fBhpacucli\fP(8)) ou l'utilitaire de
+configuration hors\-ligne sur ROM, lancé au démarrage depuis l'option «\ ROM\ »
+du Smart Array.
+.SH FICHIERS
+.SS "Nœuds de périphériques"
+On accède aux lecteurs logiques via le pilote de disque SCSI (\fBsd\fP(4)), aux
+lecteurs de bandes via le pilote de lecteur de bande SCSI (\fBst\fP(4)), et au
+contrôleur RAID via le pilote SCSI générique (\fBsg\fP(4)), avec des nœuds de
+périphérique appelés respectivement \fI/dev/sd*\fP, \fI/dev/st*\fP, et
+\fI/dev/sg*\fP.
+.SS "Fichiers d'attribut d'hôte spécifiques à HPSA dans /sys"
+.TP 
+\fI/sys/class/scsi_host/host*/rescan\fP
+Attribut en écriture seule. Écrire dans cet attribut forcera le pilote à
+rechercher les périphériques nouveaux, modifiés ou retirés (p. ex. des
+lecteurs de bandes branchés à chaud, ou des lecteurs logiques nouvellement
+configurés ou supprimés, etc.) et prévenir la couche intermédiaire SCSI de
+tout changement détecté. Normalement, une telle recherche est déclenchée
+automatiquement par l'utilitaire de configuration («\ HP Array Configuration
+Utility\ »), soit par l'interface graphique, soit par la ligne de
+commande). Donc, pour ce qui est des changements de lecteur logique,
+l'utilisateur ne devrait normalement pas avoir à utiliser cet attribut. Cet
+attribut peut s'avérer utile lors de branchement à chaud de périphériques
+tels que les lecteurs de bandes, ou des boîtiers entiers de stockage
+contenant des lecteurs logiques préconfigurés.
+.TP 
+\fI/sys/class/scsi_host/host*/firmware_revision\fP
+Cet attribut contient la version du micrologiciel («\ firmware\ ») du Smart
+Array.
+
+Par exemple\ :
+
+.nf
+    # \fBcd /sys/class/scsi_host/host4\fP
+    # \fBcat firmware_revision\fP
+    7.14
+.fi
+.SS "Fichiers d'attribut de disque spécifiques à HPSA dans /sys"
+.TP 
+\fI/sys/class/scsi_disk/c:b:t:l/device/unique_id\fP
+Cet attribut contient pour chaque lecteur logique un identifiant unique
+composé de 32 chiffres hexadécimaux.
+.nf
+
+Par exemple\ :
+
+    # \fBcd /sys/class/scsi_disk/4:0:0:0/device\fP
+    # \fBcat unique_id\fP
+    600508B1001044395355323037570F77
+.fi
+.TP 
+\fI/sys/class/scsi_disk/c:b:t:l/device/raid_level\fP
+Cet attribut contient le niveau RAID de chaque lecteur logique.
+.nf
+
+Par exemple\ :
+
+    # \fBcd /sys/class/scsi_disk/4:0:0:0/device\fP
+    # \fBcat raid_level\fP
+    RAID 0
+.fi
+.TP 
+\fI/sys/class/scsi_disk/c:b:t:l/device/lunid\fP
+Cet attribut contient l'identifiant d'unité logique («\ LUN\ ID») de
+16\ chiffres hexadécimaux (8\ octets) qui sert d'adresse à un lecteur logique
+ou un périphérique physique. Les quatre blocs de 2\ octets
+\fIc\fP:\fIb\fP:\fIt\fP:\fIl\fP indiquent respectivement le contrôleur, le bus, la cible
+et le numéro d'unité logique du périphérique.
+.nf
+
+Par exemple\ :
+
+    # \fBcd /sys/class/scsi_disk/4:0:0:0/device\fP
+    # \fBcat lunid\fP
+    0x0000004000000000
+.fi
+.SS "Opérations ioctl() prises en charge"
+Par soucis de compatibilité avec les applications écrites pour le pilote
+\fBcciss\fP(4), de nombreuses ioctl, mais pas toutes, prises en charge par le
+pilote \fBcciss\fP(4) sont aussi prises en charge par le pilote \fBhpsa\fP(4). Les
+structures de données utilisées par ces ioctl sont décrites dans le fichier
+source du noyau Linux \fIinclude/linux/cciss_ioctl.h\fP.
+.TP 
+\fBCCISS_DEREGDISK\fP, \fBCCISS_REGNEWDISK\fP, \fBCCISS_REGNEWD\fP
+Ces ioctl font toutes les trois la même chose, à savoir forcer le pilote à
+rechercher des nouveaux périphériques. Cela revient exactement à écrire dans
+l'attribut d'hôte «\ rescan\ » spécifique à HPSA.
+.TP 
+\fBCCISS_GETPCIINFO\fP
+Renvoie les domaine, bus, dispositif et fonction PCI, ainsi que
+l'«\ identifiant de carte\ » (identifiant du sous\-système PCI).
+.TP 
+\fBCCISS_GETDRIVVER\fP
+Renvoie la version du pilote encodée dans trois octets comme suit\ :
+.sp
+ (version_majeure << 16) | (version_mineure << 8) |
+        (sous\-version_mineure)
+.TP 
+\fBCCISS_PASSTHRU\fP, \fBCCISS_BIG_PASSTHRU\fP
+Permet aux commandes «\ BMIC\ » et «\ CISS\ » d'être passées au Smart Array. Ces
+commandes sont utilisées largement par l'utilitaire de configuration («\ HP
+Array Configuration Utility  »), les agents de stockage SNMP, etc. Consultez
+\fIcciss_vol_status\fP à l'adresse
+.UR http://cciss.sf.net
+.UE
+pour
+quelques exemples.
+.SH "VOIR AUSSI"
+\fBcciss\fP(4), \fBsd\fP(4), \fBst\fP(4), \fBcciss_vol_status\fP(8), \fBhpacucli\fP(8),
+\fBhpacuxe\fP(8),
+
+.\" .SH AUTHORS
+.\" Don Brace, Steve Cameron, Tom Lawler, Mike Miller, Scott Teel
+.\" and probably some other people.
+.UR http://cciss.sf.net
+.UE ,
+les fichiers source du noyau Linux
+\fIDocumentation/scsi/hpsa.txt\fP et
+\fIDocumentation/ABI/testing/sysfs\-bus\-pci\-devices\-cciss\fP
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

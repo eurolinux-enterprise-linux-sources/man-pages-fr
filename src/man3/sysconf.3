@@ -1,0 +1,272 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 17:51:42 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Tue Aug 17 11:42:20 1999 by Ariel Scolnicov (ariels@compugen.co.il)
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYSCONF 3 "12 février 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+sysconf \- Obtenir des informations de configuration au moment de l'exécution
+.SH SYNOPSIS
+.nf
+\fB#include <unistd.h>\fP
+.sp
+\fBlong sysconf(int \fP\fIname\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+POSIX permet à une application de tester à la compilation ou à l'exécution
+si certaines options sont gérées ou de déterminer quelles sont les valeurs
+de certaines limites ou constantes configurables.
+.LP
+Ceci est fait à la compilation en incluant \fI<unistd.h>\fP et/ou
+\fI<limits.h>\fP et en testant la valeur de certaines macros.
+.LP
+Pendant l'exécution, vous pouvez obtenir les valeurs numériques en utilisant
+la fonction \fBsysconf\fP(). Vous pouvez obtenir les valeurs numériques, qui
+peuvent dépendre du système de fichiers, relatives à un fichier en utilisant
+les appels \fBfpathconf\fP(3) et \fBpathconf\fP(3). Vous pouvez obtenir les
+valeurs de chaînes en utilisant \fBconfstr\fP(3).
+.LP
+.\" except that sysconf(_SC_OPEN_MAX) may change answer after a call
+.\" to setrlimit( ) which changes the RLIMIT_NOFILE soft limit
+Les valeurs obtenues à partir de ces fonctions sont des constantes de
+configuration du système. Elles ne seront donc pas modifiées pendant la
+durée de vie d'un processus.
+.LP
+.\" and 999 to indicate support for options no longer present in the latest
+.\" standard. (?)
+Pour les options, il y a typiquement une constante symbolique \fB_POSIX_FOO\fP
+qui peut être définie dans \fI<unistd.h>\fP. Si elle n'est pas définie,
+vous pouvez poser la question à l'exécution. Si elle est définie à \-1, c'est
+que l'option n'est pas supportée. Si elle est définie à 0, les en\-têtes et
+les fonctions en rapport existent mais vous devrez demander pendant
+l'exécution quel degré de prise en charge est disponible. Si elle est
+définie à une autre valeur que \-1 ou 0, l'option est
+supportée. Habituellement, la valeur (comme par exemple 200112L) indique
+l'année et le mois de la révision POSIX qui décrit l'option. Glibc utilise
+la valeur 1 pour indiquer le support aussi longtemps que la révision POSIX
+n'a pas été publiée. L'argument de \fBsysconf\fP() sera \fB_SC_FOO\fP. Pour la
+liste des options, consultez \fBposixoptions\fP(7).
+.LP
+Pour les variables ou les limites, il s'agit typiquement d'une constante
+\fB_FOO\fP, pouvant être définie dans \fI<limits.h>\fP, ou \fB_POSIX_FOO\fP,
+pouvant être définie dans \fI<unistd.h>\fP. La constante ne sera pas
+définie si la limite n'est pas spécifiée. Si la constante est définie, cela
+donne une valeur garantie et une valeur plus grande pourrait être
+supportée. Si une application veut tirer parti des valeurs pouvant varier
+entre les systèmes, l'appel de \fBsysconf\fP() permet d'obtenir ces
+informations. L'argument de \fBsysconf\fP() sera \fB_SC_FOO\fP.
+.SS "Variables POSIX.1"
+Nous allons donner le nom de la variable, le nom du paramètre passé à
+\fBsysconf\fP() pour s'enquérir de sa valeur et une brève description.
+.LP
+.\" [for the moment: only the things that are unconditionally present]
+.\" .TP
+.\" .BR AIO_LISTIO_MAX " - " _SC_AIO_LISTIO_MAX
+.\" (if _POSIX_ASYNCHRONOUS_IO)
+.\" Maximum number of I/O operations in a single list I/O call.
+.\" Must not be less than _POSIX_AIO_LISTIO_MAX.
+.\" .TP
+.\" .BR AIO_MAX " - " _SC_AIO_MAX
+.\" (if _POSIX_ASYNCHRONOUS_IO)
+.\" Maximum number of outstanding asynchronous I/O operations.
+.\" Must not be less than _POSIX_AIO_MAX.
+.\" .TP
+.\" .BR AIO_PRIO_DELTA_MAX " - " _SC_AIO_PRIO_DELTA_MAX
+.\" (if _POSIX_ASYNCHRONOUS_IO)
+.\" The maximum amount by which a process can decrease its
+.\" asynchronous I/O priority level from its own scheduling priority.
+.\" Must be nonnegative.
+Tout d'abord, les valeurs compatibles POSIX.1.
+.TP 
+\fBARG_MAX\fP \- \fB_SC_ARG_MAX\fP
+La longueur maximale des arguments des fonctions de la famille
+\fBexec\fP(3). Ne doit pas être inférieure à \fB_POSIX_ARG_MAX\fP (4096).
+.TP 
+\fBCHILD_MAX\fP \- \fB_SC_CHILD_MAX\fP
+Le nombre maximal de processus simultanés pour un UID. Ne doit pas être
+moins que \fB_POSIX_CHILD_MAX\fP (25).
+.TP 
+\fBHOST_NAME_MAX\fP \- \fB_SC_HOST_NAME_MAX\fP
+La longueur maximale d'un nom d'hôte, sans inclure le caractère nul final,
+tel qu'il est retourné par \fBgethostname\fP(2). Ne doit pas être inférieure à
+\fB_POSIX_HOST_NAME_MAX\fP (255).
+.TP 
+\fBLOGIN_NAME_MAX\fP \- \fB_SC_LOGIN_NAME_MAX\fP
+La longueur maximale d'un nom de connexion (login), incluant le caractère
+nul final. Ne doit pas être inférieure à \fB_POSIX_LOGIN_NAME_MAX\fP (9).
+.TP 
+tops d'horloge \- \fB_SC_CLK_TCK\fP
+Le nombre de tops d'horloge par seconde. La macro correspondante est
+obsolète. Il s'agit bien sûr de \fBCLK_TCK\fP (veuillez noter que la macro
+\fBCLOCKS_PER_SEC\fP ne donne pas d'information\ : elle doit être égale à
+1000000).
+.TP 
+\fBOPEN_MAX\fP \- \fB_SC_OPEN_MAX\fP
+Le nombre maximal de fichiers qu'un processus peut ouvrir simultanément. Ne
+doit pas être moins que \fB_POSIX_OPEN_MAX\fP (20).
+.TP 
+\fBPAGESIZE\fP \- \fB_SC_PAGESIZE\fP
+Taille d'une page en octets. Ne doit pas être inférieure à 1 (certains
+systèmes utilisent PAGE_SIZE à la place).
+.TP 
+\fBRE_DUP_MAX\fP \- \fB_SC_RE_DUP_MAX\fP
+Le nombre maximal de répétitions d'une expression rationelle permises par
+\fBregexec\fP(3) et \fBregcomp\fP(3). Ne doit pas être inférieur à
+\fB_POSIX2_RE_DUP_MAX\fP (255).
+.TP 
+\fBSTREAM_MAX\fP \- \fB_SC_STREAM_MAX\fP
+Le nombre maximal de flux qu'un processus peut ouvrir simultanément. Si elle
+est définie, elle a la même valeur que la macro C standard \fBFOPEN_MAX\fP. Ne
+doit pas être moins que \fB_POSIX_STREAM_MAX\fP (8).
+.TP 
+\fBSYMLOOP_MAX\fP \- \fB_SC_SYMLOOP_MAX\fP
+Le nombre maximal de liens symboliques rencontrés dans le nom d'un chemin
+avant que la résolution ne retourne \fBELOOP\fP. Ne doit pas être inférieur à
+\fB_POSIX_SYMLOOP_MAX\fP (8).
+.TP 
+\fBTTY_NAME_MAX\fP \- \fB_SC_TTY_NAME_MAX\fP
+La longueur maximale du nom d'un périphérique terminal, incluant le NUL
+final. Ne doit pas être inférieure à \fB_POSIX_TTY_NAME_MAX\fP (9).
+.TP 
+\fBTZNAME_MAX\fP \- \fB_SC_TZNAME_MAX\fP
+Le nombre maximal de caractères dans le nom d'un fuseau horaire. Ne doit pas
+être moins que \fB_POSIX_TZNAME_MAX\fP (6).
+.TP 
+\fB_POSIX_VERSION\fP \- \fB_SC_VERSION\fP
+Indique l'année et le mois où le standard POSIX.1 a été approuvé, en
+utilisant le format \fBAAAAMML\fP. La valeur \fB199009L\fP correspond à la
+révision de septembre 1990.
+.SS "Variables POSIX.2"
+Ensuite, les constantes POSIX.2 donnant les limites pour les utilitaires.
+.TP 
+\fBBC_BASE_MAX\fP \- \fB_SC_BC_BASE_MAX\fP
+La valeur maximale pour \fIobase\fP acceptée par l'utilitaire \fBbc\fP(1).
+.TP 
+\fBBC_DIM_MAX\fP \- \fB_SC_BC_DIM_MAX\fP
+La valeur maximale des éléments autorisés dans une table par \fBbc\fP(1).
+.TP 
+\fBBC_SCALE_MAX\fP \- \fB_SC_BC_SCALE_MAX\fP
+La valeur maximale pour \fIscale\fP autorisée par \fBbc\fP(1).
+.TP 
+\fBBC_STRING_MAX\fP \- \fB_SC_BC_STRING_MAX\fP
+La longueur maximale d'une chaîne acceptée par \fBbc\fP(1).
+.TP 
+\fBCOLL_WEIGHTS_MAX\fP \- \fB_SC_COLL_WEIGHTS_MAX\fP
+Le nombre maximal de poids à affecter à une entrée dans l'ordre
+\fBLC_COLLATE\fP du fichier de définition de localisation.
+.TP 
+\fBEXPR_NEST_MAX\fP \- \fB_SC_EXPR_NEST_MAX\fP
+Le nombre maximal d'expressions imbriquées entre parenthèses dans
+\fBexpr\fP(1).
+.TP 
+\fBLINE_MAX\fP \- \fB_SC_LINE_MAX\fP
+La longueur maximale d'une ligne d'entrée d'un utilitaire, aussi bien depuis
+l'entrée standard que depuis un fichier. Cette longueur comprend
+l'emplacement du caractère final «\ nouvelle ligne\ ».
+.TP 
+\fBRE_DUP_MAX\fP \- \fB_SC_RE_DUP_MAX\fP
+Le nombre maximal de répétitions d'une expression rationnelle quand la
+notation d'intervalle \fB\e{m,n\e}\fP est utilisée.
+.TP 
+\fBPOSIX2_VERSION\fP \- \fB_SC_2_VERSION\fP
+La version de la norme POSIX.2 au format AAAAMML.
+.TP 
+\fBPOSIX2_C_DEV\fP \- \fB_SC_2_C_DEV\fP
+Indique si les utilitaires POSIX.2 de développement en C sont supportés.
+.TP 
+\fBPOSIX2_FORT_DEV\fP \- \fB_SC_2_FORT_DEV\fP
+Indique si les utilitaires POSIX.2 de développement en FORTRAN sont
+supportés.
+.TP 
+\fBPOSIX2_FORT_RUN\fP \- \fB_SC_2_FORT_RUN\fP
+Indique si les utilitaires POSIX.2 d'exécution FORTRAN sont prises en
+charge.
+.TP 
+\fB_POSIX2_LOCALEDEF\fP \- \fB_SC_2_LOCALEDEF\fP
+Indique si la création de localisation POSIX.2 avec \fBlocaledef\fP(1) est
+supportée.
+.TP 
+\fBPOSIX2_SW_DEV\fP \- \fB_SC_2_SW_DEV\fP
+Indique si les utilitaires POSIX.2 de développement sont supportés.
+.PP
+Quelques valeurs existent sans appartenir à une norme\ :
+.TP 
+ \- \fB_SC_PHYS_PAGES\fP
+Le nombre de pages de mémoire physique. Notez qu'il est possible que le
+produit de cette valeur et de la valeur \fB_SC_PAGE_SIZE\fP déclenche un
+débordement.
+.TP 
+ \- \fB_SC_AVPHYS_PAGES\fP
+Le nombre de pages de mémoire physique actuellement disponibles.
+.TP 
+ \- \fB_SC_NPROCESSORS_CONF\fP
+Le nombre de processeurs configurés.
+.TP 
+ \- \fB_SC_NPROCESSORS_ONLN\fP
+Le nombre de processeurs actuellement en ligne (disponibles).
+.SH "VALEUR RENVOYÉE"
+Si \fIname\fP est invalide, \-1 est renvoyée et \fIerrno\fP est mis à
+\fBEINVAL\fP. Sinon, la valeur renvoyée est celle de la ressource système
+correspondante et \fIerrno\fP n'est pas modifiée. Dans le cas d'options, une
+valeur positive est renvoyée si l'option requise est disponible et \-1 si
+elle ne l'est pas. Dans le cas de limites, \-1 signifie qu'aucune limite
+n'est définie.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH BOGUES
+Il est difficile d'utiliser \fBARG_MAX\fP car il n'est pas précisé combien
+d'espace d'argument de \fBexec\fP(3) est utilisé par les variables
+d'environnement de l'utilisateur.
+.PP
+Certaines valeurs renvoyées peuvent être énormes\ ; elles ne sont pas
+utilisables pour réaliser des allocations mémoires.
+.SH "VOIR AUSSI"
+\fBbc\fP(1), \fBexpr\fP(1), \fBgetconf\fP(1), \fBlocale\fP(1), \fBfpathconf\fP(3),
+\fBpathconf\fP(3), \fBposixoptions\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

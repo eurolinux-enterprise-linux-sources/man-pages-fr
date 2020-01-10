@@ -1,0 +1,640 @@
+.\" (C) Copyright 1999-2000 David A. Wheeler (dwheeler@dwheeler.com)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Fragments of this document are directly derived from IETF standards.
+.\" For those fragments which are directly derived from such standards,
+.\" the following notice applies, which is the standard copyright and
+.\" rights announcement of The Internet Society:
+.\"
+.\" Copyright (C) The Internet Society (1998).  All Rights Reserved.
+.\" This document and translations of it may be copied and furnished to
+.\" others, and derivative works that comment on or otherwise explain it
+.\" or assist in its implementation may be prepared, copied, published
+.\" and distributed, in whole or in part, without restriction of any
+.\" kind, provided that the above copyright notice and this paragraph are
+.\" included on all such copies and derivative works.  However, this
+.\" document itself may not be modified in any way, such as by removing
+.\" the copyright notice or references to the Internet Society or other
+.\" Internet organizations, except as needed for the purpose of
+.\" developing Internet standards in which case the procedures for
+.\" copyrights defined in the Internet Standards process must be
+.\" followed, or as required to translate it into languages other than English.
+.\"
+.\" Modified Fri Jul 25 23:00:00 1999 by David A. Wheeler (dwheeler@dwheeler.com)
+.\" Modified Fri Aug 21 23:00:00 1999 by David A. Wheeler (dwheeler@dwheeler.com)
+.\" Modified Tue Mar 14 2000 by David A. Wheeler (dwheeler@dwheeler.com)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH URI 7 "18 mai 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+uri, url, urn \- Identificateur de ressource uniforme (URI), comprenant URL
+ou URN
+.SH SYNOPSIS
+.nf
+.HP 0.2i
+URI = [ URI_absolu | URI_relatif ] [ "#" fragment ]
+.HP
+URI_absolu = mécanisme ":" ( partie_hiérarchique | partie_opaque )
+.HP
+URI_relatif = ( chemin_réseau | chemin_absolu | chemin_relatif ) [ "?" requête
+.HP
+mécanisme = "http" | "ftp" | "gopher" | "mailto" | "news" | "telnet" |
+            "file" | "man" | "info" | "whatis" | "ldap" | "wais" | \&...
+.HP
+partie_hierarchique = ( chemin_réseau | chemin_absolu ) [ "?" requête ]
+.HP
+chemin_réseau = "//" autorité [ chemin_absolu ]
+.HP
+chemin_absolu = "/"  segments_chemin
+.HP
+chemin_relatif = segment_relatif [ chemin_relatif ]
+.fi
+.SH DESCRIPTION
+.PP
+Un Identificateur de Ressource Uniforme (URI) est une courte chaîne de
+caractères identifiant une ressource physique ou abstraite (par exemple une
+page web). Une Localisation de Ressource Uniforme (URL) est un URI qui
+identifie une ressource à travers son moyen d'accès (sa «\ position\ »
+réseau par exemple), plutôt que par son nom ou un autre attribut de la
+ressource. Un Nom de Ressource Uniforme (URN) est un URI qui doit rester
+globalement unique, et persister même si la ressource cesse d'exister ou
+devient indisponible.
+.PP
+Les URI constituent le mécanisme standard pour nommer les destinations des
+liens hypertextes pour les outils comme les navigateurs web. La chaîne «\ http://www.kernelnotes.org\ » est une URL (et donc aussi un URI). Beaucoup
+de gens utilisent le terme URL comme vague synonyme de URI (bien que
+techniquement les URL soient un sous\-ensemble des URI).
+.PP
+Les URI peuvent être absolus ou relatifs. Un identificateur absolu référence
+une ressource indépendamment du contexte, alors qu'un identificateur relatif
+référence une ressource en décrivant la différence par rapport au contexte
+courant. Dans les références de chemins relatifs, les segments complets «\ \&.\ » et «\ ..\ » ont des significations particulières\ : «\ le niveau actuel
+dans la hiérarchie\ » et «\ le niveau au\-dessus dans la hiérarchie\ »,
+respectivement, tout comme dans les systèmes type UNIX. Un segment de chemin
+qui contient un caractère deux\-points ne peut pas être utilisé comme premier
+segment du chemin d'un URI (par exemple «\ ceci:cela\ »), car on le
+confondrait avec le mécanisme. Précédez un tel segment avec ./ (par exemple
+«\ ./ceci:cela\ »). Notez que les descendants de MS\-DOS (par ex. Windows)
+remplacent le deux\-points du nom de périphérique par une barre verticale
+dans les URI, ainsi «\ C:\ » devient «\ C|\ ».
+.PP
+Un identificateur de fragment, s'il est présent, référence une portion
+particulière de la ressource\ ; le texte après le «\ #\ » identifie le
+fragment. Un URI commençant par «\ #\ » référence le fragment dans la
+ressource courante.
+.SS Utilisation
+Il y a plusieurs schémas d'URI différents, chacun ajoutant des règles et des
+significations spécifiques, mais ils sont volontairement rendus le plus
+ressemblants possible. Par exemple, plusieurs schémas d'URL permettent le
+format suivant pour décrire l'autorité d'un chemin réseau, que l'on
+appellera \fIserveur_ip\fP (les crochets encadrent les parties optionnelles)\ :
+.HP
+\fIserveur_ip = \fP[\fIuser\fP [ : \fIpassword\fP ] @ ] \fIhôte\fP [ : \fIport\fP]
+.PP
+Ce format permet d'insérer éventuellement un nom d'utilisateur, suivi
+éventuellement d'un mot de passe, et/ou un numéro de port. La partie \fIhôte\fP
+est le nom de l'ordinateur, soit son nom déterminé par le DNS, soit son
+adresse IP (numéros séparés par des points). Ainsi l'URI
+<http://fred:fredpassword@xyz.com:8080/> se connecte dans le serveur
+web sur l'ordinateur xyz.com avec l'identité fred (et le mot de passe
+fredpassword) en utilisant le port 8080. Évitez d'utiliser les mots de passe
+dans les URI à cause des risques liés à la sécurité sitôt que l'on écrit un
+mot de passe. Si l'URL indique un nom d'utilisateur et pas de mot de passe,
+et si le serveur distant réclame un mot de passe, alors le programme
+interprétant l'URL peut en demander un à l'utilisateur.
+.PP
+Voici les mécanismes les plus courants utilisés sur les systèmes type UNIX,
+compris par de nombreux outils. Notez que beaucoup d'outils gérant les URI
+ont aussi des mécanismes internes ou spécialisés\ ; consultez la
+documentation de ces outils pour plus de détails.
+.PP
+\fBhttp \- Serveur Web (HTTP)\fP
+.PP
+http://\fIserveur_ip\fP/\fIchemin\fP
+.br
+http://\fIserveur_ip\fP/\fIchemin\fP?\fIrequête\fP
+.PP
+Il s'agit d'une URL accédant à un serveur web (HTTP). Le port par défaut est
+80. Si le chemin référence un répertoire, le serveur choisira ce qu'il
+renverra. Habituellement, si un fichier nommé «\ index.html\ » ou «\ index.htm\ » est présent, son contenu est renvoyé. Sinon, il crée et renvoie
+une liste des fichiers dans le répertoire en cours avec les liens
+appropriés. Un exemple\ : <http://lwn.net>.
+.PP
+Une requête peut être formulée dans le format archaïque «\ isindex\ »,
+consistant en mot ou phrase sans signe égal «\ =\ ». Une requête peut aussi
+être dans le format «\ GET\ » plus long, qui a une ou plusieurs entrées de
+requêtes de la forme \fIclé\fP=\fIvaleur\fP séparées par un caractère «\ et
+commercial\ » «\ &\ ». Notez que la \fIclé\fP peut être répétée plusieurs fois,
+et c'est au serveur web et ses programmes applicatifs de déterminer s'il y a
+une signification pour cela. Il y a une interaction malheureuse avec
+HTML/XML/SGML et le format de requête GET. Quand une telle requête avec
+plusieurs clés est incluse dans un document SGML/XML (y compris HTML), le «\ et commercial\ » «\ &\ » doit être réécrit sous forme «\ &amp;\ ». Notez que
+toutes les requêtes n'utilisent pas ce format\ ; elles peuvent être trop
+longues pour être stockée en URL et utilisent un mécanisme d'interaction
+différent (appelé POST) sans inclure les données dans l'URI. Consultez la
+spécification Common Gateway Interface (CGI) à l'adresse
+.UR http://www.w3.org\:/CGI
+.UE
+pour plus de détails.
+.PP
+\fBftp \- File Transfer Protocol (FTP)\fP
+.PP
+ftp://\fIserveur_ip\fP/\fIchemin\fP
+.PP
+Cette URL accède à un fichier à travers le protocole FTP. Le port par défaut
+(pour les commandes) est 21. Si aucun nom d'utilisateur n'est inclus,
+l'utilisateur «\ anonymous\ » est employé, et dans ce cas de nombreux
+clients fournissent l'adresse courriel du requérant en guise de mot de
+passe. Un exemple est <ftp://ftp.is.co.za/rfc/rfc1808.txt>.
+.PP
+\fBgopher \- Serveur Gopher\fP
+.PP
+gopher://\fIserveur_ip\fP/\fItype_gopher sélecteur\fP
+.br
+gopher://\fIserveur_ip\fP/\fItype_gopher sélecteur\fP%09\fIrecherche\fP
+.br
+gopher://\fIserveur_ip\fP/\fItype_gopher
+sélecteur\fP%09\fIrecherche\fP%09\fIchaine_gopher+\fP
+.br
+.PP
+Le port gopher par défaut est 70. Le \fItype_gopher\fP est un champ composé
+d'un unique caractère indiquant le type de ressource Gopher à laquelle l'URL
+fait référence. Le chemin entier paut aussi être vide, auquel cas le
+délimiteur «\ /\ » est aussi optionnel et le type_gopher prend la valeur par
+défaut «\ 1\ ».
+.PP
+\fIselecteur\fP est une chaîne de sélecteur Gopher. Dans le protocole Gopher,
+la chaîne de sélecteur est une séquence d'octets pouvant contenir tous les
+octets sauf 09 hexadécimal (HT ACSII ou Tabulation), 0A hexadécimal (LF
+ACSII), et 0D (CR ACSII).
+.PP
+\fBmailto \- Adresse courriel\fP
+.PP
+mailto:\fIadresse\-courriel\fP
+.PP
+Il s'agit d'une adresse courriel, en principe de la forme
+\fInom\fP@\fInom_hôte\fP. Consultez \fBmailaddr\fP(7) pour plus d'informations sur le
+format correct d'une adresse courriel. Notez que les caractères % doivent
+être transformés en %25. Un exemple\ :
+<mailto:dwheeler@dwheeler.com>.
+.PP
+\fBnews \- Groupe ou message des news\fP
+.PP
+news:\fInom\-groupe\-news\fP
+.br
+news:\fIid\-message\fP
+.PP
+Un \fInom\-groupe\-news\fP est un nom hiérarchique délimité par des points, comme
+«\ comp.infosystems.www.misc\ ». Si nom\-groupe\-news est «\ *\ » (comme dans
+<news:*>), l'URL référence tous les groupes news disponibles. Un
+exemple\ : <news:comp.lang.ada>.
+.PP
+Un \fIid\-message\fP correspond au champ identificant Message\-ID de
+.UR http://www.ietf.org\:/rfc\:/rfc1036.txt
+IETF RFC\ 1036,
+.UE
+sans les
+chevrons «\ <\ » et «\ >\ »\ ; il prend la forme
+\fIunique\fP@\fInom\-domaine\-complet\fP. Un identificateur de message peut être
+distingué d'un nom de groupe de news par la présence du caractère «\ @\ ».
+.PP
+\fBtelnet \- Connexion telnet\fP
+.PP
+telnet://\fIserveur_ip\fP/
+.PP
+Le mécanisme d'URL Telnet est utilisé pour afficher un service interactif
+accessible par le protocole Telnet. Le caractère «\ /\ » final peut être
+omis. Le port par défaut est 23. Un exemple\ :
+<telnet://melvyl.ucop.edu/>.
+.PP
+\fBfile \- Fichier normal\fP
+.PP
+file://\fIserveur_ip\fP/\fIsegments_chemins\fP
+.br
+file:\fIsegments_chemins\fP
+.PP
+Ceci représente un fichier ou un répertoire accessible localement. En
+particulier, \fIip_server\fP peut être la chaîne «\ localhost\ » ou une chaîne
+vide\ ; elle est interprétée comme «\ la machine sur laquelle l'URL est en
+cours d'interprétation\ ». Si le chemin conduit à un répertoire, le
+navigateur devrait afficher le contenu du répertoire avec des liens pour
+chaque élément. Tous les navigateurs ne le font pas encore. KDE prend en
+charge les fichiers générés par l'URL <file:/cgi\-bin>. Si le fichier
+n'est pas trouvé, l'analyseur du navigateur peut essayer de développer le
+nom du fichier (consultez \fBglob\fP(7) et \fBglob\fP(3)).
+.PP
+Le second format (par ex. <file:/etc/passwd>) est le format correct
+pour référencer un fichier local. Toutefois les anciens standards ne le
+permettaient pas, et certains programmes ne le reconnaissent pas comme
+URI. Une syntaxe plus portable est d'utiliser une chaîne vide en guise de
+nom de serveur <file:///etc/passwd>\ ; cette forme a le même effet
+et est reconnue facilement comme un URI par les analyseurs des anciens
+programmes. Notez que si vous désirez vraiment écrire «\ débuter de
+l'emplacement actuel\ », n'indiquez pas de mécanisme\ ; utilisez une adresse
+relative comme <../test.txt>, qui est indépendante du mécanisme. Un
+exemple de ce mécanisme est <file:///etc/passwd>.
+.PP
+\fBman \- Pages de manuel\fP
+.PP
+man:\fInom\-commande\fP
+.br
+man:\fInom\-commande\fP(\fIsection\fP)
+.PP
+Ceci référence les pages de documentation en ligne (man) locales. Le nom de
+la commande peut être suivi éventuellement de parenthèses et d'un numéro de
+section. Consultez \fBman\fP(7) pour plus de renseignements sur la
+signification du numéro de section. Ce mécanisme d'URI est unique aux
+systèmes UNIX (comme Linux) et n'est pas encore enregistré par l'IETF. Un
+exemple\ : <man:ls(1)>.
+.PP
+\fBinfo \- Page de documentation Info\fP
+.PP
+info:\fInom\-de\-fichier\-virtuel\fP
+.br
+info:\fInom\-de\-fichier\-virtuel\fP#\fInom\-de\-nœud\fP
+.br
+info:(\fInom\-de\-fichier\-virtuel\fP)
+.br
+info:(\fInom\-de\-fichier\-virtuel\fP)\fInom\-de\-nœud\fP
+.PP
+Ce mécanisme référence les pages de documentation en ligne info (créées par
+les fichiers texinfo), un format utilisé par les outils GNU. Ce mécanisme
+est spécifique aux systèmes UNIX (comme Linux) et n'est pas encore
+enregistré par l'IETF. Actuellement, Gnome et Kde divergent dans la syntaxe
+d'URI et chacun rejette la syntaxe de l'autre. Les deux premiers formats
+sont ceux de Gnome\ ; dans le nom de nœud, tous les espaces sont remplacés
+par des soulignés. Les deux formats suivants sont ceux de Kde\ ; les espaces
+doivent rester tels quels, même si c'est interdit dans les standards
+d'URI. On peut espérer que dans l'avenir la plupart des outils comprendront
+les deux formats et accepteront des soulignés en remplacement des
+espaces. Dans tous les cas, le format sans nom de nœud est supposé viser le
+nœud «\ Top\ »". Exemples de format Gnome\ : <info:gcc> et
+<info:gcc#G++_and_GCC>. Exemples de format Kde\ :
+<info:(gcc)> et <info:(gcc)G++ and GCC>.
+.PP
+\fBwhatis \- Recherche de documentation\fP
+.PP
+whatis:\fIchaîne\fP
+.PP
+Ce mécanisme parcourt une base de données de courtes (une ligne)
+descriptions des commandes et renvoie une liste des descriptions contenant
+la chaîne. Seules les correspondances de mots complets sont
+renvoyées. Consultez \fBwhatis\fP(1). Ce mécanisme est unique aux systèmes UNIX
+(comme Linux) et n'est pas encore enregistré par l'IETF.
+.PP
+\fBghelp \- Documentation d'aide Gnome\fP
+.PP
+ghelp:\fInom\-application\fP
+.PP
+Ceci charge la documentation d'aide Gnome pour l'application indiquée. Notez
+qu'il n'y a pas encore beaucoup de documentation dans ce format.
+.PP
+\fBldap \- Lightweight Directory Access Protocol\fP
+.PP
+ldap://\fIhostport\fP
+.br
+ldap://\fIhostport\fP/
+.br
+ldap://\fIhostport\fP/\fIdn\fP
+.br
+ldap://\fIhostport\fP/\fIdn\fP?\fIattributs\fP
+.br
+ldap://\fIhostport\fP/\fIdn\fP?\fIattributs\fP?\fIportée\fP
+.br
+ldap://\fIhostport\fP/\fIdn\fP?\fIattributs\fP?\fIportée\fP?\fIfiltre\fP
+.br
+ldap://\fIhostport\fP/\fIdn\fP?\fIattributs\fP?\fIportée\fP?\fIfiltre\fP?\fIextensions\fP
+.PP
+Ce mécanisme prend en charge les requêtes utilisant le protocole Lightweight
+Directory Access Protocol (LDAP), pour interroger un ensemble de serveurs à
+propos d'informations organisées hiérarchiquement (comme des gens ou des
+ressources de calcul). Consultez
+.UR http://www.ietf.org\:/rfc\:/rfc2255.txt
+RFC\ 2255
+.UE
+pour plus
+d'informations sur la forme des URL LDAP. Les composantes de cette URL
+sont\ :
+.IP hostport 12
+le serveur LDAP à interroger, écrit comme un nom d'hôte suivi éventuellement
+par un deux\-points et un numéro de port. Le port TCP pour le LDAP est
+389. Si le nom est vide, le client détermine le serveur LDAP à utiliser.
+.IP dn
+Le nom complet (Distinguished Name) LDAP, qui identifie l'objet de base de
+la recherche LDAP (voir
+.UR http://www.ietf.org\:/rfc\:/rfc2253.txt
+RFC\ 2253
+.UE
+section 3).
+.IP attributs
+une liste d'attributs à renvoyer séparés par des virgules\ ; voir la RFC\ 2251 section\ 4.1.5. Par défaut tous les attributs sont renvoyés..
+.IP portée
+indique la portée de la recherche qui peut être «\ base\ » (recherche
+d'objet de base), «\ one\ » (recherche sur un niveau), ou «\ sub\ »
+(recherche dans un sous\-arbre). Par défaut, on considère «\ base\ ».
+.IP filtre
+indique le filtre de recherche (sous\-ensemble des entrées à renvoyer). Par
+défaut, toutes les entrées sont renvoyées. Consultez
+.UR http://www.ietf.org\:/rfc\:/rfc2254.txt
+RFC\ 2254
+.UE
+section 4.
+.IP extensions
+une liste de paires type=valeur séparées par des virgules, où la portion
+=valeur peut être omise pour les options ne la nécessitant pas. Une
+extension préfixée par un «\ !\ » est critique (doit être pris en charge
+pour être valide), sinon elle est non\-critique (facultative).
+.PP
+Les requêtes LDAP sont plus faciles à comprendre par l'exemple. Voici une
+requête demandant à ldap.itd.umich.edu des informations à propos de
+l'Université du Michigan aux U.S.\ :
+.PP
+.nf
+ldap://ldap.itd.umich.edu/o=University%20of%20Michigan,c=US
+.fi
+.PP
+Pour n'obtenir que l'attribut Adresse Postale, on demanderait\ :
+.PP
+.nf
+ldap://ldap.itd.umich.edu/o=University%20of%20Michigan,c=US?postalAddress
+.fi
+.PP
+Pour demander à host.com, sur le port 6666 des informations sur la personne
+de nom courant (cn) «\ Babs Jensen\ » à l'University du Michigan, demandez\ :
+.PP
+.nf
+ldap://host.com:6666/o=University%20of%20Michigan,c=US??sub?(cn=Babs%20Jensen)
+.fi
+.PP
+\fBwais \- Wide Area Information Servers\fP
+.PP
+wais://\fIhostport\fP/\fIbase\fP
+.br
+wais://\fIhostport\fP/\fIbase\fP?\fIrecherche\fP
+.br
+wais://\fIhostport\fP/\fIbase\fP/\fIwtype\fP/\fIwpath\fP
+.PP
+Ce mécanisme désigne une base de données WAIS, une recherche ou un document
+(voir
+.UR http://www.ietf.org\:/rfc\:/rfc1625.txt
+IETF RFC\ 1625
+.UE
+pour plus de renseignements sur WAIS). Hostport est le nom d'hôte, suivi
+éventuellement d'un deux\-points et d'un numéro de port (par défaut 210).
+.PP
+La première forme désigne une base de données WAIS pour les recherches. La
+seconde désigne une recherche particulière dans la base WAIS indiquée. La
+troisième forme désigne un document particulier à retrouver dans la base de
+données WAIS. \fIwtype\fP est la désignation WAIS du type d'objet et \fIwpath\fP
+est l'identificateur WAIS du document.
+.PP
+\fBAutres mécanismes\fP
+.PP
+Il existe d'autres mécanismes URI. La plupart des outils traitant les URI
+acceptent un jeu d'URI internes (par exemple, Mozilla a un mécanisme about:
+pour les informations internes, et le navigateur d'aide Gnome a un mécanisme
+toc: pour diverses opérations). Il y a de nombreux mécanismes qui ont été
+définis mais pas très utilisés pour l'instant (par exemple, prospero). Le
+mécanisme nntp: est déconseillé en faveur de celui news:. Les URN seront
+prises en charge par le mécanisme urn: avec des espaces de noms hiérarchique
+(p.ex.\ : urn:ietf:... pour les documents IETF). Pour le moment, les URN ne
+sont pas très largement implémentés. Tous les outils ne gèrent pas tous les
+mécanismes.
+.SS "Codage des caractères"
+.PP
+Les URI utilisent un nombre limité de caractères afin d'être saisis et
+utilisés dans de nombreuses situations.
+.PP
+Les caractères suivants sont réservés\ ; ils peuvent apparaître dans un URI,
+mais leurs usages est limités aux fonctionnalités réservées (les données
+conflictuelles doivent être protégées avant de former l'URI)\ :
+.IP
+   ; / ? : @ & = + $ ,
+.PP
+Les caractères non\-réservés peuvent être inclus dans un URI. Les caractères
+non\-réservés incluent les majuscules et minuscules anglaises, les chiffres
+décimaux, et l'ensemble suivant de signes de ponctuation et de symboles\ :
+.IP
+ \- _ . ! ~ * ' ( )
+.PP
+Tous les autres caractères doivent être protégés. Un octet protégé est
+encodé sous forme d'un triplet de caractères, consistant en un signe
+pourcent «\ %\ » suivi de deux chiffres hexadécimaux représentant le code de
+l'octet (les lettres hexadécimales peuvent être en majuscules ou en
+minuscules). Par exemple un espace blanc doit être protégé sous forme «\ %20\ », une tabulation «\ %09\ » et le «\ &\ » en «\ %26\ ». Comme le
+caractère "%\ »" a toujours un rôle réservé pour protéger les autres
+caractères, il faut le protéger sous forme «\ %25\ ». Il est courant de
+protéger le caractère espace en symbole plus «\ +\ » dans les
+requêtes. Cette pratique n'est pas défini uniformément dans les RFC
+correspondantes (qui recommandent %20 plutôt) mais tous les outils acceptant
+les URI avec des requêtes préparées ainsi. Une URI est toujours montrée dans
+sa forme protégée.
+.PP
+Les caractères non réservés peuvent être protégés sans modifier la
+sémantique de l'URI, mais il faut l'éviter sauf si l'URI est utilisé dans un
+contexte qui ne permet pas l'utilisation du caractère non protégé. Par
+exemple «\ %7E\ » est parfois utilisé à la place de «\ ~\ » dans les URL
+HTTP mais les deux sont en réalité équivalents dans ce contexte.
+.PP
+Pour les URI qui doivent manipuler des caractères hors du jeu ASCII, la
+spécification HTML\ 4.01 (section\ B.2) et la RFC\ 2718 (section\ 2.2.5)
+préconisent l'approche suivante\ :
+.IP 1. 4
+traduire le caractère en séquence UTF\-8 (RFC\ 2279) \(em consultez
+\fButf\-8\fP(7) \(em puis
+.IP 2.
+utiliser le mécanisme d'échappement d'URI, c'est\-à\-dire, utiliser les %HH
+pour coder les octets non\-sûrs.
+.SS "Écrire un URI"
+Lorsqu'il est écrit, un URI doit être placé entre guillemets
+(«\ http://www.kernelnotes.org\ »), encadré par des chevrons
+(<http://lwn.net>), ou placé sur une ligne indépendante. Un
+avertissement à propos des guillemets\ : Ne \fBjamais\fP introduire une
+ponctuation supplémentaire (comme le point final d'une phrase ou la virgule
+séparant les éléments d'une liste) à l'intérieur de l'URI, car cela
+modifierait sa valeur (N.d.T.\ : cet avertissement vaut surtout pour les
+anglo\-saxons\ ; en français l'usage veut que les éléments de ponctuations
+restent à l'extérieur des guillemets). On peut utiliser les chevrons à la
+place, ou basculer sur un système de notation qui n'incopore aucun caractère
+supplémentaire à l'intérieur des marques de citation. Ce système (N.d.T.\ :
+le nôtre\ !), appelé «\ nouveau\ » ou «\ logique\ » par les «\ Hart's Rules\ » et le «\ Oxford Dictionnary for Writes and Editors\ », est la pratique
+préférée des hackers dans le monde entier. Consultez la section sur le style
+d'écriture dans le Jargon File
+.UR http://www.fwi.uva.nl\:/~mes\:/jargon\:/h\:/HackerWritingStyle.html
+.UE
+pour plus de détails. Les documentations anciennes suggèrent d'insérer le
+préfixe «\ URL:\ » juste avant un URI, mais cette forme n'a jamais été
+utilisée réellement.
+.PP
+La syntaxe des URI a été conçue pour éviter les ambiguïtés. Toutefois, comme
+les URI sont devenus de plus en plus répandus, les médias traditionnels
+télévision, radio, journaux et magazines...) ont utilisé de manière
+croissante des abréviations d'URI, consistant en la seule partie autorité et
+segments de chemin de la ressource (par exemple
+<www.w3.org/Addressing>). De tels références sont surtout prévues
+pour une interprétation humaine, avec la supposition que la compréhension du
+contexte permet de compléter l'URI (par exemple les noms d'hôtes commençant
+par «\ www\ » se préfixent avec «\ http://\ » et les noms commençant par «\ ftp\ » doivent se préfixer avec «\ ftp://\ »). De nombreux clients résolvent
+ces références avec de telles heuristiques. Elle peuvent toutefois évoluer,
+particulièrement quand de nouveaux mécanismes sont introduits. Comme les URI
+abrégés ont la même syntaxe qu'un chemin d'URL relative, les références
+abrégées ne sont pas utilisables lorsque des URI relatifs sont
+autorisés. N'utilisez pas d'URI abrégés comme liens hypertexte dans un
+document\ ; utilisez le format standard décrit ici.
+.SH CONFORMITÉ
+.PP
+.UR http://www.ietf.org\:/rfc\:/rfc2396.txt
+(IETF RFC\ 2396)
+.UE ,
+.UR http://www.w3.org\:/TR\:/REC\-html40
+(HTML 4.0)
+.UE .
+.SH NOTES
+Un outil acceptant les URI (par exemple un navigateur web) sur un système
+Linux devrait être capable de traiter (directement ou indirectement) tous
+les mécanismes décrits ici, y compris man: et info:. Sous\-traiter ces
+éléments à un autre programme est tout à fait acceptable, et même encouragé.
+.PP
+Techniquement, la notation d'un fragment ne fait pas partie de l'URI.
+.PP
+Pour savoir comment incorporer des URI (y compris des URL) dans un format de
+données, voir la documentation sur ce format. HTML utilise le format <A
+HREF="\fIuri\fP"> \fItext\fP </A>. Les fichiers texinfo utilisent le
+format @uref{\fIuri\fP}. Man et mdoc ont une macro UR récemment ajoutée, ou
+incluent juste l'URI dans le texte (les visualiseurs doivent détecter le ://
+comme portion d'URI).
+.PP
+Les environnements Gnome et Kde divergent actuellement sur les URI qu'ils
+acceptent, en particulier dans leurs systèmes d'aide. Pour lister les pages
+de manuel, Gnome utilise <toc:man> alors que Kde utilise
+<man:(index)>. Pour lister les pages info, Gnome emploie
+<toc:info> et Kde <info:(dir)> (l'auteur de cette page
+préfère l'approche Kde, bien qu'un format plus régulier serait encore
+meilleur). En général, Kde utilise <file:/cgi\-bin/> comme préfixe
+pour les fichiers générés. Kde préfère la documentation en Html, accessible
+avec <file:/cgi\-bin/helpindex>. Gnome préfère le mécanisme ghelp
+pour stocker et retrouver la documentation. Aucun navigateur ne gère les
+références file: vers un répertoire à l'heure où j'écris ces lignes, ce qui
+rend difficile de se référer à un répertoire avec un URI navigable. Comme
+indiqué plus haut, ces environnements diffèrent sur la gestion du mécanisme
+info:, probablement leur plus importante divergence. On espère que Gnome et
+Kde vont converger vers des formats d'URI communs, et la future version de
+cette page décrira le résultat de cette convergence.
+.SS Sécurité
+.PP
+Un URI ne pose pas de problème de sécurité par lui\-même. Il n'y a aucune
+garantie qu'une URL, qui localise une ressource à un moment donné continuera
+de le faire. Pas plus qu'il n'y a de garantie qu'une URL ne localisera pas
+une ressource différente à un autre moment. Les seules garanties peuvent
+être fournies par les personnes qui gèrent l'espace de noms de la ressource
+en question.
+.PP
+Il est parfois possible de construire une URL de manière qu'une tentative de
+réaliser une opération apparemment bénigne, comme accéder à la ressource
+associée, va en réalité produire une action éventuellement dommageable pour
+le correspondant. Les URL non sûres sont typiquement construites en
+indiquant un numéro de port différents de ceux réservés pour les protocoles
+en question. Le client, croyant contacter un site, va en réalité engager un
+autre protocole. Le contenu de l'URL contient des instructions, qui
+interprétées par l'autre protocole, produisent des résultats inattendus. Un
+exemple a été l'emploi d'une URL Gopher pour envoyer un message falsifié et
+indésiré sur un serveur SMTP.
+.PP
+Il faut être prudent en utilisant une URL qui indique un numéro de port
+différent de celui du protocole, particulièrement si ce numéro est dans
+l'espace réservé.
+.PP
+Il faut s'assurer que lorsque l'URI contient des délimiteurs protégés pour
+un protocole donné (par exemple CR et LF pour le protocole telnet) qu'ils ne
+soient pas «\ déprotégés\ » avant la transmission. Ceci peut violer le
+protocole, mais évite le risque que ces caractères servent à simuler une
+opération dans ce protocole, ce qui peut conduire à des actions distantes
+éventuellement nocives.
+.PP
+Il est clairement déraisonnable d'utiliser un URI qui contient un mot de
+passe censé être secret. En particulier, l'utilisation du mot de passe dans
+la partie «\ info utilisateur\ » de l'URI est fortement déconseillé, sauf
+s'il s'agit d'un de ces cas rares où le mot de passe est vraiment public.
+.SH BOGUES
+.PP
+La documentation peut se trouver dans un grand nombre d'endroit, ainsi il
+n'y a pas encore de bon mécanisme d'URI pour la documentation générale en
+ligne, dans des formats arbitraires. Les référence de la forme
+<file:///usr/doc/ZZZ> ne fonctionnent pas, car différentes
+distributions et installations locales peuvent placer les fichiers dans
+divers répertoires (cela peut être /usr/doc, ou /usr/local/doc, ou
+/usr/share, ou autre part). De même, le répertoire ZZZ change en principe
+avec le numéro de version (bien que le développement des noms de fichiers
+puisse partiellement couvrir ce problème). Finalement, l'utilisation du
+mécanisme file: n'est pas recommandée pour les gens qui consultent la
+documentation dynamiquement depuis Internet plutôt que de la télécharger sur
+leur système de fichiers local. Un mécanisme d'URI sera peut être ajouté
+dans l'avenir (p.ex.\ : «\ userdoc:\ ») pour permettre aux programme
+d'inclure des références vers de la documentation plus détaillées sans avoir
+à connaître l'emplacement exact de celle\-ci. Autrement, une version future
+des spécifications du système de fichiers peut décrire les emplacements de
+manière suffisamment précise pour que le mécanisme file: soit capable de
+situer la documentation.
+.PP
+De nombreux programmes et formats de fichiers n'incluent aucune manière
+d'incorporer ou l'implémenter des liens utilisant les URI.
+.PP
+.\" .SH AUTHOR
+.\" David A. Wheeler (dwheeler@dwheeler.com) wrote this man page.
+Beaucoup de programmes ne traitent pas tous les formats URI différents\ ; il
+devrait y avoir un mécanisme standard pour charger un URI quelconque qui
+détecte automatiquement l'environnement utilisateur (p.ex.\ : texte ou
+graphique, environnement de bureau, préférences de l'utilisateur, outils en
+cours d'exécution) et invoque le bon outil quelque soit l'URI.
+.SH "VOIR AUSSI"
+\fBlynx\fP(1), \fBman2html\fP(1), \fBmailaddr\fP(7), \fButf\-8\fP(7)
+
+.UR http://www.ietf.org\:/rfc\:/rfc2255.txt
+IETF RFC\ 2255
+.UE
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,108 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_ATTR_SETDETACHSTATE 3 "3 février 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_attr_setdetachstate, pthread_attr_getdetachstate \- Définir ou
+obtenir l'attribut de l'état de détachement de l'objet d'attributs de thread
+.SH SYNOPSIS
+.nf
+\fB#include <pthread.h>\fP
+
+\fBint pthread_attr_setdetachstate(pthread_attr_t *\fP\fIattr\fP\fB, int \fP\fIdetachstate\fP\fB);\fP
+\fBint pthread_attr_getdetachstate(pthread_attr_t *\fP\fIattr\fP\fB, int *\fP\fIdetachstate\fP\fB);\fP
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+La fonction \fBpthread_attr_setdetachstate\fP() définit l'attribut d'état de
+détachement de l'objet d'attributs de thread auquel \fIattr\fP fait référence à
+la valeur indiquée par \fIdetachstate\fP. Cet attribut d'état de détachemennt
+détermine si un thread créé en utilisant l'objet d'attributs de thread
+\fIattr\fP sera dans un état joignable ou détaché.
+
+Les valeurs suivantes peuvent être spécifiées dans \fIdetachstate\fP\ :
+.TP 
+\fBPTHREAD_CREATE_DETACHED\fP
+Les threads créés avec \fIattr\fP seront dans un état détaché.
+.TP 
+\fBPTHREAD_CREATE_JOINABLE\fP
+Les threads créés avec \fIattr\fP seront dans un état joignable.
+.PP
+Par défaut, l'attribut d'état de détachement est initialisé à
+\fBPTHREAD_CREATE_JOINABLE\fP dans un objet d'attributs de thread.
+
+La fonction \fBpthread_attr_getdetachstate\fP() renvoie, dans le tampon pointé
+par \fIdetachstate\fP, l'attribut contenant l'état de détachement de l'objet
+d'attributs de thread \fIattr\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient 0\ ; en cas d'erreur elles
+renvoient un numéro d'erreur non nul.
+.SH ERREURS
+\fBpthread_attr_setdetachstate\fP() peut échouer avec l'erreur suivante\ :
+.TP 
+\fBEINVAL\fP
+Une valeur invalide a été spécifiée dans \fIdetachstate\fP.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Consultez \fBpthread_create\fP(3)  pour plus de détails sur les threads
+joignables et détachés.
+
+Un thread qui est créé dans un état joignable devrait à la fin soit être
+joint avec \fBpthread_join\fP(3), soit être détaché avec \fBpthread_detach\fP(3)\ ; consultez \fBpthread_create\fP(3).
+
+C'est une erreur de spécifier, lors d'un appel ultérieur à
+\fBpthread_detach\fP(3) ou \fBpthread_join\fP(3), comme identifiant de thread un
+thread qui a été créé dans un état détaché.
+.SH EXEMPLE
+Consultez \fBpthread_attr_init\fP(3).
+.SH "VOIR AUSSI"
+\fBpthread_attr_init\fP(3), \fBpthread_create\fP(3), \fBpthread_detach\fP(3),
+\fBpthread_join\fP(3), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Denis Barbier (2010).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

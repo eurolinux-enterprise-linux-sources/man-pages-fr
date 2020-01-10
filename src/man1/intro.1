@@ -1,0 +1,246 @@
+.\" Copyright (c) 2002 Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 2007-10-23 mtk Added intro paragraph about section, plus a paragraph
+.\"     about exit status values.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH INTRO 1 "15 novembre 2007" Linux "Manuel de l'utilisateur Linux"
+.SH NOM
+intro \- Introduction aux commandes utilisateur
+.SH DESCRIPTION
+La section 1 du manuel décrit les commandes et outils de l'utilisateur,
+comme les utilitaires de manipulation de fichiers, les interpréteurs de
+commandes, les compilateurs, les navigateurs web, les éditeurs et outils de
+visualisation de fichiers et d'images, etc.
+
+Toutes les commandes retournent une valeur d'état à la fin de leur
+exécution. Cette valeur peut être testée (par exemple, pour la plupart des
+interpréteurs de commandes, la variable \fI$?\fP contient l'état de la dernière
+commande exécutée) pour voir si la commande a été correctement exécutée. Par
+convention, une valeur de retour égale à zéro indique la réussite alors
+qu'une valeur différente de zéro signifie un échec (des détails sur les
+états de sortie peuvent être trouvés dans \fBwait\fP(2)). Une valeur de retour
+non nulle prend sa valeur dans l'intervalle allant de 1 à 255, et certaines
+commandes utilisent différentes valeurs de retour non nulles pour indiquer
+la raison de l'échec.
+.SH NOTES
+Linux est une version d'UNIX, et en première approximation, toutes les
+commandes utilisateur sous UNIX fonctionnent exactement de la même façon
+sous Linux (et FreeBSD et beaucoup d'autres systèmes semblables à UNIX).
+.LP
+Sous Linux, il existe des interfaces utilisateur graphiques, où vous pouvez
+pointer, cliquer et déplacer des composants et obtenir un résultat sans
+avoir à lire beaucoup de documentation. L'environnement traditionnel d'UNIX
+est plutôt orienté vers la ligne de commande, où vous tapez les commandes
+pour les actions désirées. C'est plus rapide et plus puissant, mais
+nécessite de bien connaître les commandes. Vous trouverez ci\-dessous le
+minimum pour débuter.
+.SS Connexion
+Afin de commencer à travailler, vous devrez probablement commencer par vous
+connecter, c'est\-à\-dire fournir vos nom d'utilisateur et mot de
+passe. Consultez aussi \fBlogin\fP(1). Le programme \fIlogin\fP lancera un
+\fIshell\fP (interpréteur de commandes) pour vous. Dans le cas d'un
+environnement graphique, vous aurez un écran avec des menus et des icônes et
+un clic de souris lancera un interpréteur de commandes dans une
+fenêtre. Consultez aussi \fBxterm\fP(1).
+.SS "L'interpréteur de commandes (le shell)"
+Les commandes sont entrées dans le \fIshell\fP, l'interpréteur de commandes. Il
+n'est pas intégré dans le noyau Linux, c'est juste un programme comme un
+autre que vous pouvez changer, chacun ayant son favori. L'interpréteur de
+commandes standard est appelé \fIsh\fP. Consultez aussi \fBash\fP(1), \fBbash\fP(1),
+\fBcsh\fP(1), \fBzsh\fP(1), \fBchsh\fP(1).
+.LP
+Une session peut se dérouler ainsi\ :
+
+.RS
+.nf
+\fBknuth login: \fP\fIaeb\fP
+\fBPassword: \fP\fI********\fP
+\fB% \fP\fIdate\fP
+mardi 6 août 2002, 23:50:44 (UTC+0200)
+\fB% \fP\fIcal\fP
+    août 2002
+lu ma me je ve sa di
+          1  2  3  4
+ 5  6  7  8  9 10 11
+12 13 14 15 16 17 18
+19 20 21 22 23 24 25
+26 27 28 29 30 31
+
+\fB% \fP\fIls\fP
+bin  tel
+\fB% \fP\fIls \-l\fP
+total 2
+drwxrwxr\-x   2 aeb       1024 6 août 23:51 bin
+\-rw\-rw\-r\-\-   1 aeb         48 6 août 23:52 tel
+\fB% \fP\fIcat tel\fP
+marie    05\-11\-22\-33\-44
+pierre   03\-22\-33\-44\-55
+\fB% \fP\fIcp tel tel2\fP
+\fB% \fP\fIls \-l\fP
+total 3
+drwxr\-xr\-x   2 aeb       1024 6 août 23:51 bin
+\-rw\-r\-\-r\-\-   1 aeb         48 6 août 23:52 tel
+\-rw\-r\-\-r\-\-   1 aeb         48 6 août 23:53 tel2
+\fB% \fP\fImv tel tel1\fP
+\fB% \fP\fIls \-l\fP
+total 3
+drwxr\-xr\-x   2 aeb       1024 6 août 23:51 bin
+\-rw\-r\-\-r\-\-   1 aeb         48 6 août 23:52 tel1
+\-rw\-r\-\-r\-\-   1 aeb         48 6 août 23:53 tel2
+\fB% \fP\fIdiff tel1 tel2\fP
+\fB% \fP\fIrm tel1\fP
+\fB% \fP\fIgrep marie tel2\fP
+marie    05\-11\-22\-33\-44
+\fB% \fP
+.fi
+.RE
+et en tapant Contrôle\-D, la session se termine. Le \fB% \fP était l'invite de
+commande (le «\ prompt\ ») \(em c'est ainsi que l'interpréteur de commandes
+indique qu'il attend la commande suivante. L'invite peut être personnalisée
+de nombreuses manières, par exemple en incluant le nom d'utilisateur, de la
+machine, le répertoire en cours, l'heure,\ etc. Une affectation PS1="Quoi
+d'autre, maître\ ? " remplacera l'invite par la chaîne indiquée.
+.LP
+Sur l'exemple précédent apparaît une commande \fIdate\fP (qui donne la date et
+l'heure), et une commande \fIcal\fP (qui fournit un calendrier).
+.LP
+La commande \fIls\fP liste le contenu du répertoire en cours \(em elle indique
+quels sont les fichiers présents. Avec l'option \fI\-l\fP, elle donne une
+description plus longue qui inclut le propriétaire, la taille et la date du
+fichier avec les permissions dont les gens disposent pour lire, écrire ou
+modifier le fichier. Par exemple, le fichier «\ tel\ » ici fait 48 octets de
+long, il appartient à aeb, le propriétaire peut le lire et y écrire, les
+autres seulement le lire. Le propriétaire et les permissions peuvent être
+changés avec les commandes \fIchown\fP et \fIchmod\fP.
+.LP
+La commande \fIcat\fP montre le contenu du fichier. (Son nom vient de «\ concaténer et afficher\ »\ : tous les fichiers donnés en paramètres sont
+concaténés et envoyés sur la «\ sortie standard\ », en l'occurrence l'écran
+du terminal.)
+.LP
+La commande \fIcp\fP (de «\ copy\ », copier) réalise une copie d'un fichier. En
+revanche, la commande \fImv\fP (de «\ move\ », déplacer) ne fait que le
+renommer.
+.LP
+La commande \fIdiff\fP affiche les différences entre deux fichiers. Ici, elle
+n'affiche rien car il n'y a pas de différence.
+.LP
+La commande \fIrm\fP (de «\ remove\ », supprimer) supprime le fichier. Soyez
+prudent, il disparaît complètement et il n'y a pas de corbeille
+temporaire. Supprimer signifie donc perdre.
+.LP
+La commande \fIgrep\fP (de «\ g/re/p\ ») recherche les occurrences d'une chaîne
+dans un ou plusieurs fichiers. Ici, il cherche le numéro de téléphone de
+Marie.
+.SS "Chemins et répertoire courant"
+Les fichiers sont situés dans une grande arborescence, la hiérarchie. Chacun
+dispose d'un \fInom de chemin\fP décrivant le chemin depuis la racine de
+l'arbre (nommée /) jusqu'au fichier. Par exemple, un tel chemin peut être
+/home/aeb/tel. Il ne serait pas pratique de toujours fournir le chemin
+complet, et le nom du fichier dans le répertoire courant peut être abrégé en
+ne donnant que son dernier composant. C'est pourquoi «\ /home/aeb/tel\ »
+peut être réduit à «\ tel\ » si le répertoire actuel est «\ /home/aeb\ ».
+.LP
+La commande \fIpwd\fP affiche le nom du répertoire en cours.
+.LP
+La commande \fIcd\fP change le répertoire en cours. Essayez «\ cd /\ » et «\ pwd\ » puis «\ cd\ » et «\ pwd\ ».
+.SS Répertoires
+La commande \fImkdir\fP crée un nouveau répertoire.
+.LP
+La commande \fIrmdir\fP supprime un répertoire s'il est vide et refuse sinon.
+.LP
+La commande \fIfind\fP (avec une syntaxe un peu baroque) recherche les fichiers
+avec un nom ou des propriétés donnés. Par exemple, «\ find . \-name tel\ »
+recherchera le fichier «\ tel\ » en partant du répertoire courant (qui est
+nommé «\ .\ »). «\ find / \-name tel\ » fera la même chose en partant de la
+racine de l'arborescence. Les recherches sur des disques de plusieurs gigas
+peuvent prendre un temps conséquent, et il est parfois préférable d'utiliser
+\fBlocate\fP(1).
+.SS "Disques et systèmes de fichiers"
+La commande \fImount\fP attachera le système de fichiers se trouvant sur un
+disque (ou sur une disquette, un CD\-ROM, etc.) dans la grande hiérarchie des
+systèmes de fichiers, et \fIumount\fP le redétachera. La commande \fIdf\fP indique
+la quantité d'espace disque qui est libre.
+.SS Processus
+Sur un système UNIX, de nombreux processus utilisateur et système tournent
+simultanément. Les processus avec lesquels vous dialoguez s'exécutent au
+\fIpremier plan\fP, les autres à \fIl'arrière\-plan\fP. La commande \fIps\fP montre
+quels sont les processus actifs et leurs numéros d'identification. La
+commande \fIkill\fP permet d'en éliminer. Sans option, il s'agit d'une demande
+amicale. «\ kill \-9\ » suivi du numéro du processus le tuera
+immédiatement. Les processus au premier plan peuvent souvent être tués en
+entrant Ctrl\-C.
+.SS "Obtenir des informations"
+Il existe des milliers de commandes, chacune avec de nombreuses
+options. Traditionnellement, les commandes sont documentées par des \fIpages
+de manuel\fP (comme celle\-ci), ainsi la commande «\ man kill\ » décrira
+l'utilisation de la commande «\ kill\ » (et «\ man man\ » documentera la
+commande «\ man\ »). Le programme \fIman\fP envoie le texte à travers un
+programme de \fIpagination\fP, habituellement \fIless\fP. Pressez la barre
+d'espace pour passer à la page suivante, et «\ q\ » pour quitter.
+.LP
+Dans la documentation, il est habituel d'indiquer une page de manuel en
+donnant son nom suivi du numéro de section entre parenthèses, comme
+\fBman\fP(1). Les pages de manuel sont concises et vous permettent de retrouver
+vite des détails oubliés. Pour les débutants, un tutoriel avec des exemples
+et des explications supplémentaires est aussi très utile.
+.LP
+Beaucoup de programmes de la collection GNU sont fournis avec des fichiers
+info. Entrez «\ info info\ » pour savoir comment utiliser le programme «\ info\ ».
+.LP
+.\"
+.\" Actual examples? Separate section for each of cat, cp, ...?
+.\" gzip, bzip2, tar, rpm
+Les sujets spéciaux sont souvent traités dans des documents HOWTO (qui
+existent également parfois en version française). Regardez dans
+\fI/usr/share/doc/howto/fr\fP et utilisez un navigateur web si les fichiers
+sont en HTML.
+.SH "VOIR AUSSI"
+\fBstandards\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Thomas Huriaux et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

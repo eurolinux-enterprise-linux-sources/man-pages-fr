@@ -1,0 +1,100 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified 1993-07-24 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 2004-10-10 by aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH INITGROUPS 3 "26 juillet 2007" GNU "Manuel du programmeur Linux"
+.SH NOM
+initgroups \- Initialiser la liste de groupes supplémentaires
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <grp.h>\fP
+.sp
+\fBint initgroups(const char *\fP\fIuser\fP\fB, gid_t \fP\fIgroup\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBinitgroups\fP()\ : _BSD_SOURCE
+.SH DESCRIPTION
+La fonction \fBinitgroups\fP() initialise la liste des groupes supplémentaires
+en recherchant dans la base de données \fI/etc/group\fP tous les groupes dont
+\fIuser\fP est membre. Le groupe supplémentaire \fIgroup\fP est également ajouté à
+la liste.
+
+L'argument \fIuser\fP ne doit pas être nul.
+.SH "VALEUR RENVOYÉE"
+Si elle réussit, la fonction \fBinitgroups\fP() renvoie 0. En cas d'erreur,
+elle renvoie \-1 et définit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour allouer la structure d'information de groupe.
+.TP 
+\fBEPERM\fP
+Le processus appelant n'a pas les privilèges adéquats. Consultez l'appel
+système sous\-jacent \fBsetgroups\fP(2).
+.SH FICHIERS
+.nf
+\fI/etc/group\fP  Base de données des groupes.
+.fi
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3.
+.SH "VOIR AUSSI"
+\fBgetgroups\fP(2), \fBsetgroups\fP(2), \fBcredentials\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

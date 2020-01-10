@@ -1,0 +1,80 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UNGETWC 3 "19 septembre 1999" GNU "Manuel du programmeur Linux"
+.SH NOM
+ungetwc \- Remettre un caractère large dans un flux
+.SH SYNOPSIS
+.nf
+\fB#include <wchar.h>\fP
+.sp
+\fBwint_t ungetwc(wint_t \fP\fIwc\fP\fB, FILE *\fP\fIstream\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBungetwc\fP() est l'équivalent de la fonction \fBungetc\fP(3) pour
+les caractères larges. Elle remet un caractère large dans \fIstream\fP et
+renvoie sa valeur.
+.PP
+Si \fIwc\fP est \fBWEOF\fP, \fBWEOF\fP est renvoyé. Si \fIwc\fP est un caractère large
+non valide, \fIerrno\fP est positionné à \fBEILSEQ\fP et \fBWEOF\fP est renvoyé.
+.PP
+Si \fIwc\fP est un caractère large valide, celui\-ci est remis dans le flux et
+devient alors disponible pour de nouvelles opérations de lecture de
+caractères larges. Le pointeur de fichier est décrémenté de un ou
+plus. L'indicateur de fin de fichier est réinitialisé. L'image du fichier
+sur disque n'est pas affectée.
+.PP
+NB\ : \fIwc\fP n'a pas besoin d'être le dernier caractère large lu depuis le
+flux\ ; ce peut être n'importe quel autre caractère large.
+.PP
+Si l'implémentation supporte la remise dans le flux de caractères multiples,
+les caractères larges seront lus dans l'ordre inverse. Cependant, seulement
+un niveau de réinjection est garanti.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBungetwc\fP() renvoie \fIwc\fP en cas de succès ou \fBWEOF\fP en cas
+d'erreur.
+.SH CONFORMITÉ
+C99.
+.SH NOTES
+Le comportement de \fBungetwc\fP() dépend de la catégorie \fBLC_CTYPE\fP de la
+locale utilisée.
+.SH "VOIR AUSSI"
+\fBfgetwc\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

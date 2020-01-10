@@ -1,0 +1,188 @@
+.\" This manpage is Copyright (C) 1992 Drew Eckhardt;
+.\"             and Copyright (C) 1993 Michael Haardt;
+.\"             and Copyright (C) 1993,1995 Ian Jackson.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 00:35:52 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Thu Jun  4 12:21:13 1998 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified Thu Mar  3 09:49:35 2005 by Michael Haardt <michael@moria.de>
+.\" 2007-03-25, mtk, added various text to DESCRIPTION.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RENAME 2 "27 janvier 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+rename \- Changer le nom ou l'emplacement d'un fichier
+.SH SYNOPSIS
+\fB#include <stdio.h>\fP
+.sp
+\fBint rename(const char *\fP\fIoldpath\fP\fB, const char *\fP\fInewpath\fP\fB);\fP
+.SH DESCRIPTION
+\fBrename\fP() renomme un fichier, en le déplaçant dans un autre répertoire si
+nécessaire. Tous les autres liens vers le fichier (créés avec \fBlink\fP(2))
+sont inchangés. Les descripteurs de fichier ouverts sur \fIoldpath\fP ne sont
+pas non plus affectés.
+
+Si \fInewpath\fP existe déjà, il sera écrasé (avec quelques restrictions, voir
+le paragraphe ERREURS), de manière à ce qu'à aucun moment, un autre
+processus tentant d'accéder à \fInewpath\fP ne le voie absent.
+
+Si \fIoldpath\fP et \fInewpath\fP sont des liens existants correspondant au même
+fichier, \fBrename\fP() ne fait rien et renvoie un code de succès.
+
+Si \fInewpath\fP existe mais que l'opération échoue pour une raison quelconque,
+\fBrename\fP() garantit la présence d'une instance de \fInewpath\fP en place.
+
+\fIoldpath\fP peut être un répertoire. Dans ce cas, \fInewpath\fP doit être soit
+absent, soit un répertoire vide.
+
+Néanmoins, pendant un écrasement, il se trouve un court instant pendant
+lequel à la fois \fIoldpath\fP et \fInewpath\fP font référence au fichier.
+
+Si \fIoldpath\fP correspond à un lien symbolique, le lien est renommé\ ; si
+\fInewpath\fP correspond à un lien symbolique, le lien est écrasé.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+La permission d'écrire est refusée dans le répertoire contenant \fIoldpath\fP
+ou \fInewpath\fP ou la permission de parcours est refusée pour l'un des
+répertoires des chemins \fIoldpath\fP ou \fInewpath\fP, ou encore \fIoldpath\fP était
+un répertoire et ne permet pas l'écriture (nécessaire pour mettre à jour
+l'entrée \fI..\fP). (Consultez aussi \fBpath_resolution\fP(7).)
+.TP 
+\fBEBUSY\fP
+Le renommage a échoué car \fIoldpath\fP ou \fInewpath\fP est un répertoire utilisé
+par un processus (peut\-être comme répertoire de travail, ou comme répertoire
+racine, ou ouvert en lecture), ou il est utilisé par le système (comme point
+de montage par exemple). Le système a donc considéré qu'il y avait une
+erreur. (Notez qu'il n'est pas indispensable de renvoyer \fBEBUSY\fP dans un
+tel cas \(em\ rien n'empêche d'effectuer le renommage malgré tout\ \(em mais
+il est permis de retourner \fBEBUSY\fP si le système n'arrive pas à gérer une
+telle situation).
+.TP 
+\fBEDQUOT\fP
+Le quota de blocs de disque de l'utilisateur sur le système de fichiers a
+été atteint.
+.TP 
+\fBEFAULT\fP
+\fIoldpath\fP ou \fInewpath\fP pointent en dehors de l'espace d'adressage
+accessible.
+.TP 
+\fBEINVAL\fP
+Une partie du nouveau chemin contient en préfixe l'ancien chemin, ou plus
+généralement, un répertoire ne peut pas être déplacé dans ses propres
+sous\-répertoires.
+.TP 
+\fBEISDIR\fP
+\fInewpath\fP est un répertoire existant mais \fIoldpath\fP n'est pas un
+répertoire
+.TP 
+\fBELOOP\fP
+Trop de liens symboliques ont été rencontrés en parcourant \fIoldpath\fP ou
+\fInewpath\fP.
+.TP 
+\fBEMLINK\fP
+\fIoldpath\fP a déjà un nombre maximal de liens, ou bien c'est un répertoire,
+et le répertoire contenant \fInewpath\fP a le nombre maximal de liens.
+.TP 
+\fBENAMETOOLONG\fP
+\fIoldpath\fP ou \fInewpath\fP est trop long.
+.TP 
+\fBENOENT\fP
+Le lien indiqué par \fIoldpath\fP n'existe pas\ ; ou un répertoire du chemin
+\fInewpath\fP n'existe pas\ ; ou \fIoldpath\fP ou \fInewpath\fP est une chaîne vide.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.TP 
+\fBENOSPC\fP
+Le périphérique contenant le fichier n'a pas de place pour une nouvelle
+entrée de répertoire.
+.TP 
+\fBENOTDIR\fP
+Un élément du chemin d'accès \fIoldpath\fP ou \fInewpath\fP n'est pas un
+répertoire, ou \fIoldpath\fP est un répertoire et \fInewpath\fP existe mais n'est
+pas un répertoire.
+.TP 
+\fBENOTEMPTY\fP ou \fBEEXIST\fP
+\fInewpath\fP est un répertoire non vide (contient autre chose que «\ .\ » et
+«\ ..\ »).
+.TP 
+\fBEPERM\fP ou \fBEACCES\fP
+Le répertoire contenant \fIoldpath\fP a le Sticky\-bit (\fBS_ISVTX\fP) positionné,
+et l'UID effectif du processus n'est ni celui du fichier à déplacer, ni
+celui du répertoire le contenant, et le processus n'est pas privilégié (sous
+Linux\ : n'a pas la capacité \fBCAP_FOWNER\fP\ ; ou \fInewpath\fP est un fichier
+existant et le répertoire le contenant a son sticky bit positionné et l'UID
+effectif du processus n'est ni celui du fichier à déplacer, ni celui du
+répertoire le contenant, et le processus n'est pas privilégié (sous Linux\ :
+n'a pas la capacité \fBCAP_FOWNER\fP\ ; ou alors le système de fichiers
+contenant \fIpathname\fP ne permet pas le renommage de fichiers.
+.TP 
+\fBEROFS\fP
+Le fichier se trouve sur un système de fichiers en lecture seule.
+.TP 
+\fBEXDEV\fP
+\fIoldpath\fP et \fInewpath\fP ne sont pas sur le même système de fichiers. (Linux
+permet de monter un système de fichiers à plusieurs endroits, mais
+\fBrename\fP() ne marche pas entre différents points de montage, même si le
+système de fichiers monté sur les deux est le même.)
+.SH CONFORMITÉ
+BSD\ 4.3, C89, C99, POSIX.1\-2001.
+.SH BOGUES
+Sur les systèmes de fichiers NFS, ce n'est pas parce que l'opération a
+échoué que le fichier n'a pas été renommé. Si le serveur effectue le
+déplacement, et s'effondre, la RPC transmise qui sera traitée lorsque le
+serveur sera à nouveau en état va indiquer un échec. L'application doit
+supporter ce genre de problème. Consultez \fBlink\fP(2) pour un cas similaire.
+.SH "VOIR AUSSI"
+\fBmv\fP(1), \fBchmod\fP(2), \fBlink\fP(2), \fBrenameat\fP(2), \fBsymlink\fP(2),
+\fBunlink\fP(2), \fBpath_resolution\fP(7), \fBsymlink\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

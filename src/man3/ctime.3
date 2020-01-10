@@ -1,0 +1,285 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 19:49:27 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Fri Apr 26 12:38:55 MET DST 1996 by Martin Schulze (joey@linux.de)
+.\" Modified 2001-11-13, aeb
+.\" Modified 2001-12-13, joey, aeb
+.\" Modified 2004-11-16, mtk
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CTIME 3 "25 février 2010" "" "Manuel du programmeur Linux"
+.SH NOM
+asctime, ctime, gmtime, localtime, mktime, asctime_r, ctime_r, gmtime_r,
+localtime_r \- Convertir des dates et des temps au format année/mois/jours ou
+au format ASCII
+.SH SYNOPSIS
+.nf
+\fB#include <time.h>\fP
+.sp
+\fBchar *asctime(const struct tm *\fP\fItm\fP\fB);\fP
+.br
+\fBchar *asctime_r(const struct tm *\fP\fItm\fP\fB, char *\fP\fIbuf\fP\fB);\fP
+.sp
+\fBchar *ctime(const time_t *\fP\fItimep\fP\fB);\fP
+.br
+\fBchar *ctime_r(const time_t *\fP\fItimep\fP\fB, char *\fP\fIbuf\fP\fB);\fP
+.sp
+\fBstruct tm *gmtime(const time_t *\fP\fItimep\fP\fB);\fP
+.br
+\fBstruct tm *gmtime_r(const time_t *\fP\fItimep\fP\fB, struct tm *\fP\fIresult\fP\fB);\fP
+.sp
+\fBstruct tm *localtime(const time_t *\fP\fItimep\fP\fB);\fP
+.br
+\fBstruct tm *localtime_r(const time_t *\fP\fItimep\fP\fB, struct tm *\fP\fIresult\fP\fB);\fP
+.sp
+\fBtime_t mktime(struct tm *\fP\fItm\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.ad l
+.sp
+\fBasctime_r\fP(), \fBctime_r\fP(), \fBgmtime_r\fP(), \fBlocaltime_r\fP()\ :
+.RS
+_POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE || _BSD_SOURCE || _SVID_SOURCE
+|| _POSIX_SOURCE
+.RE
+.ad
+.SH DESCRIPTION
+Les fonctions \fBctime\fP(), \fBgmtime\fP() et \fBlocaltime\fP() prennent toutes un
+paramètre de type \fItime_t\fP qui représente un temps en seconde. Si l'on
+interprète ce paramètre comme une valeur absolue, il s'agit du nombre de
+secondes écoulées depuis l'époque, 1er\ janvier 1970 à 00:00:00 (UTC).
+.PP
+Les fonctions \fBasctime\fP() et \fBmktime\fP() utilisent toutes deux un paramètre
+représentant le temps dans un format humain, c'est\-à\-dire année, mois, jour,
+etc.
+.PP
+La représentation humaine («\ broken\-down time\ ») est stockée dans une
+structure \fItm\fP, définie dans \fI<time.h>\fP comme suit\ :
+.sp
+.in +4n
+.nf
+struct tm {
+    int tm_sec;      /* secondes */
+    int tm_min;      /* minutes */
+    int tm_hour;     /* heures */
+    int tm_mday;     /* jour du mois */
+    int tm_mon;      /* mois */
+    int tm_year;     /* année */
+    int tm_wday;     /* jour de la semaine */
+    int tm_yday;     /* jour de l'année */
+    int tm_isdst;    /* décalage horaire */
+};
+.fi
+.in
+.PP
+Les membres de la structure \fItm\fP sont\ :
+.TP  10
+\fItm_sec\fP
+Le nombre de secondes écoulées depuis le dernier changement de
+minute. Normalement dans l'intervalle 0 à 59, ce membre peut aller jusqu'à
+60 durant les secondes de rattrapage.
+.TP 
+\fItm_min\fP
+Le nombre de minutes écoulées depuis le dernier changement d'heure, dans
+l'intervalle 0 à 59.
+.TP 
+\fItm_hour\fP
+Le nombre d'heures écoulées depuis minuit, dans l'intervalle 0 à 23.
+.TP 
+\fItm_mday\fP
+Le quantième du mois, dans l'intervalle 1 à 31.
+.TP 
+\fItm_mon\fP
+Le nombre de mois écoulés depuis le début de l'année, dans l'intervalle 0 à
+11.
+.TP 
+\fItm_year\fP
+Le nombre d'années écoulées depuis 1900.
+.TP 
+\fItm_wday\fP
+Le nombre de jours écoulés depuis dimanche, dans l'intervalle 0 à 6.
+.TP 
+\fItm_yday\fP
+Le nombre de jours écoulés depuis le 1er janvier, dans l'intervalle 0 à 365.
+.TP 
+\fItm_isdst\fP
+Un drapeau indiquant si le décalage heure d'hiver, heure d'été est en cours
+au moment de l'appel. La valeur retournée est positive si le décalage est
+actif, nulle s'il ne l'est pas, et négative si l'information n'est pas
+disponible.
+.PP
+L'appel \fBctime(\fP\fIt\fP\fB)\fP est équivalent à
+\fBasctime(localtime(\fP\fIt\fP\fB))\fP. Il convertit la date \fIt\fP en une chaîne de
+caractères, terminée par un caractère nul, de la forme
+.sp
+.RS
+"Wed Jun 30 21:49:08 1993\en"
+.RE
+.sp
+Les abréviations des jours de la semaine sont «\ Sun\ », «\ Mon\ », «\ Tue\ », «\ Wed\ », «\ Thu\ », «\ Fri\ », et «\ Sat\ ». Les abréviations des mois
+sont «\ Jan\ », «\ Feb\ », «\ Mar\ », «\ Apr\ », «\ May\ », «\ Jun\ », «\ Jul\ », «\ Aug\ », «\ Sep\ », «\ Oct\ », «\ Nov\ », et «\ Dec\ ». La valeur
+renvoyée pointe sur une chaîne statiquement allouée qui sera écrasée à
+chaque appel ultérieur d'une fonction de date ou de temps. La fonction
+définit aussi les variables externes \fItzname\fP, \fItimezone\fP et \fIdaylight\fP
+(consultez \fBtzset\fP(3)) avec les informations du fuseau horaire. La version
+réentrante \fBctime_r\fP() effectue le même travail mais stocke la chaîne dans
+un tampon d'une longueur minimale de 26 caractères fournie par
+l'utilisateur. Elle n'a pas besoin de définir \fItzname\fP, \fItimezone\fP et
+\fIdaylight\fP.
+.PP
+La fonction \fBgmtime\fP() convertit la date au format calendrier (temps écoulé
+depuis un référentiel) \fItimep\fP en une représentation humaine exprimée en
+temps universel (UTC). Elle peut renvoyer NULL quand l'année ne tient pas
+dans un entier. La valeur renvoyée pointe vers une structure allouée
+statiquement qui sera écrasée à chaque appel ultérieur d'une fonction de
+date ou de temps. La fonction réentrante \fBgmtime_r\fP() effectue le même
+travail mais stocke le résultat dans une structure fournie par
+l'utilisateur.
+.PP
+La fonction \fBlocaltime\fP() convertit la date au format calendrier \fItimep\fP
+en une représentation humaine exprimée en fonction du fuseau horaire de
+l'utilisateur. Cette fonction se comporte comme si elle appelait \fBtzset\fP(3)
+et définit les variables externes \fItzname\fP avec les informations concernant
+le fuseau horaire, \fItimezone\fP avec la différence (en secondes) entre le
+temps universel (UTC) et le temps local, et \fIdaylight\fP avec une valeur non
+nulle si le décalage horaire saisonnier s'applique durant l'année. La valeur
+renvoyée pointe vers une structure allouée statiquement qui sera écrasée à
+chaque appel ultérieur d'une fonction de date ou de temps. La fonction
+réentrante \fBlocaltime_r\fP() effectue le même travail mais stocke le résultat
+dans une structure fournie par l'utilisateur. Elle n'a pas besoin de définir
+\fItzname\fP, \fItimezone\fP, et \fIdaylight\fP.
+.PP
+La fonction \fBasctime\fP() convertit une date au format humain \fItm\fP en une
+chaîne de caractères, terminée par un caractère nul, dans le même format que
+\fBctime\fP(). La valeur renvoyée pointe sur une chaîne statique qui sera
+écrasée à chaque appel d'une fonction de date et de temps. La version
+réentrante \fBasctime_r\fP() effectue le même travail mais stocke la chaîne
+dans un tampon d'une longueur minimale de 26 caractères fournie par
+l'utilisateur.
+.PP
+La fonction \fBmktime\fP() convertit une structure de temps au format humain
+exprimé sous forme d'un temps local en une représentation au format
+calendrier. La fonction ignore les valeurs \fItm_wday\fP et \fItm_yday\fP fournit
+par l'appelant. La valeur fournie dans le champ \fItm_isdst\fP informe
+\fBmktime\fP() si le décalage horaire d'été (DST) a un effet ou non sur le
+temps fourni dans la structure \fItm\fP\ : une valeur positive signifie que le
+décalage horaire d'été a un effet\ ; une valeur nulle signifie que le
+décalage horaire d'été n'a aucun effet\ ; une valeur négative signifie que
+\fBmktime\fP() doit déterminer si le décalage horaire d'été a un effet dans le
+temps spécifié (en utilisant les informations de fuseaux horaires par
+exemple).
+
+La fonction \fBmktime\fP() modifie des champs de la structure \fItm\fP\ : les
+valeurs de \fItm_wday\fP et \fItm_yday\fP sont déterminées à l'aide des autres
+champs\ ; si la valeur d'un membre de la structure n'est pas dans un
+intervalle valide, elle sera normalisée (par exemple, le 40 octobre sera
+converti en 9 novembre)\ ; \fItm_isdst\fP est défini (selon sa valeur initiale)
+à une valeur positive s'il faut prendre en compte le décalage horaire d'été,
+0 sinon. Un appel à \fBmktime\fP() définit aussi la variable externe \fItzname\fP
+avec le fuseau horaire courant.
+
+Si la représentation d'un temps au format humain ne peut pas être converti
+au format calendrier (nombre de secondes depuis l'époque, 1er\ janvier 1970 à
+00:00:00 (UTC)), \fBmktime\fP() renvoie la valeur \fI(time_t)\ \-1\fP et ne modifie
+pas les membres de la structure du temps au format humain.
+.SH "VALEUR RENVOYÉE"
+Chacune de ces fonctions renvoie la valeur décrite ci\-dessus, ou NULL (\-1
+dans le cas de \fBmktime\fP()) si une erreur est détectée.
+.SH CONFORMITÉ
+POSIX.1\-2001. C89 et C99 définissent \fBasctime\fP(), \fBctime\fP(), \fBgmtime\fP(),
+\fBlocaltime\fP() et \fBmktime\fP(). POSIX.1\-2008 marque \fBasctime\fP(),
+\fBasctime_r\fP(), \fBctime\fP() et \fBctime_r\fP() comme étant obsolètes et
+recommande à la place l'utilisation de \fBstrftime\fP(3).
+.SH NOTES
+Les quatre fonctions \fBasctime\fP(), \fBctime\fP(), \fBgmtime\fP() et \fBlocaltime\fP()
+renvoient un pointeur vers des données statiques et ne sont donc pas sûres
+dans un contexte multithread. Les versions multithread sûres,
+\fBasctime_r\fP(), \fBctime_r\fP(), \fBgmtime_r\fP() et \fBlocaltime_r\fP() sont
+spécifiées dans SUSv2, et disponibles depuis la libc\ 5.2.5.
+
+POSIX.1\-2001 indique\ : «\ Les fonctions \fBasctime\fP(), \fBctime\fP(), \fBgmtime\fP()
+et \fBlocaltime\fP() retourneront les valeurs dans l'un des deux objets
+statiques\ : une structure de temps détraquée et un tableau de type
+\fIchar\fP. L'exécution de n'importe laquelle de ces fonctions peut écraser
+l'information renvoyée dans l'un ou l'autre de ces objets par n'importe
+quelle autre fonction.\ » cela peut arriver dans l'implémentation de la
+glibc.
+.LP
+Dans beaucoup d'implémentations, dont la glibc, un 0 dans \fItm_mday\fP est
+interprété comme le dernier jour du mois précédant.
+.LP
+La structure \fItm\fP de la glibc possède des champs supplémentaires
+.sp
+.RS
+.nf
+long  tm_gmtoff;      /* Secondes à l'est du temps universel */
+const char *tm_zone;  /* Abréviation du nom du fuseau horaire */
+.fi
+.RE
+.sp
+définis lorsque \fB_BSD_SOURCE\fP est définie avant l'inclusion de
+\fI<time.h>\fP. Ceci est une extension BSD, présente dans BSD\ 4.3\-Reno.
+
+.\" See http://thread.gmane.org/gmane.comp.time.tz/2034/
+Selon POSIX.1\-2004, \fBlocaltime\fP() doit se comporter comme si \fBtzset\fP()
+avait été appelée, alors que \fBlocaltime_r\fP() n'a pas cette exigence. Pour
+un code portable, \fBtzset\fP() devrait être appelé avant \fBlocaltime_r\fP().
+.SH "VOIR AUSSI"
+\fBdate\fP(1), \fBgettimeofday\fP(2), \fBtime\fP(2), \fButime\fP(2), \fBclock\fP(3),
+\fBdifftime\fP(3), \fBstrftime\fP(3), \fBstrptime\fP(3), \fBtimegm\fP(3), \fBtzset\fP(3),
+\fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

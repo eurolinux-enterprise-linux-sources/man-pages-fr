@@ -1,0 +1,199 @@
+.\" Copyright (C) 2002 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" FIXME . Add an example to this page
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SHM_OPEN 3 "25 février 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+shm_open, shm_unlink \- Créer ou ouvrir et supprimer des objets de mémoire
+partagés POSIX
+.SH SYNOPSIS
+\fB#include <sys/mman.h>\fP
+.br
+\fB#include <sys/stat.h>\fP        /* Pour les constantes des modes */
+.br
+\fB#include <fcntl.h>\fP           /* Pour les constantes O_* */
+.sp
+\fBint shm_open(const char *\fP\fInom\fP\fB, int \fP\fIoflag\fP\fB, mode_t \fP\fImode\fP\fB);\fP
+.sp
+\fBint shm_unlink(const char *\fP\fInom\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP.
+.SH DESCRIPTION
+La fonction \fBshm_open\fP() crée et ouvre un nouvel objet de mémoire partagé
+POSIX, ou ouvre un objet existant. Il s'agit d'un descripteur utilisable par
+d'autres processus avec \fBmmap\fP(2) pour projeter la même région mémoire. La
+fonction \fBshm_unlink\fP() réalise l'opération complémentaire en supprimant
+l'objet créé précédemment par \fBshm_open\fP().
+.LP
+.\" glibc allows the initial slash to be omitted, and makes
+.\" multiple initial slashes equivalent to a single slash.
+.\" This differs from the implementation of POSIX message queues.
+.\" glibc allows subdirectory components in the name, in which
+.\" case the subdirectory must exist under /dev/shm, and allow the
+.\" required permissions if a user wants to create a shared memory
+.\" object in that subdirectory.
+Le fonctionnement de \fBshm_open\fP() est analogue à celui de
+\fBopen\fP(2). \fInom\fP indique l'objet mémoire partagé à créer ou ouvrir. Pour
+un fonctionnement portable, un objet mémoire partagé doit être identifié par
+un nom au format \fI/un_nom\fP\ ; c'est\-à\-dire une chaîne terminée par un
+caractère nul d'au plus \fBNAME_MAX\fP (c'est\-à\-dire 255) caractère, commençant
+par une barre oblique («\ /\ »), suivi d'un caractère ou plus, ces derniers
+n'étant pas des barres obliques.
+.LP
+\fIoflag\fP est un masque de bit associant l'une des deux constantes
+\fBO_RDONLY\fP ou \fBO_RDWR\fP et un ou plusieurs des attributs décrits ci\-après.
+.TP  1.1i
+\fBO_RDONLY\fP
+Ouvrir l'objet en lecture seule. Un tel objet ne pourra être projeté en
+mémoire avec \fBmmap\fP(2) qu'avec l'accès (\fBPROT_READ\fP).
+.TP 
+\fBO_RDWR\fP
+Ouvrir l'objet en lecture et écriture.
+.TP 
+\fBO_CREAT\fP
+.\" In truth it is actually the file system IDs on Linux, but these
+.\" are nearly always the same as the effective IDs.  (MTK, Jul 05)
+Créer l'objet de mémoire partagée s'il n'existe pas. L'utilisateur et le
+groupe propriétaires de l'objet proviennent des IDs effectifs du processus
+appelant, et les bits de permission sont définis en fonction des 9\ bits de
+poids faible de \fImode\fP, hormis les bits qui sont définis dans le masque de
+création du processus (consultez \fBumask\fP(2)) et qui sont effacés. Un jeu de
+constantes utilisables pour définir le \fImode\fP est décrit dans \fBopen\fP(2)
+(les définitions symboliques de ces constantes peuvent être obtenues en
+incluant \fI<sys/stat.h>\fP).
+.sp
+Un nouvel objet de mémoire partagé a une taille initiale nulle — elle peut
+être définie avec \fBftruncate\fP(2). Les octets d'un objet mémoire partagé
+nouvellement créé sont automatiquement initialisés à zéro.
+.TP 
+\fBO_EXCL\fP
+Si \fBO_CREAT\fP était précisé et si un objet de mémoire partagée avec le même
+\fInom\fP existait déjà, renvoyer une erreur. La vérification et l'existence et
+la création éventuelle sont réalisées de manière atomique.
+.TP 
+\fBO_TRUNC\fP
+Si l'objet de mémoire partagée existait, tronquer sa taille à zéro.
+.LP
+Les définitions des valeurs de ces attributs peuvent être obtenues en
+incluant \fI<fcntl.h>\fP.
+.LP
+Si elle réussit, la fonction \fBshm_open\fP() renvoie un nouveau descripteur
+décrivant l'objet de mémoire partagée. Le descripteur est assuré d'être le
+plus petit numéro disponible dans la table des descripteurs du
+processus. L'attribut \fBFD_CLOEXEC\fP (consultez \fBfcntl\fP(2)) sera activé sur
+le descripteur de fichier.
+
+Le descripteur est utilisé normalement pour les appels ultérieurs à
+\fBftruncate\fP(2) (pour un objet nouvellement créé) et \fBmmap\fP(2). Après un
+appel à \fBmmap\fP(2) le descripteur peut être fermé sans affecter la
+projection mémoire.
+
+Le fonctionnement de \fBshm_unlink\fP() est analogue à celui de \fBunlink\fP(2)\ :
+il supprime le nom d'un objet de mémoire partagée, et, une fois que tous les
+processus ont supprimé leur projection en mémoire, libère et détruit le
+contenu de la portion de mémoire. Après un appel réussi à \fBshm_unlink\fP(),
+les tentatives d'appeler \fBshm_open\fP() avec le même \fInom\fP échoueront (sauf
+si \fBO_CREAT\fP est spécifié, auquel cas un nouvel objet distinc est créé).
+.SH "VALEUR RENVOYÉE"
+S'il réussit, l'appel \fBshm_open\fP() renvoie un descripteur de fichier non
+négatif. S'il échoue, \fBshm_open\fP() renvoie \-1. \fBshm_unlink\fP() renvoie 0
+s'il réussit ou \-1 en cas d'erreur.
+.SH ERREURS
+Lors d'un échec, \fIerrno\fP indique la cause de l'erreur. Les codes possibles
+dans \fIerrno\fP sont les suivants\ :
+.TP 
+\fBEACCES\fP
+Interdiction d'utiliser \fBshm_unlink\fP() sur l'objet de mémoire partagée.
+.TP 
+\fBEACCES\fP
+\fBshm_open\fP() refusée pour le \fInom\fP dans le \fImode\fP indiqué, ou \fBO_TRUNC\fP
+a été réclamé et l'appelant n'a pas les permissions d'écriture sur l'objet.
+.TP 
+\fBEEXIST\fP
+\fBO_CREAT\fP et \fBO_EXCL\fP étaient réclamés dans \fBshm_open\fP() et un objet de
+mémoire partagée du même \fInom\fP existait déjà.
+.TP 
+\fBEINVAL\fP
+L'argument \fInom\fP de \fBshm_open\fP() était invalide.
+.TP 
+\fBEMFILE\fP
+Le processus a déjà ouvert le nombre maximal de fichiers.
+.TP 
+\fBENAMETOOLONG\fP
+La longueur du \fInom\fP dépasse \fBPATH_MAX\fP.
+.TP 
+\fBENFILE\fP
+La limite du nombre total de fichiers ouverts sur le système a été atteinte.
+.TP 
+\fBENOENT\fP
+Tentative d'ouvrir avec \fBshm_open\fP() un \fInom\fP qui n'existe pas, sans
+attribut \fBO_CREAT\fP.
+.TP 
+\fBENOENT\fP
+Tentative d'utiliser \fBshm_unlink\fP() sur un \fInom\fP qui n'existe pas.
+.SH VERSIONS
+Ces fonctions sont fournies depuis la glibc 2.2.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.LP
+POSIX.1\-2001 indique que le groupe propriétaire d'un objet nouvellement créé
+utilise soit l'ID de groupe du processus appelant, soit un «\ ID de groupe
+par défaut défini par le système\ ».
+.SH NOTES
+.LP
+POSIX ne précise pas le comportement de la combinaison \fBO_RDONLY\fP et
+\fBO_TRUNC\fP. Sous Linux, la troncature aura lieu — cela n'est pas
+nécessairement le cas sous d'autres systèmes UNIX.
+.LP
+L'implémentation sous Linux 2.4 des objets de mémoire partagée POSIX utilise
+un système de fichiers dédiés, monté en principe sous \fI/dev/shm\fP.
+.SH "VOIR AUSSI"
+\fBclose\fP(2), \fBfchmod\fP(2), \fBfchown\fP(2), \fBfcntl\fP(2), \fBfstat\fP(2),
+\fBftruncate\fP(2), \fBmmap\fP(2), \fBopen\fP(2), \fBumask\fP(2), \fBshm_overview\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

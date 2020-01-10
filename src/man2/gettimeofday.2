@@ -1,0 +1,208 @@
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt (michael@moria.de)
+.\" Modified 1993-07-23 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 1994-08-21 by Michael Chastain (mec@shell.portal.com):
+.\"   Fixed necessary '#include' lines.
+.\" Modified 1995-04-15 by Michael Chastain (mec@shell.portal.com):
+.\"   Added reference to adjtimex.
+.\" Removed some nonsense lines pointed out by Urs Thuermann,
+.\"   (urs@isnogud.escape.de), aeb, 950722.
+.\" Modified 1997-01-14 by Austin Donnelly (and1000@debian.org):
+.\"   Added return values section, and bit on EFAULT
+.\" Added clarification on timezone, aeb, 971210.
+.\" Removed "#include <unistd.h>", aeb, 010316.
+.\" Modified, 2004-05-27 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"   Added notes on capability requirement.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETTIMEOFDAY 2 "26 avril 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+gettimeofday, settimeofday \- Lire/écrire l'heure actuelle
+.SH SYNOPSIS
+.nf
+\fB#include <sys/time.h>\fP
+
+\fBint gettimeofday(struct timeval *\fP\fItv\fP\fB, struct timezone *\fP\fItz\fP\fB);\fP
+
+\fBint settimeofday(const struct timeval *\fP\fItv\fP\fB, const struct timezone *\fP\fItz\fP\fB);\fP
+
+.fi
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBsettimeofday\fP()\ : _BSD_SOURCE
+.SH DESCRIPTION
+Les fonctions \fBgettimeofday\fP() et \fBsettimeofday\fP() servent à lire ou
+programmer l'heure ainsi que le fuseau horaire (timezone). L'argument \fItv\fP
+est une structure \fItimeval\fP décrite dans \fI<sys/time.h>\fP\ :
+.sp
+.in +4n
+.nf
+struct timeval {
+    time_t      tv_sec;     /* secondes */
+    suseconds_t tv_usec;    /* microsecondes */
+};
+.fi
+.in
+.sp
+et donne le nombre de secondes et microsecondes écoulées depuis l'époque
+(consultez \fBtime\fP(2)). L'argument \fItz\fP est une structure \fItimezone\fP
+composée ainsi\ :
+.sp
+.in +4n
+.nf
+struct timezone {
+    int tz_minuteswest; /* minutes à l'ouest de Greenwich  */
+    int tz_dsttime;     /* type de changement horaire      */
+};
+.fi
+.in
+.PP
+.\" FIXME The compilation warning looks to be going away in 2.17
+.\" see glibc commit 4b7634a5e03b0da6f8875de9d3f74c1cf6f2a6e8
+.\" The following is covered under EPERM below:
+.\" .PP
+.\" Only the superuser may use
+.\" .BR settimeofday ().
+Si \fItv\fP ou \fItz\fP est nulle, la structure correspondante n'est ni remplie ni
+renvoyée. (Cependant, des avertissements à la compilation seront émis si
+\fItv\fP est NULL.
+.PP
+L'utilisation de la structure \fItimezone\fP est obsolète\ ; le paramètre \fItz\fP
+doit normalement être NULL. Consultez la section NOTES ci\-desous.
+
+Sous Linux, il existe une sémantique particulière associée à l'appel système
+\fBsettimeofday\fP() si, durant la première invocation (après le boot), il a un
+argument \fItz\fP non NULL, un argument \fItv\fP NULL et un champ
+\fItz_minuteswest\fP différent de zéro (dans ce cas, le champ \fItz_dsttime\fP
+doit être nul). Dans ce cas, on suppose que l'horloge CMOS de la machine est
+configurée sur le temps local, et que l'on doit l'augmenter de cette valeur
+pour obtenir le temps UTC. Bien entendu, il faut éviter autant que possible
+d'utiliser cette particularité.
+.SH "VALEUR RENVOYÉE"
+\fBgettimeofday\fP et \fBsettimeofday\fP renvoient 0 s'ils réussissent, ou \-1
+s'ils échouent, auquel cas \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fItv\fP ou \fItz\fP pointent en dehors de l'espace d'adressage autorisé.
+.TP 
+\fBEINVAL\fP
+Le fuseau horaire (ou autre chose) est invalide.
+.TP 
+\fBEPERM\fP
+Le processus appelant n'a pas les privilèges suffisant pour appeler
+\fBsettimeofday\fP()\ ; sous Linux, la capacité \fBCAP_SYS_TIME\fP est nécessaire.
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3. POSIX.1\-2001 décrit \fBgettimeofday\fP() mais pas
+\fBsettimeofday\fP(). POSIX.1\-2008 marque \fBgettimeofday\fP() comme étant
+obsolète, en recommandant d'utiliser \fBclock_gettime\fP(2) à la place.
+.SH NOTES
+L'heure renvoyée par \fBgettimeofday\fP() \fIest\fP concernée par les sauts
+discontinus de l'heure système (c'est\-à\-dire si l'administrateur modifie
+l'heure système lui\-même). Si vous devez incrémenter l'horloge de façon
+monotone, consultez \fBclock_gettime\fP(2).
+
+Les macros opérant sur les structures \fItimeval\fP sont décrites dans
+\fBtimeradd\fP(3).
+
+Traditionnellement, les champs de la structure \fItimeval\fP étaient de type
+\fIlong\fP.
+
+.\" it has not
+.\" been and will not be supported by libc or glibc.
+.\" Each and every occurrence of this field in the kernel source
+.\" (other than the declaration) is a bug.
+Le champ \fItz_dsttime\fP n'a jamais été utilisé sous Linux, c'est pourquoi le
+paragraphe ci\-dessous n'est présent qu'à but historique.
+
+Sur d'anciens systèmes, le champ \fItz_dsttime\fP contient une constante
+symbolique (dont les valeurs sont fournies ci\(hydessous) qui indique quelle
+partie du changement horaire annuel est en cours. (Remarque\ : cette valeur
+est constante tout au long de l'année, elle n'indique pas réellement la
+valeur horaire en cours, elle sélectionne un algorithme). Les changements
+horaires (Daylight Saving Time \- DST) sont définis comme suit\ :
+.in +4n
+.nf
+
+\fBDST_NONE\fP     /* Aucun */
+.br
+\fBDST_USA\fP      /* USA */
+.br
+\fBDST_AUST\fP     /* Australie */
+.br
+\fBDST_WET\fP      /* Europe occidentale */
+.br
+\fBDST_MET\fP      /* Europe centrale */
+.br
+\fBDST_EET\fP      /* Europe Orientale */
+.br
+\fBDST_CAN\fP      /* Canada */
+.br
+\fBDST_GB\fP       /* Grande\(hyBretagne et Irlande */
+.br
+\fBDST_RUM\fP      /* Roumanie */
+.br
+\fBDST_TUR\fP      /* Turquie */
+.br
+\fBDST_AUSTALT\fP  /* Australie avec décalage en 1986 */
+.fi
+.in
+.PP
+Il est évident que le décalage horaire en cours ne peut pas être uniquement
+fourni par un algorithme par pays. Ce décalage dépend de décisions
+politiques imprévisibles. Ainsi, cette méthode des fuseaux horaires a été
+abandonnée.
+.SH "VOIR AUSSI"
+\fBdate\fP(1), \fBadjtimex\fP(2), \fBclock_gettime\fP(2), \fBtime\fP(2), \fBctime\fP(3),
+\fBftime\fP(3), \fBtimeradd\fP(3), \fBcapabilities\fP(7), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

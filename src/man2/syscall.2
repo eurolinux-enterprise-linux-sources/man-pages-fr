@@ -1,0 +1,219 @@
+.\" Copyright (c) 1980, 1991, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     @(#)syscall.2	8.1 (Berkeley) 6/16/93
+.\"
+.\"
+.\" 2002-03-20  Christoph Hellwig <hch@infradead.org>
+.\"	- adopted for Linux
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYSCALL 2 "21 juin 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+syscall \- appel système indirect
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP         /* Consultez feature_test_macros(7) */
+\fB#include <unistd.h>\fP
+\fB#include <sys/syscall.h>   \fP/* Pour les définitions de SYS_xxx */
+
+\fBint syscall(int \fP\fInuméro\fP\fB, ...);\fP
+.fi
+.SH DESCRIPTION
+\fBsyscall\fP() est une petite fonction de bibliothèque qui invoque l'appel
+système dont l'interface en assembleur a le \fInuméro\fP indiqué avec les
+arguments donnés. L'utilisation de \fBsyscall\fP() est pratique, par exemple,
+pour invoquer un appel système qui n'a pas de fonction autour de cet appel
+système dans la bibliothèque\ C.
+
+\fBsyscall\fP() sauve les registres du processeur avant de faire l'appel
+système, restaure les registres au retour de l'appel système et stocke tous
+les codes d'erreur renvoyés par l'appel système dans \fBerrno\fP(3) en cas
+d'erreur.
+
+Les constantes symboliques correspondant aux appels système sont dans le
+fichier d'en\-tête \fI<sys/syscall.h>\fP.
+.SH "VALEUR RENVOYÉE"
+La valeur de retour est définie par l'appel système invoqué. En général, une
+valeur de retour nulle indique une réussite. Une valeur de retour de \-1
+indique une erreur, et un code d'erreur est fourni dans \fIerrno\fP.
+.SH NOTES
+\fBsyscall\fP() est apparu dans BSD\ 4.
+.SS "Exigences dépendantes de l'architecture"
+L'ABI de chaque architecture possède ses propres exigences sur la façon dont
+les paramètres des appels système sont passés au noyau. Pour les appels
+système qui ont une fonction d'enrobage de la glibc (comme par exemple la
+plupart des appels système), glibc s'occupe des détails pour copier les
+arguments dans les bons registres d'une manière adaptée à chaque
+architecture. Cependant, en utilisant \fBsyscall\fP()  pour effectuer un appel
+système, l'appelant peut avoir besoin de gérer certains détails dépendants
+de l'architecture\ ; cette exigence est en particulier rencontrée sur
+certaines architectures 32\ bits.
+
+Par exemple, pour l'Embedded ABI (EABI) de l'architecture ARM, une valeur
+64\ bits (c'est\-à\-dire un \fIlong long\fP)  doit être alignée sur une paire de
+registres paire. Ainsi, en appelant \fBsyscall\fP()  au lieu de la fonction
+d'enrobage fournie par la glibc, l'appel système \fBreadahead\fP()  devrait
+être effectué ainsi sur l'architecture ARM avec l'EABI\ :
+
+.in +4n
+.nf
+syscall(SYS_readahead, fd, 0,
+        (unsigned int) (offset >> 32),
+        (unsigned int) (offset & 0xFFFFFFFF),
+        count);
+.fi
+.in
+.PP
+Comme le paramètre offset est 64\ bits, et le premier argument (\fIfd\fP)  est
+passé dans \fIr0\fP, l'appelant doit manuellement découper et aligner la valeur
+64\ bits afin de la passer dans la paire de registres \fIr2\fP/\fIr3\fP. Ceci
+implique de passer une valeur fantôme dans \fIr1\fP (le second argument, qui
+vaut 0).
+
+.\" Mike Frysinger: this issue ends up forcing MIPS
+.\" O32 to take 7 arguments to syscall()
+Des problèmes similaires peuvent survenir sur MIPS avec l'ABI O32, sur
+PowerPC avec l'ABI 32\ bits, et sur Xtensa.
+
+Les appels système concernés sont \fBfadvise64_64\fP(2), \fBftruncate64\fP(2),
+\fBposix_fadvise\fP(2), \fBpread64\fP(2), \fBpwrite64\fP(2), \fBreadahead\fP(2),
+\fBsync_file_range\fP(2) et \fBtruncate64\fP(2).
+.SS "Conventions d'appel par architecture"
+Chaque architecture possède sa façon propre d'invoquer et de passer des
+paramètres au noyau. Les détails pour diverses architectures sont donnés
+dans les deux tableaux ci\-dessous.
+
+Le premier tableau donne l'instruction utilisée pour passer en mode noyau
+(qui n'est pas forcément la méthode la meilleure ou la plus rapide, vous
+devriez consulter le VDSO), le registre utilisé pour indiquer le numéro de
+l'appel système, et le registre utilisé comme code de retour de l'appel
+système.
+.if  t \{\
+.ft CW
+\}
+.TS
+l l1 l l1 l.
+arch/ABI	instruction	appel syst.	val. ret.	Notes
+_
+arm/OABI	swi NR	\-	a1	T{
+NR\ : numéro d'appel syst.
+T}
+arm/EABI	swi 0x0	r7	r1
+blackfin	excpt 0x0	P0	R0
+i386	int $0x80	eax	eax
+ia64	break 0x100000	r15	r10/r8
+parisc	ble 0x100(%sr2, %r0)	r20	r28
+s390	svc 0	r1	r2	NR peut être passé directement\ :
+s390x	svc 0	r1	r2	"svc NR" si NR inférieur à 256
+sparc/32	t 0x10	g1	o0
+sparc/64	t 0x6d	g1	o0
+x86_64	syscall	rax	rax
+.TE
+.if  t \{\
+.in
+.ft P
+\}
+.PP
+Le second tableau montre les registres utilisés pour passer les paramètres
+de l'appel système.
+.if  t \{\
+.ft CW
+\}
+.TS
+l l l l l l l l.
+arch/ABI	par1	par2	par3	par4	par5	par6	par7
+_
+arm/OABI	a1	a2	a3	a4	v1	v2	v3
+arm/EABI	r1	r2	r3	r4	r5	r6	r7
+blackfin	R0	R1	R2	R3	R4	R5	\-
+i386	ebx	ecx	edx	esi	edi	ebp	\-
+ia64	r11	r9	r10	r14	r15	r13	\-
+parisc	r26	r25	r24	r23	r22	r21	\-
+s390	r2	r3	r4	r5	r6	r7	\-
+s390x	r2	r3	r4	r5	r6	r7	\-
+sparc/32	o0	o1	o2	o3	o4	o5	\-
+sparc/64	o0	o1	o2	o3	o4	o5	\-
+x86_64	rdi	rsi	rdx	r10	r8	r9	\-
+.TE
+.if  t \{\
+.in
+.ft P
+\}
+.PP
+Notez que ces tableaux ne couvrent pas l'ensemble des conventions d'appel
+système, certaines architectures peuvent écraser d'autres registres non
+listés ici.
+.SH EXEMPLE
+.nf
+#define _GNU_SOURCE
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
+
+int
+main(int argc, char *argv[])
+{
+    pid_t tid;
+
+    tid = syscall(SYS_gettid);
+    tid = syscall(SYS_tgkill, getpid(), tid);
+}
+.fi
+.SH "VOIR AUSSI"
+\fB_syscall\fP(2), \fBintro\fP(2), \fBsyscalls\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

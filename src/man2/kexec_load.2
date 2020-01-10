@@ -1,0 +1,142 @@
+.\" Copyright (C) 2010 Intel Corporation
+.\" Author: Andi Kleen
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH KEXEC_LOAD 2 "13 juillet 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+kexec_load \- Charger un nouveau noyau pour une exécution ultérieure
+.SH SYNOPSIS
+\fB#include <linux/kexec.h>\fP
+.br
+\fBlong kexec_load(unsigned long \fP\fIentry\fP\fB, unsigned long
+\fP\fInr_segments\fP\fB,\fP
+.br
+\fB struct kexec_segment *\fP\fIsegments\fP\fB, unsigned long \fP\fIflags\fP\fB);\fP
+
+\fIRemarque\fP\ : il n'existe pas de fonction glibc autour de cet appel
+système\ ; consultez \fBNOTES\fP.
+.SH DESCRIPTION
+L'appel système \fBkexec_load\fP() charge un nouveau noyau qui peut être
+exécuté plus tard avec un \fBreboot\fP(2).
+.PP
+Le paramètre \fIflags\fP est un masque dont les bits de poids fort contrôlent
+l'opération de l'appel. Les valeurs suivantes peuvent être spécifiées dans
+\fIflags\fP\ :
+.TP 
+\fBKEXEC_ON_CRASH\fP (depuis Linux 2.6.13)
+.\" FIXME figure out how this is really used
+Exécuter automatiquement le nouveau noyau en cas de crash système.
+.TP 
+\fBKEXEC_PRESERVE_CONTEXT\fP (depuis Linux 2.6.27)
+Préserver le matériel système et les états logiciels avant d'exécuter le
+nouveau noyau. Ceci pourrait être utilisé pour la mise en veille prolongée
+du système. Cet attribut n'est disponible que si le noyau a été configuré
+avec \fBCONFIG_KEXEC_JUMP\fP, et n'est effectif que si \fInr_segments\fP est
+strictement positif.
+.PP
+Les bits de poids faible de \fIflags\fP contiennent l'architecture du noyau qui
+est en attente d'exécution. Indiquez la constante \fBKEXEC_ARCH_DEFAULT\fP pour
+utiliser l'architecture actuelle, ou une ou plusieurs (en utilisant
+l'opérateur OU) des constantes d'architecture suivantes\ : \fBKEXEC_ARCH_386\fP,
+\fBKEXEC_ARCH_X86_64\fP, \fBKEXEC_ARCH_PPC\fP, \fBKEXEC_ARCH_PPC64\fP,
+\fBKEXEC_ARCH_IA_64\fP, \fBKEXEC_ARCH_ARM\fP, \fBKEXEC_ARCH_S390\fP,
+\fBKEXEC_ARCH_SH\fP, \fBKEXEC_ARCH_MIPS\fP et
+\fBKEXEC_ARCH_MIPS_LE\fP. L'architecture doit pouvoir être exécutée sur le
+processeur du système.
+
+Le paramètre \fIentry\fP est l'adresse du point d'entrée physique dans l'image
+noyau. Le paramètre \fInr_segments\fP est le nombre de segments pointés par le
+pointeur \fIsegments\fP. Le paramètre \fIsegments\fP est un tableau de
+\fIkexec_segment\fP structures qui définissent la disposition du noyau\ :
+.in +4n
+.nf
+
+struct kexec_segment {
+    void   *buf;        /* Tampon dans l'espace utilisateur */
+    size_t  bufsz;      /* Taille du tampon */
+    void   *mem;        /* Adresse physique du noyau */
+    size_t  memsz;      /* Taille de l'adresse physique */
+};
+.fi
+.in
+.PP
+.\" FIXME elaborate on the following:
+L'image noyau définie par \fIsegments\fP est copiée depuis le processus
+appelant dans la mémoire préalablement réservée.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBkexec_load\fP() renvoie zéro. En cas d'erreur, il renvoie \-1
+et remplit \fIerrno\fP avec la valeur d'erreur.
+.SH ERREURS
+.TP 
+\fBEBUSY\fP
+Un autre crash du noyau est déjà en train de charger, ou un crash du noyau
+est déjà utilisé.
+.TP 
+\fBEINVAL\fP
+.\" KEXEC_SEGMENT_MAX == 16
+\fIflags\fP est invalide, ou \fInr_segments\fP est trop grand
+.TP 
+\fBEPERM\fP
+L'appelant n'a pas la capacité \fBCAP_SYS_BOOT\fP.
+.SH VERSIONS
+L'appel système \fBkexec_load\fP() est apparu dans Linux\ 2.6.13.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux.
+.SH NOTES
+Actuellement, il n'y a pas de prise en charge de \fBkexec_load\fP() dans la
+glibc. Il faut l'appeler avec \fBsyscall\fP(2).
+.PP
+.\" FIXME Andi submitted a patch for this.
+.\" Check if it got accepted later.
+Les constantes nécessaires sont définies dans le fichier source du noyau
+Linux \fIlinux/kexec.h\fP, qui n'est actuellement pas exporté par la glibc. Ces
+constantes doivent donc être définies manuellement.
+
+Cet appel système n'est disponible que si le noyau a été configuré avec
+\fBCONFIG_KEXEC\fP.
+.SH "VOIR AUSSI"
+\fBreboot\fP(2), \fBsyscall\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

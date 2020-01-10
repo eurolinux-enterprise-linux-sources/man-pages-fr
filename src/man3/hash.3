@@ -1,0 +1,168 @@
+.\" Copyright (c) 1990, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"	@(#)hash.3	8.6 (Berkeley) 8/18/94
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH HASH 3 "23 avril 2012" "" "Manuel du programmeur Linux"
+.UC 7
+.SH NOM
+hash \- Méthodes d'accès aux bases de données avec tables de hachage
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>
+#include <db.h>\fP
+.fi
+.SH DESCRIPTION
+\fINOTE\fP: cette page décrit des interfaces founies par la glibc jusque dans
+sa version\ 2.1. Depuis la version\ 2.2, la glibc ne fournit plus ces
+interfaces. Veuillez consulter les API fournies par la bibliothèque
+\fIlibdb\fP.
+
+La routine \fBdbopen\fP(3) est l'interface de bibliothèque des fichiers de base
+de données. L'un des formats de fichier supportés est la table de
+hachage. La description générale des méthodes d'accès à une base de données
+est fournie dans la page de manuel \fBdbopen\fP(3). La page présente ne décrit
+que les informations spécifiques aux tables de hachage.
+.PP
+Les structures de hachage représentent un schéma de base de données
+dynamique et extensible.
+.PP
+La structure de données spécifique aux tables de hachage que l'on transmet à
+\fBdbopen\fP(3) est définie dans \fI<db.h>\fP ainsi\ :
+.in +4n
+.nf
+
+typedef struct {
+    unsigned int       bsize;
+    unsigned int       ffactor;
+    unsigned int       nelem;
+    unsigned int       cachesize;
+    uint32_t         (*hash)(const void *, size_t);
+    int         lorder;
+} HASHINFO;
+.fi
+.in
+.PP
+Les éléments de cette structure sont les suivants\ :
+.TP  10
+\fIbsize\fP
+défini la taille des cases de la table (bucket size), et vaut, par défaut,
+256\ octets. Il est préférable d'augmenter la taille de page pour les tables
+situées sur disque ayant des éléments avec beaucoup de données.
+.TP 
+\fIffactor\fP
+indique une densité désirée au sein de la table. Il s'agit d'une
+approximation du nombre de clés pouvant s'accumuler dans une seule case, ce
+qui détermine le moment où la table doit s'agrandir ou se rétrécir. La
+valeur par défaut est 8.
+.TP 
+\fInelem\fP
+est une estimation de la taille finale de la table de hachage. S'il n'est
+pas configuré, ou s'il est configuré trop bas, la table s'agrandira quand
+même correctement au fur et à mesure de l'entrée des clés, bien qu'une
+légère dégradation des performances puisse être observée. La valeur par
+défaut est 1.
+.TP 
+\fIcachesize\fP
+est la taille maximale suggérée de mémoire cache, en octets. Cela n'a qu'une
+valeur \fBindicative\fP, et les méthodes d'accès alloueront plus de mémoire
+plutôt que d'échouer.
+.TP 
+\fIhash\fP
+est une fonction définie par l'utilisateur. Comme aucune fonction de hachage
+ne se comporte parfaitement bien sur tout type de données, il peut arriver
+que la fonction interne soit particulièrement mauvaise sur un jeu
+particulier de données. La fonction de hachage fournie par l'utilisateur
+doit prendre deux arguments (un pointeur sur une chaîne d'octets et une
+longueur) et renvoyer une valeur sur 32 bits utilisable comme valeur de
+hachage.
+.TP 
+\fIlorder\fP
+est l'ordre des octets pour les entiers stockés dans la base de données. Ce
+nombre doit représenter l'ordre sous forme d'entier. Par exemple l'ordre
+poids faible\-poids fort (big endian) est représenté par le nombre 4321. Si
+\fIlorder\fP vaut 0 (pas d'ordre indiqué), on utilise l'ordre des octets du
+système hôte.
+.PP
+Si le fichier existe déjà (et si le drapeau \fBO_TRUNC\fP n'est pas spécifié),
+les valeurs spécifiées dans \fIbsize\fP, \fIffactor\fP, \fIlorder\fP et \fInelem\fP sont
+ignorés et les valeurs spécifiées lors de la création de l'arbre sont
+utilisées à la place.
+.PP
+SI une fonction de hachage est indiquée, \fIhash_open\fP essayera de déterminer
+s'il s'agit de la même fonction que celle indiquée lors de la création de la
+base de données, et échouera si ce n'est pas le cas.
+.PP
+Des interfaces pour les routines décrites dans \fBdbm\fP(3), et \fBndbm\fP(3) sont
+fournies pour la compatibilité ascendante, toutefois ces interfaces ne sont
+pas compatibles avec les anciens formats de fichier.
+.SH ERREURS
+Les routines d'accès aux \fItables de hachage\fP peuvent échouer et remplir
+\fIerrno\fP avec n'importe quelle erreur indiquée par la routine \fBdbopen\fP(3).
+.SH BOGUES
+Seuls les ordres d'octets gros boutiste (big\-endian) et petit boutiste
+(little\-endian) fonctionnent.
+.SH "VOIR AUSSI"
+\fBbtree\fP(3), \fBdbopen\fP(3), \fBmpool\fP(3), \fBrecno\fP(3)
+
+\fIDynamic Hash Tables\fP, Per\-Ake Larson, Communications of the ACM, April
+1988.
+
+\fIA New Hash Package for UNIX\fP, Margo Seltzer, USENIX Proceedings, Winter
+1991.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

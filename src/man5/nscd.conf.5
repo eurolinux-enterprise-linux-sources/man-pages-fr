@@ -1,0 +1,179 @@
+.\" Copyright (c) 1999, 2000 SuSE GmbH Nuernberg, Germany
+.\" Author: Thorsten Kukuk <kukuk@suse.de>
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_3_PARA)
+.\" This program is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of the
+.\" License, or (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH NSCD.CONF 5 "12 février 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+/etc/nscd.conf \- Fichier de configuration du démon NSCD
+.SH DESCRIPTION
+Le fichier \fI/etc/nscd.conf\fP est lu au démarrage de \fBnscd\fP(8). Chaque ligne
+indique soit un attribut et une valeur, soit un attribut, un service et une
+valeur. Les champs sont séparés par des espaces ou des tabulations. Un dièse
+«\ #\ » indique un début de commentaire, les caractères ultérieurs seront
+ignorés jusqu'à la fin de la ligne.
+
+Les services valides sont \fIpasswd\fP, \fIgroup\fP, \fIhosts\fP, \fIservices\fP et
+\fInetgroup\fP.
+
+\fBlogfile\fP \fInom\-fichier\fP
+.RS
+Indique le nom du fichier où les données de débogage seront écrites.
+.RE
+
+\fBdebug\-level\fP \fIvaleur\fP
+.RS
+Indique le niveau désiré de débogage. La valeur par défaut est 0.
+.RE
+
+\fBthreads\fP \fInombre\fP
+.RS
+Il s'agit du nombre de threads en attente de requêtes. Au moins cinq threads
+seront toujours créés.
+.RE
+
+\fBmax\-threads\fP \fInombre\fP
+.RS
+Indique le nombre maximal de threads à démarrer. La valeur par défaut est
+32.
+.RE
+
+\fBserver\-user\fP \fIutilisateur\fP
+.RS
+Si cette option est active, nscd prendra l'identité de l'utilisateur et non
+celle du superutilisateur. Si un cache distinct est utilisé pour chaque
+utilisateur (paramètre \-S), cette option est ignorée.
+.RE
+
+\fBstat\-user\fP \fIutilisateur\fP
+.RS
+Indique l'utilisateur autorisé à demander les statistiques.
+.RE
+
+\fBreload\-count\fP unlimited | \fInombre\fP
+.RS
+Limite le nombre de fois qu'une entrée cachée peut se recharger sans être
+utilisée avant d'être supprimée. La valeur par défaut est 5.
+.RE
+
+\fBparanoia\fP \fI<yes|no>\fP
+.RS
+Active le mode paranoïa forçant nscd à se relancer de lui\-même
+périodiquement. Désactivé par défaut.
+.RE
+
+\fBrestart\-interval\fP \fItemps\fP
+.RS
+Définit l'intervalle de redémarrage à \fItemps\fP\ secondes si le redémarrage
+périodique est activé en activant le mode \fBparanoia\fP. La valeur par défaut
+est 3600.
+.RE
+
+\fBenable\-cache\fP \fIservice\fP \fI<yes|no>\fP
+.RS
+Active ou inhibe le cache du \fIservice\fP indiqué. Désactivé par défaut.
+.RE
+
+\fBpositive\-time\-to\-live\fP \fIservice\fP \fIvaleur\fP
+.RS
+Indique la durée TTL (time\-to\-live) pour les entrées positives (requêtes
+réussies) dans le cache spécifié pour le \fIservice\fP. \fIvaleur\fP est indiquée
+en secondes. Des valeurs plus grandes améliorent les temps de réponse mais
+augmentent les problèmes dus à la cohérence du cache.
+.RE
+
+\fBnegative\-time\-to\-live\fP \fIservice\fP \fIvaleur\fP
+.RS
+Définit la durée TTL (time\-to\-live) des entrées négatives (requêtes
+échouées)  dans le cache spécifié pour le \fIservice\fP. \fIvaleur\fP est en
+seconde. Peut améliorer les performances, s'il y a plusieurs fichiers
+appartenant à des UID hors des bases de données système (par exemple, si le
+superutilisateur décompresse les sources du noyau Linux), doit rester faible
+pour réduire les problèmes de cohérence du cache.
+.RE
+
+\fBsuggested\-size\fP \fIservice\fP \fIvaleur\fP
+.RS
+C'est la taille de la table de hachage interne, \fIvaleur\fP doit être un
+nombre premier pour une efficacité optimale. La valeur par défaut est 211.
+.RE
+
+\fBcheck\-files\fP \fIservice\fP \fI<yes|no>\fP
+.RS
+Active ou inhibe la vérification des changements dans les fichiers du
+\fIservice\fP indiqué. Les fichiers sont \fI/etc/passwd\fP, \fI/etc/group\fP,
+\fI/etc/hosts\fP, \fI/etc/services\fP et \fI/etc/netgroup\fP. Activé par défaut.
+.RE
+
+\fBpersistent\fP \fIservice\fP \fI<yes|no>\fP
+.RS
+Conserver le contenu du cache de \fIservice\fP lors des redémarrages du
+serveur\ ; utile lorsque le mode \fBparanoia\fP est activé. Désactivé par
+défaut.
+.RE
+
+\fBshared\fP \fIservice\fP \fI<yes|no>\fP
+.RS
+La projection mémoire des bases de données nscd de \fIservice\fP est partagée
+avec les clients. Ainsi, ils peuvent directement rechercher dans celles\-ci
+plutôt que de demander au démon chaque fois qu'une consultation est
+effectuée. Désactivé par défaut.
+.RE
+
+\fBmax\-db\-size\fP \fIservice\fP \fIoctets\fP
+.RS
+La taille maximale en octets des fichiers de base de données pour le
+\fIservice\fP. La valeur par défaut est 33554432.
+.RE
+
+\fBauto\-propagate\fP \fIservice\fP \fI<yes|no>\fP
+.RS
+Si défini à \fIno\fP pour les services \fIpasswd\fP ou \fIgroup\fP, alors les
+requêtes \fI.byname\fP ne sont pas ajoutées aux caches \fIpasswd.byuid\fP ou
+\fIgroup.bygid\fP. Cela peut aider avec les tables qui contiennent plusieurs
+enregistrements pour le même identifiant. C'est \fIyes\fP par défaut. Cette
+option n'est valables que pour les services \fIpasswd\fP et \fIgroup\fP.
+.RE
+.SH "VOIR AUSSI"
+.\" .SH AUTHOR
+.\" .B nscd
+.\" was written by Thorsten Kukuk and Ulrich Drepper.
+\fBnscd\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (2003-2007).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

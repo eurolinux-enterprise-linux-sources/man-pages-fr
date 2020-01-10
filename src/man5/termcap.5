@@ -1,0 +1,512 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de),
+.\"     Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified formatting Sat Jul 24 17:13:38 1993, Rik Faith (faith@cs.unc.edu)
+.\" Modified (extensions and corrections)
+.\"   Sun May  1 14:21:25 MET DST 1994 Michael Haardt
+.\"   If mistakes in the capabilities are found, please send a bug report to:
+.\"   michael@moria.de
+.\" Modified Mon Oct 21 17:47:19 EDT 1996 by Eric S. Raymond (esr@thyrsus.com)
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TERMCAP 5 "21 octobre 1996" Linux "Manuel du programmeur Linux"
+.SH NOM
+termcap \- Base de données des possibilités des terminaux
+.SH DESCRIPTION
+La base de données termcap est un moyen obsolète de décrire les possibilités
+des terminaux et imprimantes en mode caractère. Elle n'est maintenue que
+pour assurer la compatibilité avec d'anciens programmes\ ; les nouveaux
+programmes devraient utiliser la base de données \fBterminfo\fP(5) et les
+bibliothèques associées.
+.LP
+\fI/etc/termcap\fP est un fichier ASCII (le maître de la base de données) qui
+liste les possibilités de nombreux types de terminaux. Les programmes
+peuvent lire termcap pour y rechercher un code de déspécification
+(«\ échappement\ ») particulier nécessaire pour déterminer les attributs
+visuels du terminal en cours d'utilisation. (Les autres aspects du terminal
+sont gérés par \fBstty\fP(1).) La base de données termcap est indexées par la
+variable d'environnement \fBTERM\fP.
+.LP
+Les entrées de termcap peuvent être définies sur une seule ligne, en
+utilisant «\ \e\ » pour supprimer les sauts de ligne. Les champs sont séparés
+par «\ :\ ». Le premier champ de chaque entrée commence à la marge de gauche,
+et il contient une liste de noms, séparés par «\ |\ », pour le terminal.
+.LP
+Le premier sous\-champ (pour les entrées termcap BSD jusqu'à la version 4.3)
+contient un nom court de deux caractères. Ce nom court est composé de
+lettres majuscules ou minuscules. Pour les entrées termcap BSD\ 4.4, ce
+champ est omis.
+.LP
+Le second sous\-champ (le premier dans le format BSD\ 4.4, plus récent)
+contient le nom utilisé par la variable d'environnement \fBTERM\fP. Il doit
+être en minuscules. Les possibilités matérielles sélectionnables devraient
+être indiquées en ajoutant un tiret et un suffixe à ce nom. Voir un exemple
+ci\-dessous. Des suffixes habituels sont w (plus de 80 caractères de large),
+am (marges automatiques), nam (pas de marges automatiques), et rv (affichage
+en vidéo inverse). Le troisième sous\-champ contient un nom long décrivant
+cette entrée de termcap.
+.LP
+Les champs suivants contiennent les possibilités du terminal\ ; une
+possibilité qui se poursuit sur la ligne suivante doit être indentée d'une
+tabulation à partir de la marge de gauche.
+.LP
+Bien qu'il n'y ait pas d'ordre défini, il est suggéré, lors de l'écriture
+des possibilités, d'indiquer d'abord le premier booléen, ensuite le
+numérique et enfin la chaîne, chacun étant trié par ordre alphabétique sans
+tenir compte de la casse. Les possibilités ayant des fonctions semblables
+peuvent être écrites sur la même ligne.
+.LP
+.nf
+Exemple pour\ :
+.sp
+Ligne d'en\-tête\ : terminaux vt|vt101|DEC VT 101 en mode 80\ colonnes\ :\e
+Ligne d'en tête\ : terminaux Vt|vt101\-w|DEC VT 101 en mode (large) 132\ caractères\ :\e
+Booléen\ : :bs:\e
+Numérique\ : :co#80:\e
+Chaîne\ : :sr=\eE[H:\e
+.fi
+.SS "Possibilités booléennes"
+.nf
+5i	L'imprimante ne sera pas envoyée en écho sur l'écran
+am	Marges automatiques, ce qui signifie retour à la ligne automatique
+bs	Control\-H (8 déc) effectue un retour arrière
+bw	Un retour arrière sur la marge gauche provoque un retour à la marge
+	droite de la ligne précédente
+da	Afficher la partie d'écran retenue précédente
+db	Afficher la partie d'écran retenue suivante
+eo	Un espace efface tous les caractères se trouvant à la position du
+	curseur
+es	Les séquences d'«\ échappement\ » et les caractères spéciaux sont
+	actifs dans la ligne d'état
+gn	Périphérique générique
+hc	Ceci est le terminal d'impression système
+HC	Le curseur est difficile à voir lorsqu'il ne se trouve pas sur la
+	ligne du bas
+hs	Comporte une ligne d'état
+hz	Bogue «\ Hazeltine\ », le terminal ne peut afficher le caractère
+	tilde
+in	Le terminal insère des octets null et pas des espaces, pour remplir
+	les blancs
+km	Le terminal possède une touche «\ meta\ »
+mi	Les déplacements du curseurs sont effectifs en mode insertion
+ms	Les déplacements du curseur sont effectifs dans les modes/souligné
+NP	Pas de caractère de remplissage
+NR	ti n'inverse pas te
+nx	Pas de remplissage, nécessite l'utilisation de XON/XOFF
+os	Le terminal peut faire de la surimpression
+ul	Le terminal peut souligner bien qu'il ne puisse faire de la
+	surimpression
+xb	Beehive glitch, f1 envoie ESCAPE, f2 envoie \fB^C\fP
+xn	Newline/wraparound glitch
+xo	Le terminal utilise les commandes xon/xoff
+xs	Le texte imprimé sur le texte de (standout) sera en standout
+xt	Teleray glitch, destructive tabs and odd standout mode
+.fi
+.SS "Possibilités numériques"
+.nf
+co	Nombre de colonnes
+dB	Délai en millisecondes du retour arrière pour les
+	terminaux d'impression
+dC	Délai en millisecondes du retour chariot pour les
+	terminaux d'impression
+dF	Délai en millisecondes du saut de page pour les
+	terminaux d'impression
+dN	Délai en millisecondes du saut de ligne pour les
+	terminaux d'impression
+dT	Délai en millisecondes des taquets de tabulation pour les
+	terminaux d'impression
+dV	Délai en millisecondes des taquets de tabulation verticale pour
+	les terminaux d'impression
+it	Espace entre les taquets de tabulation
+lh	Hauteur des marques logicielles
+lm	Lignes en mémoire
+lw	largeur des marques logicielles
+li	Nombre de lignes
+Nl	Nombre de marques logicielles
+pb	Débit binaire le plus bas pour lequel est remplissage est
+	obligatoire
+sg	Standout glitch
+ug	Gglitch du souligné
+vt	numéro de terminal virtuel
+ws	Largeur de la ligne d'état si elle est différente de la
+	largeur de l'écran
+.fi
+.SS "Possibilités de chaînes"
+.nf
+!1	touche d'enregistrement, en mode majuscule
+!2	touche de mis en suspens, en mode majuscule
+!3	touche défaire, en mode majuscule
+#1	touche aide, en mode majuscule
+#2	touche début, en mode majuscule
+#3	touche entrée, en mode majuscule
+#4	touche curseur gauche, en mode majuscule
+%0	touche refaire
+%1	touche aide
+%2	touche marque
+%3	touche message
+%4	touche déplacer
+%5	touche objet suivant
+%6	touche ouvrir
+%7	touche options
+%8	touche objet précédent
+%9	touche imprimer
+%a	touche message, en mode majuscule
+%b	touche déplacer, en mode majuscule
+%c	touche suivant, en mode majuscule
+%d	touche options, en mode majuscule
+%e	touche précédent, en mode majuscule
+%f	touche imprimer, en mode majuscule
+%g	touche refaire, en mode majuscule
+%h	touche remplacer, en mode majuscule
+%i	touche curseur droite, en mode majuscule
+%j	touche reprise, en mode majuscule
+&0	touche abandon, en mode majuscule
+&1	touche référence
+&2	touche rafraîchir
+&3	touche remplacer
+&4	touche redémarrer
+&5	touche reprendre
+&6	touche enregistrer
+&7	touche suspendre
+&8	touche défaire
+&9	touche début, en mode majuscule
+*0	touche rechercher, en mode majuscule
+*1	touche commande, en mode majuscule
+*2	touche copier, en mode majuscule
+*3	touche créer, en mode majuscule
+*4	touche effacer, en mode majuscule
+*5	effacer la ligne, en mode majuscule
+*6	touche sélectionner
+*7	touche fin, en mode majuscule
+*8	touche effacer la ligne, en mode majuscule
+*9	touche quitter, en mode majuscule
+@0	touche rechercher
+@1	touche début
+@2	touche abandonner
+@3	touche fermer
+@4	touche commande
+@5	touche copier
+@6	touche créer
+@7	touche fin
+@8	touche entrée/envoyer
+@9	touche quitter
+al	Insérer une ligne
+AL	Insérer %1 lignes
+ac	Paires de caractères semi\-graphiques correspondant à un jeu
+	de caractère de remplacement
+ae	Fin de jeu de caractère de remplacement
+as	Début d'un jeu de caractères de remplacement pour les caractères
+	semi graphiques
+bc	Retour arrière, si différent de \fB^H\fP
+bl	Sonnerie audible
+bt	Déplacement à la marque de tabulation précédente
+cb	Effacer depuis le début de la ligne jusqu'au curseur
+cc	Caractère de commande factice
+cd	Effacer jusqu'à la fin de l'écran
+ce	Effacer jusqu'à la fin de la ligne
+ch	Déplacer le curseur horizontalement seulement jusqu'à la colonne %1
+cl	Effacer l'écran et remettre le curseur au début
+cm	Déplacer le curseur à la ligne %1, colonne %2 (sur l'écran)
+CM	Déplacer le curseur à la ligne %1, colonne %2 (en mémoire)
+cr	Retour chariot
+cs	Faire défiler la région de la ligne %1 à %2
+ct	Effacer les tabulations
+cv	Déplacer le curseur, verticalement seulement, à la ligne %1
+dc	Effacer un caractère
+DC	Effacer %1 caractères
+dl	Effacer une ligne
+DL	Effacer %1 ligne
+dm	Début de mode effacement
+do	Descendre le curseur d'une ligne
+DO	Descendre le curseur de #1 ligne
+ds	Désactiver la ligne d'état
+eA	Activer le jeu de caractère de remplacement
+ec	Effacer %1 caractères à partir du curseur
+ed	Fin de mode effacement
+ei	Fin de mode insertion
+ff	Caractère de saut de page sur les imprimantes
+fs	Remettre le caractère à sa position avec d'aller à la ligne d'état
+F1	Chaîne envoyée par la touche de fonction f11
+F2	Chaîne envoyée par la touche de fonction f12
+F3	Chaîne envoyée par la touche de fonction f13
+\&...	\&...
+F9	Chaîne envoyée par la touche de fonction f19
+FA	Chaîne envoyée par la touche de fonction f20
+FB	Chaîne envoyée par la touche de fonction f21
+\&...	\&...
+FZ	Chaîne envoyée par la touche de fonction f45
+Fa	Chaîne envoyée par la touche de fonction f46
+Fb	Chaîne envoyée par la touche de fonction f47
+\&...	\&...
+Fr	Chaîne envoyée par la touche de fonction f63
+hd	Déplacer le curseur d'une ligne vers le bas
+ho	Remettre le curseur à la positon de début
+hu	Déplacer le curseur d'une demi\-ligne vers le haut
+i1	Chaîne d'initialisation 1 à la connexion
+i3	Chaîne d'initialisation 3 à la connexion
+is	Chaîne d'initialisation 2 à la connexion
+ic	Insérer un caractères
+IC	Insérer %1 caractères
+if	Fichier d'initialisation
+im	Début de mode insertion
+ip	Insérer une durée remplissage et les caractère spéciaux nécessaires
+	après l'insertion
+iP	Programme d'initialisation
+K1	Touche du pavé numérique en haut et à gauche
+K2	Touche centrale du pavé numérique
+K3	Touche du pavé numérique en haut et à droite
+K4	Touche du pavé numérique en bas et à gauche
+K5	Touche du pavé numérique en bas et à droite
+k0	Touche de fonction 0
+k1	Touche de fonction 1
+k2	Touche de fonction 2
+k3	Touche de fonction 3
+k4	Touche de fonction 4
+k5	Touche de fonction 5
+k6	Touche de fonction 6
+k7	Touche de fonction 7
+k8	Touche de fonction 8
+k9	Touche de fonction 9
+k;	Touche de fonction 10
+ka	Touche d'effacement de toutes le tabulations
+kA	Touche d'insertion de ligne
+kb	Touche de retour arrière
+kB	Taquet de tabulation arrière
+kC	Touche d'effacement de l'écran
+kd	Touche de déplacement du curseur vers le bas
+kD	Touche pour effacer le caractère se trouvant sous le curseur
+ke	Désactiver le pavé numérique
+kE	Touche d'effacement jusqu'à la fin de la ligne
+kF	Touche de défilement vers l'avant/le bas
+kh	Touche de retour au début
+kH	Cursor hown down key
+kI	Insérer un caractère / touche de mode insertion
+kl	Touche de déplacement du curseur vers la gauche
+kL	Touche d'effacement de ligne
+kM	Touche pour quitter le mode insertion
+kN	Touche pour page suivante
+kP	Touche pour page précédente
+kr	Touche de déplacement du curseur vers la droite
+kR	Touche pour le défilement en arrière/vers le haut
+ks	Activer le pavé numérique
+kS	Touche pour effacer jusqu'à la fin de l'écran
+kt	Réinitialiser cette touche de tabulation
+kT	Touche pour placer un taquet de tabulation à cet endroit
+ku	Touche de déplacement du curseur vers le haut
+l0	Étiquette de la touche de fonction numéro 0, s'il n'y a pas de f0
+l1	Étiquette de la première touche de fonction, s'il n'y a pas de f1
+l2	Étiquette de la deuxième touche de fonction, s'il n'y a pas de f2
+\&...	\&...
+la	tÉtiquette de la dixième touche de fonction, s'il n'y a pas de f10
+le	Déplacement du curseur d'un caractère vers la gauche
+ll	Déplacer le curseur au coin inférieur gauche
+LE	Déplacer le curseur vers la gauche de %1 caractères
+LF	Turn soft labels off
+LO	Turn soft labels on
+mb	Début de clignotement
+MC	Clear soft margins
+md	Début de mode gras
+me	Fin de tous les modes tels que so, us, mb, md and mr
+mh	Début de mode luminosité réduite
+mk	Mode sombre (caractères invisible)
+ML	Set left soft margin
+mm	Mettre le terminal en mode meta
+mo	Sortir le terminal du mode meta
+mp	Activer les attributs protégés
+mr	Début de mode inverse
+MR	Set right soft margin
+nd	Déplacer le curseur vers la droite d'un caractère
+nw	Commande de retour chariot
+pc	Caractère de remplissage
+pf	Désactiver l'imprimante
+pk	Touche programmable %1 pour envoyer la chaîne %2 telle qu'elle
+	entrée par l'utilisateur
+pl	Touche programmable %1 pour exécuter la chaîne %2 en mode locale
+pn	Program soft label %1 to show string %2
+po	Activer l'imprimante
+pO	Activer l'imprimante pour %1 (<256) octets
+ps	Imprimer le contenu de l'écran sur l'imprimante
+px	Touche programmable %1 pour envoyer la chaîne %2 à l'ordinateur
+r1	Chaîne de réinitialisation 1 pour mettre le terminal dans un
+	état propre
+r2	Chaîne de réinitialisation 2 pour mettre le terminal dans un
+	état propre
+r3	Chaîne de réinitialisation 3 pour mettre le terminal dans un
+	état propre
+RA	Désactiver les marges automatiques
+rc	Restaurer la position enregistrée du curseur
+rf	Réinitialiser la chaîne de nom de fichier
+RF	Requête d'entrée depuis le terminal
+RI	Déplacer le curseur vers la droite de %1 caractères
+rp	Répéter %2 fois le caractère %1
+rP	Remplissage après l'envoi d'un caractère en mode remplacement
+rs	Chaîne de réinitialisation
+RX	Désactiver le contrôle de flux par XON/XOFF
+sa	Positionner les attributs %1 %2 %3 %4 %5 %6 %7 %8 %9
+SA	Activer les marges automatiques
+sc	Sauvegarder la position du curseur
+se	Fin de monde standout
+sf	Défilement normal d'une ligne
+SF	Défilement normale de %1 lignes
+so	Début de mode standout
+sr	Défilement en sens inverse
+SR	Défilement en arrière de %1 lignes
+st	Placer un taquet de tabulation sur toutes les lignes
+	à la colonne actuelle
+SX	Activer le contrôle de flux XON/XOFF
+ta	Se déplacer au taquet de tabulation matériel suivant
+tc	Lire la description du terminal depuis une autre entrée
+te	Fin de programme utilisant le déplacement du curseur
+ti	Début de programme utilisant le déplacement du curseur
+ts	Déplacer le curseur à la colonne %1 de la ligne d'état
+uc	Souligner le caractère sous le curseur et déplacer le curseur
+	vers la droite
+ue	Fin de soulignement
+up	Déplacer le curseur d'une ligne vers le haut
+UP	Déplacer le curseur de %1 lignes vers le haut
+us	Début de soulignement
+vb	Retour visuel de la sonnerie
+ve	Curseur normal visible
+vi	Curseur invisible
+vs	Curseur standout
+wi	Définir la fenêtre de la ligne %& à %2 et colonne %3 à %4
+XF	Caractère XOFF, si différent de \fB^S\fP
+.fi
+.LP
+Il y a plusieurs manières pour définir les codes de contrôle pour les
+possibilités de chaînes\ :
+.LP
+Un caractère normal se représente lui\-même, à l'exception de «\ ^\ », «\ \e\ »
+et «\ %\ ».
+.LP
+Un \fB^x\fP signifie Ctrl\-x. Ctrl\-A est égal à 1 en décimal.
+.LP
+\ex représente un code spécial. x peut être l'un des caractères suivants\ :
+.RS
+E Échap (27)
+.br
+n Saut de ligne (10)
+.br
+r Retour chariot (13)
+.br
+t Tabulation (9)
+.br
+b Retour arrière (8)
+.br
+f Saut de page (12)
+.br
+0 Caractère «\ NULL\ ». Un \exxx indique le caractère octal xxx.
+.RE
+.IP i
+Incrémenter de un le paramètre
+.IP r
+Possibilité n'ayant qu'un seul paramètre
+.IP +
+Ajouter la valeur du caractère suivant à ce paramètre et en effectuer la
+sortie en binaire
+.IP 2
+Effectuer la sortie ASCII de ce paramètre avec une largeur de champ de 2
+.IP d
+Effectuer la sortie ASCII de ce paramètre avec une largeur de champ de 3
+.IP %
+Afficher un «\ %\ »
+.LP
+Si vous utilisez la sortie binaire, vous devriez alors éviter le caractère
+nul\ («\ \e0\ ») parce qu'il sert de caractère de fin de chaîne. Vous devez
+réinitialiser l'expansion des tabulations si une tabulation peut se trouver
+dans la sortie binaire d'un paramètre.
+.IP Attention\ :
+Les métacaractères utilisés ci\-dessus pour les paramètres peuvent être
+erronés, ils correspondent à la documentation termcap pour Minix qui peut ne
+pas être compatible avec termcap pour Linux.
+.LP
+Les caractères semi\-graphiques peuvent être indiqué par trois chaînes de
+possibilités\ : 
+.IP as
+débuter un jeu de caractères de remplacement
+.IP ae
+le terminer
+.IP ac
+paires de caractères. Le premier caractère est le nom du symbole
+semi\-graphique et le second caractère est sa définition.
+.LP
+Les noms suivante sont disponibles\ :
+.sp
+.nf
++	flèche droite (>)
+,	flèche gauche (<)
+\&.	flèche vers le bas (v)
+0	carré plein (#)
+I	lanterne (#)
+\-	flèche vers le haut (^)
+\&'	rhombus (+)
+a	échiquier (:)
+f	degré (')
+g	plus\-moins (#)
+h	carré (#)
+j	coin inférieur droit (+)
+k	coin supérieur droit (+)
+l	coin supérieur gauche (+)
+m	coin inférieur gauche (+)
+n	croix (+)
+o	ligne horizontale haute (\-)
+q	ligne horizontale médiane (\-)
+s	ligne horizontale basse (_)
+t	T à gauche (+)
+u	T à droite (+)
+v	T en bas (+)
+w	T normal (+)
+x	ligne verticale (|)
+~	paragraphe (???)
+.fi
+.sp
+Les valeurs entre parenthèses sont les valeurs par défaut suggérées, telles
+qu'elles sont utilisées par curses, s'il n'y a pas de possibilités.
+.SH "VOIR AUSSI"
+\fBncurses\fP(3), \fBtermcap\fP(3), \fBterminfo\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

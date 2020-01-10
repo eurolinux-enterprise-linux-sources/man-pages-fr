@@ -1,0 +1,64 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CERF 3 "12 septembre 2010" "" "Manuel du programmeur Linux"
+.SH NOM
+cerf, cerff, cerfl, cerfc, cerfcf, cerfcl \- Fonctions d'erreur complexe
+.SH SYNOPSIS
+\fB#include <complex.h>\fP
+.sp
+\fBdouble complex cerf(double complex \fP\fIz\fP\fB);\fP
+.br
+\fBfloat complex cerff(float complex \fP\fIz\fP\fB);\fP
+.br
+\fBlong double complex cerfl(long double complex \fP\fIz\fP\fB);\fP
+.sp
+\fBdouble complex cerfc(double complex \fP\fIz\fP\fB);\fP
+.br
+\fBfloat complex cerfcf(float complex \fP\fIz\fP\fB);\fP
+.br
+\fBlong double complex cerfcl(long double complex \fP\fIz\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.SH DESCRIPTION
+.\" must check 1/sqrt(2*pi) ?
+La fonction (non implémentée) \fBcerf\fP() est la version complexe de la
+fonction d'erreur. erf(z)\ =\ 2/sqrt(pi)\ *\ intégrale de 0 à z de
+exp(\-t*t).dt. La fonction \fBcerfc\fP() est définie comme cerfc(z)\ =\ 1\-cerf(z).
+.SH CONFORMITÉ
+Les noms de ces fonctions sont réservés pour une utilisation ultérieure dans
+C99.
+.SH DISPONIBILITÉ
+.\" But reserved in NAMESPACE.
+Pas encore dans la glibc, prévu pour la glibc\ 2.12.
+.SH "VOIR AUSSI"
+\fBerf\fP(3), \fBcomplex\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

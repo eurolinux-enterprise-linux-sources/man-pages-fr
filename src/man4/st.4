@@ -1,0 +1,759 @@
+.\" Copyright 1995 Robert K. Nichols (Robert.K.Nichols@att.com)
+.\" Copyright 1999-2005 Kai MÃ¤kisara (Kai.Makisara@kolumbus.fi)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ST 4 "4 septembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+st \- Lecteur de bandes SCSI
+.SH SYNOPSIS
+.nf
+\fB#include <sys/mtio.h>\fP
+.sp
+\fBint ioctl(int \fP\fIfd\fP\fB, int \fP\fIrequest\fP\fB [, (void *)\fP\fIarg3\fP\fB]);\fP
+\fBint ioctl(int \fP\fIfd\fP\fB, MTIOCTOP, (struct mtop *)\fP\fImt_cmd\fP\fB);\fP
+\fBint ioctl(int \fP\fIfd\fP\fB, MTIOCGET, (struct mtget *)\fP\fImt_status\fP\fB);\fP
+\fBint ioctl(int \fP\fIfd\fP\fB, MTIOCPOS, (struct mtpos *)\fP\fImt_pos\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Le pilote de périphérique \fBst\fP fournit une interface vers un grand nombre
+de lecteurs de bandes SCSI. Actuellement, ce pilote prend le contrôle de
+tous les périphériques détectés de type «\ accès séquentiel\ ». Le pilote
+\fBst\fP utilise un numéro majeur valant 9.
+.PP
+Chaque périphérique utilise huit numéros mineurs. Les 5 bits de poids faible
+des numéros mineurs sont assignés séquentiellement dans l'ordre de
+détection. Avec le noyau 2.6, les bits au\-delà des 8 bits de poids faible
+sont concaténés aux 5 bits de poids faible pour former le numéro de lecteur
+de bande. Les numéros mineurs peuvent être groupés en deux ensembles de
+quatre numéros\ : les numéros mineurs principaux des périphériques (avec
+rembobinage automatique), \fIn\fP, et les numéros mineurs des périphériques
+sans rembobinage automatique (\fIn\fP+ 128). Les périphériques ouverts avec le
+numéro principal recevront une commande \fBREWIND\fP à la fermeture. Les
+périphériques ouverts avec le numéro «\ no\-rewind\ » ne la recevront
+pas. (Notez qu'essayer de positionner la bande d'un périphérique avec
+rembobinage automatique en utilisant par exemple mt, ne produit pas le
+résultat désiré\ : la bande est à nouveau rembobinée après l'utilisation de
+la commande mt et la commande suivante prend effet dès le début de la bande.
+.PP
+Au sein de chaque groupe, 4 numéros mineurs sont disponibles pour définir
+des périphériques avec des caractéristiques différentes (taille de bloc,
+compression, densité, etc.). Lorsque le système démarre, seul le premier
+périphérique est disponible. Les 3 autres sont activés lorsque les
+caractéristiques par défaut sont définies (voir plus bas). (En modifiant les
+constantes à la compilation, on peut modifier la répartition entre le nombre
+maximal de lecteurs de bandes et le nombre de numéros mineurs par
+lecteur. Les allocations par défaut permettent de contrôler 32 lecteurs de
+bandes. Par exemple, il est possible de contrôler jusqu'à 64 lecteurs avec
+deux numéros mineurs pour les options différentes.)
+.PP
+Les fichiers spéciaux sont créés typiquement ainsi\ :
+.in +4n
+.nf
+
+mknod \-m 660 /dev/st0   c 9 0
+mknod \-m 660 /dev/st0l  c 9 32
+mknod \-m 660 /dev/st0m  c 9 64
+mknod \-m 660 /dev/st0a  c 9 96
+mknod \-m 660 /dev/nst0  c 9 128
+mknod \-m 660 /dev/nst0l c 9 160
+mknod \-m 660 /dev/nst0m c 9 192
+mknod \-m 660 /dev/nst0a c 9 224
+.fi
+.in
+.PP
+Il n'existe pas de périphériques blocs correspondants.
+.PP
+Le pilote utilise une mémoire tampon interne qui doit être assez grande pour
+contenir au moins un bloc de données de la bande. Dans les noyaux avant le
+2.1.121, le tampon était alloué sous forme de bloc continu. Cela limitait la
+taille de bloc au plus grand espace contigu allouable par le noyau. Cette
+limite est actuellement de 128\ Ko pour les architectures 32\ bits et 256\ Ko pour les 64\ bits. Dans les noyaux plus récents, le pilote alloue la
+mémoire tampon en plusieurs parties disjointes si nécessaire. Par défaut, le
+nombre maximal de parties est 16. Ceci signifie que la taille maximale de
+bloc est très grande (2\ Mo si l'allocation de 16\ blocs de 128\ Ko
+réussit).
+.PP
+La taille de la mémoire tampon interne est déterminée par une constante à la
+compilation du noyau, que l'on peut supplanter par une option au démarrage
+du système. De plus, le pilote essaie d'allouer un tampon temporaire plus
+grand lors de son exécution si cela s'avère nécessaire. Toutefois
+l'allocation à l'exécution de grands blocs contigus peut échouer, et il vaut
+mieux ne pas compter dessus avec les noyaux antérieurs au 2.1.121 (cela
+s'applique également au chargement de module à la demande avec kerneld ou
+kmod).
+.PP
+Le pilote ne gère pas spécifiquement un type ou une marque de lecteur de
+bandes. Après le démarrage du système, les options du périphérique sont
+définies par le microcode du périphérique. Par exemple, si celui\-ci réclame
+un mode de blocs fixes, le lecteur de bandes utilisera ce mode. Les options
+peuvent être modifiées par des appels \fBioctl\fP(2) explicites et restent
+effectives lorsque le périphérique est fermé puis réouvert. La configuration
+des options affecte aussi bien les périphériques avec rembobinage
+automatique que ceux sans.
+.PP
+Des options différentes peuvent être fournies pour différents périphériques
+au sein du sous\-groupe de quatre. Les options prennent effet à l'ouverture
+du périphérique. Par exemple, l'administrateur peut définir un périphérique
+qui écrit des blocs fixes d'une certaine taille, et un qui écrit avec des
+blocs de longueur variable (si le périphérique accepte les deux modes).
+.PP
+Le pilote gère les \fBpartitions de bandes\fP si elles sont acceptées par le
+lecteur. (Notez que les partitions de bande n'ont rien à voir avec les
+partitions de disques. Une bande partitionnée peut être vue comme un
+ensemble de bandes logiques dans le même support). La gestion des partitions
+doit être activé par un \fBioctl\fP(2). L'emplacement de la bande est
+sauvegardé au sein de chaque partition au cours des changements de
+partitions. La partition utilisée pour les opérations ultérieures est
+sélectionnée avec un \fBioctl\fP(2). Le changement de partition est effectué au
+moment de la suivante opération bande afin d'éviter les mouvements inutiles
+de la bande. Le nombre maximal de partitions sur une bande est défini par
+une constante à la compilation (4 par défaut). Le pilote contient un
+\fBioctl\fP(2) qui peut formater une bande avec une ou deux partitions.
+.PP
+Le fichier spécial de périphérique \fI/dev/tape\fP est généralement un lien
+symbolique ou un matériel vers le lecteur de bandes par défaut.
+.PP
+Depuis le noyau 2.6.2, le pilote exporte dans le répertoire de sysfs
+\fI/sys/class/scsi_tape\fP les périphériques attachés et certains de leurs
+paramètres.
+.SS "Transfert de données"
+Le pilote accepte un fonctionnement aussi bien dans un mode de blocs fixes
+que dans un mode de blocs de longueur variable (si c'est accepté par le
+lecteur). En mode de blocs fixes, le périphérique écrit les blocs de la
+taille indiquée et la taille des blocs ne dépend pas de la quantité de
+données transmises lors de l'appel système. Dans le mode de longueur
+variable, un bloc de données est écrit à chaque appel système write et le
+nombre d'octets transmis indique la taille du bloc correspondant sur la
+bande. Notez que les blocs de la bande ne contiennent aucune information sur
+le mode d'écriture utilisé\ : la seule chose importante est d'utiliser lors
+de la lecture une commande qui accepte la taille des blocs de la bande.
+.PP
+En mode variable, le nombre d'octets à lire n'a pas besoin de correspondre
+exactement à la taille du bloc de la bande. Si le nombre demandé est plus
+grand que la taille du bloc suivant sur la bande, l'appel système renverra
+la quantité de données effectivement lues. Si la taille de bloc est plus
+grande que le nombre demandé, l'appel système renverra les données demandées
+et le reste du bloc est abandonné.
+.PP
+En mode fixe, le nombre d'octets demandé peut être arbitraire, si la mémoire
+tampon est activée, ou un multiple de la taille de bloc, si ce tampon est
+désactivé. Les noyaux antérieurs au 2.1.121 permettent l'écriture avec un
+nombre quelconque si les mémoires tampons sont activées. Dans tous les
+autres cas (les noyaux antérieurs au 2.1.121 sans mémoire tampon ou les
+noyaux plus récents), le nombre d'octets à écrire doit être un multiple de
+la taille des blocs.
+.PP
+Dans le noyau 2.6, le pilote essaie de transférer les données directement
+entre la mémoire tampon de l'utilisateur et le périphérique. Si cela n'est
+pas possible, la mémoire tapon interne au pilote de périphérique est
+utilisée. Les raisons de ne pas utiliser des transferts directs sont entre
+autres un mauvais alignement de la mémoire tampon de l'utilisateur (par
+défaut 512\ octets mais cela peut être changé par le pilote HBA),
+l'adaptateur SCSI ne peut pas atteindre un ou plusieurs blocs de la mémoire
+tampon de l'utilisateur, etc.
+.PP
+Une marque «\ filemark\ » est automatiquement écrit sur la bande si la
+dernière opération avant fermeture était une écriture.
+.PP
+En lecture, une marque «\ filemark\ » provoque les événements suivants\ :
+s'il reste des données dans le tampon lorsqu'on trouve la marque, les
+données en mémoire sont renvoyées\ ; la lecture suivante renvoie zéro octet\ ; la lecture suivante renvoie les données du fichier suivant\ ; la fin des
+données enregistrées est signalée par un retour de zéro octet pour deux
+appels successifs en lecture. Enfin, le troisième appel renvoie une erreur.
+.SS Ioctls
+Le pilote gère trois requêtes \fBioctl\fP(2). Les requêtes non reconnues par
+\fBst\fP sont transmises au contrôleur \fBSCSI\fP. Les définitions ci\-dessous sont
+extraites de \fI/usr/include/linux/mtio.h\fP\ :
+.SS "MTIOCTOP \- Effectue une opération sur la bande"
+.PP
+Cette requête prend un paramètre de type \fI(struct mtop\ *)\fP. Certains
+contrôleurs ne gèrent pas toutes les opérations. Le pilote renvoie une
+erreur \fBEIO\fP si le périphérique n'accepte pas l'opération.
+.PP
+.in +4n
+.nf
+/* Structure MTIOCTOP \- pour les opérations sur bande\ : */
+struct mtop {
+    short  mt_op;     /* opérations définies ci\-dessous */
+    int    mt_count;  /* nombre d'opérations            */
+};
+.fi
+.in
+.PP
+Opérations sur bande magnétique lors d'une utilisation normale\ :
+.TP  14
+\fBMTBSF\fP
+Reculer la bande de \fImt_count\fP filemarks.
+.TP 
+\fBMTBSFM\fP
+Reculer la bande de \fImt_count\fP filemarks. Repositionner la bande sur le
+côté EOT de la dernière marque.
+.TP 
+\fBMTBSR\fP
+Reculer la bande de \fImt_count\fP enregistrements (blocs bande).
+.TP 
+\fBMTBSS\fP
+Reculer la bande de \fImt_count\fP setmarks.
+.TP 
+\fBMTCOMPRESSION\fP
+Valider la compression des données sur bande dans le lecteur si \fImt_count\fP
+est non nul, désactiver la compression si \fImt_count\fP est nul. Cette
+commande utilise la page MODE 15 supportée par la plupart des DAT.
+.TP 
+\fBMTEOM\fP
+Aller à la fin des enregistrements (ajouter des fichiers).
+.TP 
+\fBMTERASE\fP
+Efface la bande. Avec un noyau 2.6, un effacement rapide (bande marquée
+vide) est effectué si le paramètre est zéro. Sinon, un effacement long
+(effacement complet) est effectué.
+.TP 
+\fBMTFSF\fP
+Avancer la bande de \fImt_count\fP filemarks.
+.TP 
+\fBMTFSFM\fP
+Avancer la bande de \fImt_count\fP filemarks. Positionner la bande du côté BOT
+de la dernière marque.
+.TP 
+\fBMTFSR\fP
+Avancer de \fImt_count\fP enregistrements (blocs bande).
+.TP 
+\fBMTFSS\fP
+Avancer de \fImt_count\fP setmarks.
+.TP 
+\fBMTLOAD\fP
+Exécuter la commande de chargement SCSI. Un cas particulier est prévu pour
+certains chargeurs automatiques HP. Si \fImt_count\fP correspond à la somme de
+la constante \fBMT_ST_HPLOADER_OFFSET\fP et d'un nombre, ce dernier est envoyé
+au pilote pour contrôler le chargeur automatique.
+.TP 
+\fBMTLOCK\fP
+Verrouiller la porte du lecteur de bande.
+.TP 
+\fBMTMKPART\fP
+Formater la bande en une ou deux partitions. Si \fImt_count\fP n'est pas nul,
+il correspond à la taille de la première partition, et la seconde partition
+correspond au reste de la bande. Si \fImt_count\fP est nul, la bande n'est
+formatée qu'en une seule partition. Cette commande n'est autorisée que si le
+support de partitionnement est activé pour le lecteur (voir
+\fBMT_ST_CAN_PARTITIONS\fP plus bas).
+.TP 
+\fBMTNOP\fP
+Ne rien faire \- Vider les tampons du pilote \- À utiliser avant de lire
+l'état avec \fBMTIOCGET\fP.
+.TP 
+\fBMTOFFL\fP
+Rembobiner la bande et éteindre le lecteur.
+.TP 
+\fBMTRESET\fP
+Réinitialiser le lecteur.
+.TP 
+\fBMTRETEN\fP
+Retendre la bande.
+.TP 
+\fBMTREW\fP
+Rembobiner la bande.
+.TP 
+\fBMTSEEK\fP
+Rechercher sur la bande le bloc numéro \fImt_count\fP. Cette opération
+nécessite soit un contrôleur SCSI\-2 qui supporte la commande \fBLOCATE\fP
+(adresse spécifique au périphérique), soit un lecteur SCSI\-1 compatible
+Tandberg (Tandberg, Archive Viper, Wangtek, ... ). Le numéro de bloc devrait
+toujours être un numéro renvoyé précédemment par \fBMTIOCPOS\fP si les adresses
+spécifiques au lecteur sont utilisées.
+.TP 
+\fBMTSETBLK\fP
+Définit la longueur de blocs du lecteur à la valeur spécifiée dans
+\fImt_count\fP. Une longueur de bloc nulle place le lecteur dans le mode de
+blocs de tailles variables.
+.TP 
+\fBMTSETDENSITY\fP
+Définit la densité de la bande à celle codée dans \fImt_count\fP. Les codes des
+densités acceptées par un lecteur sont disponibles dans la documentation de
+celui\-ci.
+.TP 
+\fBMTSETPART\fP
+La partition active devient celle indiquée par \fImt_count\fP. Les partitions
+sont numérotées depuis zéro. Cette commande n'est autorisée que si la
+gestion du partitionnement est activée pour le lecteur (voir
+\fBMT_ST_CAN_PARTITIONS\fP plus bas).
+.TP 
+\fBMTUNLOAD\fP
+Exécuter la commande de déchargement SCSI (n'éjecte pas la bande).
+.TP 
+\fBMTUNLOCK\fP
+Déverrouiller la porte du lecteur de bande.
+.TP 
+\fBMTWEOF\fP
+Écrire \fImt_count\fP filemarks.
+.TP 
+\fBMTWSM\fP
+Écrire \fImt_count\fP setmarks.
+.PP
+Fonctions de configuration du lecteur de bande magnétique (pour le
+superutilisateur)\ :
+.TP  8
+\fBMTSETDRVBUFFER\fP
+Définit diverses options du pilote ou du lecteur en fonction des bits codés
+dans \fImt_count\fP. Ces options concernent le type de tampon du lecteur, des
+options booléennes du pilote, le seuil d'écriture du tampon, les valeurs par
+défaut des tailles de blocs et de densité, ainsi que les délais de réponse
+(pour les noyaux 2.1 et ultérieurs). Une fonction n'agit que sur un seul des
+éléments de la liste ci\-dessus à la fois (l'ensemble des booléens constitue
+un élément).
+.IP
+Une valeur ayant ses 4\ bits de poids forts à 0 sera utilisée pour indiquer
+le type de tampon du lecteur. Les types de tampon sont\ :
+.RS 12
+.IP 0 4
+Le contrôleur ne renverra pas l'état \fBBON\fP en écriture avant que les
+données ne soient réellement écrites sur le support.
+.IP 1
+Le contrôleur peut renvoyer l'état \fBBON\fP en écriture dès que les données
+ont été transmises aux tampons internes du lecteur de bande.
+.IP 2
+Le contrôleur peut renvoyer l'état \fBBON\fP en écriture dès que les données
+ont été transmises aux tampons internes du lecteur de bande, si toutes les
+écritures précédentes des tampons sur le support se sont déroulées
+correctement.
+.RE
+.IP
+Pour contrôler le seuil d'écriture, on doit inclure dans \fImt_count\fP la
+constante \fBMT_ST_WRITE_THRESHOLD\fP associée avec le nombre de blocs dans les
+28 bits de poids faibles par un \fIOU\fP binaire «\ |\ ». Le nombre de blocs
+concerne des blocs de 1024 octets, et non pas la taille physique des blocs
+sur la bande. Le seuil ne peut pas excéder la taille des tampons internes du
+contrôleur. (voir DESCRIPTION, plus bas).
+.IP
+Pour valider ou invalider les options booléennes, la valeur \fImt_count\fP doit
+inclure l'une des constantes \fBMT_ST_BOOLEANS\fP, \fBMT_ST_SETBOOLEANS\fP,
+\fBMT_ST_CLEARBOOLEANS\fP ou \fBMT_ST_DEFBOOLEANS\fP associées par un \fIOU\fP
+binaire avec une combinaison des options décrites ci\-dessous. Avec
+\fBMT_ST_BOOLEANS\fP les options sont définies avec les valeurs indiquées. Avec
+\fBMT_ST_SETBOOLEANS\fP les options sont activées sélectivement et inhibées
+avec \fBMT_ST_DEFBOOLEANS\fP.
+.IP ""
+Les options par défaut pour un contrôleur de bande sont choisies avec
+\fBMT_ST_DEFBOOLEANS\fP. Un périphérique non actif (par exemple avec un numéro
+mineur de 32 ou 160) est activé lorsque les options par défaut sont définies
+pour la première fois. Un périphérique actif hérite des options non définis
+explicitement du périphérique actif au démarrage.
+.IP ""
+Les options booléennes sont\ :
+.RS
+.TP 
+\fBMT_ST_BUFFER_WRITES\fP (Défaut\ : vrai)
+Les opérations d'écriture en mode de bloc fixes sont mises en cache. Si
+cette option est invalidée, et si l'enregistreur utilise une longueur de
+bloc fixe, toutes les opérations d'écriture doivent se faire avec une
+longueur multiple de celle du bloc. Cette option doit être fausse pour créer
+des archives multivolumes fiables.
+.TP 
+\fBMT_ST_ASYNC_WRITES\fP (Défaut\ : vrai)
+Quand cette option est validée, les opérations d'écriture retournent
+immédiatement si les données tiennent dans le tampon du pilote, sans
+attendre que celles\-ci soient effectivement transmises au lecteur de
+bande. Le seuil du tampon d'écriture détermine le taux de remplissage du
+tampon avant d'effectuer une commande SCSI. Toute erreur renvoyée par le
+périphérique sera conservée jusqu'à l'opération suivante. Cette option doit
+être fausse pour créer des archives multivolumes fiables.
+.TP 
+\fBMT_ST_READ_AHEAD\fP (Défaut\ : vrai)
+Cette option indique au pilote de fournir un cache en lecture, ainsi qu'une
+lecture anticipée des données en mode de blocs fixes. Si cette option est
+invalidée, et que le lecteur utilise une taille de blocs fixes, toutes les
+opérations de lecture doivent se faire avec une taille multiple de celle du
+bloc.
+.TP 
+\fBMT_ST_TWO_FM\fP (Défaut\ : faux)
+Cette option modifie le comportement du pilote quand un fichier est
+fermé. L'attitude normale consiste à écrire une seule filemark, néanmoins si
+cette option est validée, le pilote écrira deux filemarks et replacera la
+tête au\-dessus de la seconde.
+.IP
+Note\ : Cette option ne doit pas être utilisée avec les lecteurs de bandes
+QIC car ils ne sont pas capables d'écraser une filemark. Ces lecteurs
+détectent la fin des données enregistrées en cherchant de la bande vierge à
+la place des deux filemarks consécutives habituelles. La plupart des autres
+lecteurs courants détectent également la présence de bande vierge, aussi
+l'utilisation des deux filemarks n'est généralement utile que lors d'échange
+de bandes avec d'autres systèmes.
+.TP 
+\fBMT_ST_DEBUGGING\fP (Défaut\ : faux)
+Cette option valide les divers messages de débogage du pilote, si celui\-ci a
+été compilé avec la constante \fBDEBUG\fP ayant une valeur non nulle).
+.TP 
+\fBMT_ST_FAST_EOM\fP (Défaut\ : faux)
+Cette option indique que les opérations \fBMTEOM\fP doivent être envoyées
+directement au lecteur, ce qui peut accélérer les opérations, mais aussi
+faire perdre au pilote le compte des pistes du fichier en cours, normalement
+renvoyé par la requête \fBMTIOCGET\fP. Si \fBMT_ST_FAST_EOM\fP est fausse, le
+contrôleur répondra à une requête \fBMTEOM\fP en sautant en avant de fichiers
+en fichiers.
+.TP 
+\fBMT_ST_AUTO_LOCK\fP (Défaut\ : faux)
+Lorsque cette option est vraie, la porte du lecteur est verrouillée lorsque
+le fichier périphérique est ouvert, et déverrouillée lorsque le périphérique
+est refermé.
+.TP 
+\fBMT_ST_DEF_WRITES\fP (Défaut\ : faux)
+Les options de bande (taille de bloc, mode, compression...) peuvent varier
+lorsque l'on passe d'un périphérique lié à un lecteur à un autre
+périphérique correspondant au même lecteur. Cette option définit si les
+changements sont fournis au pilote en utilisant les commandes SCSI, et si
+les capacités d'auto\-détection du lecteur sont fiables. Si l'option est
+fausse, le pilote envoie les commandes SCSI immédiatement lorsque le
+périphérique change. Si cette option est vraie, les commandes SCSI ne sont
+pas envoyées avant une demande d'écriture. Dans ce cas, le micro\-code est
+habilité à détecter la structure de la bande lors de la lecture, et les
+commandes SCSI ne sont utilisées que pour être sûrs que la bande est écrite
+correctement.
+.TP 
+\fBMT_ST_CAN_BSR\fP (Défaut\ : faux)
+Lorsque la lecture anticipée est utilisée, la bande doit parfois être
+ramenée en arrière en position correcte lors de la fermeture du
+périphérique, et on utilise alors la commande SCSI pour sauter en arrière
+par\-dessus les enregistrements. Certains anciens lecteurs ne traitent pas
+correctement cette commande, et cette option permet d'en avertir le
+pilote. Le résultat final est qu'une bande avec blocs fixes et lecture
+anticipée peut être mal positionnée dans un fichier lors de la fermeture du
+périphérique. Avec un noyau\ 2.6, l'option est activée par défaut pour les
+lecteurs qui gèrent la norme SCSI\-3.
+.TP 
+\fBMT_ST_NO_BLKLIMS\fP (Défaut\ : faux)
+Certains lecteurs n'acceptent pas la commande SCSI \fBREAD BLOCK LIMITS\fP de
+lecture des limites de blocs. Si l'on utilise cette option, le pilote
+n'invoque pas cette commande. L'inconvénient est que le pilote ne peut pas
+vérifier, avant d'envoyer des commandes, si la taille de bloc choisie est
+acceptée par le lecteur.
+.TP 
+\fBMT_ST_CAN_PARTITIONS\fP (Défaut\ : faux)
+Cette option active le support des partitions multiples sur une bande. Cette
+option s'applique à tous les périphériques liés au lecteur.
+.TP 
+\fBMT_ST_SCSI2LOGICAL\fP (Défaut\ : faux)
+Cette option indique au pilote d'utiliser les adresses de blocs logiques
+définies dans le standard SCSI\-2, lors d'opérations de positionnement et de
+lecture de la position (aussi bien lors des commandes \fBMTSEEK\fP et
+\fBMTIOCPOS\fP que lors des changements de partitions). Sinon il utilise les
+adresses spécifiques au périphérique. Il est très recommandé d'activer cette
+option si le lecteur supporte les adresses logiques car elles contiennent
+également les filemarks. Il existe d'ailleurs quelques lecteurs qui ne
+supportent que les adresses logiques.
+.TP 
+\fBMT_ST_SYSV\fP (Défaut\ : faux)
+Lorsque cette option est activée, les périphériques de bande utilisent les
+sémantiques System\ V. Dans le cas contraire, ils utilisent la sémantique
+BSD. La différence principale est le comportement lors de la fermeture d'un
+périphérique en lecture. Avec System\ V, la bande est positionnée en avant à
+la suite de la filemark suivante si cela n'a pas déjà eu lieu lors de la
+lecture. Dans la sémantique BSD, la position ne change pas.
+.TP 
+\fBMT_NO_WAIT\fP (Défaut\ : faux)
+Active le mode immédiat (i.e. n'attend pas la fin de la commande) pour
+certaines commandes comme le rembobinage.
+.PP
+Un exemple\ :
+.in +4n
+.nf
+
+struct mtop mt_cmd;
+mt_cmd.mt_op = MTSETDRVBUFFER;
+mt_cmd.mt_count = MT_ST_BOOLEANS |
+        MT_ST_BUFFER_WRITES | MT_ST_ASYNC_WRITES;
+ioctl(fd, MTIOCTOP, mt_cmd);
+.fi
+.in
+.RE
+.IP ""
+La taille de bloc par défaut pour un périphérique peut être configurée avec
+\fBMT_ST_DEF_BLKSIZE\fP et le code de densité par défaut avec
+\fBMT_ST_DEFDENSITY\fP. Les valeurs des paramètres sont associées par un OU
+logique avec le code opératoire.
+.IP ""
+Avec les noyaux 2.1.x et ultérieurs, la valeur de délai maximum peut être
+fournie avec la sous\-commande \fBMT_ST_SET_TIMEOUT\fP associée par OU avec le
+délai en seconde. Le délai long (utilisé pour les rembobinages ou les
+commandes pouvant durer longtemps) peut être configuré avec
+\fBMT_ST_SET_LONG_TIMEOUT\fP. Les valeurs par défaut du noyau sont très longues
+afin de s'assurer qu'une commande valide n'est jamais interrompue pour
+dépassement de délai, et ceci quel que soit le lecteur. À cause de cela, le
+pilote peut parfois sembler gelé alors qu'il est en attente de dépassement
+de délai. Ces commandes permettent donc de définir des valeurs plus
+pratiques pour un lecteur donné. Les délais définis pour un périphérique
+s'appliquent à tous les périphériques liés au même lecteur.
+.IP ""
+A partir des noyaux 2.4.19 et 2.5.43, le pilote gère un bit d'état qui
+indique si le lecteur demande un nettoyage. La méthode utilisée par le
+lecteur pour renvoyer l'information sur le nettoyage est définie en
+utilisant la sous\-commande \fBMT_ST_SEL_CLN\fP. Si la valeur est zéro, le bit
+du nettoyage vaut toujours zéro. Si la valeur est 1, la donnée TapeAlert
+définie dans le standard SCSI\-3 est utilisée (pas encore implémenté). Les
+valeurs 2 à 17 sont réservées. Si les 8 bits de poids faible donnent une
+valeur supérieure à 18, les bits des données «\ extended sense\ » sont
+utilisés. Les bits 9 à 16 forment un masque pour sélectionner les bits à
+observer et les bits 17 à 23 indiquent un motif de bits à rechercher. Si le
+motif de bits est nul, un bit ou plus sous le masque indique la requête de
+nettoyage. Si le motif est non nul, le motif doit correspondre à l'octet des
+données «\ sense\ » masqué.
+.SS "MTIOCGET \(em Obtenir l'état"
+.PP
+Cette requête prend un paramètre du type \fI(struct mtget\ *)\fP.
+.PP
+.in +4n
+.nf
+/* Structure pour MTIOCGET \- État de la bande magnétique */
+struct mtget {
+    long     mt_type;
+    long     mt_resid;
+    /* Les registres suivants dépendent du matériel */
+    long     mt_dsreg;
+    long     mt_gstat;
+    long     mt_erreg;
+    /* Ces deux derniers champs sont parfois inutilisés */
+    daddr_t  mt_fileno;
+    daddr_t  mt_blkno;
+};
+.fi
+.in
+.IP \fImt_type\fP 11
+Le fichier d'en\-tête définit plusieurs valeurs pour \fImt_type\fP, mais le
+pilote actuel renvoie uniquement les types génériques \fBMT_ISSCSI1\fP (lecteur
+SCSI\-1 générique) et \fBMT_ISSCSI2\fP (lecteur SCSI\-2 générique).
+.IP \fImt_resid\fP
+Contient le numéro de partition courante.
+.IP \fImt_dsreg\fP
+Renvoie la configuration actuelle de la longueur de bloc (dans les 24 bits
+de poids faibles) et la densité (dans les 8 bits de poids forts). Ces champs
+sont définis par \fBMT_ST_BLKSIZE_SHIFT\fP, \fBMT_ST_BLKSIZE_MASK\fP,
+\fBMT_ST_DENSITY_SHIFT\fP, et \fBMT_ST_DENSITY_MASK\fP.
+.IP \fImt_gstat\fP
+Renvoie des informations génériques d'état (indépendants du
+périphérique). Le fichier d'en\-tête définit les macros suivantes pour tester
+les bits d'état\ :
+.RS
+.HP 4
+\fBGMT_EOF\fP(\fIx\fP)\ : La bande est positionnée juste après une filemark
+(toujours faux après une opération \fBMTSEEK\fP).
+.HP
+\fBGMT_BOT\fP(\fIx\fP)\ : La bande est positionnée juste au début du premier
+fichier (toujours faux après une opération \fBMTSEEK\fP).
+.HP
+\fBGMT_EOT\fP(\fIx\fP)\ : Une opération a atteint la fin physique de la bande (End
+Of Tape).
+.HP
+\fBGMT_SM\fP(\fIx\fP)\ : La bande est positionnée sur une setmark (toujours faux
+après une opération \fBMTSEEK\fP).
+.HP
+\fBGMT_EOD\fP(\fIx\fP)\ : La bande est positionnée à la fin des données
+enregistrées.
+.HP
+\fBGMT_WR_PROT\fP(\fIx\fP)\ : La bande est protégée en écriture. Pour certains
+enregistreurs, ceci signifie qu'ils ne supportent pas l'écriture sur ce type
+de bande.
+.HP
+\fBGMT_ONLINE\fP(\fIx\fP)\ : La dernière opération \fBopen\fP(2) a trouvé le lecteur
+prêt à agir, avec une bande à l'intérieur.
+.HP
+\fBGMT_D_6250\fP(\fIx\fP), \fBGMT_D_1600\fP(\fIx\fP), \fBGMT_D_800\fP(\fIx\fP)\ : Ces
+informations \(lqgénériques\(rq d'état renvoient la densité actuelle des
+lecteurs de bandes 9\-pistes \(12" seulement.
+.HP
+\fBGMT_DR_OPEN\fP(\fIx\fP)\ : Le lecteur ne contient pas de bande.
+.HP
+\fBGMT_IM_REP_EN\fP(\fIx\fP)\ : Mode de rapport immédiat. Ce bit est activé
+lorsqu'il n'y a aucune assurance que les données aient été physiquement
+écrites sur la bande lors du retour de l'appel système. Le bit est à zéro
+seulement lorsque le lecteur ne cache pas les données et que le pilote est
+configuré pour ne pas faire de cache non plus.
+.HP
+\fBGMT_CLN\fP(\fIx\fP)\ : Le lecteur a demandé un nettoyage. Implémenté depuis les
+noyaux 2.4.19 et 2.5.43.
+.RE
+.IP \fImt_erreg\fP
+Le seul champ défini dans \fImt_erreg\fP est le nombre d'erreurs corrigées,
+dans les 16 bits de poids faibles (comme défini par les masques
+\fBMT_ST_SOFTERR_SHIFT\fP et \fBMT_ST_SOFTERR_MASK\fP). À cause d'incompatibilités
+dans les méthodes utilisées par les lecteurs pour rendre compte des
+corrections d'erreur, cette valeur n'est pas toujours fournie (la plupart
+des lecteurs ne renvoient pas, par défaut, les erreurs corrigées, mais cela
+peut être modifié avec la commande SCSI MODE SELECT).
+.IP \fImt_fileno\fP
+Renvoie le numéro du fichier en cours (commençant à 0). La valeur est mise à
+\-1 si le numéro du fichier est inconnu (par exemple, après un \fBMTBSS\fP ou un
+\fBMTSEEK\fP).
+.IP \fImt_blkno\fP
+Renvoie le numéro de bloc (commençant à 0) à l'intérieur du fichier en
+cours. Cette valeur est mise à \-1 quand le numéro de bloc est inconnu (par
+exemple, après un \fBMTBSF\fP, un \fBMTBSS\fP, ou un \fBMTSEEK\fP).
+.SS "MTIOCPOS \(em Obtenir la position de la bande"
+.PP
+Cette requête prend un paramètre du type \fI(struct mtpos\ *)\fP et renvoie une
+valeur spécifique au lecteur, correspondant au numéro de bloc en cours, et
+qui n'est pas la même que \fImt_blkno\fP renvoyée par \fBMTIOCGET\fP. Ce lecteur
+doit être un modèle SCSI\-2 qui supporte la commande \fBREAD POSITION\fP ou un
+lecteur SCSI\-1 compatible Tandberg (Tandberg, Archive Viper, Wangtek, ...).
+.PP
+.in +4n
+.nf
+/* Structure pour MTIOCPOS \- Commande pour obtenir la position */
+struct mtpos {
+    long mt_blkno;    /* numéro du bloc courant */
+};
+.fi
+.in
+.SH "VALEUR RENVOYÉE"
+.TP  14
+.TP 
+\fBEACCES\fP
+Tentative d'écriture ou d'effacement sur une bande protégée en
+écriture. (Cette erreur ne peut pas être détectée lors de \fBopen\fP(2).)
+.TP 
+\fBEBUSY\fP
+Le périphérique est déjà utilisé ou le pilote n'a pas assez de mémoire.
+.TP 
+\fBEFAULT\fP
+Le paramètre de commande pointe en dehors de la mémoire adressable par le
+processus appelant.
+.TP 
+\fBEINVAL\fP
+Un appel système \fBioctl\fP(2) avait un paramètre non valable ou la taille de
+bloc demandée était incorrecte.
+.TP 
+\fBEIO\fP
+L'opération demandée a échoué.
+.TP 
+\fBENOMEM\fP
+Le nombre d'octet lu par \fBread\fP(2) est plus petit que le prochain bloc
+physique sur la bande. (Avant 2.2.18 et 2.4.0\-test6 les octets
+supplémentaires étaient ignorés sans rien dire.)
+.TP 
+\fBENOSPC\fP
+Une écriture a échoué car la fin de bande a été atteinte.
+.TP 
+\fBENOSYS\fP
+Appel système \fBioctl\fP(2) inconnu.
+.TP 
+\fBENXIO\fP
+Durant l'ouverture, le lecteur de bande n'existe pas.
+.TP 
+\fBEOVERFLOW\fP
+Tentative de lire ou d'écrire un bloc de longueur variable plus grand que la
+taille des tampons internes du contrôleur.
+.TP 
+\fBEROFS\fP
+On tente l'ouverture avec \fBO_WRONLY\fP ou \fBO_RDWR\fP alors que la bande est
+protégée en écriture.
+.SH FICHIERS
+.TP  12
+\fI/dev/st*\fP
+Les lecteurs de bandes SCSI à rembobinage automatique
+.TP  12
+\fI/dev/nst*\fP
+.\" .SH AUTHOR
+.\" The driver has been written by Kai M\(:akisara (Kai.Makisara@metla.fi)
+.\" starting from a driver written by Dwayne Forsyth.
+.\" Several other
+.\" people have also contributed to the driver.
+Les lecteurs de bandes SCSI sans rembobinage automatique
+.SH NOTES
+.IP 1. 4
+Lors d'un échange de données entre systèmes différents, il faut se mettre
+d'accord sur la taille des blocs. Les paramètres d'un lecteur après le
+démarrage sont souvent différents de ceux qu'utilisent la plupart des autres
+systèmes d'exploitation. La plupart utilisent un mode de blocs de longueur
+variable si le lecteur le permet. Ceci concerne la plupart des lecteurs
+modernes, y compris les DAT, les lecteurs 8mm hélicoïdaux, les DLTs, etc. Il
+peut être judicieux d'utiliser ces lecteurs en mode de longueur variable
+sous Linux aussi (en utilisant \fBMTSETBLK\fP ou \fBMTSETDEFBLK\fP au démarrage),
+du moins lors de l'échange de données avec des systèmes d'exploitation
+différents. L'inconvénient de ceci est qu'il faut utiliser une taille de
+bloc assez grande pour obtenir des taux de transfert acceptables sur un bus
+SCSI.
+.IP 2.
+Beaucoup de programmes (comme par exemple \fBtar\fP(1)) permettent à
+l'utilisateur de spécifier le facteur de bloc sur la ligne de
+commande. Notez que ceci détermine la taille de bloc physique uniquement en
+mode de bloc de taille variable.
+.IP 3.
+Pour utiliser les lecteurs de bandes SCSI, le pilote SCSI de base, un pilote
+d'adaptateur SCSI et le pilote du lecteur SCSI doivent tous être configurés
+dans le noyau ou chargés comme modules. Si le pilote des bandes SCSI n'est
+pas présent, le lecteur est reconnu, mais le support de bande décrit dans
+cette page n'est pas disponible.
+.IP 4.
+Le pilote écrit les messages d'erreur sur la console et/ou les fichiers de
+journalisation (log). Les codes SENSE présents dans certains messages sont
+automatiquement traduits en texte si les messages SCSI complets sont activés
+dans la configuration du noyau.
+.IP 5.
+.\" .SH COPYRIGHT
+.\" Copyright \(co 1995 Robert K. Nichols.
+.\" .br
+.\" Copyright \(co 1999-2005 Kai M\(:akisara.
+.\" .PP
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\" Additional permissions are contained in the header of the source file.
+L'utilisation du tampon interne permet de bons débits en mode blocs fixes
+même avec peu d'octets lus (avec \fBread\fP(2)) ou écrits (avec
+\fBwrite\fP(2)). Avec les transferts directs, cela n'est pas possible et peut
+provoquer une surprise lors de la mise à jour vers le noyau 2.6. La solution
+est de demander au logiciel d'utiliser des transferts plus importants
+(souvent en lui indiquant d'utiliser de plus gros blocs). Si ce n'est pas
+possible, les transferts directs peuvent être désactivés.
+.SH "VOIR AUSSI"
+\fBmt\fP(1)
+.PP
+Le fichier \fIdrivers/scsi/README.st\fP ou \fIDocumentation/scsi/st.txt\fP (pour
+les noyaux >= 2.6) dans les sources du noyau Linux contient les
+informations les plus récentes à propos du pilote et de ses capacités de
+configuration
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Simon Paillard et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

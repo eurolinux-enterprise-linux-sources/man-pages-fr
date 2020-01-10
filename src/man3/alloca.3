@@ -1,0 +1,136 @@
+.\" Copyright (c) 1980, 1991 Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     @(#)alloca.3	5.1 (Berkeley) 5/2/91
+.\"
+.\" Converted Mon Nov 29 11:05:55 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Tue Oct 22 23:41:56 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 2002-07-17, aeb
+.\" 2008-01-24, mtk:
+.\"     Various rewrites and additions (notes on longjmp() and SIGSEGV).
+.\"     Weaken warning against use of alloca() (as per Debian bug 461100).
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ALLOCA 3 "12 mai 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+alloca \- Allouer de la mémoire à libérer automatiquement
+.SH SYNOPSIS
+\fB#include <alloca.h>\fP
+.sp
+\fBvoid *alloca(size_t \fP\fIsize\fP\fB);\fP
+.SH DESCRIPTION
+La fonction \fBalloca\fP() alloue \fIsize\fP octets dans la pile de
+l'appelant. Cet espace temporaire est automatiquement libéré lors du retour
+de la fonction ayant invoqué \fBalloca\fP().
+.SH "VALEUR RENVOYÉE"
+La fonction \fBalloca\fP() renvoie un pointeur sur le début de la zone
+allouée. Si l'allocation provoque un dépassement de la pile, le comportement
+du programme est indéterminé.
+.SH CONFORMITÉ
+Cette fonction n'est pas dans POSIX.1\-2001.
+
+Il semble que \fBalloca\fP() soit apparue dans 32V, PWB, PWB.2, BSD\ 3, et BSD\ 4. Il existe une page de manuel la décrivant dans BSD\ 4.3. Linux utilise la
+version GNU.
+.SH NOTES
+La fonction \fBalloca\fP() dépend de la machine et du compilateur. Pour
+certaines applications, son utilisation peut améliorer l'efficacité en
+comparaison à \fBmalloc\fP(3) et \fBfree\fP(3). Dans certains cas, elle peut aussi
+simplifier la libération de la mémoire dans les applications qui utilisent
+\fBlongjmp\fP(3) ou \fBsiglongjmp\fP(3). Sinon, son utilisation est déconseillée.
+
+Parce que l'espace alloué par \fBalloca\fP() est alloué sur la pile, il est
+automatiquement libéré si le retour de la fonction est sauté avec un appel à
+\fBlongjmp\fP(3) ou \fBsiglongjmp\fP(3).
+
+N'essayez pas de libérer l'espace alloué par \fBalloca\fP() à l'aide de la
+fonction \fBfree\fP(3)\ !
+.SS "Notes à propos des versions GNU"
+En général, \fBgcc\fP(1) traduit l'appel de \fBalloca\fP() par du code «\ inline\ ». Ceci n'est pas le cas si l'option \fI\-ansi\fP, \fI\-std=c89\fP, \fI\-std=c99\fP ou
+l'option \fI\-std=c11\fP est fournie \fBet\fP si le fichier d'en\-tête
+\fI<alloca.h>\fP n'est pas inclus. Dans le cas contraire (sans l'option
+\-ansi ou \-std=c*), avec la glibc, \fI<stdlib.h>\fP inclut
+\fI<alloca.h>\fP qui contient les lignes\ :
+.nf
+
+    #ifdef  __GNUC__
+    #define alloca(size)   __builtin_alloca (size)
+    #endif
+
+.fi
+avec toutes les conséquences fâcheuses que cela entraîne si on a une
+fonction personnelle de ce nom.
+.LP
+Le fait que le code soit développé «\ inline\ » signifie qu'il est
+impossible de prendre l'adresse de la fonction ou de changer son
+comportement en utilisant une bibliothèque différente.
+.LP
+Le code «\ inline\ » consiste souvent en une seule instruction qui ajuste le
+pointeur de pile et ne vérifie pas le débordement de pile. Il n'y a donc pas
+de retour d'erreur de valeur NULL.
+.SH BOGUES
+Il n'y a pas d'indication d'erreur si la trame sur la pile ne peut pas être
+étendue (cependant, après un échec d'allocation, le programme recevra
+probablement un signal \fBSIGSEGV\fP s'il essaye d'accéder à l'espace non
+alloué).
+
+Sur beaucoup de systèmes \fBalloca\fP() ne doit pas être utilisée au sein de la
+liste des arguments d'un appel de fonction, car l'espace de pile réservé par
+\fBalloca\fP() se trouverait alors au milieu de l'espace utilisé par les
+arguments de la fonction.
+.SH "VOIR AUSSI"
+\fBbrk\fP(2), \fBlongjmp\fP(3), \fBmalloc\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

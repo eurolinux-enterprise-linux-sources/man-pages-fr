@@ -1,0 +1,520 @@
+.\" Copyright (C) 1996 Andries Brouwer <aeb@cwi.nl>
+.\" and Copyright (C) 2006, 2007 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 1997-01-31 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 2000-03-25 by Jim Van Zandt <jrv@vanzandt.mv.com>
+.\" Modified 2001-10-04 by John Levon <moz@compsoc.man.ac.uk>
+.\" Modified 2003-02-02 by Andi Kleen <ak@muc.de>
+.\" Modified 2003-05-21 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	MAP_LOCKED works from 2.5.37
+.\" Modified 2004-06-17 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2004-09-11 by aeb
+.\" Modified 2004-12-08, from Eric Estievenart <eric.estievenart@free.fr>
+.\" Modified 2004-12-08, mtk, formatting tidy-ups
+.\" Modified 2006-12-04, mtk, various parts rewritten
+.\" 2007-07-10, mtk, Added an example program.
+.\" 2008-11-18, mtk, document MAP_STACK
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MMAP 2 "17 avril 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+mmap, munmap \- Établir/supprimer une projection en mémoire (map/unmap) des
+fichiers ou des périphériques
+.SH SYNOPSIS
+.nf
+\fB#include <sys/mman.h>\fP
+.sp
+\fBvoid *mmap(void *\fP\fIaddr\fP\fB, size_t \fP\fIlength\fP\fB, int \fP\fIprot\fP\fB, int \fP\fIflags\fP\fB,\fP
+\fB           int \fP\fIfd\fP\fB, off_t \fP\fIoffset\fP\fB);\fP
+\fBint munmap(void *\fP\fIaddr\fP\fB, size_t \fP\fIlength\fP\fB);\fP
+.fi
+
+Consultez la section NOTES pour plus d'informations sur les exigences de la
+macro de test de fonctionnalité.
+.SH DESCRIPTION
+\fBmmap\fP() crée une nouvelle projection dans l'espace d'adressage virtuel du
+processus appelant. L'adresse de démarrage de la nouvelle projection est
+indiquée dans \fIaddr\fP. Le paramètre \fIlength\fP indique la longueur de la
+projection.
+
+.\" Before Linux 2.6.24, the address was rounded up to the next page
+.\" boundary; since 2.6.24, it is rounded down!
+Si \fIaddr\fP est NULL, le noyau choisit l'adresse à laquelle démarrer la
+projection\ ; c'est la méthode la plus portable pour créer une nouvelle
+projection. Si \fIaddr\fP n'est pas NULL, le noyau le considère comme une
+indication sur l'endroit où placer la projection\ ; sous Linux, elle sera
+placée à une frontière de page proche. L'adresse de la nouvelle projection
+est renvoyée comme résultat de l'appel.
+
+Le contenu d'une projection de fichier (par opposition à une projection
+anonyme\ ; voir ci\-dessous \fBMAP_ANONYMOUS\fP) est initialisé avec \fIlength\fP
+octets à partir de la position \fIoffset\fP dans le fichier (ou autre objet)
+correspondant au descripteur de fichier \fIfd\fP. \fIoffset\fP doit être un
+multiple de la taille de page, renvoyée par \fIsysconf(_SC_PAGE_SIZE)\fP.
+.LP
+L'argument \fIprot\fP indique la protection que l'on désire pour cette zone de
+mémoire, et ne doit pas entrer en conflit avec le mode d'ouverture du
+fichier. Il s'agit soit de \fBPROT_NONE\fP (le contenu de la mémoire est
+inaccessible) soit d'un OU binaire entre les constantes suivantes\ :
+.TP  1.1i
+\fBPROT_EXEC\fP
+On peut exécuter du code dans la zone mémoire.
+.TP 
+\fBPROT_READ\fP
+On peut lire le contenu de la zone mémoire.
+.TP 
+\fBPROT_WRITE\fP
+On peut écrire dans la zone mémoire.
+.TP 
+\fBPROT_NONE\fP
+Les pages ne peuvent pas être accédées.
+.LP
+Le paramètre \fIflags\fP détermine si les modifications de la projection sont
+visibles depuis les autres processus projetant la même région, et si les
+modifications sont appliquées au fichier sous\-jacent. Ce comportement est
+déterminé en incluant exactement une des valeurs suivantes dans \fIflags\fP\ :
+.TP  1.1i
+\fBMAP_SHARED\fP
+Partager la projection. Les modifications de la projection sont visibles
+dans les autres processus qui projettent ce fichier, et sont appliquées au
+fichier sous\-jacent. En revanche, ce dernier n'est pas nécessairement mis à
+jour tant qu'on n'a pas appelé \fBmsync\fP(2) ou \fBmunmap\fP().
+.TP 
+\fBMAP_PRIVATE\fP
+Créer une projection privée, utilisant la méthode de copie à l'écriture. Les
+modifications de la projection ne sont pas visibles depuis les autres
+processus projetant le même fichier, et ne modifient pas le fichier
+lui\-même. Il n'est pas précisé si les changements effectués dans le fichier
+après l'appel \fBmmap\fP() seront visibles.
+.LP
+Ces deux attributs sont décrits dans POSIX.1\-2001.
+
+De plus, zéro ou plus des valeurs suivantes peuvent être incluses dans
+\fIflags\fP (avec un OU binaire)\ :
+.TP 
+\fBMAP_32BIT\fP (depuis Linux 2.4.20, 2.6)
+.\" See http://lwn.net/Articles/294642 "Tangled up in threads", 19 Aug 08
+Placer la projection dans les deux premiers gigaoctets de l'espace
+d'adressage du processus. Cet attribut n'est pris en charge que sous x86\-64,
+pour les programmes 64\ bits. Il a été ajouté pour permettre à la pile d'un
+thread d'être allouée dans les deux premiers gigaoctets de mémoire, afin
+d'améliorer les performances des changements de contexte sur les premiers
+processeurs 64\ bits. Les processeurs x86\-64 modernes n'ont plus ces
+problèmes de performance, donc l'utilisation de cet attribut n'est pas
+nécessaire sur ces systèmes. L'attribut \fBMAP_32BIT\fP est ignoré quand
+\fBMAP_FIXED\fP est positionné.
+.TP 
+\fBMAP_ANON\fP
+Synonyme de \fBMAP_ANONYMOUS\fP. Déconseillé.
+.TP 
+\fBMAP_ANONYMOUS\fP
+La projection n'est supportée par aucun fichier\ ; son contenu est
+initialisé à 0. Les arguments \fIfd\fP et \fIoffset\fP sont ignorés\ ; cependant,
+certaines implémentations demandent que \fIfd\fP soit \-1 si \fBMAP_ANONYMOUS\fP
+(ou \fBMAP_ANON\fP) est utilisé, et les applications portables doivent donc
+s'en assurer. Cet attribut, utilisé en conjonction de \fBMAP_SHARED\fP, n'est
+implémenté que depuis Linux 2.4.
+.TP 
+\fBMAP_DENYWRITE\fP
+.\" Introduced in 1.1.36, removed in 1.3.24.
+Cet attribut est ignoré. (Autrefois, une tentative d'écriture dans le
+fichier sous\(hyjacent échouait avec l'erreur \fBETXTBUSY\fP. Mais ceci
+permettait des attaques par déni de service.)
+.TP 
+\fBMAP_EXECUTABLE\fP
+.\" Introduced in 1.1.38, removed in 1.3.24. Flag tested in proc_follow_link.
+.\" (Long ago, it signaled that the underlying file is an executable.
+.\" However, that information was not really used anywhere.)
+.\" Linus talked about DOS related to MAP_EXECUTABLE, but he was thinking of
+.\" MAP_DENYWRITE?
+Cet attribut est ignoré.
+.TP 
+\fBMAP_FILE\fP
+.\" On some systems, this was required as the opposite of
+.\" MAP_ANONYMOUS -- mtk, 1 May 2007
+Attribut pour compatibilité. Ignoré.
+.TP 
+\fBMAP_FIXED\fP
+Ne pas considérer \fIaddr\fP comme une indication\ : n'utiliser que l'adresse
+indiquée. \fIaddr\fP doit être un multiple de la taille de page. Si la zone
+mémoire indiquée par \fIaddr\fP et \fIlen\fP recouvre des pages d'une projection
+existante, la partie recouverte de la projection existante sera ignorée. Si
+l'adresse indiquée ne peut être utilisée, \fBmmap\fP() échouera. Il est
+déconseillé d'utiliser cette option, car requérir une adresse fixe pour une
+projection n'est pas portable.
+.TP 
+\fBMAP_GROWSDOWN\fP
+Utilisé pour les piles. Indique au système de gestion de la mémoire
+virtuelle que la projection doit s'étendre en croissant vers le bas de la
+mémoire.
+.TP 
+\fBMAP_HUGETLB\fP (depuis Linux 2.6.32)
+Allouer la projection à l'aide de «\ pages immenses\ ». Consultez le fichier
+source du noyau Linux \fIDocumentation/vm/hugetlbpage.txt\fP pour plus
+d'informations.
+.TP 
+\fBMAP_LOCKED\fP (depuis Linux 2.5.37)
+.\" If set, the mapped pages will not be swapped out.
+Verrouille la page projetée en mémoire à la manière de \fBmlock\fP(2). Cet
+attribut est ignoré sur les noyaux plus anciens.
+.TP 
+\fBMAP_NONBLOCK\fP (depuis Linux 2.5.46)
+N'a de sens qu'en conjonction avec \fBMAP_POPULATE\fP. Ne pas effectuer de
+lecture anticipée\ : créer seulement les entrées de tables de page pour les
+pages déjà présentes en RAM. Depuis Linux\ 2.6.23, cet attribut fait que
+\fBMAP_POPULATE\fP n'a aucun effet. Un jour la combinaison de \fBMAP_POPULATE\fP
+et \fBMAP_NONBLOCK\fP pourra être implémentée de nouveau.
+.TP 
+\fBMAP_NORESERVE\fP
+Ne pas réserver d'espace de swap pour les pages de cette projection. Une
+telle réservation garantit que l'on puisse modifier les zones soumises à une
+copie\-en\-écriture. Sans réservation, on peut recevoir un signal \fBSIGSEGV\fP
+durant une écriture, s'il n'y a plus de place disponible. Consultez
+également la description du fichier \fI/proc/sys/vm/overcommit_memory\fP dans
+la page \fBproc\fP(5). Dans les noyaux antérieurs à 2.6, cet attribut n'avait
+d'effet que pour les projections privées modifiables.
+.TP 
+\fBMAP_POPULATE\fP (depuis Linux 2.5.46)
+Remplit les tables de pages pour une projection. Pour une projection de
+fichier, ceci s'effectue par une lecture anticipée du fichier. Les accès
+ultérieurs à la projection ne seront pas bloqués par des fautes de
+pages. \fBMAP_POPULATE\fP n'est géré pour les projections privées que depuis
+Linux\ 2.6.23.
+.TP 
+\fBMAP_STACK\fP (depuis Linux 2.6.27)
+.\" See http://lwn.net/Articles/294642 "Tangled up in threads", 19 Aug 08
+.\" commit cd98a04a59e2f94fa64d5bf1e26498d27427d5e7
+.\" http://thread.gmane.org/gmane.linux.kernel/720412
+.\" "pthread_create() slow for many threads; also time to revisit 64b
+.\"  context switch optimization?"
+Alloue la projection à une adresse qui convient pour la pile d'un processus
+ou d'un thread. Cet attribut n'a pour l'instant aucun effet, mais est
+utilisé par l'implémentation des threads de la glibc de telle sorte que si
+certaines architectures nécessitent un traitement particulier pour
+l'allocation de la pile, leur prise en charge par la suite par la glibc
+pourra être implémentée de façon transparente.
+.TP 
+\fBMAP_UNINITIALIZED\fP (depuis Linux 2.6.33)
+N'efface pas les pages anonymes. Cet attribut n'a pour l'instant un effet
+que si le noyau a été configuré avec l'option
+\fBCONFIG_MMAP_ALLOW_UNINITIALIZED\fP. À cause des implications sur la
+sécurité, cette option n'est normalement active que sur des périphériques
+embarqués (c'est\-à\-dire avec des périphériques avec lesquels il est possible
+d'avoir un contrôle total de la mémoire utilisateur).
+.LP
+Parmi les attributs ci\-dessus, seul \fBMAP_FIXED\fP est spécifié dans
+POSIX.1\-2001. Cependant, la plupart des systèmes gèrent aussi
+\fBMAP_ANONYMOUS\fP (ou son synonyme \fBMAP_ANON\fP).
+.LP
+Certains systèmes utilisent les attributs supplémentaires \fBMAP_AUTOGROW\fP,
+\fBMAP_AUTORESRV\fP, \fBMAP_COPY\fP et \fBMAP_LOCAL\fP.
+.LP
+La mémoire obtenue par \fBmmap\fP est préservée au travers d'un \fBfork\fP(2),
+avec les mêmes attributs.
+.LP
+La projection doit avoir une taille multiple de celle des pages. Pour un
+fichier dont la longueur n'est pas un multiple de la taille de page, la
+mémoire restante est remplie de zéros lors de la projection, et les
+écritures dans cette zone n'affectent pas le fichier. Les effets de la
+modification de la taille du fichier sous\(hyjacent sur les pages
+correspondant aux zones ajoutées ou supprimées ne sont pas précisés.
+.SS munmap()
+L'appel système \fBmunmap\fP() détruit la projection dans la zone de mémoire
+spécifiée, et s'arrange pour que toute référence ultérieure à cette zone
+mémoire déclenche une erreur d'adressage. La projection est aussi
+automatiquement détruite lorsque le processus se termine. À l'inverse, la
+fermeture du descripteur de fichier ne supprime pas la projection.
+.LP
+L'adresse \fIaddr\fP doit être un multiple de la taille de page. Toutes les
+pages contenant une partie de l'intervalle indiqué sont libérées, et tout
+accès ultérieur déclenchera \fBSIGSEGV\fP. Aucune erreur n'est détectée si
+l'intervalle indiqué ne contient pas de page projetée.
+.SS "Modifications d'horodatage pour les projections supportées par un fichier"
+Pour les projections supportées par un fichier, le champ \fIst_atime\fP du
+fichier peut être mis à jour à tout moment entre l'appel \fBmmap\fP() et le
+\fBmunmap\fP() correspondant. Le premier accès dans la page projetée mettra le
+champ à jour si cela n'a pas été déjà fait.
+.LP
+Les champs \fIst_ctime\fP et \fIst_mtime\fP pour un fichier projeté avec
+\fBPROT_WRITE\fP et \fBMAP_SHARED\fP seront mis à jour après une écriture dans la
+région projetée, et avant l'éventuel \fBmsync\fP(2) suivant avec attribut
+\fBMS_SYNC\fP ou \fBMS_ASYNC\fP.
+.SH "VALEUR RENVOYÉE"
+\fBmmap\fP() renvoie un pointeur sur la zone de mémoire, s'il réussit. En cas
+d'échec il retourne la valeur \fBMAP_FAILED\fP (c.\(hyà\(hyd. \fI(void\ *)\ \-1\fP)
+et \fIerrno\fP contient le code d'erreur. \fBmunmap\fP() renvoie 0 s'il
+réussit. En cas d'échec, \-1 est renvoyé et \fIerrno\fP contient le code
+d'erreur (probablement \fBEINVAL\fP).
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+Le descripteur ne correspond pas à un fichier normal, ou on demande une
+projection privée \fBMAP_PRIVATE\fP mais \fIfd\fP n'est pas ouvert en lecture, ou
+on demande une projection partagée \fBMAP_SHARED\fP avec protection
+\fBPROT_WRITE\fP, mais \fIfd\fP n'est pas ouvert en lecture et écriture
+(\fBO_RDWR\fP). Ou encore \fBPROT_WRITE\fP est demandé, mais le fichier est ouvert
+en ajout seulement.
+.TP 
+\fBEAGAIN\fP
+Le fichier est verrouillé, ou trop de pages ont été verrouillées en mémoire
+(consultez \fBsetrlimit\fP(2)).
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier valable (et \fBMAP_ANONYMOUS\fP
+n'était pas précisé).
+.TP 
+\fBEINVAL\fP
+\fIaddr\fP ou \fIlength\fP ou \fIoffset\fP sont invalides (par exemple\ : zone trop
+grande, ou non alignée sur une frontière de page).
+.TP 
+\fBEINVAL\fP
+(depuis Linux 2.6.12) \fIlength\fP est nul.
+.TP 
+\fBEINVAL\fP
+\fIflags\fP ne contient ni \fBMAP_PRIVATE\fP ni \fBMAP_SHARED\fP, ou les contient
+tous les deux.
+.TP 
+\fBENFILE\fP
+.\" This is for shared anonymous segments
+.\" [2.6.7] shmem_zero_setup()-->shmem_file_setup()-->get_empty_filp()
+.\" .TP
+.\" .B ENOEXEC
+.\" A file could not be mapped for reading.
+La limite du nombre total de fichiers ouverts sur le système a été atteinte.
+.TP 
+\fBENODEV\fP
+Le système de fichiers sous\(hyjacent ne supporte pas la projection en
+mémoire.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire, ou le nombre maximal de projections par processus a
+été dépassé.
+.TP 
+\fBEPERM\fP
+.\" (Since 2.4.25 / 2.6.0.)
+L'argument \fIprot\fP a demandé \fBPROT_EXEC\fP mais la zone appartient à un
+fichier sur un système de fichiers monté sans permission d'exécution.
+.TP 
+\fBETXTBSY\fP
+\fBMAP_DENYWRITE\fP a été réclamé mais \fIfd\fP est ouvert en écriture.
+.TP 
+\fBEOVERFLOW\fP
+Sur architecture 32\ bits avec l'extension de fichiers très grands
+(c'est\-à\-dire utilisant un \fIoff_t\fP sur 64\ bits)\ : le nombre de pages
+utilisées pour \fIlength\fP plus le nombre de pages utilisées pour \fIoffset\fP
+dépasserait \fIunsigned long\fP (32\ bits).
+.LP
+L'accès à une zone de projection peut déclencher les signaux suivants\ :
+.TP 
+\fBSIGSEGV\fP
+Tentative d'écriture dans une zone en lecture seule.
+.TP 
+\fBSIGBUS\fP
+Tentative d'accès à une portion de la zone qui ne correspond pas au fichier
+(par exemple après la fin du fichier, y compris lorsqu'un autre processus
+l'a tronqué).
+.SH CONFORMITÉ
+.\" SVr4 documents additional error codes ENXIO and ENODEV.
+.\" SUSv2 documents additional error codes EMFILE and EOVERFLOW.
+SVr4, BSD\ 4.4, POSIX.1\-2001.
+.SH DISPONIBILITÉ
+.\" POSIX.1-2001: It shall be defined to -1 or 0 or 200112L.
+.\" -1: unavailable, 0: ask using sysconf().
+.\" glibc defines it to 1.
+Sur les systèmes POSIX sur lesquels \fBmmap\fP(), \fBmsync\fP(2) et \fBmunmap\fP()
+sont disponibles, la constante symbolique \fB_POSIX_MAPPED_FILES\fP est définie
+dans \fI<unistd.h>\fP comme étant une valeur supérieure à 0. (Consultez
+aussi \fBsysconf\fP(3).)
+.SH NOTES
+.\" Since around glibc 2.1/2.2, depending on the platform.
+Cette page décrit l'interface fournie par la fonction \fBmmap\fP() de la
+glibc. Initialement, cette fonction appelait un appel système du même
+nom. Depuis le noyau 2.4, cet appel système a été remplacé par
+\fBmmap2\fP(2). De nos jours, la fonction \fBmmap\fP() de la glibc appelle
+\fBmmap2\fP(2) avec la bonne valeur pour \fIoffset\fP.
+
+Sur certaines architectures matérielles (par exemple, i386), \fBPROT_WRITE\fP
+implique \fBPROT_READ\fP. Cela dépend de l'architecture si \fBPROT_READ\fP
+implique \fBPROT_EXEC\fP ou non. Les programmes portables doivent toujours
+indiquer \fBPROT_EXEC\fP s'ils veulent exécuter du code dans la projection.
+
+La manière portable de créer une projection est de spécifier \fIaddr\fP à 0
+(NULL), et d'omettre \fBMAP_FIXED\fP dans \fIflags\fP. Dans ce cas, le système
+choisit l'adresse de la projection\ ; l'adresse est choisie de manière à ne
+pas entrer en conflit avec une projection existante et de ne pas être
+nulle. Si l'attribut \fBMAP_FIXED\fP est indiqué et si \fIaddr\fP vaut 0 (NULL),
+l'adresse projetée sera zéro (NULL).
+
+Certaines constantes de \fIflags\fP sont définies seulement si \fB_BSD_SOURCE\fP
+ou \fB_SVID_SOURCE\fP est défini.  (La définition de \fB_GNU_SOURCE\fP suffit
+également, et son usage aurait été plus logique, puisque ces attributs sont
+tous spécifiques à Linux.) Les attributs adéquats sont\ :\fBMAP_32BIT\fP,
+\fBMAP_ANONYMOUS\fP (et son synonyme \fBMAP_ANON\fP), \fBMAP_DENYWRITE\fP,
+\fBMAP_EXECUTABLE\fP, \fBMAP_FILE\fP, \fBMAP_GROWSDOWN\fP, \fBMAP_HUGETLB\fP,
+\fBMAP_LOCKED\fP, \fBMAP_NONBLOCK\fP, \fBMAP_NORESERVE\fP, \fBMAP_POPULATE\fP, et
+\fBMAP_STACK\fP.
+.SH BOGUES
+Sous Linux, il n'y a aucune garantie comme celles indiquées plus haut à
+propos de \fBMAP_NORESERVE\fP. Par défaut, n'importe quel processus peut être
+tué à tout moment lorsque le système n'a plus de mémoire.
+
+Dans les noyaux antérieurs à 2.6.7, le drapeau \fBMAP_POPULATE\fP n'avait
+d'effet que si \fIprot\fP était \fBPROT_NONE\fP.
+
+SUSv3 indique que \fBmmap\fP() devrait échouer si \fIlength\fP est 0. Cependant,
+avec les versions de Linux antérieures à 2.6.12, \fBmmap\fP() réussissait dans
+ce cas\ : aucune projection n'était créée, et l'appel renvoyait
+\fIaddr\fP. Depuis le noyau 2.6.12, \fBmmap\fP() échoue avec le code d'erreur
+\fBEINVAL\fP si \fIlength\fP est nul.
+
+POSIX spécifie que le système devrait toujours remplir de zéros toutes les
+pages incomplètes à la fin de l'objet et que le système n'écrira jamais de
+modification de l'objet au\-delà de sa fin. Sous Linux, lors de l'écriture de
+données vers ce genre de pages incomplètes après la fin de l'objet, les
+données restent dans le cache de page même après que le fichier soit fermé
+et déprojeté, et même si les données ne sont jamais écrites vers le fichier
+lui\-même, les projections suivantes pourraient voir le contenu modifié. Dans
+certains cas, cela pourrait être corrigé en appelant \fBmsync\fP(2) avant la
+déprojection. Cependant, cela ne fonctionne pas sur tmpfs (par exemple en
+utilisant l'interface de mémoire partagée POSIX documentée dans
+\fBshm_overview\fP(7)).
+.SH EXEMPLE
+.\" FIXME . Add an example here that uses an anonymous shared region for
+.\" IPC between parent and child.
+.PP
+Le programme suivant affiche la partie du fichier, précisé par le premier
+argument de la ligne de commande, sur la sortie standard. Les octets qui
+seront affichés sont précisés à partir d'un offset (déplacement) et d'une
+longueur en deuxième et troisième paramètre. Le code fait une projection
+mémoire des pages nécessaires du fichier puis utilise \fBwrite\fP(2) pour
+afficher les octets voulus.
+.nf
+
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#define handle_error(msg) \e
+    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+int
+main(int argc, char *argv[])
+{
+    char *addr;
+    int fd;
+    struct stat sb;
+    off_t offset, pa_offset;
+    size_t length;
+    ssize_t s;
+
+    if (argc < 3 || argc > 4) {
+        fprintf(stderr, "%s fichier offset [longueur]\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    fd = open(argv[1], O_RDONLY);
+    if (fd == \-1)
+        handle_error("open");
+
+    if (fstat(fd, &sb) == \-1)           /* Pour obtenir la taille du fichier */
+        handle_error("fstat");
+
+    offset = atoi(argv[2]);
+    pa_offset = offset & ~(sysconf(_SC_PAGE_SIZE) \- 1);
+        /* l'offset pour mmap() doit être aligné sur une page */
+
+    if (offset >= sb.st_size) {
+        fprintf(stderr, "L'offset dépasse la fin du fichier\en");
+        exit(EXIT_FAILURE);
+    }
+
+    if (argc == 4) {
+        length = atoi(argv[3]);
+        if (offset + length > sb.st_size)
+            length = sb.st_size \- offset;
+                /* Impossible d'afficher les octets en dehors du fichier */
+
+    } else {    /* Pas de paramètre longueur
+                   ==> affichage jusqu'à la fin du fichier */
+        length = sb.st_size \- offset;
+    }
+
+    addr = mmap(NULL, length + offset \- pa_offset, PROT_READ,
+                MAP_PRIVATE, fd, pa_offset);
+    if (addr == MAP_FAILED)
+        handle_error("mmap");
+
+    s = write(STDOUT_FILENO, addr + offset \- pa_offset, length);
+    if (s != length) {
+        if (s == \-1)
+            handle_error("write");
+
+        fprintf(stderr, "écriture partielle");
+        exit(EXIT_FAILURE);
+    }
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBgetpagesize\fP(2), \fBmincore\fP(2), \fBmlock\fP(2), \fBmmap2\fP(2), \fBmprotect\fP(2),
+\fBmremap\fP(2), \fBmsync\fP(2), \fBremap_file_pages\fP(2), \fBsetrlimit\fP(2),
+\fBshmat\fP(2), \fBshm_open\fP(3), \fBshm_overview\fP(7)
+
+Dans \fBproc\fP(5), les descriptions des fichiers \fI/proc/[pid]/maps\fP,
+\fI/proc/[pid]/map_files\fP, and \fI/proc/[pid]/smaps\fP.
+
+.\"
+.\" Repeat after me: private read-only mappings are 100% equivalent to
+.\" shared read-only mappings. No ifs, buts, or maybes. -- Linus
+B.O. Gallmeister, POSIX.4, O'Reilly, pp. 128\(en129 et 389\(en391.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

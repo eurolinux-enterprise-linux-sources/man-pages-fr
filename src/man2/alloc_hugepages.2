@@ -1,0 +1,129 @@
+.\" Copyright 2003 Andries E. Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ALLOC_HUGEPAGES 2 "31 mai 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+alloc_hugepages, free_hugepages \- Allouer ou libérer des pages immenses
+.SH SYNOPSIS
+.nf
+.\" asmlinkage unsigned long sys_alloc_hugepages(int key, unsigned long addr,
+.\" unsigned long len, int prot, int flag);
+\fBvoid *alloc_hugepages(int \fP\fIkey\fP\fB, void *\fP\fIaddr\fP\fB, size_t \fP\fIlen\fP\fB,\fP
+\fB                      int \fP\fIprot\fP\fB, int \fP\fIflag\fP\fB);\fP
+.sp
+.\" asmlinkage int sys_free_hugepages(unsigned long addr);
+\fBint free_hugepages(void *\fP\fIaddr\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Les appels système \fBalloc_hugepages\fP() et \fBfree_hugepages\fP() ont été
+introduits dans Linux 2.5.36 et retirés à nouveau dans le 2.5.54. Ils
+n'existaient que sur i386 et ia64 (compilation avec l'option
+\fBCONFIG_HUGETLB_PAGE\fP). Dans Linux 2.4.20 le numéro d'appel système existe,
+mais l'appel renvoie toujours \fBENOSYS\fP.
+.LP
+Sur un i386, le mécanisme matériel de gestion mémoire manipule des pages
+ordinaires (4\ Ko) et des pages immenses (2 à 4\ Mo). De même, l'ia64
+connaît des pages immenses de diverses tailles. Ces appels système servent à
+projeter ces pages immenses dans l'espace mémoire du processus ou à les
+libérer. Les pages immenses sont verrouillées en mémoire et jamais swappées.
+.LP
+Le paramètre \fIkey\fP est un identifiant. Lorsqu'il vaut zéro, les pages sont
+privées et non héritées par les processus descendants. Lorsqu'il est
+positif, les pages sont partagées avec les autres applications utilisant la
+même \fIkey\fP, et héritées par les processus enfants.
+.LP
+Le paramètre \fIaddr\fP de \fBfree_hugepages\fP() indique quelle page doit être
+libérée \(em il a été renvoyé lors de l'appel \fBalloc_hugepages\fP(). (La
+mémoire n'est véritablement libérée que lorsque tous ses utilisateurs la
+relâchent). Le paramètre \fIaddr\fP de \fBalloc_hugepages\fP() est un désir que le
+noyau peut suivre ou non. Les adresses doivent être correctement alignées.
+.LP
+Le paramètre \fIlen\fP est la taille du segment désiré. Il doit s'agir d'un
+multiple de la taille d'une page immense.
+.LP
+Le paramètre \fIprot\fP indique le type de protection du segment. Il s'agit
+d'une association de \fBPROT_READ\fP, \fBPROT_WRITE\fP, \fBPROT_EXEC\fP.
+.LP
+Le paramètre \fIflag\fP est ignoré, sauf si \fIkey\fP est positif. Dans ce cas, si
+\fIflag\fP vaut \fBIPC_CREAT\fP, alors un nouveau segment de page immense est créé
+si aucun n'existe avec cette clé. Sinon, l'erreur \fBENOENT\fP est renvoyé si
+aucun segment correspondant à la clé n'existe.
+.SH "VALEUR RENVOYÉE"
+S'il réussit \fBalloc_hugepages\fP() renvoie l'adresse du segment alloué, et
+\fBfree_hugepages\fP() renvoie zéro. En cas d'erreur, ils renvoient \-1 et
+remplissent \fIerrno\fP avec le code d'erreur.
+.SH ERREURS
+.TP 
+\fBENOSYS\fP
+L'appel système n'est pas supporté par ce noyau.
+.SH FICHIERS
+\fI/proc/sys/vm/nr_hugepages\fP Nombre de pages immenses configurées. Peut être
+lu ou écrit.
+.LP
+\fI/proc/meminfo\fP Indique le nombre de pages immenses configurées, et leurs
+tailles dans les trois variables HugePages_Total, HugePages_Free,
+Hugepagesize.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux sur processeurs Intel, et ne doit
+pas être employé dans des programmes destinés à être portables.
+.SH NOTES
+Ces appels système ont disparu\ ; ils n'existaient qu'entre Linux 2.5.36 et
+2.5.54. Maintenant, le système de fichiers hugetblfs peut être employé à
+leur place. La mémoire correspondant aux pages immenses (si le processeur
+les supporte) peut être obtenue par un \fBmmap\fP(2) des fichiers de ce système
+de fichiers virtuel.
+.LP
+Le nombre maximal de pages immenses peut être indiqué en utilisant
+l'argument \fBhugepages=\fP au démarrage.
+
+.\" requires CONFIG_HUGETLB_PAGE (under "Processor type and features")
+.\" and CONFIG_HUGETLBFS (under "Filesystems").
+.\" mount -t hugetlbfs hugetlbfs /huge
+.\" SHM_HUGETLB
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

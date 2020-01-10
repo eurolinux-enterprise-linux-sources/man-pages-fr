@@ -1,0 +1,172 @@
+.\" Copyright (c) 2012 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MCHECK 3 "18 avril 2012" GNU "Manuel du programmeur Linux"
+.SH NOM
+mcheck, mcheck_check_all, mcheck_pedantic, mprobe \- Vérifier la cohérence du
+tas
+.SH SYNOPSIS
+.nf
+\fB#include <mcheck.h>\fP
+.sp
+\fBint mcheck(void (*\fP\fIabortfunc\fP\fB)(enum mcheck_status \fP\fImstatus\fP\fB));\fP
+
+\fBint mcheck_pedantic(void (*\fP\fIabortfunc\fP\fB)(enum mcheck_status \fP\fImstatus\fP\fB));\fP
+
+\fBvoid mcheck_check_all(void);\fP
+
+\fBenum mcheck_status mprobe(void *\fP\fIptr\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBmcheck\fP() installe des fonctions de rappel («\ hook\ ») pour les
+fonctions d'allocation mémoire \fBmalloc\fP(3). Ces fonctions activent des
+vérifications de cohérence de l'état du tas. Ces vérifications permettent de
+détecter des erreurs telles que libérer plusieurs fois un bloc de mémoire,
+ou corrompre les structures internes précédant le bloc de mémoire allouée.
+
+Pour être active, la fonction \fBmcheck\fP() doit être appelée avant le premier
+appel à \fBmalloc\fP(3) ou autre fonction associée. S'il est difficile de s'en
+assurer, lier le programme avec \fI\-mcheck\fP ajoute un appel implicite à
+\fBmcheck\fP() (avec un paramètre NULL) avant le premier appel à une fonction
+d'allocation mémoire.
+
+La fonction \fBmcheck_pedantic\fP() est similaire à \fBmcheck\fP(), mais effectue
+les vérifications pour tous les blocs alloués quelque soit la fonction
+d'allocation mémoire appelée. Cela peut être très lent\ !
+
+La fonction \fBmcheck_check_all\fP() déclenche une vérification immédiate de
+tous les blocs alloués. Cet appel n'est pris en compte que si \fBmcheck\fP() a
+déjà été appelé.
+
+Si le système détecte une incohérence dans le tas, la fonction fournie lors
+de l'appel dans \fIabortfunc\fP est invoquée avec le paramètre \fImstatus\fP qui
+indique le type d'incohérence détectée. Si \fIabortfunc\fP est NULL, la
+fonction par défaut affiche un message d'erreur sur \fIstderr\fP et appelle
+\fBabort\fP(3).
+
+La fonction \fBmprobe\fP() effectue une vérification de cohérence du bloc de
+mémoire allouée pointé par \fIptr\fP. La fonction \fBmcheck\fP() doit avoir été
+déjà appelée, ou \fBmprobe\fP() renverra \fBMCHECK_DISABLED\fP.
+
+La liste suivante décrit les valeurs renvoyées par \fBmprobe\fP() ou passées
+via le paramètre \fImstatus\fP lors de l'appel à \fImstatus\fP.
+.TP 
+\fBMCHECK_DISABLED\fP (seulement pour \fBmprobe\fP())
+La vérification de cohérence n'a pu être effectuée, car \fBmcheck\fP() n'a pas
+été appelé avant le premier appel à une fonction d'allocation mémoire.
+.TP 
+\fBMCHECK_OK\fP (seulement pour \fBmprobe\fP())
+Aucune incohérence détectée.
+.TP 
+\fBMCHECK_HEAD\fP
+La mémoire précédant immédiatement le bloc alloué a été altérée.
+.TP 
+\fBMCHECK_TAIL\fP
+La mémoire suivant immédiatement le bloc alloué a été altérée.
+.TP 
+\fBMCHECK_FREE\fP
+Un bloc de mémoire a été libéré deux fois.
+.SH "VALEUR RENVOYÉE"
+\fBmcheck\fP() et \fBmcheck_pedantic\fP() renvoient 0 en cas de succès, \-1 en cas
+d'erreur.
+.SH VERSIONS
+Les fonctions \fBmcheck_pedantic\fP() et \fBmcheck_check_all\fP() sont disponibles
+depuis la glibc\ 2.2. Les fonctions \fBmcheck\fP() et \fBmprobe\fP() sont
+disponibles depuis au moins la glibc\ 2.0.
+.SH CONFORMITÉ
+Ces fonctions sont des extensions GNU.
+.SH NOTES
+.\" But is MALLOC_CHECK_ slower?
+Lier le programme avec \fI\-lmcheck\fP comme utiliser la variable
+d'environnement \fBMALLOC_CHECK_\fP (décrite dans \fBmallopt\fP(3)) permettent de
+détecter le même type d'erreurs. Cependant, \fBMALLOC_CHECK_\fP ne nécessite
+pas de modifier l'édition de liens.
+.SH EXEMPLE
+L'exemple ci\-dessous montre ce qu'il se passe lorsqu'un programme appelle
+\fBmcheck\fP() avec un paramètre NULL puis libère le même bloc de mémoire deux
+fois.
+.in +4n
+.nf
+
+$\fB ./a.out\fP
+About to free
+
+About to free a second time
+block freed twice
+Abandon
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <stdlib.h>
+#include <stdio.h>
+#include <mcheck.h>
+
+int
+main(int argc, char *argv[])
+{
+    char *p;
+
+    if (mcheck(NULL) != 0) {
+        fprintf(stderr, "échec de mcheck()\en");
+
+        exit(EXIT_FAILURE);
+    }
+
+    p = malloc(1000);
+
+    fprintf(stderr, "About to free\en");
+    free(p);
+    fprintf(stderr, "\enAbout to free a second time\en");
+    free(p);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBmalloc\fP(3), \fBmallopt\fP(3), \fBmtrace\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

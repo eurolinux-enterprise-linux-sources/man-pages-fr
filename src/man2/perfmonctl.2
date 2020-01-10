@@ -1,0 +1,204 @@
+.\" Copyright (C) 2006 Red Hat, Inc. All Rights Reserved.
+.\" and Copyright (C) 2013 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Written by Ivana Varekova <varekova@redhat.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PERFMONCTL 2 "13 février 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+perfmonctl \- Interface à l'unité de surveillance des performances IA\-64
+.SH SYNOPSIS
+.nf
+\fB#include <syscall.h>\fP
+\fB#include <perfmon.h>\fP
+.sp
+\fBlong perfmonctl(int \fP\fIfd\fP\fB, int \fP\fIcmd\fP\fB, void *\fP\fIarg\fP\fB, int \fP\fInarg\fP\fB);\fP
+.fi
+\fIRemarque\fP\ : il n'existe pas de fonction glibc autour de cet appel
+système\ ; consultez \fBNOTES\fP.
+.SH DESCRIPTION
+L'appel système \fBperfmonctl\fP() spécifique à IA\-64 fournit une interface à
+la PMU (unité de surveillance des performances). La PMU est constituée de
+registres PMD (données de surveillance des performances) et de registres PMC
+(contrôle de surveillance des performances) qui rassemblent des statistiques
+sur le matériel.
+
+\fBperfmonctl\fP() applique l'opération \fIcmd\fP aux arguments d'entrée indiqués
+par \fIarg\fP. Le nombre d'arguments est défini par \fInarg\fP. L'argument \fIfd\fP
+indique le contexte perfmon sur lequel opérer.
+
+Les valeurs possibles pour \fIcmd\fP sont\ :
+.TP 
+\fBPFM_CREATE_CONTEXT\fP
+.nf
+\fBperfmonctl(int \fP\fIfd\fP\fB, PFM_CREATE_CONTEXT, pfarg_context_t *\fP\fIctxt\fP\fB, 1);\fP
+.fi
+Définir un contexte.
+
+Le paramètre \fIfd\fP est ignoré. Un nouveau contexte perfmon est créé comme
+indiqué dans \fIctxt\fP et son descripteur de fichier est renvoyé dans
+\fIctxt\->ctx_fd\fP.
+
+Le descripteur de fichier peut être utilisé dans les appels suivants de
+\fBperfmonctl\fP() et peut être utilisé pour des notifications d'événement
+(type \fIpfm_msg_t\fP) en utilisant \fBread\fP(2). Le descripteur de fichier est
+surveillable en utilisant \fBselect\fP(2), \fBpoll\fP(2) et \fBepoll\fP(7).
+
+Le contexte peut être détruit en appelant \fBclose\fP(2) sur le descripteur de
+fichier.
+.TP 
+\fBPFM_WRITE_PMCS\fP
+.\" pfm_write_pmcs()
+.nf
+\fBperfmonctl(int \fP\fIfd\fP\fB, PFM_WRITE_PMCS, pfarg_reg_t *\fP\fIpmcs\fP\fB, n);\fP
+.fi
+Définir les registres PMC.
+.TP 
+\fBPFM_WRITE_PMDS\fP
+.nf
+\fBperfmonctl(int \fP\fIfd\fP\fB, PFM_WRITE_PMDS, pfarg_reg_t *\fP\fIpmds\fP\fB, n);\fP
+.fi
+.\" pfm_write_pmds()
+Définir les registres PMD.
+.TP 
+\fBPFM_READ_PMDS\fP
+.\" pfm_read_pmds()
+.nf
+\fBperfmonctl(int \fP\fIfd\fP\fB, PFM_READ_PMDS, pfarg_reg_t *\fP\fIpmds\fP\fB, n);\fP
+.fi
+Lire les registres PMD.
+.TP 
+\fBPFM_START\fP
+.\" pfm_start()
+.nf
+.\" .BI  "perfmonctl(int " fd ", PFM_START, arg, 1);
+\fBperfmonctl(int \fP\fIfd\fP\fB, PFM_START, NULL, 0);\fP
+.fi
+Commencer la surveillance.
+.TP 
+\fBPFM_STOP\fP
+.\" pfm_stop()
+.nf
+\fBperfmonctl(int \fP\fIfd\fP\fB, PFM_STOP, NULL, 0);\fP
+.fi
+Arrêter la surveillance.
+.TP 
+\fBPFM_LOAD_CONTEXT\fP
+.\" pfm_context_load()
+.nf
+\fBperfmonctl(int \fP\fIfd\fP\fB, PFM_LOAD_CONTEXT, pfarg_load_t *\fP\fIlargs\fP\fB, 1);\fP
+.fi
+Attacher le contexte à un thread.
+.TP 
+\fBPFM_UNLOAD_CONTEXT\fP
+.\" pfm_context_unload()
+.nf
+\fBperfmonctl(int \fP\fIfd\fP\fB, PFM_UNLOAD_CONTEXT, NULL, 0);\fP
+.fi
+Détacher le contexte d'un thread.
+.TP 
+\fBPFM_RESTART\fP
+.\" pfm_restart()
+.nf
+\fBperfmonctl(int \fP\fIfd\fP\fB, PFM_RESTART, NULL, 0);\fP
+.fi
+Redémarrer la surveillance après avoir reçu une notification de dépassement.
+.TP 
+\fBPFM_GET_FEATURES\fP
+.\" pfm_get_features()
+.nf
+\fBperfmonctl(int \fP\fIfd\fP\fB, PFM_GET_FEARURES, pfarg_features_t *\fP\fIarg\fP\fB, 1);\fP
+.fi
+.TP 
+\fBPFM_DEBUG\fP
+.\" pfm_debug()
+.nf
+\fBperfmonctl(int \fP\fIfd\fP\fB, PFM_DEBUG, \fP\fIval\fP\fB, 0);\fP
+.fi
+Si \fIval\fP est non nul, activer le mode de débogage, sinon le désactiver.
+.TP 
+\fBPFM_GET_PMC_RESET_VAL\fP
+.\" pfm_get_pmc_reset()
+.nf
+\fBperfmonctl(int \fP\fIfd\fP\fB, PFM_GET_PMC_RESET_VAL, pfarg_reg_t * \fP\fIreq\fP\fB, n);\fP
+.fi
+.\"
+.\"
+.\" .TP
+.\" .B PFM_CREATE_EVTSETS
+.\"
+.\" create or modify event sets
+.\" .nf
+.\" .BI  "perfmonctl(int " fd ", PFM_CREATE_EVTSETS, pfarg_setdesc_t *desc , n);
+.\" .fi
+.\" .TP
+.\" .B PFM_DELETE_EVTSETS
+.\" delete event sets
+.\" .nf
+.\" .BI  "perfmonctl(int " fd ", PFM_DELETE_EVTSET, pfarg_setdesc_t *desc , n);
+.\" .fi
+.\" .TP
+.\" .B PFM_GETINFO_EVTSETS
+.\" get information about event sets
+.\" .nf
+.\" .BI  "perfmonctl(int " fd ", PFM_GETINFO_EVTSETS, pfarg_setinfo_t *info, n);
+.\" .fi
+Réinitialiser les registres PMC aux valeurs par défaut.
+.SH "VALEUR RENVOYÉE"
+\fBperformctl\fP() renvoie zéro si l'opération réussit. En cas d'erreur, \-1 est
+renvoyé et \fIerrno\fP est définie pour indiquer la cause de l'erreur.
+.SH VERSIONS
+\fBperfmonctl\fP() est disponible depuis Linux\ 2.4.
+.SH CONFORMITÉ
+\fBperfmonctl\fP() est spécifique à Linux et n'est disponible que sur
+l'architecture IA\-64.
+.SH NOTES
+La glibc ne fournit pas de fonction autour de cet appel système\ ; utilisez
+\fBsyscall\fP(2) pour l'appeler.
+.SH "VOIR AUSSI"
+\fBgprof\fP(1)
+
+La spécification d'interface perfmon2
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

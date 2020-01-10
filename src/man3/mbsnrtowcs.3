@@ -1,0 +1,124 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MBSNRTOWCS 3 "1er octobre 2011" GNU "Manuel du programmeur Linux"
+.SH NOM
+mbsnrtowcs \- Convertir une séquence multi\-octets en chaîne de caractères
+larges
+.SH SYNOPSIS
+.nf
+\fB#include <wchar.h>\fP
+.sp
+\fBsize_t mbsnrtowcs(wchar_t *\fP\fIdest\fP\fB, const char **\fP\fIsrc\fP\fB,\fP
+\fB                  size_t \fP\fInms\fP\fB, size_t \fP\fIlen\fP\fB, mbstate_t *\fP\fIps\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBmbsnrtowcs\fP()\ :
+.PD 0
+.ad l
+.RS 4
+.TP  4
+Depuis la glibc 2.10\ :
+_XOPEN_SOURCE\ >=\ 700 || _POSIX_C_SOURCE\ >=\ 200809L
+.TP 
+Avant la glibc 2.10\ :
+_GNU_SOURCE
+.RE
+.ad
+.PD
+.SH DESCRIPTION
+La fonction \fBmbsnrtowcs\fP() est équivalente à la fonction \fBmbsrtowcs\fP(3),
+sauf qu'elle ne convertit qu'un nombre limité (à \fInms\fP) d'octets commençant
+en \fI*src\fP.
+.PP
+Si \fIdest\fP n'est pas un pointeur NULL, la fonction \fBmbsnrtowcs\fP() convertit
+au plus \fInms\fP octets depuis la séquence multi\-octets \fI*src\fP en une chaîne
+de caractères larges située dans \fIdest\fP. Au maximum \fIlen\fP caractères
+larges sont écrits dans \fIdest\fP. L'état de conversion \fI*ps\fP est mis à
+jour. La conversion est en fait réalisée en invoquant de façon répétée
+\fImbrtowc(dest, *src, n, ps)\fP, où \fIn\fP est un nombre positif, aussi
+longtemps que l'appel réussit, puis en incrémentant \fIdest\fP de un et en
+augmentant \fI*src\fP du nombre d'octets lus. La conversion peut s'arrêter pour
+trois raisons\ :
+.IP 1. 3
+Une séquence multi\-octets invalide a été rencontrée. Dans ce cas, \fI*src\fP
+pointera sur la séquence invalide, et la fonction renvoie \fI(size_t)\ \-1\fP en
+positionnant \fIerrno\fP à la valeur \fBEILSEQ\fP.
+.IP 2.
+L'arrêt est forcé à cause de la limite \fInms\fP, ou si \fIlen\fP caractères
+larges différents de L\(aq\e0\(aq ont été enregistrés en \fIdest\fP. Dans ce
+cas, \fI*src\fP pointe sur la séquence multi\-octets suivante, et le nombre de
+caractères larges écrits dans \fIdest\fP est renvoyé.
+.IP 3.
+La séquence multi\-octets a été complètement convertie, y compris le
+caractère nul (\(aq\e0\(aq) final (ce qui a pour effet de bord de ramener
+\fI*ps\fP à l'état initial). Dans ce cas, \fI*src\fP est mis à NULL, et le nombre
+de caractères écrits dans \fIdest\fP, moins le caractère large nul final, est
+renvoyé.
+.PP
+Si \fIdest\fP est NULL, alors \fIlen\fP est ignoré, et la conversion se déroule
+comme précédemment, sauf que les caractères convertis ne sont pas écrits en
+mémoire, et qu'aucune limite de destination n'est prise en compte.
+.PP
+Dans tous les cas, si \fIps\fP est un pointeur NULL, un état anonyme statique,
+réservé à la fonction \fBmbsnrtowcs\fP() est utilisé à sa place.
+.PP
+Le programmeur doit s'assurer qu'il y assez de place pour au moins \fIlen\fP
+caractères larges dans \fIdest\fP.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBmbsnrtowcs\fP() renvoie le nombre de caractères larges placés
+dans la zone convertie, sans compter le caractère nul final. Si une séquence
+multi\-octets invalide est rencontrée, la fonction renvoie \fI(size_t)\ \-1\fP,
+et \fIerrno\fP contient \fBEILSEQ\fP.
+.SH CONFORMITÉ
+POSIX.1\-2008.
+.SH NOTES
+Le comportement de \fBmbsnrtowcs\fP() dépend de la catégorie \fBLC_CTYPE\fP de la
+localisation en cours.
+.PP
+L'utilisation d'un pointeur NULL pour \fIps\fP n'est pas sûre dans un contexte
+multithread.
+.SH "VOIR AUSSI"
+\fBiconv\fP(3), \fBmbsrtowcs\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

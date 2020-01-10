@@ -1,0 +1,662 @@
+.\" Copyright (c) 1999 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" Earlier versions of this page influenced the present text.
+.\" It was derived from a Berkeley page with version
+.\"       @(#)printf.3    6.14 (Berkeley) 7/30/91
+.\" converted for Linux by faith@cs.unc.edu, updated by
+.\" Helmut.Geyer@iwr.uni-heidelberg.de, agulbra@troll.no and Bruno Haible.
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 1999-11-25 aeb - Rewritten, using SUSv2 and C99.
+.\" 2000-07-26 jsm28@hermes.cam.ac.uk - three small fixes
+.\" 2000-10-16 jsm28@hermes.cam.ac.uk - more fixes
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PRINTF 3 "5 mars 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+printf, fprintf, sprintf, snprintf, vprintf, vfprintf, vsprintf, vsnprintf \-
+Formatage des sorties
+.SH SYNOPSIS
+\fB#include <stdio.h>\fP
+.sp
+\fBint printf(const char *\fP\fIformat\fP\fB, ...);\fP
+.br
+\fBint fprintf(FILE *\fP\fIstream\fP\fB, const char *\fP\fIformat\fP\fB, ...);\fP
+.br
+\fBint sprintf(char *\fP\fIstr\fP\fB, const char *\fP\fIformat\fP\fB, ...);\fP
+.br
+\fBint snprintf(char *\fP\fIstr\fP\fB, size_t \fP\fIsize\fP\fB, const char *\fP\fIformat\fP\fB,
+\&...);\fP
+.sp
+\fB#include <stdarg.h>\fP
+.sp
+\fBint vprintf(const char *\fP\fIformat\fP\fB, va_list \fP\fIap\fP\fB);\fP
+.br
+\fBint vfprintf(FILE *\fP\fIstream\fP\fB, const char *\fP\fIformat\fP\fB, va_list
+\fP\fIap\fP\fB);\fP
+.br
+\fBint vsprintf(char *\fP\fIstr\fP\fB, const char *\fP\fIformat\fP\fB, va_list
+\fP\fIap\fP\fB);\fP
+.br
+\fBint vsnprintf(char *\fP\fIstr\fP\fB, size_t \fP\fIsize\fP\fB, const char
+*\fP\fIformat\fP\fB, va_list \fP\fIap\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBsnprintf\fP(), \fBvsnprintf\fP()\ :
+.RS 4
+_BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L
+.br
+ou \fIcc \-std=c99\fP
+.RE
+.ad
+.SH DESCRIPTION
+Les fonctions de la famille \fBprintf\fP() produisent des sorties en accord
+avec le \fIformat\fP décrit plus bas. Les fonctions \fBprintf\fP() et \fBvprintf\fP()
+écrivent leur sortie sur \fIstdout\fP, le flux de sortie standard. \fBfprintf\fP()
+et \fBvfprintf\fP() écrivent sur le flux \fIstream\fP indiqué. \fBsprintf\fP(),
+\fBsnprintf\fP(), \fBvsprintf\fP() et \fBvsnprintf\fP() écrivent leurs sorties dans
+la chaîne de caractères \fIstr\fP.
+.PP
+Les fonctions \fBsnprintf\fP() et \fBvsnprintf\fP() écrivent au plus \fIsize\fP
+octets (octet nul («\ \e0\ ») final compris) dans \fIstr\fP.
+.PP
+Les fonctions \fBvprintf\fP(), \fBvfprintf\fP(), \fBvsprintf\fP(), \fBvsnprintf\fP()
+sont équivalentes aux fonctions \fBprintf\fP(), \fBfprintf\fP(), \fBsprintf\fP(),
+\fBsnprintf\fP() respectivement, mais elles emploient un tableau \fIva_list\fP à
+la place d'un nombre variable d'arguments. Ces fonctions n'appellent pas la
+macro \fIva_end\fP. Du fait qu'elles appèlent la macro \fIva_arg\fP, la valeur de
+\fIap\fP n'est pas définie après l'appel. Consultez \fBstdarg\fP(3).
+.PP
+Ces huit fonctions créent leurs sorties sous le contrôle d'une chaîne de
+\fIformat\fP qui indique les conversions à apporter aux arguments suivants (ou
+accessibles à travers les arguments de taille variable de \fBstdarg\fP(3)).
+
+C99 et POSIX.1\-2001 spécifient que les résultats ne sont pas définis si un
+appel à \fBsprintf\fP(), \fBsnprintf\fP(), \fBvsprintf\fP() ou \fBvsnprintf\fP() causait
+la copie entre des objets qui se chevauchent (par exemple, si le tableau de
+la chaîne cible et un des paramètres d'entrée se trouvent dans le même
+tampon). Consultez la section NOTES.
+.SS "VALEUR RENVOYÉE"
+En cas de succès, ces fonctions renvoient le nombre de caractères affichés
+(sans compter l'octet nul final utilisé pour terminer les sorties dans les
+chaînes).
+
+Les fonctions \fBsnprintf\fP() et \fBvsnprintf\fP() n'écrivent pas plus de \fIsize\fP
+octets (y compris l'octet nul final). Si la sortie a été tronquée à cause de
+la limite, la valeur de retour est le nombre de caractères (octet nul final
+non compris) qui auraient été écrits dans la chaîne s'il y avait eu
+suffisamment de place. Ainsi, une valeur de retour \fIsize\fP ou plus signifie
+que la sortie a été tronquée (consultez aussi la section \fBNOTES\fP plus bas).
+
+Si une erreur de sortie s'est produite, une valeur négative est renvoyée.
+.SS "CHAÎNE DE FORMAT"
+Le format de conversion est indiqué par une chaîne de caractères, commençant
+et se terminant dans son état de décalage initial. La chaîne de format est
+composée d'indicateurs\ : les caractères ordinaires (différents de \fB%\fP),
+qui sont copiés sans modification sur la sortie, et les spécifications de
+conversion, qui sont mises en correspondance avec les arguments
+suivants. Les spécifications de conversion sont introduites par le caractère
+\fB%\fP, et se terminent par un \fIindicateur de conversion\fP. Entre eux peuvent
+se trouver (dans l'ordre), zéro ou plusieurs \fIattributs\fP, une valeur
+optionnelle de \fIlargeur minimal de champ\fP, une valeur optionnelle de
+\fIprécision\fP, et un éventuel \fImodificateur de longueur\fP.
+
+Les arguments doivent correspondre correctement (après les promotions de
+types) avec les indicateurs de conversion. Par défaut les arguments sont
+pris dans l'ordre indiqué, où chaque «\ *\ » et chaque indicateur de
+conversion réclament un nouvel argument (et où l'insuffisance en arguments
+est une erreur). On peut aussi préciser explicitement quel argument prendre,
+en écrivant, à chaque conversion, «\ %m$\ » au lieu de «\ %\ », et «\ *m$\ »
+au lieu de «\ *\ ». L'entier décimal m indique la position dans la liste
+d'arguments, l'indexation commençant à 1. Ainsi,
+.in +4n
+.nf
+
+printf("%*d", width, num);
+
+.fi
+.in
+et
+.in +4n
+.nf
+
+printf("%2$*1$d", width, num);
+
+.fi
+.in
+sont équivalents. La seconde notation permet de répéter plusieurs fois le
+même argument. Le standard C99 n'autorise pas le style utilisant «\ $\ »,
+qui provient des Spécifications Single UNIX. Si le style avec «\ $\ » est
+utilisé, il faut l'employer pour toutes conversions prenant un argument, et
+pour tous les arguments de largeur et de précision, mais on peut le mélanger
+avec des formats «\ %%\ » qui ne consomment pas d'arguments. Il ne doit pas
+y avoir de sauts dans les numéros des arguments spécifiés avec «\ $\ ». Par
+exemple, si les arguments 1 et 3 sont spécifiés, l'argument 2 doit aussi
+être mentionné quelque part dans la chaîne de format.
+
+Pour certaines conversions numériques, un caractère de séparation décimale
+(le point par défaut) est utilisé, ainsi qu'un caractère de regroupement par
+milliers. Les véritables caractères dépendent de la localisation
+\fBLC_NUMERIC\fP. La localisation POSIX utilise «\ .\ » comme séparateur
+décimal, et n'a pas de caractère de regroupement. Ainsi,
+.in +4n
+.nf
+
+    printf("%\(aq.2f", 1234567.89);
+
+.fi
+.in
+s'affichera comme «\ 1234567.89\ » dans la localisation POSIX, «\ 1\ 234\ 567,89\ » en localisation fr_FR, et «\ 1.234.567,89\ » en localisation da_DK.
+.SS "CARACTÈRE D'ATTRIBUT"
+Le caractère % peut être éventuellement suivi par un ou plusieurs attributs
+suivants\ :
+.TP 
+\fB#\fP
+indique que la valeur doit être convertie en une autre forme. Pour la
+conversion \fBo\fP le premier caractère de la chaîne de sortie vaudra zéro (en
+ajoutant un préfixe 0 si ce n'est pas déjà un zéro). Pour les conversions
+\fBx\fP et \fBX\fP une valeur non nulle reçoit le préfixe «\ 0x\ » (ou «\ 0X\ »
+pour l'indicateur \fBX\fP). Pour les conversions \fBa\fP, \fBA\fP, \fBe\fP, \fBE\fP, \fBf\fP,
+\fBF\fP, \fBg\fP, et \fBG\fP le résultat contiendra toujours un point décimal même si
+aucun chiffre ne le suit (normalement, un point décimal n'est présent avec
+ces conversions que si des décimales le suivent). Pour les conversions \fBg\fP
+et \fBG\fP les zéros en tête ne sont pas éliminés, contrairement au
+comportement habituel. Pour les autres conversions, cet attribut n'a pas
+d'effet.
+.TP 
+\fB\&0\fP
+indique le remplissage avec des zéros. Pour les conversions \fBd\fP, \fBi\fP,
+\fBo\fP, \fBu\fP, \fBx\fP, \fBX\fP, \fBa\fP, \fBA\fP, \fBe\fP, \fBE\fP, \fBf\fP, \fBF\fP, \fBg\fP, et \fBG\fP,
+la valeur est complétée à gauche avec des zéros plutôt qu'avec des
+espaces. Si les attributs \fB\&0\fP et \fB\-\fP apparaissent ensemble, l'attribut
+\fB\&0\fP est ignoré. Si une précision est fournie avec une conversion
+numérique (\fBd\fP, \fBi\fP, \fBo\fP, \fBu\fP, \fBx\fP, et \fBX\fP), l'attribut \fB\&0\fP est
+ignoré. Pour les autres conversions, le comportement est indéfini.
+.TP 
+\fB\-\fP
+indique que la valeur doit être justifiée sur la limite gauche du champ (par
+défaut elle l'est à droite). Sauf pour la conversion \fBn\fP, les valeurs sont
+complétées à droite par des espaces, plutôt qu'à gauche par des zéros ou des
+blancs. Un attribut \fB\-\fP surcharge un attribut \fB\&0\fP si les deux sont
+fournis.
+.TP 
+\fB\(aq \(aq\fP
+(un espace) indique qu'un espace doit être laissé avant un nombre positif
+(ou une chaîne vide) produit par une conversion signée
+.TP 
+\fB+\fP
+Un signe (+ ou \-) doit toujours être imprimé avant un nombre produit par une
+conversion signée. Par défaut, un signe n'est utilisé que pour des valeurs
+négatives. Un attribut \fB+\fP surcharge un attribut «\ espace\ » si les deux
+sont fournis.
+.PP
+Les cinq caractères d'attributs ci\-dessus sont définis dans le standard C,
+les spécifications SUSv2 en ajoute un\ :
+.TP 
+\fB\(aq\fP
+Pour les conversions décimales (\fBi\fP, \fBd\fP, \fBu\fP, \fBf\fP, \fBF\fP, \fBg\fP, \fBG\fP)
+indique que les chiffres d'un argument numérique doivent être groupés par
+milliers en fonction de la localisation. Remarquez que de nombreuses
+versions de \fBgcc\fP(1) n'acceptent pas cet attribut et déclencheront un
+avertissement (warning). SUSv2 n'inclue pas \fI%\(aqF\fP.
+.PP
+La glibc 2.2 ajoute un caractère d'attribut supplémentaire.
+.TP 
+\fBI\fP
+.\" outdigits keyword in locale file
+Pour les conversions décimales (\fBi\fP, \fBd\fP, \fBu\fP) la sortie emploie les
+chiffres alternatifs de la localisation s'il y en a. Par exemple, depuis la
+glibc 2.2.3, cela donnera des chiffres arabes pour la localisation perse («\ fa_IR\ »).
+.SS "LARGEUR DE CHAMP"
+Un nombre optionnel ne commençant pas par un zéro, peut indiquer une largeur
+minimale de champ. Si la valeur convertie occupe moins de caractères que
+cette largeur, elle sera complétée par des espaces à gauche (ou à droite si
+l'attribut d'alignement à gauche a été fourni). À la place de la chaîne
+représentant le nombre décimal, on peut écrire «\ *\ » ou «\ *m$\ » (m étant
+entier) pour indiquer que la largeur du champ est fournie dans l'argument
+suivant, ou dans le m\-ième argument, respectivement. L'argument fournissant
+la largeur doit être de type \fIint\fP. Une largeur négative est considéré
+comme l'attribut «\ \-\ » vu plus haut suivi d'une largeur positive. En aucun
+cas une largeur trop petite ne provoque la troncature du champ. Si le
+résultat de la conversion est plus grand que la largeur indiquée, le champ
+est élargi pour contenir le résultat.
+.SS PRÉCISION
+Une précision éventuelle, sous la forme d'un point («\ \&.\ ») suivi par un
+nombre. À la place de la chaîne représentant le nombre décimal, on peut
+écrire «\ *\ » ou «\ *m$\ » (m étant entier) pour indiquer que la précision
+est fournie dans l'argument suivant, ou dans le m\-ième argument,
+respectivement. L'argument fournissant la précision doit être de type
+\fIint\fP. Si la précision ne contient que le caractère «\ .\ », ou une valeur
+négative, elle est considérée comme nulle. Cette précision indique un nombre
+minimal de chiffres à faire apparaître lors des conversions \fBd\fP, \fBi\fP,
+\fBo\fP, \fBu\fP, \fBx\fP, et \fBX\fP, le nombre de décimales à faire apparaître pour
+les conversions \fBa\fP, \fBA\fP, \fBe\fP, \fBE\fP, \fBf\fP et \fBF\fP, le nombre maximal de
+chiffres significatifs pour \fBg\fP et \fBG\fP, et le nombre maximal de caractères
+à imprimer depuis une chaîne pour les conversions \fBs\fP et \fBS\fP.
+.SS "MODIFICATEUR DE LONGUEUR"
+Ici, une conversion entière correspond à \fBd\fP, \fBi\fP, \fBo\fP, \fBu\fP, \fBx\fP ou
+\fBX\fP.
+.TP 
+\fBhh\fP
+La conversion entière suivante correspond à un \fIsigned char\fP ou \fIunsigned
+char\fP, ou la conversion \fBn\fP suivante correspond à un argument pointeur sur
+un \fIsigned char\fP.
+.TP 
+\fBh\fP
+La conversion entière suivante correspond à un \fIshort int\fP ou \fIunsigned
+short int\fP, ou la conversion \fBn\fP suivante correspond à un argument pointeur
+sur un \fIshort int\fP.
+.TP 
+\fBl\fP
+(elle) La conversion entière suivante correspond à un \fIlong int\fP ou
+\fIunsigned long int\fP, ou la conversion \fBn\fP suivante correspond à un
+pointeur sur un \fIlong int\fP, ou la conversion \fBc\fP suivante correspond à un
+argument \fIwint_t\fP, ou encore la conversion \fBs\fP suivante correspond à un
+pointeur sur un \fIwchar_t\fP.
+.TP 
+\fBll\fP
+(elle\-elle) La conversion entière suivante correspond à un \fIlong long int\fP,
+ou \fIunsigned long long int\fP, ou la conversion \fBn\fP suivante correspond à un
+pointeur sur un \fIlong long int\fP.
+.TP 
+\fBL\fP
+La conversion \fBa\fP, \fBA\fP, \fBe\fP, \fBE\fP, \fBf\fP, \fBF\fP, \fBg\fP, ou \fBG\fP suivante
+correspond à un argument \fIlong double\fP (C99 autorise %LF mais pas SUSv2).
+.TP 
+\fBq\fP
+(«\ quad\ » BSD\ 4.4 et Linux sous libc5 seulement, ne pas utiliser) Il
+s'agit d'un synonyme pour \fBll\fP.
+.TP 
+\fBj\fP
+La conversion entière suivante correspond à un argument \fIintmax_t\fP ou
+\fIuintmax_t\fP.
+.TP 
+\fBz\fP
+La conversion entière suivante correspond à un argument \fIsize_t\fP ou
+\fIssize_t\fP (la bibliothèque libc5 de Linux proposait l'argument \fBZ\fP pour
+cela, ne pas utiliser).
+.TP 
+\fBt\fP
+La conversion entière suivante correspond à un argument \fIptrdiff_t\fP.
+.PP
+Les spécifications SUSv2 ne mentionnent que les modificateurs de longueur
+\fBh\fP (dans \fBhd\fP, \fBhi\fP, \fBho\fP, \fBhx\fP, \fBhX\fP, \fBhn\fP), \fBl\fP (dans \fBld\fP,
+\fBli\fP, \fBlo\fP, \fBlx\fP, \fBlX\fP, \fBln\fP, \fBlc\fP, \fBls\fP) et \fBL\fP (dans \fBLe\fP, \fBLE\fP,
+\fBLf\fP, \fBLg\fP, \fBLG\fP).
+.SS "INDICATEUR DE CONVERSION"
+Un caractère indique le type de conversion à apporter. Les indicateurs de
+conversion, et leurs significations sont\ :
+.TP 
+\fBd\fP, \fBi\fP
+L'argument \fIint\fP est converti en un chiffre décimal signé. La précision, si
+elle est mentionnée, correspond au nombre minimal de chiffres qui doivent
+apparaître. Si la conversion fournit moins de chiffres, le résultat est
+rempli à gauche avec des zéros. Par défaut la précision vaut 1. Lorsque 0
+est converti avec une précision valant 0, la sortie est vide.
+.TP 
+\fBo\fP, \fBu\fP, \fBx\fP, \fBX\fP
+L'argument \fIunsigned int\fP est converti en un chiffre octal non signé
+(\fBo\fP), un chiffre décimal non signé (\fBu\fP), un chiffre hexadécimal non
+signé (\fBx\fP et \fBX\fP). Les lettres \fBabcdef\fP sont utilisées pour les
+conversions avec \fBx\fP, les lettres \fBABCDEF\fP sont utilisées pour les
+conversions avec \fBX\fP. La précision, si elle est indiquée, donne un nombre
+minimal de chiffres à faire apparaître. Si la valeur convertie nécessite
+moins de chiffres, elle est complétée à gauche avec des zéros. La précision
+par défaut vaut 1. Lorsque 0 est converti avec une précision valant 0, la
+sortie est vide.
+.TP 
+\fBe\fP, \fBE\fP
+L'argument réel, de type \fIdouble\fP, est arrondi et présenté avec la notation
+scientifique [\-]c\fB\&.\fPccc\fBe\fP\(+-cc dans lequel se trouve un chiffre avant
+le point, puis un nombre de décimales égal à la précision demandée. Si la
+précision n'est pas indiquée, l'affichage contiendra 6\ décimales. Si la
+précision vaut zéro, il n'y a pas de point décimal. Une conversion \fBE\fP
+utilise la lettre \fBE\fP (plutôt que \fBe\fP) pour introduire
+l'exposant. Celui\-ci contient toujours au moins deux chiffres. Si la valeur
+affichée est nulle, son exposant est 00.
+.TP 
+\fBf\fP, \fBF\fP
+L'argument réel, de type \fIdouble\fP, est arrondi, et présenté avec la
+notation classique [\-]ccc\fB\&.\fPccc, où le nombre de décimales est égal à la
+précision réclamée. Si la précision n'est pas indiquée, l'affichage se fera
+avec 6 décimales. Si la précision vaut zéro, aucun point n'est
+affiché. Lorsque le point est affiché, il y a toujours au moins un chiffre
+devant.
+
+SUSv2 ne mentionne pas \fBF\fP et dit qu'il existe une chaîne de caractères
+représentant l'infini ou NaN. Le standard C99 précise «\ [\-]inf\ » ou «\ [\-]infinity\ » pour les infinis, et une chaîne commençant par «\ nan\ » pour
+NaN dans le cas d'une conversion \fBf\fP, et les chaînes «\ [\-]INF\ » «\ [\-]INFINITY\ » «\ NAN*\ » pour une conversion \fBF\fP.
+.TP 
+\fBg\fP, \fBG\fP
+L'argument réel, de type \fIdouble\fP, est converti en style \fBf\fP ou \fBe\fP (ou
+\fBF\fP ou \fBE\fP pour la conversion \fBG\fP) La précision indique le nombre de
+décimales significatives. Si la précision est absente, une valeur par défaut
+de 6 est utilisée. Si la précision vaut 0, elle est considérée comme valant
+1. La notation scientifique \fBe\fP est utilisée si l'exposant est inférieur à
+\-4 ou supérieur ou égal à la précision demandée. Les zéros en fin de partie
+décimale sont supprimés. Un point décimal n'est affiché que s'il est suivi
+d'au moins un chiffre.
+.TP 
+\fBa\fP, \fBA\fP
+(C99 mais pas SUSv2). Pour la conversion \fBa\fP, l'argument de type \fIdouble\fP
+est transformé en notation hexadécimale (avec les lettres abcdef)
+[\-]\fB0x\fPh\fB\&.\fPhhhh\fBp\fP\(+-\ ; pour la conversion \fBA\fP, le préfixe \fB0X\fP, les
+lettres ABCDEF et le séparateur d'exposant \fBP\fP sont utilisés. Il y a un
+chiffre hexadécimal avant la virgule, et le nombre de chiffres ensuite est
+égal à la précision. La précision par défaut suffit pour une représentation
+exacte de la valeur, si une représentation exacte est possible en
+base\ 2. Sinon, elle est suffisamment grande pour distinguer les valeurs de
+type \fIdouble\fP. Le chiffre avant le point décimal n'est pas spécifié pour
+les nombres non normalisés, et il est non nul pour les nombres normalisés.
+.TP 
+\fBc\fP
+S'il n'y a pas de modificateur \fBl\fP, l'argument entier, de type \fIint\fP, est
+converti en un \fIunsigned char\fP, et le caractère correspondant est
+affiché. Si un modificateur \fBl\fP est présent, l'argument de type \fIwint_t\fP
+(caractère large) est converti en séquence multioctet par un appel à
+\fBwcrtomb\fP(3), avec un état de conversion débutant dans l'état initial. La
+chaîne multioctet résultante est écrite.
+.TP 
+\fBs\fP
+S'il n'y a pas de modificateur \fBl\fP, l'argument de type \fIconst char\ *\fP est
+supposé être un pointeur sur un tableau de caractères (pointeur sur une
+chaîne). Les caractères du tableau sont écrits jusqu'à l'octet nul («\ \e0\ »)
+final, non compris. Si une précision est indiquée, seul ce nombre de
+caractères sont écrits. Si une précision est fournie, il n'y a pas besoin de
+caractère nul. Si la précision n'est pas donnée, ou si elle est supérieure à
+la longueur de la chaîne, le caractère nul final est nécessaire.
+
+Si un modificateur \fBl\fP est présent, l'argument de type \fIconst wchar_t\ *\fP
+est supposé être un pointeur sur un tableau de caractères larges. Les
+caractères larges du tableau sont convertis en une séquence de caractères
+multioctet (chacun par un appel de \fBwcrtomb\fP(3), avec un état de conversion
+dans l'état initial avant le premier caractère large), ceci jusqu'au
+caractère large nul final compris. Les caractères multioctet résultants sont
+écris jusqu'à l'octet nul final (non compris). Si une précision est fournie,
+il n'y a pas plus d'octets écrits que la précision indiquée, mais aucun
+caractère multioctet n'est écrit partiellement. Remarquez que la précision
+concerne le nombre d'\fIoctets\fP écrits, et non pas le nombre de \fIcaractères
+larges\fP ou de \fIpositions d'écrans\fP. La chaîne doit contenir un caractère
+large nul final, sauf si une précision est indiquée, suffisamment petite
+pour que le nombre d'octets écrits la remplisse avant la fin de la chaîne.
+.TP 
+\fBC\fP
+(dans SUSv2 mais pas dans C99) Synonyme de \fBlc\fP. Ne pas utiliser.
+.TP 
+\fBS\fP
+(dans SUSv2 mais pas dans C99) Synonyme de \fBls\fP. Ne pas utiliser.
+.TP 
+\fBp\fP
+L'argument pointeur, du type \fIvoid\ *\fP est affiché en hexadécimal, comme
+avec \fB%#x\fP ou \fB%#lx\fP.
+.TP 
+\fBn\fP
+Le nombre de caractères déjà écrits est stocké dans l'entier indiqué par
+l'argument pointeur de type \fIint\ *\fP. Aucun argument n'est converti.
+.TP 
+\fBm\fP
+(extension glibc) Affiche la sortie \fIstrerror(errno)\fP. Aucun argument n'est
+requis.
+.TP 
+\fB%\fP
+Un caractère «\ %\ » est écrit. Il n'y a pas de conversion. L'indicateur
+complet est «\ %%\ ».
+.SH CONFORMITÉ
+Les fonctions \fBfprintf\fP(), \fBprintf\fP(), \fBsprintf\fP(), \fBvprintf\fP(),
+\fBvfprintf\fP() et \fBvsprintf\fP() sont conformes à C89 et C99. Les fonctions
+\fBsnprintf\fP() et \fBvsnprintf\fP() sont conformes à C99.
+.PP
+En ce qui concerne la valeur de retour de \fBsnprintf\fP(), SUSv2 et C99 sont
+en contradiction\ : lorsque \fBsnprintf\fP() est appelée avec un argument
+\fIsize\fP=\fI0\fP SUSv2 précise une valeur de retour indéterminée, inférieure à
+1, alors que C99 autorise \fIstr\fP à être NULL dans ce cas, et réclame en
+valeur de retour (comme toujours) le nombre de caractères qui auraient été
+écrits si la chaîne de sortie avait été assez grande.
+.PP
+La bibliothèque libc4 de Linux connaissait les 5 attributs standards du
+C. Elle connaissait les modificateurs de longueur \fBh\fP, \fBl\fP, \fBL\fP et les
+conversions \fBc\fP, \fBd\fP, \fBe\fP, \fBE\fP, \fBf\fP, \fBF\fP, \fBg\fP, \fBG\fP, \fBi\fP, \fBn\fP,
+\fBo\fP, \fBp\fP, \fBs\fP, \fBu\fP, \fBx\fP et \fBX\fP, où \fBF\fP était synonyme de \fBf\fP. De
+plus, elle acceptait \fBD\fP, \fBO\fP et \fBU\fP comme synonymes de \fBld\fP, \fBlo\fP et
+\fBlu\fP (ce qui causa de sérieux bogues par la suite lorsque le support de
+\fB%D\fP disparut). Il n'y avait pas de séparateur décimal dépendant de la
+localisation, pas de séparateur des milliers, pas de NaN ou d'infinis, et
+pas de «\ %m$\ » ni «\ *m$\ ».
+.PP
+La bibliothèque libc5 de Linux connaissait les 5 attributs standards C,
+l'attribut «\ \(aq\ », la localisation, «\ %m$\ » et «\ *m$\ ». Elle connaissait
+les modificateurs de longueur \fBh\fP, \fBl\fP, \fBL\fP, \fBZ\fP et \fBq\fP, mais acceptait
+\fBL\fP et \fBq\fP pour les \fIlong double\fP et les \fIlong long int\fP (ce qui est un
+bogue). Elle ne reconnaissait plus \fBF\fP, \fBD\fP, \fBO\fP et \fBU\fP, mais ajoutait
+le caractère de conversion \fBm\fP, qui affiche \fIstrerror(errno)\fP.
+.PP
+La bibliothèque glibc 2.0 ajouta les caractères de conversion \fBC\fP et \fBS\fP.
+.PP
+La bibliothèque glibc 2.1 ajouta les modificateurs de longueur \fBhh\fP, \fBt\fP
+et \fBz\fP, et les caractères de conversion \fBa\fP et \fBA\fP.
+.PP
+La bibliothèque glibc 2.2. ajouta le caractère de conversion \fBF\fP avec la
+sémantique C99, et le caractère d'attribut \fBI\fP.
+.SH NOTES
+Certains programmes reposent imprudemment sur du code comme\ :
+
+    sprintf(buf, "%s some further text", buf);
+
+.\" http://sourceware.org/bugzilla/show_bug.cgi?id=7075
+pour ajouter du texte à \fIbuf\fP. Cependant, les normes indiquent
+explicitement que le résultat n'est pas défini si les tampons de source et
+de destination se recouvrent lors d'un appel à \fBsprintf\fP(), \fBsnprintf\fP(),
+\fBvsprintf\fP() et \fBvsnprintf\fP(). En fonction de la version de \fBgcc\fP(1)
+utilisée et des options de compilation, ces appels ne produiront \fBpas\fP le
+résultat attendu.
+
+.\" .SH HISTORY
+.\" UNIX V7 defines the three routines
+.\" .BR printf (),
+.\" .BR fprintf (),
+.\" .BR sprintf (),
+.\" and has the flag \-, the width or precision *, the length modifier l,
+.\" and the conversions doxfegcsu, and also D,O,U,X as synonyms for ld,lo,lu,lx.
+.\" This is still true for 2.9.1BSD, but 2.10BSD has the flags
+.\" #, + and <space> and no longer mentions D,O,U,X.
+.\" 2.11BSD has
+.\" .BR vprintf (),
+.\" .BR vfprintf (),
+.\" .BR vsprintf (),
+.\" and warns not to use D,O,U,X.
+.\" 4.3BSD Reno has the flag 0, the length modifiers h and L,
+.\" and the conversions n, p, E, G, X (with current meaning)
+.\" and deprecates D,O,U.
+.\" 4.4BSD introduces the functions
+.\" .BR snprintf ()
+.\" and
+.\" .BR vsnprintf (),
+.\" and the length modifier q.
+.\" FreeBSD also has functions
+.\" .BR asprintf ()
+.\" and
+.\" .BR vasprintf (),
+.\" that allocate a buffer large enough for
+.\" .BR sprintf ().
+.\" In glibc there are functions
+.\" .BR dprintf ()
+.\" and
+.\" .BR vdprintf ()
+.\" that print to a file descriptor instead of a stream.
+L'implémentation des fonctions \fBsnprintf\fP() et \fBvsnprintf\fP() de la glibc
+se conforme au standard C99, et se comporte comme décrit plus haut depuis la
+glibc 2.1. Jusqu'à la glibc 2.0.6, elles renvoyaient \-1 si la sortie avait
+été tronquée.
+.SH BOGUES
+Comme \fBsprintf\fP() et \fBvsprintf\fP() ne font pas de suppositions sur la
+longueur des chaînes, le programme appelant doit s'assurer de ne pas
+déborder l'espace d'adressage. C'est souvent difficile. Notez que la
+longueur des chaînes peut varier avec la localisation et être difficilement
+prévisible. Il faut alors utiliser \fBsnprintf\fP() ou \fBvsnprintf\fP() à la
+place (ou encore \fBasprintf\fP(3) et \fBvasprintf\fP(3)).
+.PP
+La libc4.[45] de Linux n'avait pas \fBsnprintf\fP(), mais proposait une
+bibliothèque libbsd qui contenait un \fBsnprintf\fP() équivalent à
+\fBsprintf\fP(), c'est\-à\-dire qui ignorait l'argument \fIsize\fP. Ainsi,
+l'utilisation de \fBsnprintf\fP() avec les anciennes libc4 pouvait conduire à
+de sérieux problèmes de sécurité.
+.PP
+.\" .PP
+.\" Some floating-point conversions under early libc4
+.\" caused memory leaks.
+Un code tel que \fBprintf(\fP\fIfoo\fP\fB);\fP indique souvent un bogue, car \fIfoo\fP
+peut contenir un caractère «\ %\ ». Si \fIfoo\fP vient d'une saisie non
+sécurisée, il peut contenir \fB%n\fP, ce qui autorise \fBprintf\fP() à écrire dans
+la mémoire, et crée une faille de sécurité.
+.SH EXEMPLE
+Pour afficher \fIPi\fP avec cinq décimales\ :
+.in +4n
+.nf
+
+#include <math.h>
+#include <stdio.h>
+fprintf (stdout, "pi = %.5f\en", 4 * atan (1.0));
+.fi
+.in
+.PP
+Pour afficher une date et une heure sous la forme «\ Sunday, July 3, 23:15\ », ou \fIjour_semaine\fP et \fImois\fP sont des pointeurs sur des chaînes\ :
+.in +4n
+.nf
+
+#include <stdio.h>
+fprintf(stdout, "%s, %s %d, %.2d:%.2d\en",
+        jour_semaine, mois, jour, heure, minute);
+.fi
+.in
+.PP
+De nombreux pays utilisent un format de date différent, comme
+jour\-mois\-année. Une version internationale doit donc être capable
+d'afficher les arguments dans l'ordre indiqué par le format\ :
+.in +4n
+.nf
+
+#include <stdio.h>
+fprintf(stdout, format,
+        jour_semaine, mois, jour, heure, min);
+
+.fi
+.in
+où le \fIformat\fP dépend de la localisation et peut permuter les
+arguments. Avec la valeur\ :
+.in +4n
+.nf
+
+"%1$s, %3$d. %2$s, %4$d:%5$.2d\en"
+
+.fi
+.in
+On peut obtenir «\ Dimanche, 3 Juillet, 23:15\ ».
+.PP
+Pour allouer une chaîne de taille suffisante et écrire dedans (code correct
+aussi bien pour glibc 2.0 que glibc 2.1)\ :
+.PP
+En cas de troncature dans les versions de glibc avant 2.0.6, c'est traité
+comme une erreur au lieu d'être traité de façon élégante.
+.nf
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+
+char *
+make_message(const char *fmt, ...)
+{
+    int n;
+    int size = 100; /* Supposons que nous n'avons pas besoin de plus de 100 octets */
+    char *p, *np;
+    va_list ap;
+
+    if ((p = malloc(size)) == NULL)
+        return NULL;
+
+    while (1) {
+
+        /* Essayons d'écrire dans l'espace alloué */
+
+        va_start(ap, fmt);
+        n = vsnprintf(p, size, fmt, ap);
+        va_end(ap);
+
+        /* Vérifie le code d'erreur */
+
+        if (n < 0)
+            return NULL;
+
+        /* Si cela fonctionne, renvoie la chaîne */
+
+        if (n < size)
+            return p;
+
+        /* Sinon, essayons encore avec plus de place */
+
+        size = n + 1;       /* Exactement ce qui est nécessaire */
+
+
+        if ((np = realloc (p, size)) == NULL) {
+            free(p);
+            return NULL;
+        } else {
+            p = np;
+        }
+    }
+}
+.fi
+.SH "VOIR AUSSI"
+\fBprintf\fP(1), \fBasprintf\fP(3), \fBdprintf\fP(3), \fBscanf\fP(3), \fBsetlocale\fP(3),
+\fBwcrtomb\fP(3), \fBwprintf\fP(3), \fBlocale\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

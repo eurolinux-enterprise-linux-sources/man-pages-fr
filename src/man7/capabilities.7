@@ -1,0 +1,863 @@
+.\" Copyright (c) 2002 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 6 Aug 2002 - Initial Creation
+.\" Modified 2003-05-23, Michael Kerrisk, <mtk.manpages@gmail.com>
+.\" Modified 2004-05-27, Michael Kerrisk, <mtk.manpages@gmail.com>
+.\" 2004-12-08, mtk Added O_NOATIME for CAP_FOWNER
+.\" 2005-08-16, mtk, Added CAP_AUDIT_CONTROL and CAP_AUDIT_WRITE
+.\" 2008-07-15, Serge Hallyn <serue@us.bbm.com>
+.\"     Document file capabilities, per-process capability
+.\"     bounding set, changed semantics for CAP_SETPCAP,
+.\"     and other changes in 2.6.2[45].
+.\"     Add CAP_MAC_ADMIN, CAP_MAC_OVERRIDE, CAP_SETFCAP.
+.\" 2008-07-15, mtk
+.\"     Add text describing circumstances in which CAP_SETPCAP
+.\"     (theoretically) permits a thread to change the
+.\"     capability sets of another thread.
+.\"     Add section describing rules for programmatically
+.\"     adjusting thread capability sets.
+.\"     Describe rationale for capability bounding set.
+.\"     Document "securebits" flags.
+.\"     Add text noting that if we set the effective flag for one file
+.\"     capability, then we must also set the effective flag for all
+.\"     other capabilities where the permitted or inheritable bit is set.
+.\" 2011-09-07, mtk/Serge hallyn: Add CAP_SYSLOG
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CAPABILITIES 7 "17 avril 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+capabilities \- Présentation des capacités Linux
+.SH DESCRIPTION
+Pour vérifier les permissions, les implémentations UNIX traditionnelles
+distinguent deux catégories de processus\ : les processus \fIprivilégiés\fP
+(dont l'UID effectif est 0, appelé superutilisateur ou root), et les
+processus \fInon privilégiés\fP (dont l'UID effectif est non\-nul). Les
+processus privilégiés contournent les vérifications de permissions du noyau,
+alors que les processus non\-privilégiés sont soumis à une vérification
+complète basée sur l'identification du processus (habituellement\ : UID
+effectif, GID effectif, et liste des groupes).
+
+.\"
+À partir du noyau\ 2.2, Linux propose un mécanisme (encore incomplet) de
+\fIcapacités\fP, qui scinde les privilèges traditionnellement associés au
+superutilisateur en unités distinctes que l'on peut activer ou inhiber
+individuellement. Les capacités sont des attributs individuels à chaque
+thread.
+.SS "Liste des capacités"
+La liste suivante indique les capacités implémentées sous Linux et les
+opérations ou comportements que chaque capacité permet\ :
+.TP 
+\fBCAP_AUDIT_CONTROL\fP (depuis Linux\ 2.6.11)
+Activer et désactiver l'audit du noyau\ ; changer les règles de filtrage
+d'audit\ ; accéder à l'état de l'audit, et aux règles de filtrage.
+.TP 
+\fBCAP_AUDIT_WRITE\fP (depuis Linux\ 2.6.11)
+Écrire des enregistrements dans le journal d'audit du noyau.
+.TP 
+\fBCAP_BLOCK_SUSPEND\fP (depuis Linux\ 3.5)
+Utiliser des fonctionnalités qui peuvent bloquer la mise en veille du
+système (\fBepoll\fP(7) \fBEPOLLWAKEUP\fP, \fI/proc/sys/wake_lock\fP).
+.TP 
+\fBCAP_CHOWN\fP
+Effectuer toute modification des UID et GID de fichiers (consultez
+\fBchown\fP(2)).
+.TP 
+\fBCAP_DAC_OVERRIDE\fP
+Contourne les permissions de lecture, écriture et exécution. (DAC est
+l'abréviation de «\ discretionary access control\ », contrôle d'accès à
+volonté).
+.TP 
+\fBCAP_DAC_READ_SEARCH\fP
+Contourne les permissions de lecture de fichiers et celles de lecture et
+exécution des répertoires.
+.TP 
+\fBCAP_FOWNER\fP
+.PD 0
+.RS
+.IP * 2
+Contourne les vérifications pour les opérations qui demandent que le FS\-UID
+du processus corresponde à l'UID du fichier (par exemple \fBchmod\fP(2),
+\fButime\fP(2)), à l'exclusion des opérations couvertes par \fBCAP_DAC_OVERRIDE\fP
+et \fBCAP_DAC_READ_SEARCH\fP\ ;
+.IP *
+positionner les attributs de fichier étendus (consultez \fBchattr\fP(1)) pour
+n'importe quel fichier\ ;
+.IP *
+positionner les listes de contrôle d'accès ACL («\ Access Control Lists\ »)
+pour n'importe quel fichier\ ;
+.IP *
+ignorer le bit sticky des répertoires pour les suppressions de fichier\ ;
+.IP *
+spécifier \fBO_NOATIME\fP dans \fBopen\fP(2) et \fBfcntl\fP(2) pour n'importe quel
+fichier.
+.RE
+.PD
+.TP 
+\fBCAP_FSETID\fP
+Ne pas effacer les bits de permission Set\-UID et Set\-GID quand un fichier
+est modifié\ ; positionner le bit Set\-GID sur un fichier dont le GID ne
+correspond à aucun GID du processus appelant.
+.TP 
+\fBCAP_IPC_LOCK\fP
+.\" FIXME As at Linux 3.2, there are some strange uses of this capability
+.\" in other places; they probably should be replaced with something else.
+Verrouiller des pages mémoire (\fBmlock\fP(2), \fBmlockall\fP(2), \fBmmap\fP(2),
+\fBshmctl\fP(2)).
+.TP 
+\fBCAP_IPC_OWNER\fP
+Contourne les vérifications pour les opérations sur les IPC System\ V.
+.TP 
+\fBCAP_KILL\fP
+.\" FIXME CAP_KILL also has an effect for threads + setting child
+.\"       termination signal to other than SIGCHLD: without this
+.\"       capability, the termination signal reverts to SIGCHLD
+.\"       if the child does an exec().  What is the rationale
+.\"       for this?
+Contourne les vérifications pour l'émission de signaux (consultez
+\fBkill\fP(2)). Cela inclut l'utilisation de l'\fBioctl\fP(2) \fBKDSIGACCEPT\fP.
+.TP 
+\fBCAP_LEASE\fP (depuis Linux\ 2.4)
+Demander des baux sur n'importe quel fichier (consultez \fBfcntl\fP(2)).
+.TP 
+\fBCAP_LINUX_IMMUTABLE\fP
+.\" These attributes are now available on ext2, ext3, Reiserfs, XFS, JFS
+Positionner les attributs d'inœuds \fBFS_APPEND_FL\fP et \fBFS_IMMUTABLE_FL\fP
+(consultez \fBchattr\fP(1)).
+.TP 
+\fBCAP_MAC_ADMIN\fP (depuis Linux\ 2.6.25)
+Surcharger les contrôles d'accès MAC («\ Mandatory Access
+Control\ »). Implémentée pour le module de sécurité (LSM\ : «\ Linux Security
+Module\ ») Smack.
+.TP 
+\fBCAP_MAC_OVERRIDE\fP (depuis Linux\ 2.6.25)
+Permettre les modifications de la configuration ou des états
+MAC. Implémentée pour le LSM Smack.
+.TP 
+\fBCAP_MKNOD\fP (depuis Linux\ 2.4)
+Créer des fichiers spéciaux avec \fBmknod\fP(2).
+.TP 
+\fBCAP_NET_ADMIN\fP
+Effectuer diverses opérations liées au réseau\ :
+.PD 0
+.RS
+.IP * 2
+configuration des interfaces\ ;
+.IP *
+administration du pare\-feu, de la traduction d'adresse IP («\ masquerading\ »)
+et collection de données sur le trafic réseau («\ accounting\ »)\ ;
+.IP *
+modification des tables de routages\ ;
+.IP *
+attachement à n'importe quelle adresse pour un service mandataire
+transparent\ ;
+.IP *
+sélection du type de service («\ TOS\ »)\ ;
+.IP *
+effacement des statistiques du pilote\ ;
+.IP *
+sélection du mode «\ promiscuité\ »\ ;
+.IP *
+activation de la diffusion multipoint («\ multicast\ »)\ ;
+.IP *
+utiliser \fBsetsockopt\fP(2) pour définir les options de sockets suivantes\ :
+\fBSO_DEBUG\fP, \fBSO_MARK\fP, \fBSO_PRIORITY\fP (pour une priorité en dehors des
+valeurs de 0 à 6), \fBSO_RCVBUFFORCE\fP et \fBSO_SNDBUFFORCE\fP.
+.RE
+.PD
+.TP 
+\fBCAP_NET_BIND_SERVICE\fP
+Attacher une socket sur un port privilégié (numéro de port inférieur à
+1024).
+.TP 
+\fBCAP_NET_BROADCAST\fP
+(Inutilisé) Broadcaster et écouter en multicast avec des sockets.
+.TP 
+\fBCAP_NET_RAW\fP
+.PD 0
+.RS
+.IP * 2
+utiliser des sockets RAW et PACKET\ ;
+.IP *
+attacher à n'importe quelle adresse pour un service mandataire transparent.
+.RE
+.PD
+.\" Also various IP options and setsockopt(SO_BINDTODEVICE)
+.TP 
+\fBCAP_SETGID\fP
+Effectuer toute manipulation des GID du processus et de la liste de groupes
+supplémentaires, utiliser de faux GID sur les socket UNIX.
+.TP 
+\fBCAP_SETFCAP\fP (depuis Linux\ 2.6.24)
+Définir des capacités de fichier
+.TP 
+\fBCAP_SETPCAP\fP
+Si les capacités de fichier sont prises en charge\ : autoriser ou interdire
+toute capacité dans l'ensemble des capacités permises à l'appelant vers ou
+depuis tout autre processus. (Cette propriété de \fBCAP_SETPCAP\fP n'est pas
+disponible quand le noyau est configuré pour prendre en charge les capacité
+de fichiers, puisque \fBCAP_SETPCAP\fP a une toute autre sémantique pour ces
+noyaux)
+
+Si les capacités de fichier sont prises en charge\ : ajouter toute capacité
+de l'ensemble de limitation de capacités du thread appelant à son ensemble
+hérité\ ; supprimer les capacités de l'ensemble de limitation de capacités
+(avec \fBprctl\fP(2) \fBPR_CAPBSET_DROP\fP)\ ; modifier l'attribut \fIsecurebits\fP.
+.TP 
+\fBCAP_SETUID\fP
+.\" FIXME CAP_SETUID also an effect in exec(); document this.
+Effectuer toute manipulation des UID de processus (\fBsetuid\fP(2),
+\fBsetreuid\fP(2), \fBsetresuid\fP(2), \fBsetfsuid\fP(2))\ ; transmettre un faux UID
+sur une socket dans le domaine UNIX.
+.TP 
+\fBCAP_SYS_ADMIN\fP
+.PD 0
+.RS
+.IP * 2
+Effectuer certaines opérations d'administration comme\ : \fBquotactl\fP(2),
+\fBmount\fP(2), \fBumount\fP(2), \fBswapon\fP(2), \fBswapoff\fP(2), \fBsethostname\fP(2) et
+\fBsetdomainname\fP(2)\ ;
+.IP *
+effectuer des opérations \fBsyslog\fP(2) nécessitant des droits (depuis
+Linux\ 2.6.37, \fBCAP_SYSLOG\fP doit être utilisée pour permettre de telles
+opérations)\ ;
+.IP *
+effectuer une commande \fBVM86_REQUEST_IRQ\fP \fBvm86\fP(2)\ ;
+.IP *
+effectuer des opérations \fBIPC_SET\fP et \fBIPC_RMID\fP sur n'importe quel objet
+IPC System\ V\ ;
+.IP *
+effectuer des opérations sur les attributs étendus \fItrusted\fP et \fIsecurity\fP
+(consultez \fBattr\fP(5))\ ;
+.IP *
+utiliser \fBlookup_dcookie\fP(2)\ ;
+.IP *
+utiliser \fBioprio_set\fP(2) pour configurer une classe d'ordonnancement
+\fBIOPRIO_CLASS_RT\fP (avant Linux\ 2.6.25) et \fBIOPRIO_CLASS_IDLE\fP\ ;
+.IP *
+forger des identifiants d'utilisateur lors du passage de références de
+sockets\ ;
+.IP *
+dépasser \fI/proc/sys/fs/file\-max\fP, la limite système du nombre de fichiers
+ouverts, dans les appels système qui ouvrent des fichiers (c'est\-à\-dire
+\fBaccept\fP(2), \fBexecve\fP(2), \fBopen\fP(2) et \fBpipe\fP(2))\ ;
+.IP *
+utiliser les attributs \fBCLONE_*\fP qui créent de nouveaux espaces de nom avec
+\fBclone\fP(2) et \fBunshare\fP(2)\ ;
+.IP *
+appeler \fBperf_event_open\fP(2)\ ;
+.IP *
+accéder aux informations d'événements \fIperf\fP nécessitant des droits\ ;
+.IP *
+appeler \fBsetns\fP(2)\ ;
+.IP *
+appeler \fBfanotify_init\fP(2)\ ;
+.IP *
+effectuer des opérations \fBkeyctl\fP(2) \fBKEYCTL_CHOWN\fP et \fBKEYCTL_SETPERM\fP\ ;
+.IP *
+effectuer une opération \fBmadvise\fP(2) \fBMADV_HWPOISON\fP\ ;
+.IP *
+utiliser la commande \fBTIOCSTI\fP de \fBioctl\fP(2) pour insérer des caractère
+dans la file d'entrée d'un terminal autre que le terminal de contrôle de
+l'appelant\ ;
+.IP *
+utiliser l'appel système obsolète \fBnfsservctl\fP(2)\ ;
+.IP *
+utiliser l'appel système obsolète \fBbdflush\fP(2)\ ;
+.IP *
+effectuer diverses opérations \fBioctl\fP(2) sur des périphériques bloc
+nécessitant des droits\ ;
+.IP *
+effectuer diverses opérations \fBioctl\fP(2) sur des systèmes de fichiers
+nécessitant des droits\ ;
+.IP *
+effectuer des opérations d'administration sur de nombreux pilotes de
+périphériques.
+.RE
+.PD
+.TP 
+\fBCAP_SYS_BOOT\fP
+Utiliser \fBreboot\fP(2) et \fBkexec_load\fP(2).
+.TP 
+\fBCAP_SYS_CHROOT\fP
+Utiliser \fBchroot\fP(2).
+.TP 
+\fBCAP_SYS_MODULE\fP
+Charger ou décharger des modules noyaux (consultez \fBinit_module\fP(2) et
+\fBdelete_module\fP(2))\ ; dans les noyaux antérieurs à 2.6.25\ : enlever des
+capacités de l'ensemble système de limitation de capacités.
+.TP 
+\fBCAP_SYS_NICE\fP
+.PD 0
+.RS
+.IP * 2
+Augmenter la valeur de courtoisie («\ nice\ ») (\fBnice\fP(2), \fBsetpriority\fP(2))
+et changer la courtoisie de n'importe quel processus\ ;
+.IP *
+utiliser des ordonnancements temps\-réel pour le processus appelant, et la
+modification de l'ordonnancement de n'importe quel processus
+(\fBsched_setscheduler\fP(2), \fBsched_setparam\fP(2))\ ;
+.IP *
+définir l'affinité CPU pour n'importe quel processus
+(\fBsched_setaffinity\fP(2))\ ;
+.IP *
+définir la classe et la priorité d'ordonnancement d'entrées/sorties pour
+n'importe quel processus (\fBioprio_set\fP(2))\ ;
+.IP *
+.\" FIXME CAP_SYS_NICE also has the following effect for
+.\" migrate_pages(2):
+.\"     do_migrate_pages(mm, &old, &new,
+.\"         capable(CAP_SYS_NICE) ? MPOL_MF_MOVE_ALL : MPOL_MF_MOVE);
+appliquer \fBmigrate_pages\fP(2) à n'importe quel processus et migrer un
+processus vers n'importe quel nœud\ ;
+.IP *
+appliquer \fBmove_pages\fP(2) pour n'importe quel processus\ ;
+.IP *
+utiliser l'attribut \fBMPOL_MF_MOVE_ALL\fP avec \fBmbind\fP(2) et
+\fBmove_pages\fP(2).
+.RE
+.PD
+.TP 
+\fBCAP_SYS_PACCT\fP
+Utiliser \fBacct\fP(2).
+.TP 
+\fBCAP_SYS_PTRACE\fP
+Suivre n'importe quel processus avec \fBptrace\fP(2)\ ; appliquer
+\fBget_robust_list\fP(2)  à n'importe quel processus\ ; examiner les processus
+avec \fBkcmp\fP(2).
+.TP 
+\fBCAP_SYS_RAWIO\fP
+.PD 0
+.RS
+.IP * 2
+Effectuer des opérations d'entrées\-sorties (\fBiopl\fP(2) et \fBioperm\fP(2))\ ;
+.IP *
+accéder à \fI/proc/kcore\fP\ ;
+.IP *
+utiliser l'opération \fBFIBMAP\fP de \fBioctl\fP(2)\ ;
+.IP *
+ouvrir les périphériques pour accéder aux registres spécifiques au modèle
+(MSR, consultez \fBmsr\fP(4)) d'un processeur x86\ ;
+.IP *
+mettre à jour \fI/proc/sys/vm/mmap_min_addr\fP\ ;
+.IP *
+créer des projections en mémoire aux adresses inférieures à la valeur
+indiquée par \fI/proc/sys/vm/mmap_min_addr\fP\ ;
+.IP *
+projeter les fichiers dans \fI/proc/bus/pci\fP\ ;
+.IP *
+ouvrir \fI/dev/mem\fP et \fI/dev/kmem\fP\ ;
+.IP *
+effectuer diverses commandes de périphérique SCSI\ ;
+.IP *
+effectuer certaines opérations sur les périphériques \fBhpsa\fP(4) et
+\fBcciss\fP(4)\ ;
+.IP *
+effectuer certaines opérations spécifiques à d'autres types de
+périphériques.
+.RE
+.PD
+.TP 
+\fBCAP_SYS_RESOURCE\fP
+.PD 0
+.RS
+.IP * 2
+Utiliser de l'espace réservé sur des systèmes de fichiers ext2\ ;
+.IP *
+effectuer des appels \fBioctl\fP(2) pour contrôler la journalisation ext3\ ;
+.IP *
+ne pas tenir compte des limites définies par les quota disque\ ;
+.IP *
+augmenter les limites de ressources (consultez \fBsetrlimit\fP(2))\ ;
+.IP *
+ne pas tenir compte de la limite de ressource \fBRLIMIT_NPROC\fP\ ;
+.IP *
+ne pas tenir compte du nombre maximal de consoles sur l'allocation de
+console\ ;
+.IP *
+ne pas tenir compte du nombre maximal de dispositions de clavier\ ;
+.IP *
+permettre des interruptions à plus de 64\ Hz depuis l'horloge temps réel\ ;
+.IP *
+augmenter la limite \fImsg_qbytes\fP pour la file de messages System\ V au
+dessus de la limite \fI/proc/sys/kernel/msgmnb\fP (consultez \fBmsgop\fP(2) et
+\fBmsgctl\fP(2))\ ;
+.IP *
+ne pas tenir compte la limite \fI/proc/sys/fs/pipe\-size\-max\fP lors du réglage
+de la capacité d'un tube avec la commande \fBfcntl\fP(2) avec l'argument
+\fBF_SETPIPE_SZ\fP\ ;
+.IP *
+utiliser \fBF_SETPIPE_SZ\fP pour augmenter la capacité d'un tube au\-dessus de
+la limite spécifiée par \fI/proc/sys/fs/pipe\-max\-size\fP\ ;
+.IP *
+ne pas tenir compte de la limite \fI/proc/sys/fs/mqueue/queues_max\fP lors de
+la création de files de messages POSIX (consultez \fBmq_overview\fP(7))\ ;
+.IP *
+utiliser l'opération \fBPR_SET_MM\fP de \fBprctl\fP(2)\ ;
+.IP *
+affecter à \fI/proc/PID/oom_score_adj\fP une valeur inférieure à la dernière
+valeur affectée par un processus avec \fBCAP_SYS_RESOURCE\fP.
+.RE
+.PD
+.TP 
+\fBCAP_SYS_TIME\fP
+Modifier l'heure système (\fBsettimeofday\fP(2), \fBstime\fP(2), \fBadjtimex\fP(2))\ ; modifier l'horloge temps réel (matérielle).
+.TP 
+\fBCAP_SYS_TTY_CONFIG\fP
+Utiliser \fBvhangup\fP(2)\ ; employer diverses opérations \fBioctl\fP(2)
+nécessitant des droits sur des terminaux virtuels.
+.TP 
+\fBCAP_SYSLOG\fP (depuis Linux\ 2.6.37)
+.IP * 3
+Effectuer des opérations \fBsyslog\fP(2) nécessitant des droits. Consultez
+\fBsyslog\fP(2) pour savoir quelles opérations nécessitent des droits.
+.IP *
+Inspecter les adresses du noyau exposées par \fI/proc\fP et d'autres interfaces
+lorsque \fI/proc/sys/kernel/kptr_restrict\fP a la valeur\ 1. (Voir la discussion
+sur \fIkptr_restrict\fP dans \fBproc\fP(5).)
+.TP 
+\fBCAP_WAKE_ALARM\fP (depuis Linux\ 3.0)
+.\"
+Déclencher quelque chose qui réveillera le système (réglage des alarmes
+\fBCLOCK_REALTIME_ALARM\fP et \fBCLOCK_BOOTTIME_ALARM\fP).
+.SS "Implémentations passées et actuelles"
+Une implémentation complète des capacités nécessite que\ :
+.IP 1. 3
+Pour toutes les opérations privilégiées, le noyau doit vérifier si le thread
+a la capacité requise dans son ensemble effectif\ ;
+.IP 2.
+Le noyau doit fournir des appels système permettant de changer et récupérer
+les ensembles de capacités d'un thread.
+.IP 3.
+Le système de fichiers doit permettre d'attacher des capacités aux fichiers
+exécutables, pour qu'un processus en dispose quand le fichier est exécuté.
+.PP
+.\"
+Sous Linux\ 2.6.14, seules les deux premières clauses sont remplies.Avant le
+noyau\ 2.6.24, seules les deux premières exigences sont remplies\ ; depuis le
+noyau\ 2.6.24, ces trois exigences sont remplies.
+.SS "Ensembles de capacités des threads"
+Chaque thread a trois ensembles contenant zéro ou plus des capacités
+ci\-dessus\ :
+.TP 
+\fIPermises\fP\ :
+Il s'agit d'un sur\-ensemble limitant les capacités effectives que le thread
+peut prendre. Il limite également les capacités qui peuvent être ajoutées à
+l'ensemble héritable par un thread qui n'a pas la capacité \fBCAP_SETPCAP\fP
+dans son ensemble effectif.
+
+Si un processus supprime une capacité de son ensemble de capacités permises,
+il ne peut plus jamais la récupérer (sauf s'il appelle \fBexecve\fP(2) sur un
+programme Set\-UID root ou un programme dont les capacités associées au
+fichier permettent cette capacité).
+.TP 
+\fIHéritable\fP\ :
+Il s'agit d'un ensemble de capacités préservées au travers d'un
+\fBexecve\fP(2). Il fournit à un processus un mécanisme pour assigner des
+capacités à l'ensemble des capacités permises du nouveau programme lors d'un
+\fBexecve\fP(2).
+.TP 
+\fIEffectif\fP\ :
+Il s'agit de l'ensemble des capacités utilisées par le noyau pour vérifier
+les permissions du thread.
+.PP
+Un fils créé par \fBfork\fP(2) hérite d'une copie des ensembles de capacité de
+son père. Le traitement des capacités lors d'un \fBexecve\fP(2) est décrit plus
+bas.
+.PP
+En utilisant \fBcapset\fP(2), un thread peut manipuler ses propres ensembles de
+capacités (voir ci\-dessous).
+.PP
+.\" commit 73efc0394e148d0e15583e13712637831f926720
+.\"
+À partir de Linux\ 3.2, le fichier \fI/proc/sys/kernel/cap_last_cap\fP contient
+la valeur numérique de la capacité la plus élevée qui soit acceptée par le
+noyau en cours d'exécution\ ; cette valeur peut être utilisée pour déterminer
+le bit le plus élevé qui puisse être défini dans un ensemble de capacités.
+.SS "Capacités de fichier"
+Depuis le noyau\ 2.6.24, le noyau prend en charge l'association d'ensembles
+de capacités avec un fichier exécutable à l'aide de \fBsetcap\fP(8). Les
+ensembles de capacités du fichier sont stockés dans un attribut étendu
+(consultez \fBsetxattr\fP(2)) appelé \fIsecurity.capability\fP. Écrire dans cet
+attribut étendu nécessite la capacité \fBCAP_SETFCAP\fP. Les ensembles de
+capacités d'un fichier, combinés avec les ensembles de capacités du thread
+déterminent les capacités d'un thread après un \fBexecve\fP(2).
+
+Les trois ensembles de capacités de fichier sont\ :
+.TP 
+\fIPermises\fP (anciennement \fIforcées\fP)\ :
+Ces capacités sont automatiquement permises au thread, quelles que soient
+ses capacités héritables.
+.TP 
+\fIHéritables\fP (anciennement \fIautorisées\fP)\ :
+Cet ensemble est combiné par un ET avec l'ensemble héritable du thread pour
+savoir quelles capacités de l'ensemble des capacités permises sont permises
+pour le thread après l'appel à \fBexecve\fP(2).
+.TP 
+\fIEffectif\fP\ :
+Il ne s'agit pas d'un ensemble, mais plutôt d'un unique bit. Si le bit est
+positionné, alors, lors d'un \fBexecve\fP(2), toutes les nouvelles capacités
+permises pour le thread sont également positionnées dans l'ensemble
+effectif. Si ce bit n'est pas positionné, alors, après un \fBexecve\fP(2),
+aucune des nouvelles capacités permises ne se trouvera dans le nouvel
+ensemble effectif.
+
+.\"
+Activer le bit des capacités effectives d'un fichier implique que toute
+capacité de fichier permise ou héritable qui permet à un thread d'obtenir
+les capacité permises correspondantes lors d'un \fBexecve\fP(2) (consultez les
+règles de transformation décrites ci\-dessous) fournira également cette
+capacité dans l'ensemble de capacités effectives du thread. Ainsi, lors de
+l'ajout de capacités à un fichier (\fBsetcap\fP(8), \fBcap_set_file\fP(3),
+\fBcap_set_fd\fP(3)), si le bit effectif pour une des capacités est activé,
+alors le bit effectif doit également être activé pour toutes les capacités
+dont le bit permis ou héritable corresppondant est activé.
+.SS "Transformation des capacités lors d'un appel execve()"
+.PP
+Durant un \fBexecve\fP(2), le noyau calcule les nouvelles capacités du
+processus en utilisant l'algorithme suivant\ :
+.in +4n
+.nf
+
+P'(permises) = (P(héritables) & F(héritables) |
+               (F(permises) & cap_bset)
+
+P'(effectives) = F(effectives) ? P'(permises) : 0
+
+P'(héritables) = P(héritables)    [inchangé]
+
+.fi
+.in
+où\ :
+.RS 4
+.IP P 10
+indique la valeur d'un ensemble de capacités du thread avant le \fBexecve\fP(2)
+.IP P'
+indique la valeur d'un ensemble de capacités après le \fBexecve\fP(2)
+.IP F
+indique la valeur d'un ensemble de capacités du fichier
+.IP cap_bset
+est la valeur de la limitation de capacités (décrit ci\-dessous).
+.RE
+.\"
+.SS "Capacités et exécution de programmes par root"
+Pour fournir un \fIroot\fP tout puissant en utilisant les ensembles de
+capacités, lors d'un \fBexecve\fP(2)\ :
+.IP 1. 3
+Si on exécute un programme Set\-UID root, ou si l'UID réel est nul, alors les
+ensembles des capacités héritables et permises du fichier sont remplis de
+uns (toutes les capacités activées).
+.IP 2.
+Si un programme Set\-UID root est exécuté, alors le bit des capacités
+effectives du fichier est défini à 1 (activé).
+.PP
+.\" If a process with real UID 0, and nonzero effective UID does an
+.\" exec(), then it gets all capabilities in its
+.\" permitted set, and no effective capabilities
+L'effet des règles ci\-dessus combinées avec les transformations de capacités
+ci\-dessus, est que lorsqu'un processus lance (avec \fBexecve\fP(2)) un
+programme Set\-UID root, ou lorsqu'un processus d'UID effectif nul exécute un
+programme, il obtient toutes les capacités dans ses ensembles de capacités
+permises et effectives, sauf celles qui sont interdites par la limitation de
+capacités. Ceci fournit une sémantique identique à celle fournie par les
+systèmes UNIX traditionnels.
+.SS "Limitation des capacités"
+La limitation des capacités («\ capability bounding set\ ») est un mécanisme
+de sécurité qui peut être utilisé pour limiter les capacités qui peuvent
+être obtenues lors d'un \fBexecve\fP(2). La limitation de capacités est
+utilisée de cette façon\ :
+.IP * 2
+Lors d'un \fBexecve\fP(2), la limitation de capacités (un ensemble de
+capacités) est combinée avec un ET binaire avec l'ensemble des capacités
+autorisées du fichier, et le résultat de cette opération est placé dans
+l'ensemble des capacités autorisées du thread. La limitation de capacités
+permet donc de limiter les capacités permises qui peuvent être accordées à
+un fichier exécutable.
+.IP *
+(Depuis Linux\ 2.6.25) La limitation de capacités agit comme un sur\-ensemble
+limitant les capacités qu'un thread peut ajouter à son ensemble de capacités
+héritables en utilisant \fBcapset\fP(2). Ceci signifie que si une capacité ne
+se trouve pas dans l'ensemble de limitation des capacités, alors un thread
+ne peut ajouter cette capacité dans son ensemble de capacités héritables,
+même si elle se trouvait dans son ensemble de capacités permises, et ne peut
+donc pas conserver cette capacité dans son ensemble de capacités permises
+lorsqu'il exécute avec \fBexecve\fP(2) un fichier qui a cette capacité dans son
+ensemble de capacités héritables.
+.PP
+Notez que la limitation de capacités masque les capacités permises du
+fichier, mais pas les capacités héritées. Si un thread conserve une capacité
+dans son ensemble de capacités héritées et que cette capacité ne se trouve
+pas dans l'ensemble de limitation des capacités, alors il peut toujours
+obtenir cette capacité dans son ensemble de capacités permises en exécutant
+un fichier qui a la capacité dans son ensemble de capacités héritées.
+.PP
+Suivant la version du noyau, la limitation de capacités est un attribut au
+niveau du système ou un attribut par processus.
+.PP
+\fBLimitation de capacités avant Linux\ 2.6.25\fP
+.PP
+Dans les noyaux antérieurs à 2.6.25, la limitation de capacités est un
+attribut au niveau du système qui affecte tous les threads. La limitation de
+capacités est accessible par le fichier \fI/proc/sys/kernel/cap\-bound\fP. (Le
+masque de bits est exprimé comme un nombre décimal signé dans
+\fI/proc/sys/kernel/cap\-bound\fP, ce qui entretient les confusions).
+
+Seul le processus \fBinit\fP peut configurer des capacités dans l'ensemble de
+limitation de capacités\ ; sinon, le superutilisateur (plus précisément\ :
+les programmes avec la capacité \fBCAP_SYS_MODULE\fP) peut uniquement supprimer
+des capacités de cet ensemble.
+
+Sur un système standard, la limitation élimine toujours la capacité
+\fBCAP_SETPCAP\fP. Pour supprimer cette restriction (attention, c'est
+dangereux\ !), modifiez la définition de \fBCAP_INIT_EFF_SET\fP dans
+\fIinclude/linux/capability.h\fP et recompilez le noyau.
+
+.\"
+La limitation de capacités système a été ajoutée à Linux à partir du
+noyau\ 2.2.11.
+.PP
+\fBLimitation de capacités après Linux\ 2.6.25\fP
+.PP
+Depuis Linux\ 2.6.25, la \fIlimitation de capacités\fP est un attribut par
+thread (il n'y a plus désormais de limitation de capacités au niveau du
+système).
+
+La limitation est héritée du parent du thread au travers d'un \fBfork\fP(2) et
+est préservé au travers d'un \fBexecve\fP(2).
+
+Un thread peut enlever des capacités de son ensemble de limitation de
+capacités en utilisant l'opération \fBPR_CAPBSET_DROP\fP de \fBprctl\fP(2), à
+condition qu'il possède la capacité \fBCAP_SETPCAP\fP. Une fois qu'une capacité
+a été supprimée de l'ensemble de limitation, elle ne peut être y être
+remise. Un thread peut déterminer si une capacité est dans son ensemble de
+limitation de capacités en utilisant l'opération \fBPR_CAPBSET_READ\fP de
+\fBprctl\fP(2).
+
+La suppression de capacités dans l'ensemble de limitation des capacités
+n'est prise en charge que si les capacités de fichiers sont compilés dans le
+noyau. Dans les noyaux antérieurs à Linux\ 2.6.33, les capacités de fichiers
+étaient une fonctionnalité optionnelle configurable via l'option
+CONFIG_SECURITY_FILE_CAPABILITIES. Depuis Linux\ 2.6.33, l'option de
+configuration a été supprimée et les capacités de fichiers font maintenant
+toujours partie du noyau. Quand les capacités de fichiers sont compilées
+dans le noyau,  le processus \fBinit\fP (l'ancêtre de tous les processues)
+démarre avec ensemble de limitation complet. Si les capacités de fichiers ne
+sont pas compilées dans le noyau, \fBinit\fP démarre alors avec un ensemble de
+limitatition complet, à l'exception de \fBCAP_SETPCAP\fP, parce que cette
+capacité a une autre signification quand il n'y a pas de capacités de
+fichiers.
+
+.\"
+.\"
+Supprimer une capacité de la limitation de capacités ne la supprime pas de
+l'ensemble hérité d'un thread. Cependant il empêche de rajouter la capacité
+dans l'ensemble hérité du thread par la suite.
+.SS "Effet des modifications d'UID sur les capacités"
+Afin de préserver la sémantique traditionnelle pour les transitions entre
+des UID nul et non nul, le noyau modifie les ensembles de capacités d'un
+thread de la façon suivante lors de modifications des UID réel, effectif,
+sauvé et du système de fichiers (avec \fBsetuid\fP(2), \fBsetresuid\fP(2) et
+compagnie)\ :
+.IP 1. 3
+Si l'UID réel, effectif ou sauvé était égal à 0, et qu'à la suite de la
+modification ils sont tous non nuls, toutes les capacités sont supprimés des
+ensembles de capacités permises et effectives.
+.IP 2.
+Si l'UID effectif était nul et devient non nul, toutes les capacités sont
+supprimées de l'ensemble effectif.
+.IP 3.
+Si l'UID effectif est modifié d'une valeur non nulle à 0, l'ensemble des
+capacités permises est copié dans l'ensemble des capacités effectives.
+.IP 4.
+Si le \fIfsuid\fP est modifié de 0 à une valeur non nulle (consultez
+\fBsetfsuid\fP(2)), les capacités suivantes sont supprimées de l'ensemble
+effectif\ : \fBCAP_CHOWN\fP, \fBCAP_DAC_OVERRIDE\fP, \fBCAP_DAC_READ_SEARCH\fP,
+\fBCAP_FOWNER\fP, \fBCAP_FSETID\fP, \fBCAP_LINUX_IMMUTABLE\fP (depuis Linux\ 2.2.30),
+\fBCAP_MAC_OVERRIDE\fP et \fBCAP_MKNOD\fP (depuis Linux\ 2.2.30). Si le \fIfsuid\fP
+devient nul, chacune de ces capacités est activée dans l'ensemble des
+capacités effectives si elle faisait partie de l'ensemble des capacités
+permises.
+.PP
+.\"
+Si un thread dont l'un des UID vaut 0 ne veut pas que son ensemble de
+capacités permises soit vidé lorsqu'il redéfinit tous ses UID à des valeurs
+non nulles, il peut le faire avec l'opération \fBPR_SET_KEEPCAPS\fP de l'appel
+système \fBprctl\fP(2).
+.SS "Ajuster les ensembles de capacités par programmation"
+Un thread peut obtenir ou modifier ses ensembles de capacités en utilisant
+les appels système \fBcapget\fP(2) et \fBcapset\fP(2). Cependant, il faut leur
+préférer l'utilisation de \fBcap_get_proc\fP(3) et \fBcap_set_proc\fP(3), toutes
+deux fournies par le paquet \fIlibcap\fP. Les règles suivantes gouvernent les
+modifications des ensembles de capacités d'un thread\ :
+.IP 1. 3
+Si l'appelant n'a pas la capacité \fBCAP_SETPCAP\fP, le nouvel ensemble des
+capacités héritables doit être un sous\-ensemble de l'union des ensembles de
+capacités héritables et des capacités permises.
+.IP 2.
+(Depuis Linux\ 2.6.25) Le nouvel ensemble héritable doit être un
+sous\-ensemble de l'ensemble héritable existant et de l'ensemble de
+limitation de capacités.
+.IP 3.
+Le nouvel ensemble des capacités permises doit être un sous\-ensemble de
+l'ensemble des capacités permises existant (c'est\-à\-dire qu'il n'est pas
+possible d'obtenir des capacités permises que le thread n'a pas
+actuellement).
+.IP 4.
+Le nouvel ensemble effectif doit être un sous\-ensemble du nouvel ensemble
+des capacités permises.
+.SS "Les attributs «\ securebits\ »\ : configuration d'un environnement restreint aux capacités de fichiers."
+.\" For some background:
+.\"       see http://lwn.net/Articles/280279/ and
+.\"       http://article.gmane.org/gmane.linux.kernel.lsm/5476/
+À partir du noyau\ 2.6.26, si les capacités de fichiers sont activées, Linux
+implémente un ensemble d'attributs \fIsecurebits\fP par thread qui peuvent être
+utilisés pour désactiver la gestion particulière des capacités pour l'UID 0
+(\fIroot\fP). Ces attributs sont les suivants\ :
+.TP 
+\fBSECBIT_KEEP_CAPS\fP
+Activer cet attribut permet à un thread qui a un UID (ou plus) égal à 0 de
+conserver ses capacités quand il change ses UID et que plus aucun n'est
+nul. Si cet attribut est désactivé, alors ces changements d'UID feront
+perdre au thread toutes ses capacités. Cet attribut est toujours désactivé
+lors d'un \fBexecve\fP(2). Cet attribut fournit la même fonctionnalité que
+l'ancienne opération \fBPR_SET_KEEPCAPS\fP de \fBprctl\fP(2)).
+.TP 
+\fBSECBIT_NO_SETUID_FIXUP\fP
+Activer cet attribut stoppe l'ajustement des ensembles de capacités par le
+noyau lorsque les UID effectifs et d'accès aux fichiers du thread passent
+d'une valeur nulle à une valeur non nulle. (Consultez la sous\-section
+\fIEffet des modifications d'UID sur les capacités\fP.)
+.TP 
+\fBSECBIT_NOROOT\fP
+Si cet attribut est activé, alors le noyau n'autorise pas les capacités
+lorsqu'un programme Set\-UID root est exécuté ou lorsqu'un processus dont
+l'identifiant effectif ou réel est nul appelle \fBexecve\fP(2). (Consultez la
+sous\-section \fICapacités et exécution de programmes par root\fP.)
+.PP
+Chacun des attributs de base ci\-dessus a un attribut compagnon de
+verrouillage. L'activation d'un attribut de verrouillage est irréversible et
+permet d'éviter toute modification ultérieure de l'attribut de base. Les
+attributs de verrouillage sont\ : \fBSECBIT_KEEP_CAPS_LOCKED\fP,
+\fBSECBIT_NO_SETUID_FIXUP_LOCKED\fP et \fBSECBIT_NOROOT_LOCKED\fP.
+.PP
+Les attributs \fIsecurebits\fP peuvent être modifiés et récupérés en utilisant
+les opérations \fBPR_SET_SECUREBITS\fP et \fBPR_GET_SECUREBITS\fP de
+\fBprctl\fP(2). La capacité \fBCAP_SETPCAP\fP est nécessaire pour modifier ces
+attributs.
+
+Les attributs \fIsecurebits\fP sont hérités par les processus fils. Lors d'un
+\fBexecve\fP(2), tous les attributs sont conservés, à l'exception de
+\fBSECBIT_KEEP_CAPS\fP qui est toujours désactivé.
+
+Une application peut utiliser l'appel suivant pour se verrouiller elle\-même,
+ainsi que tous ses descendant, dans un environnement où la seule façon
+d'obtenir des capacités est d'exécuter un programme avec les capacités de
+fichiers correspondantes\ :
+.in +4n
+.nf
+
+prctl(PR_SET_SECUREBITS,
+        SECBIT_KEEP_CAPS_LOCKED |
+        SECBIT_NO_SETUID_FIXUP |
+        SECBIT_NO_SETUID_FIXUP_LOCKED |
+        SECBIT_NOROOT |
+        SECBIT_NOROOT_LOCKED);
+.fi
+.in
+.SH CONFORMITÉ
+.PP
+Il n'y a pas de véritable norme pour les capacités, mais l'implémentation
+Linux est basé sur une interprétation de la norme (retirée) POSIX.1e\ ;
+consultez
+.UR http://wt.tuxomania.net\:/publications\:/posix.1e/
+.UE .
+.SH NOTES
+Depuis le noyau\ 2.5.27, les capacités sont optionnelles dans le noyau et
+peuvent être activées ou désactivées avec l'option de configuration
+CONFIG_SECURITY_CAPABILITIES du noyau.
+
+.\" 7b9a7ec565505699f503b4fcf61500dceb36e744
+Le fichier \fI/proc/PID/task/TID/status\fP peut être utilisé pour voir les
+ensembles de capacités d'un thread. Le fichier \fI/proc/PID/status\fP indique
+les ensembles de capacités du thread principal d'un thread. Avant Linux\ 3.8,
+les capacités inexistantes étaient vues comme activées (1) dans ces
+ensembles. Depuis Linux\ 3.8, toutes les capacités inexistantes (au\-délà de
+\fBCAP_LAST_CAP\fP) sont vues comme désactivées (0).
+
+Le paquet \fIlibcap\fP fournit un ensemble de routines pour écrire et lire les
+capacités d'un processus, de manière plus simple et moins susceptible de
+changer que l'interface fournie par \fBcapset\fP(2) et \fBcapget\fP(2). Ce paquet
+fournit également les programmes \fBsetcap\fP(8) et \fBgetcap\fP(8). Il peut être
+trouvé à l'adresse\ :
+.br
+.UR http://www.kernel.org\:/pub\:/linux\:/libs\:/security\:/linux\-privs
+.UE .
+
+Avant le noyau\ 2.6.24, et depuis le noyau\ 2.6.24 si les capacités de fichier
+ne sont pas activées, un thread avec la capacité \fBCAP_SETPCAP\fP peut
+manipuler les capacités des autres threads. Cependant, ce n'est possible
+qu'en théorie puisqu'aucun thread n'a la capacité \fBCAP_SETPCAP\fP dans un des
+cas suivants\ :
+.IP * 2
+Dans l'implémentation antérieure au noyau\ 2.6.25, l'ensemble de limitation
+de capacités du système, \fI/proc/sys/kernel/cap\-bound\fP, masque toujours
+cette capacité et ceci ne peut pas être changé sans modifier les sources du
+noyau et le recompiler.
+.IP *
+Si les capacités de fichiers sont désactivées dans l'implémentation
+actuelle, alors \fBinit\fP démarre sans cette capacité dans l'ensemble de
+limitation de capacité de son processus, et cet ensemble de limitation de
+capacité est hérité par tous les processus créés sur le système.
+.SH "VOIR AUSSI"
+\fBcapget\fP(2), \fBprctl\fP(2), \fBsetfsuid\fP(2), \fBcap_clear\fP(3),
+\fBcap_copy_ext\fP(3), \fBcap_from_text\fP(3), \fBcap_get_file\fP(3),
+\fBcap_get_proc\fP(3), \fBcap_init\fP(3), \fBcapgetp\fP(3), \fBcapsetp\fP(3),
+\fBlibcap\fP(3), \fBcredentials\fP(7), \fBpthreads\fP(7), \fBgetcap\fP(8), \fBsetcap\fP(8)
+.PP
+\fIinclude/linux/capability.h\fP dans les sources du noyau Linux
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

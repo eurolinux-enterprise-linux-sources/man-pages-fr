@@ -1,0 +1,216 @@
+.\" t
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de)
+.\" Created Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 1993-07-24 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 1994-05-15 by Daniel Quinlan (quinlan@yggdrasil.com)
+.\" Modified 1994-11-22 by Daniel Quinlan (quinlan@yggdrasil.com)
+.\" Modified 1995-07-11 by Daniel Quinlan (quinlan@yggdrasil.com)
+.\" Modified 1996-12-18 by Michael Haardt and aeb
+.\" Modified 1999-05-31 by Dimitri Papadopoulos (dpo@club-internet.fr)
+.\" Modified 1999-08-08 by Michael Haardt (michael@moria.de)
+.\" Modified 2004-04-01 by aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ASCII 7 "12 février 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+ascii \- Jeu de caractères ASCII en octal, décimal, et hexadécimal
+.SH DESCRIPTION
+ASCII est l'acronyme de «\ American Standard Code for Information
+Interchange\ ». Il s'agit d'un code sur 7\ bits. De nombreux codes sur 8\ bits
+(tels que l'ISO\ 8859\-1, le jeu de caractères par défaut de Linux)
+contiennent l'ASCII dans leur première moitié. L'équivalent international de
+l'ASCII est connu sous le nom de ISO\ 646.
+.LP
+La table suivante contient les 128\ caractères ASCII.
+.LP
+Les séquences d'échappement \f(CW\(aq\eX\(aq\fP pour les programmes C sont
+mentionnées.
+.if  t \{\
+.ft CW
+\}
+.TS
+l l l l l l l l.
+Oct	Déc	Hex	Car.	Oct	Déc	Hex	Car.
+_
+000	0	00	NUL \(aq\e0\(aq	100	64	40	@
+001	1	01	DET (début d'en\-tête)	101	65	41	A
+002	2	02	DTX (début de texte)	102	66	42	B
+003	3	03	FTX (fin de texte)	103	67	43	C
+004	4	04	FTR (fin de transmission)	104	68	44	D
+005	5	05	DEM (demande)	105	69	45	E
+006	6	06	ACC (accusé de réception)	106	70	46	F
+007	7	07	SON \(aq\ea\(aq (sonnerie)	107	71	47	G
+010	8	08	EFF \(aq\eb\(aq (espace arrière)	110	72	48	H
+011	9	09	TAB \(aq\et\(aq (tab. horizontale)	111	73	49	I
+012	10	0A	PAL \(aq\en\(aq (changement ligne)	112	74	4A	J
+013	11	0B	TAV \(aq\ev\(aq (tab. verticale)	113	75	4B	K
+014	12	0C	SDP \(aq\ef\(aq (saut de page)	114	76	4C	L
+015	13	0D	RC  \(aq\er\(aq (retour chariot)	115	77	4D	M
+016	14	0E	HC  (hors code)	116	78	4E	N
+017	15	0F	ES  (en code)	117	79	4F	O
+020	16	10	ÉCT (échap. transmission)	120	80	50	P
+021	17	11	CD1 (commande dispositif 1)	121	81	51	Q
+022	18	12	CD2 (commande dispositif 2)	122	82	52	R
+023	19	13	CD3 (commande dispositif 3)	123	83	53	S
+024	20	14	CD4 (commande dispositif 4)	124	84	54	T
+025	21	15	ACN (accusé réception nég.)	125	85	55	U
+026	22	16	SYN (synchronisation)	126	86	56	V
+027	23	17	FBT (fin bloc transmission)	127	87	57	W
+030	24	18	ANN (annulation)	130	88	58	X
+031	25	19	FS  (fin de support)	131	89	59	Y
+032	26	1A	SUB (substitution)	132	90	5A	Z
+033	27	1B	ÉCH (échappement)	133	91	5B	[
+034	28	1C	SF  (séparateur fichiers)	134	92	5C	\e  \(aq\e\e\(aq
+035	29	1D	SG  (séparateur de groupes)	135	93	5D	]
+036	30	1E	SA  (sép. enregistrements)	136	94	5E	^
+037	31	1F	SSA (sép. de sous\-articles)	137	95	5F	\&_
+040	32	20	ESP (espace)	140	96	60	\`
+041	33	21	!	141	97	61	a
+042	34	22	"	142	98	62	b
+043	35	23	#	143	99	63	c
+044	36	24	$	144	100	64	d
+045	37	25	%	145	101	65	e
+046	38	26	&	146	102	66	f
+047	39	27	\'	147	103	67	g
+050	40	28	(	150	104	68	h
+051	41	29	)	151	105	69	i
+052	42	2A	*	152	106	6A	j
+053	43	2B	+	153	107	6B	k
+054	44	2C	,	154	108	6C	l
+055	45	2D	\-	155	109	6D	m
+056	46	2E	.	156	110	6E	n
+057	47	2F	/	157	111	6F	o
+060	48	30	0	160	112	70	p
+061	49	31	1	161	113	71	q
+062	50	32	2	162	114	72	r
+063	51	33	3	163	115	73	s
+064	52	34	4	164	116	74	t
+065	53	35	5	165	117	75	u
+066	54	36	6	166	118	76	v
+067	55	37	7	167	119	77	w
+070	56	38	8	170	120	78	x
+071	57	39	9	171	121	79	y
+072	58	3A	:	172	122	7A	z
+073	59	3B	;	173	123	7B	{
+074	60	3C	<	174	124	7C	|
+075	61	3D	= 	175	125	7D	}
+076	62	3E	>	176	126	7E	~
+077	63	3F	?	177	127	7F	SUP
+.TE
+.if  t \{\
+.in
+.ft P
+\}
+.SS Tableaux
+Pour plus de commodité, voici des tables plus compactes en hexadécimal et en
+décimal.
+.sp
+.nf
+.if  t \{\
+.in 1i
+.ft CW
+\}
+   2 3 4 5 6 7       30 40 50 60 70 80 90 100 110 120
+ \-\-\-\-\-\-\-\-\-\-\-\-\-      \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+0:   0 @ P \` p     0:    (  2  <  F  P  Z  d   n   x
+1: ! 1 A Q a q     1:    )  3  =  G  Q  [  e   o   y
+2: " 2 B R b r     2:    *  4  >  H  R  \e  f   p   z
+3: # 3 C S c s     3: !  +  5  ?  I  S  ]  g   q   {
+4: $ 4 D T d t     4: "  ,  6  @  J  T  ^  h   r   |
+5: % 5 E U e u     5: #  \-  7  A  K  U  _  i   s   }
+6: & 6 F V f v     6: $  .  8  B  L  V  \`  j   t   ~
+7: \' 7 G W g w     7: %  /  9  C  M  W  a  k   u  SUP
+8: ( 8 H X h x     8: &  0  :  D  N  X  b  l   v
+9: ) 9 I Y i y     9: \'  1  ;  E  O  Y  c  m   w
+A: * : J Z j z
+B: + ; K [ k {
+C: , < L \e l |
+D: \- = M ] m }
+E: . > N ^ n ~
+F: / ? O _ o SUP
+.if  t \{\
+.in
+.ft P
+\}
+.fi
+.SH NOTES
+.SS Historique
+Une page de manuel \fBascii\fP est apparue dans AT&T UNIX version\ 7.
+.LP
+Sur les terminaux anciens, le code de soulignement («\ underscore\ ») est
+affiché sous forme de flèche vers la gauche («\ backarrow\ »), l'accent
+circonflexe («\ caret\ ») est affiché sous forme de flèche vers le haut, et la
+barre verticale est interrompue en son centre.
+.LP
+Les caractères majuscules et minuscules ne différent que d'un bit, et le
+caractère ASCII «\ 2\ » ne diffère du guillemet que d'un bit (ils partagent
+la même touche sur un clavier QWERTY). Cela facilite l'encodage mécanique ou
+par un clavier sans micro\-contrôleur, comme sur les anciens télétypes.
+.LP
+.\"
+.\" ASA was the American Standards Association and X3 was an ASA sectional
+.\" committee on computers and data processing.  Its name changed to
+.\" American National Standards Committee X3 (ANSC-X3) and now it is known
+.\" as Accredited Standards Committee X3 (ASC X3).  It is accredited by ANSI
+.\" and administered by ITI.  The subcommittee X3.2 worked on coded
+.\" character sets; the task group working on ASCII appears to have been
+.\" designated X3.2.4.  In 1966, ASA became the United States of America
+.\" Standards Institute (USASI) and published ASCII in 1968.  It became the
+.\" American National Standards Institute (ANSI) in 1969 and is the
+.\" U.S. member body of ISO; private and nonprofit.
+.\"
+La norme ASCII a été publiée en 1968 par l'USASI (United States of America
+Standards Institute).
+.SH "VOIR AUSSI"
+.ad l
+\fBiso_8859\-1\fP(7), \fBiso_8859\-10\fP(7), \fBiso_8859\-13\fP(7), \fBiso_8859\-14\fP(7),
+\fBiso_8859\-15\fP(7), \fBiso_8859\-16\fP(7), \fBiso_8859\-2\fP(7), \fBiso_8859\-3\fP(7),
+\fBiso_8859\-4\fP(7), \fBiso_8859\-5\fP(7), \fBiso_8859\-6\fP(7), \fBiso_8859\-7\fP(7),
+\fBiso_8859\-8\fP(7), \fBiso_8859\-9\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

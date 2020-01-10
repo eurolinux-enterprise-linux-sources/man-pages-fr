@@ -1,0 +1,129 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_ATTR_SETSCOPE 3 "19 avril 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_attr_setscope, pthread_attr_getscope \- Définir ou obtenir la
+contention d'un objet d'attributs de thread
+.SH SYNOPSIS
+.nf
+\fB#include <pthread.h>\fP
+
+\fBint pthread_attr_setscope(pthread_attr_t *\fP\fIattr\fP\fB, int \fP\fIscope\fP\fB);\fP
+\fBint pthread_attr_getscope(pthread_attr_t *\fP\fIattr\fP\fB, int *\fP\fIscope\fP\fB);\fP
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+La fonction \fBpthread_attr_setscope\fP() définit l'attribut de contention de
+l'objet d'attributs de thread auquel \fIattr\fP fait référence à la valeur
+indiquée par \fIscope\fP. Cet attribut détermine l'ensemble des threads avec
+lesquels un thread est en compétition pour les ressources, telles que le
+CPU. POSIX.1\-2001 spécifie deux valeurs possibles pour \fIscope\fP\ :
+.TP 
+\fBPTHREAD_SCOPE_SYSTEM\fP
+Le thread est en compétition pour les ressources avec tous les threads de
+tous les processus du système qui sont dans le même domaine d'allocation (un
+groupe composé d'un ou de plusieurs processeurs). Les threads
+\fBPTHREAD_SCOPE_SYSTEM\fP sont ordonnancés entre eux en fonction de leur
+priorité et de la politique d'ordonnancement.
+.TP 
+\fBPTHREAD_SCOPE_PROCESS\fP
+Le thread est en compétition pour les ressources avec tous les threads du
+même processus du système qui ont aussi été créés avec
+\fBPTHREAD_SCOPE_PROCESS\fP. Les threads \fBPTHREAD_SCOPE_PROCESS\fP sont
+ordonnancés entre eux à l'intérieur du processus en fonction de leur
+priorité et de la politique d'ordonnancement. POSIX.1\-2001 ne spécifie pas
+comment régler la compétition entre ces threads et les threads d'autres
+processus du système, ni avec les threads du même processus qui ont été
+créés avec \fBPTHREAD_SCOPE_SYSTEM\fP.
+.PP
+POSIX.1\-2001 impose qu'une implémentation doit accepter au moins l'une de
+ces résolutions de compétition. Linux accepte \fBPTHREAD_SCOPE_SYSTEM\fP, mais
+pas \fBPTHREAD_SCOPE_PROCESS\fP.
+
+Sur les systèmes qui acceptent plusieurs arbitrages de compétition, pour que
+la politique définie par \fBpthread_attr_setscope\fP()  puisse être prise en
+compte lors de l'appel de \fBpthread_create\fP(3), l'appelant doit définir
+l'attribut d'ordonnancement hérité de l'objet \fIattr\fP au moyen de
+\fBpthread_attr_setinheritsched\fP(3), en lui assignant la valeur
+\fBPTHREAD_EXPLICIT_SCHED\fP.
+
+La fonction \fBpthread_attr_getscope\fP() renvoie, dans le tampon pointé par
+\fIscope\fP, l'attribut contenant le mode de résolution de compétition de
+l'objet d'attributs de thread \fIattr\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient 0\ ; en cas d'erreur elles
+renvoient un numéro d'erreur non nul.
+.SH ERREURS
+\fBpthread_attr_setscope\fP() peut échouer avec les erreurs suivantes\ :
+.TP 
+\fBEINVAL\fP
+Une valeur invalide a été spécifiée dans \fIscope\fP.
+.TP 
+\fBENOTSUP\fP
+La valeur \fBPTHREAD_SCOPE_PROCESS\fP est spécifiée dans \fIscope\fP, or elle
+n'est pas supportée sous Linux.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+La valeur \fBPTHREAD_SCOPE_SYSTEM\fP indique typiquement qu'un thread dans
+l'espace utilisateur est rattaché directement à une entité unique
+d'ordonnancement du noyau. C'est le cas sous Linux avec l'implémentation
+obsolète LinuxThreads, mais aussi avec l'implémentation moderne NPTL, qui
+sont toutes les deux des implémentations de threads 1:1.
+
+POSIX.1\-2001 spécifie que chaque implémentation est libre de définir la
+valeur par défaut.
+.SH "VOIR AUSSI"
+.ad l
+.nh
+\fBpthread_attr_init\fP(3), \fBpthread_attr_setaffinity_np\fP(3),
+\fBpthread_attr_setinheritsched\fP(3), \fBpthread_attr_setschedparam\fP(3),
+\fBpthread_attr_setschedpolicy\fP(3), \fBpthread_create\fP(3), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Denis Barbier (2010).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,181 @@
+.\" Copyright (c) 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\" and Copyright 2003,2004 Andi Kleen, SuSE Labs.
+.\" numa_maps material Copyright (c) 2005 Silicon Graphics Incorporated.
+.\"     Christoph Lameter, <cl@linux-foundation.org>.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH NUMA 7 "5 août 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+numa \- Panorama des architectures à mémoire non uniforme
+.SH DESCRIPTION
+NUMA («\ Non\-Uniform Memory Access\ »\ : accès à la mémoire de façon non
+uniforme) se réfère aux systèmes multiprocesseur dont la mémoire est divisé
+en plusieurs nœuds mémoire. Le temps d'accès à un nœud mémoire dépend de la
+localisation relative du CPU utilisateur et du nœud utilisé (à l'opposé des
+systèmes multiprocesseur symétriques pour lesquels le temps d'accès à la
+mémoire est le même quel que soit le CPU). Normalement, chaque CPU sur un
+système NUMA a un nœud mémoire local pour lequel il peut accéder plus
+rapidement au contenu, par rapport aux mémoires des nœuds locaux aux autres
+CPU où à la mémoire sur un bus partagé par tous les CPU.
+.SS "Appels système NUMA"
+Le noyau Linux implémente les appels système suivants liés aux NUM\ :
+\fBget_mempolicy\fP(2), \fBmbind\fP(2), \fBmigrate_pages\fP(2), \fBmove_pages\fP(2) et
+\fBset_mempolicy\fP(2). Cependant les applications devraient normalement
+utiliser l'interface fournie par \fIlibnuma\fP\ ; consultez «\ Prise en charge
+par la bibliothèque\ » ci\-dessous.
+.SS "/proc/[number]/numa_maps (depuis Linux\ 2.6.14)"
+.\" See also Changelog-2.6.14
+Ce fichier affiche des informations concernant l'allocation et la politique
+mémoire NUMA d'un processus.
+
+Chaque ligne contient des informations concernant un intervalle mémoire
+utilisé par un processus, indiquant, entre autre, la politique mémoire
+effective pour cet intervalle mémoire et sur quels nœuds les pages ont été
+allouées.
+
+\fInuma_maps\fP est un fichier en lecture seule. Quand
+\fI/proc/<pid>/numa_maps\fP est lu, le noyau analyse l'espace
+d'adressage virtuel du processus et indique comment la mémoire est
+utilisée. Une ligne est affichée pour chaque intervalle mémoire du
+processus.
+
+Le premier champ de chaque ligne indique l'adresse de départ de l'intervalle
+mémoire. Ce champ permet une corrélation avec le contenu du fichier
+\fI/proc/<pid>/maps\fP, qui contient l'adresse de fin de l'intervalle
+et d'autres informations, comme les permissions d'accès et le partage.
+
+Le second champ indique la politique mémoire effective actuellement pour
+l'intervalle mémoire. Notez que la politique effective n'est pas forcément
+la politique installée par le processus pour cet intervalle mémoire. En
+particulier, si le processus a installé une politique par défaut
+(«\ default\ ») pour cet intervalle, la politique effective pour cet
+intervalle sera la politique du processus, qui peut être ou ne pas être
+«\ default\ ».
+
+Le reste de la ligne contient des informations sur les pages allouées dans
+l'intervalle mémoire, comme ceci\ :
+.TP 
+\fIN<node>=<nombre_pages>\fP
+Le nombre de pages allouées sur le nœud
+\fI<node>\fP. \fI<nombre_pages>\fP ne comprend que les pages
+actuellement projetées par le processus. Un déplacement ou une libération de
+page peut avoir temporairement déprojeté les pages associées avec cet
+intervalle mémoire. Ces pages ne peuvent réapparaître que quand le processus
+essaie de les référencer. Si l'intervalle mémoire représente une zone de
+mémoire partagée ou une projection dans un fichier, d'autres processus
+peuvent actuellement avoir d'autres pages projetées dans l'intervalle
+mémoire associé.
+.TP 
+\fIfile=<nom_fichier>\fP
+Le fichier contenant l'intervalle mémoire. Si le fichier est une projection
+privée, des accès en écriture peuvent avoir produit des pages COW
+(«\ Copy\-On\-Write\ »\ : copie à l'écriture) dans cet intervalle mémoire. Ces
+pages sont affichées comme des pages anonymes.
+.TP 
+\fIheap\fP
+L'intervalle mémoire est utilisé pour le tas.
+.TP 
+\fIstack\fP
+L'intervalle mémoire est utilisé pour la pile.
+.TP 
+\fIhuge\fP
+Gros intervalle mémoire. Le nombre de pages indiqué correspond à de grosses
+pages, pas à des pages de taille usuelle.
+.TP 
+\fIanon=<pages>\fP
+Le nombre de pages anonymes dans l'intervalle.
+.TP 
+\fIdirty=<pages>\fP
+Nombre de pages sales.
+.TP 
+\fImapped=<pages>\fP
+Nombre total de pages projetées, n'étant ni sales (\fIdirty\fP), ni anonymes
+(\fIanon\fP).
+.TP 
+\fImapmax=<compte>\fP
+Nombre maximal de processus projetant une même page («\ mapcount\ »)
+rencontrés lors de l'analyse. Ceci peut être utilisé comme indicateur du
+degré de partage dans un intervalle mémoire donné.
+.TP 
+\fIswapcache=<compte>\fP
+Nombre de pages qui ont une entrée associée sur un périphérique de partage.
+.TP 
+\fIactive=<pages>\fP
+Le nombre de pages sur la liste active. Ce champ n'est affiché que si ce
+nombre diffère du nombre de pages dans l'intervalle. Ceci signifie que
+certaines pages inactives existent dans l'intervalle mémoire, et qu'elles
+pourront être retirées de la mémoire prochainement par le «\ swapper\ »
+(processus de gestion des périphériques d'échange).
+.TP 
+\fIwriteback=<pages>\fP
+Nombre de pages qui sont actuellement en cours d'écriture sur le disque.
+.SH CONFORMITÉ
+Aucune norme ne régi les interfaces NUMA.
+.SH NOTES
+Les appels système NUMA de Linux et les interfaces \fI/proc\fP ne sont
+disponibles que si le noyau est configuré et construit avec l'option
+\fBCONFIG_NUMA\fP.
+.SS "Prise en charge par la bibliothèque"
+Faire l'édition des liens avec \fI\-lnuma\fP pour obtenir la définition des
+appels système. \fIlibnuma\fP et l'en\-tête \fI<numaif.h>\fP sont
+disponibles dans le paquet \fInumactl\fP.
+
+Cependant, les applications ne devraient pas utiliser ces appels système
+directement. À la place, l'interface de plus haut niveau fournie par les
+fonctions \fBnuma\fP(3) du paquet \fInumactl\fP est recommandée. Le paquet
+\fInumactl\fP est disponible à l'adresse
+.UR ftp://oss.sgi.com\:/www\:/projects\:/libnuma\:/download/
+.UE .
+Le paquet
+est aussi inclus dans certaines distributions. Certaines distributions
+inclues séparément la bibliothèque et les en\-têtes pour le développement
+dans le paquet \fInumactl\-devel\fP.
+.SH "VOIR AUSSI"
+\fBget_mempolicy\fP(2), \fBmbind\fP(2), \fBmove_pages\fP(2), \fBset_mempolicy\fP(2),
+\fBnuma\fP(3), \fBcpuset\fP(7), \fBnumactl\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,281 @@
+.\" Copyright 2001 walter harms (walter.harms@informatik.uni-oldenburg.de)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified, 2001-12-26, aeb
+.\" 2008-09-07, mtk, Various rewrites; added an example program.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETDATE 3 "21 juin 2013" "" "Manuel du programmeur Linux"
+.SH NOM
+getdate, getdate_r \- Conversion d'un temps sous forme de chaîne de
+caractères au format humain
+.SH SYNOPSIS
+\fB#include <time.h>\fP
+.sp
+\fBstruct tm *getdate(const char *\fP\fIstring\fP\fB);\fP
+.sp
+\fBextern int getdate_err;\fP
+.sp
+\fB#include <time.h>\fP
+.sp
+\fBint getdate_r(const char *\fP\fIstring\fP\fB, struct tm *\fP\fIres\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBgetdate\fP()\ :
+.ad l
+.RS 4
+_XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.RE
+.br
+\fBgetdate_r\fP()\ :
+.ad l
+.RS 4
+_GNU_SOURCE
+.RE
+.ad
+.SH DESCRIPTION
+La fonction \fBgetdate\fP() convertit une date et un temps sous forme de chaîne
+de caractères, contenue dans le tampon \fIstring\fP, au format humain. Le temps
+au format humain est sauvegardé dans une structure \fItm\fP et un pointeur vers
+cette structure est renvoyé. Cette structure est allouée statiquement, elle
+sera donc écrasée lors d'un prochain appel.
+
+Contrairement à \fBstrptime\fP(3), (qui a un argument \fIformat\fP), \fBgetdate\fP()
+utilise les formats présents dans le fichier dont le chemin d'accès complet
+est donné par la variable d'environnement \fBDATEMSK\fP. La première ligne du
+fichier qui peut être mise en correspondance avec la chaîne passée en
+paramètre est utilisée pour la conversion.
+
+La correspondance n'est pas sensible à la casse. Les espaces superflus,
+qu'ils soient dans le motif ou dans la chaîne à convertir, sont ignorés.
+
+Les paramètres de conversion qu'un motif peut contenir sont les mêmes que
+pour \fBstrptime\fP(3). Un indicateur de conversion supplémentaire est spécifié
+dans POSIX.1\-2001\ :
+.TP 
+\fB%Z\fP
+Nom du fuseaux horaire (non implémenté dans le glibc).
+.LP
+Lorsque \fB%Z\fP est spécifié, la structure contenant le temps au format humain
+est initialisée avec le temps actuel du fuseaux horaire. Sinon, elle est
+initialisée sous forme humaine à l'heure locale (comme lors d'un appel à
+\fBlocaltime\fP(3)).
+.LP
+Lorsque seul le jour de la semaine est donné, le jour pris en compte sera le
+premier jour correspondant à partir d'aujourd'hui inclus.
+.LP
+Lorsque seul le mois est spécifié (et pas l'année), le mois pris en compte
+est le premier mois correspondant à partir du mois courant inclus. Si aucun
+jour n'est indiqué, le premier jour du mois est pris par défaut.
+.LP
+Lorsque les heures, minutes et secondes ne sont pas indiquées, l'heure
+courante (heures, minutes et secondes) est prise par défaut.
+.LP
+Si aucune date n'est indiquée, mais que l'on connaît l'heure, l'heure prise
+en compte sera la première occurrence de cette heure, à partir de l'heure
+courante incluse.
+
+\fBgetdate_r\fP est une extension GNU qui fournit une version réentrante de
+\fBgetdate\fP. Au lieu d'utiliser une variable globale pour rapporter les
+erreurs et un tampon statique pour renvoyer le temps au format humain, elle
+renvoie les erreurs avec la valeur de retour de la fonction et le temps au
+format humain dans le tampon alloué par l'appelant pointé par \fIres\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBgetdate\fP() renvoie un pointeur vers une structure
+\fIstruct tm\fP. Sinon elle renvoie NULL et positionne la variable globale
+\fIgetdate_err\fP avec l'un des codes d'erreur ci\-dessous. La modification
+éventuelle de \fIerrno\fP est indéfinie.
+
+En cas de succès, \fBgetdate_r\fP() renvoie 0. En cas d'erreur, elle renvoie
+l'un des codes d'erreur ci\-dessous.
+.SH ERREURS
+Les erreurs suivantes sont renvoyées par \fIgetdate_err\fP (pour \fBgetdate\fP())
+ou par le code de retour de la fonction (pour \fBgetdate_r\fP()).
+.TP  4n
+\fB1\fP
+La variable d'environnement \fBDATEMSK\fP est non définie ou sa valeur est une
+chaîne vide.
+.TP 
+\fB2\fP
+Le fichier de modèle spécifié par \fBDATEMSK\fP ne peut être ouvert en lecture.
+.TP 
+\fB3\fP
+.\" stat()
+Impossible de lire l'état du fichier.
+.TP 
+\fB4\fP
+Le fichier de modèle n'est pas un fichier régulier.
+.TP 
+\fB5\fP
+Une erreur est survenue au cours de la lecture du fichier de modèle.
+.TP 
+\fB6\fP
+.\" Error 6 doesn't seem to occur in glibc
+Échec d'allocation mémoire (pas assez de mémoire disponible).
+.TP 
+\fB7\fP
+Il n'y a pas de ligne dans le fichier qui puisse être mise en correspondance
+avec l'entrée.
+.TP 
+\fB8\fP
+Paramètres d'entrée invalides.
+.SH ENVIRONNEMENT
+.TP 
+\fBDATEMSK\fP
+Fichier contenant les motifs de formatage.
+.TP 
+\fBTZ\fP, \fBLC_TIME\fP
+Variables utilisées par \fBstrptime\fP(3).
+.SH ATTRIBUTS
+.SS "Multithreading (voir pthreads(7))"
+La fonction \fBgetdate\fP() n'est pas sûre dans un contexte multithread.
+.LP
+La fonction \fBgetdate_r\fP() est sûre dans un contexte multithread.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+La spécification POSIX.1\-2001 pour \fBstrptime\fP(3) contient des
+spécifications de conversion utilisant les modificateurs \fB%E\fP ou \fB%O\fP
+alors que de tels modificateurs ne sont pas indiqués pour \fBgetdate\fP(). Dans
+la glibc, \fBgetdate\fP() est implémentée avec \fBstrptime\fP(3), si bien que les
+deux fonctions supportent exactement les mêmes conversions.
+.SH EXEMPLE
+Le programme ci\-dessous appelle \fBgetdate\fP() pour chaque argument de la
+ligne de commande et affiche la valeur des champs de la structure \fItm\fP
+renvoyée. La session shell suivante montre des exemples d'utilisation de ce
+programme\ :
+
+.in +4n
+.nf
+$\fB TFILE=$PWD/tfile\fP
+$\fB echo \(aq%A\(aq > $TFILE \fP      # Full weekday name
+$\fB echo \(aq%T\(aq >> $TFILE\fP      # ISO date (YYYY\-MM\-DD)
+$\fB echo \(aq%F\(aq >> $TFILE\fP      # Time (HH:MM:SS)
+$\fB date\fP
+$\fB export DATEMSK=$TFILE\fP
+$\fB ./a.out Tuesday \(aq2009\-12\-28\(aq \(aq12:22:33\(aq\fP
+Sun Sep  7 06:03:36 CEST 2008
+Call 1 ("Tuesday") succeeded:
+    tm_sec   = 36
+    tm_min   = 3
+    tm_hour  = 6
+    tm_mday  = 9
+    tm_mon   = 8
+    tm_year  = 108
+    tm_wday  = 2
+    tm_yday  = 252
+    tm_isdst = 1
+Call 2 ("2009\-12\-28") succeeded:
+    tm_sec   = 36
+    tm_min   = 3
+    tm_hour  = 6
+    tm_mday  = 28
+    tm_mon   = 11
+    tm_year  = 109
+    tm_wday  = 1
+    tm_yday  = 361
+    tm_isdst = 0
+Call 3 ("12:22:33") succeeded:
+    tm_sec   = 33
+    tm_min   = 22
+    tm_hour  = 12
+    tm_mday  = 7
+    tm_mon   = 8
+    tm_year  = 108
+    tm_wday  = 0
+    tm_yday  = 250
+    tm_isdst = 1
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#define _GNU_SOURCE 500
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main(int argc, char *argv[])
+{
+    struct tm *tmp;
+    int j;
+
+    for (j = 1; j < argc; j++) {
+        tmp = getdate(argv[j]);
+
+        if (tmp == NULL) {
+            printf("Call %d failed; getdate_err = %d\en",
+                   j, getdate_err);
+            continue;
+        }
+
+        printf("Call %d (\e"%s\e") succeeded:\en", j, argv[j]);
+        printf("    tm_sec   = %d\en", tmp\->tm_sec);
+        printf("    tm_min   = %d\en", tmp\->tm_min);
+        printf("    tm_hour  = %d\en", tmp\->tm_hour);
+        printf("    tm_mday  = %d\en", tmp\->tm_mday);
+        printf("    tm_mon   = %d\en", tmp\->tm_mon);
+        printf("    tm_year  = %d\en", tmp\->tm_year);
+        printf("    tm_wday  = %d\en", tmp\->tm_wday);
+        printf("    tm_yday  = %d\en", tmp\->tm_yday);
+        printf("    tm_isdst = %d\en", tmp\->tm_isdst);
+    }
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBtime\fP(2), \fBlocaltime\fP(3), \fBsetlocale\fP(3), \fBstrftime\fP(3), \fBstrptime\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

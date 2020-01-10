@@ -1,0 +1,124 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Mon Mar 29 22:31:13 1993, David Metcalfe
+.\" Modified Sun Jun  6 23:27:50 1993, David Metcalfe
+.\" Modified Sat Jul 24 21:45:37 1993, Rik Faith (faith@cs.unc.edu)
+.\" Modified Sat Dec 16 15:02:59 2000, Joseph S. Myers
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ABS 3 "21 juin 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+abs, labs, llabs, imaxabs \- Calculer la valeur absolue d'un entier
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBint abs(int \fP\fIj\fP\fB);\fP
+.br
+\fBlong int labs(long int \fP\fIj\fP\fB);\fP
+.br
+\fBlong long int llabs(long long int \fP\fIj\fP\fB);\fP
+.sp
+\fB#include <inttypes.h>\fP
+.sp
+\fBintmax_t imaxabs(intmax_t \fP\fIj\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBllabs\fP()\ :
+.RS 4
+_XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE\ >=\ 200112L
+.br
+ou \fIcc\ \-std=c99\fP
+.RE
+.ad
+.SH DESCRIPTION
+La fonction \fBabs\fP() calcule la valeur absolue de l'argument entier
+\fIj\fP. Les fonctions \fBlabs\fP(), \fBllabs\fP() et \fBimaxabs\fP() calculent les
+valeurs absolues de l'argument \fIj\fP selon le type entier approprié de la
+fonction.
+.SH "VALEUR RENVOYÉE"
+Chaque fonction renvoie la valeur absolue de son argument selon le type
+d'entier de la fonction.
+.SH ATTRIBUTS
+.SS "Multithreading (voir pthreads(7))"
+Les fonctions \fBabs\fP(), \fBlabs\fP(), \fBllabs\fP(), et \fBimaxabs\fP() sont sûres
+dans un contexte multithread.
+.SH CONFORMITÉ
+.\" POSIX.1 (1996 edition) requires only the
+.\" .BR abs ()
+.\" function.
+SVr4, POSIX.1\-2001, BSD\ 4.3, C99. C89 n'inclut que les fonctions \fBabs\fP()
+et \fBlabs\fP(). Les fonctions \fBllabs\fP() et \fBimaxabs\fP() ont été ajoutées dans
+C99.
+.SH NOTES
+La valeur absolue du nombre entier négatif le plus petit est indéfinie.
+.PP
+La fonction \fBllabs\fP() est incluse dans la glibc depuis la version\ 2.0,
+mais pas dans la libc5 et la libc4. La fonction \fBimaxabs\fP() est incluse
+dans la glibc depuis la version\ 2.1.1.
+.PP
+Pour que \fBllabs\fP() soit déclarée, il peut être nécessaire de définir
+\fB_ISOC99_SOURCE\fP ou \fB_ISOC9X_SOURCE\fP (suivant la version de la glibc)
+avant toute inclusion des en\-têtes standard.
+.PP
+GCC traite \fBabs\fP() et \fBlabs\fP() comme des fonctions internes. GCC\ 3.0
+traite également \fBllabs\fP() et \fBimaxabs\fP() comme des fonctions internes.
+.SH "VOIR AUSSI"
+\fBcabs\fP(3), \fBceil\fP(3), \fBfabs\fP(3), \fBfloor\fP(3), \fBrint\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

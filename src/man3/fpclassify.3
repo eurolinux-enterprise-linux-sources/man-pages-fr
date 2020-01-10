@@ -1,0 +1,135 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\" This was done with the help of the glibc manual.
+.\"
+.\" 2004-10-31, aeb, corrected
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FPCLASSIFY 3 "20 septembre 2010" "" "Manuel du programmeur Linux"
+.SH NOM
+fpclassify, isfinite, isnormal, isnan, isinf \- Macros de classification en
+virgule flottante
+.SH SYNOPSIS
+.nf
+\fB#include <math.h>\fP
+.sp
+\fBint fpclassify(\fP\fIx\fP\fB);\fP
+.sp
+\fBint isfinite(\fP\fIx\fP\fB);\fP
+.sp
+\fBint isnormal(\fP\fIx\fP\fB);\fP
+.sp
+\fBint isnan(\fP\fIx\fP\fB);\fP
+.sp
+\fBint isinf(\fP\fIx\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.\" I haven't fully grokked the source to determine the FTM requirements;
+.\" in part, the following has been tested by experiment.
+.ad l
+\fBfpclassify\fP(), \fBisfinite\fP(), \fBisnormal\fP()\ :
+.RS 4
+_XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE\ >=\ 200112L
+.br
+ou \fIcc\ \-std=c99\fP
+.RE
+\fBisnan\fP()\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L
+.br
+ou \fIcc\ \-std=c99\fP
+.RE
+\fBisinf\fP()\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE
+|| _POSIX_C_SOURCE\ >=\ 200112L
+.br
+ou \fIcc\ \-std=c99\fP
+.RE
+.ad
+.SH DESCRIPTION
+Les nombres en virgule flottante peuvent avoir des valeurs spéciales, telles
+que infini ou NaN. Avec la macro \fBfpclassify(\fP\fIx\fP\fB)\fP, il est possible de
+connaître le type de \fIx\fP. La macro prend en paramètre n'importe quelle
+expression en virgule flottante. Le résultat est l'une des valeurs
+suivantes\ :
+.TP  14
+\fBFP_NAN\fP
+\fIx\fP est non numérique (NaN, pour «\ Not a Number\ »).
+.TP 
+\fBFP_INFINITE\fP
+\fIx\fP est une valeur infinie positive ou négative.
+.TP 
+\fBFP_ZERO\fP
+\fIx\fP est nul.
+.TP 
+\fBFP_SUBNORMAL\fP
+\fIx\fP est trop petit pour être représenté au format normalisé.
+.TP 
+\fBFP_NORMAL\fP
+si aucune des valeurs précédentes n'est vraie, alors c'est qu'il doit s'agir
+d'un nombre à virgule flottante normal.
+.LP
+Les autres macros fournissent une réponse courte à des questions standard.
+.TP  14
+\fBisfinite(\fP\fIx\fP\fB)\fP
+renvoie une valeur non nulle si
+.br
+(fpclassify(x) != FP_NAN && fpclassify(x) != FP_INFINITE)
+.TP 
+\fBisnormal(\fP\fIx\fP\fB)\fP
+renvoie une valeur non nulle si (fpclassify(x) == FP_NORMAL)
+.TP 
+\fBisnan(\fP\fIx\fP\fB)\fP
+renvoie une valeur non nulle si (fpclassify(x) == FP_NAN)
+.TP 
+\fBisinf(\fP\fIx\fP\fB)\fP
+renvoie 1 si \fIx\fP est une valeur infinie positive, et \-1 si \fIx\fP est une
+valeur infinie négative.
+.SH CONFORMITÉ
+C99, POSIX.1.
+
+Pour \fBisinf\fP(), les normes indiquent simplement que la valeur de retour est
+non nulle si et seulement si le paramètre a une valeur infinie.
+.SH NOTES
+Dans la glibc\ 2.01 et les versions précédentes, \fBisinf\fP() renvoie une
+valeur non nulle (habituellement, 1) si \fIx\fP est une valeur infinie positive
+ou négative. C'est tout ce qu'exige C99.
+.SH "VOIR AUSSI"
+\fBfinite\fP(3), \fBINFINITY\fP(3), \fBisgreater\fP(3), \fBsignbit\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

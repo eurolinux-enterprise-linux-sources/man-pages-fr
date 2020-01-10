@@ -1,0 +1,224 @@
+.\" t
+.\" This man page is Copyright (C) 1999 Andi Kleen <ak@muc.de>.
+.\"
+.\" %%%LICENSE_START(VERBATIM_ONE_PARA)
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" %%%LICENSE_END
+.\"
+.\" $Id: raw.7,v 1.6 1999/06/05 10:32:08 freitag Exp $
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RAW 7 "10 mai 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+raw \- Sockets brutes (raw) IPv4 sous Linux
+.SH SYNOPSIS
+\fB#include <sys/socket.h>\fP
+.br
+\fB#include <netinet/in.h>\fP
+.br
+\fBraw_socket = socket(AF_INET, SOCK_RAW, int \fP\fIprotocole\fP\fB);\fP
+.SH DESCRIPTION
+Les sockets brutes (raw) permettent d'implémenter des protocoles IPv4 dans
+l'espace utilisateur. Une socket raw reçoit ou envoie des datagrammes sans
+les en\-têtes de la couche de liaison.
+
+La couche IPv4 génère des en\-têtes IP lorsqu'elle envoie un paquet à moins
+que l'option \fBIP_HDRINCL\fP soit activée sur la socket. Lorsqu'elle est
+activée, la socket doit contenir l'en\-tête IP. Pour la réception, l'en\-tête
+IP est toujours inclus dans le paquet.
+
+Seuls les processus avec un UID effectif nul ou une capacité \fBCAP_NET_RAW\fP
+sont autorisés à ouvrir des sockets raw.
+
+Tous les paquets ou les erreurs correspondant au numéro de \fIprotocole\fP
+spécifié pour la socket raw sont transmis à cette socket. Pour voir une
+liste des protocoles autorisés, consultez les numéros assignés dans la RFC\ 1700 et \fBgetprotobyname\fP(3).
+
+Un protocole \fBIPPROTO_RAW\fP implique l'activation de \fBIP_HDRINCL\fP et
+autorise l'émission suivant n'importe quel protocole IP indiquée dans
+l'en\-tête. La réception de tous les protocoles IP avec \fBIPPROTO_RAW\fP n'est
+pas possible avec les sockets raw.
+.RS
+.TS
+tab(:) allbox;
+c s
+l l.
+IP Champs d'en\-tête modifiés en émission par \fBIP_HDRINCL\fP
+Checksum IP:Toujours rempli.
+Adresse source:Rempli si contient des zéros.
+ID Paquet:Rempli si contient des zéros.
+Longueur totale:Toujours rempli.
+.TE
+.RE
+.sp
+.PP
+Si \fBIP_HDRINCL\fP est spécifié et si l'en\-tête IP à une adresse non\-nulle,
+alors l'adresse destination de la socket est utilisée pour router le
+paquet. Quand \fBMSG_DONTROUTE\fP est spécifié, l'adresse de destination
+devrait toujours viser une interface locale. Sinon, un examen de la table de
+routage a quand même lieu, mais les routes avec une passerelle sont
+ignorées.
+
+Si \fBIP_HDRINCL\fP n'est pas spécifié, les options d'en\-tête IP peuvent être
+définies sur les sockets raw avec \fBsetsockopt\fP(2)\ ; consultez \fBip\fP(7) pour
+plus d'informations.
+
+Dans Linux\ 2.2 tous les champs d'en\-tête et les options peuvent être définis
+en utilisant les options IP. Ceci signifie que les sockets raw ne servent en
+général que pour les nouveaux protocoles ou les protocoles sans interface
+utilisateur (comme ICMP).
+
+Lorsqu'un paquet est reçu, il est passé à toutes les sockets raw qui ont été
+attachées à son protocole avant d'être transmis aux gestionnaires des autres
+protocoles (par exemple les modules des protocoles du noyau).
+.SS "Format d'adresse"
+Les sockets raw utilisent la structure d'adresse \fIsockaddr_in\fP standard,
+définie dans \fBip\fP(7). Le champ \fIsin_port\fP pourrait être utilisé pour
+spécifier un numéro de protocole IP, mais il est ignoré pour l'émission dans
+Linux\ 2.2 et devrait être toujours mis à zéro (voir paragraphe BOGUES). Pour
+les paquets entrants \fIsin_port\fP est rempli avec le protocole du
+paquet. Consultez le fichier d'en\-tête \fI<netinet/in.h>\fP pour les
+protocoles IP valides.
+.SS "Options de sockets"
+.\" Or SOL_RAW on Linux
+Les options des sockets raw peuvent être écrites avec \fBsetsockopt\fP(2) et
+lues avec \fBgetsockopt\fP(2) en passant l'attribut de famille \fBIPPROTO_RAW\fP.
+.TP 
+\fBICMP_FILTER\fP
+Active un filtre spécial sur les sockets raw attachées au protocole
+\fBIPPROTO_ICMP\fP. La valeur a un bit pour chaque type de message ICMP qui
+doit être rejeté. La valeur par défaut est de ne filtrer aucun messages
+ICMP.
+.PP
+De plus, toutes les options \fBIPPROTO_IP\fP de \fBip\fP(7) valides pour les
+sockets datagrammes sont prises en charge.
+.SS "Traitement des erreurs"
+Les erreurs provenant du réseau ne sont transmises à l'utilisateur que
+lorsque la socket est connectée ou si le drapeau \fBIP_RECVERR\fP est
+actif. Pour les sockets connectées, seules \fBEMSGSIZE\fP et \fBEPROTO\fP sont
+transmises, pour compatibilité. Avec \fBIP_RECVERR\fP, toutes les erreurs
+réseau sont sauvegardées dans la file d'erreurs.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+L'utilisateur essaye d'envoyer sur une adresse broadcast sans avoir le
+drapeau broadcast sur la socket.
+.TP 
+\fBEFAULT\fP
+Une adresse mémoire invalide a été fournie.
+.TP 
+\fBEINVAL\fP
+Argument invalide.
+.TP 
+\fBEMSGSIZE\fP
+Paquet trop grand. Soit la recherche du MTU des chemins est active (voir
+l'attribut \fBIP_MTU_DISCOVER\fP de socket), soit la taille du paquet dépasse
+le maximum autorisé par IPv4 (64\ Ko).
+.TP 
+\fBEOPNOTSUPP\fP
+Un attribut invalide a été transmis à un appel sur la socket (comme
+\fBMSG_OOB\fP).
+.TP 
+\fBEPERM\fP
+L'utilisateur n'a pas la permission d'ouvrir des sockets raw. Seuls les
+processus avec un UID effectif nul ou la capacité \fBCAP_NET_RAW\fP peuvent le
+faire.
+.TP 
+\fBEPROTO\fP
+Une erreur ICMP est arrivée, indiquant un problème de paramétrage.
+.SH VERSIONS
+\fBIP_RECVERR\fP et \fBICMP_FILTER\fP sont nouveaux dans Linux\ 2.2. Ce sont des
+extensions Linux et ne doivent pas être employés dans des programmes
+portables.
+
+Linux\ 2.0 assurait une compatibilité bogue\-à\-bogue avec le code des sockets
+raw de BSD lorsque l'attribut \fBSO_BSDCOMPAT\fP était utilisé. Ceci a été
+supprimé dans 2.2.
+.SH NOTES
+Par défaut, les sockets brutes utilisent la détection du MTU («\ Maximum
+Transmission Unit\ ») pour le chemin. Cela signifie que le noyau garde en
+mémoire le MTU vers une adresse IP cible spécifique, et renvoie \fBEMSGSIZE\fP
+lorsqu'un paquet brut dépasse cette taille. Dans ce cas, l'application doit
+diminuer la taille du paquet. La détection du MTU par chemin peut aussi être
+désactivée en utilisant l'option de socket \fBIP_MTU_DISCOVER\fP ou le fichier
+\fI/proc/sys/net/ipv4/ip_no_pmtu_disc\fP, consultez \fBip\fP(7) pour plus de
+détails. Lorsque cette option est désactivée, les sockets brutes
+fragmenteront les paquets sortants qui dépassent le MTU de l'interface. Ceci
+est cependant découragé, pour des raisons de performance et de fiabilité.
+
+Une socket raw peut être attachée à une adresse locale spécifique en
+utilisant l'appel \fBbind\fP(2). Si elle n'est pas attachée, tous les paquets
+du protocole IP spécifié sont reçus. De plus, une socket raw peut être
+attachée à un périphérique réseau particulier avec \fBSO_BINDTODEVICE\fP\ ;
+consultez \fBsocket\fP(7).
+
+Une socket \fBIPPROTO_RAW\fP ne fonctionne qu'en émission. Si vous désirez
+vraiment recevoir tous les paquets IP, utilisez une socket \fBpacket\fP(7) avec
+le protocole \fBETH_P_IP\fP. Notez que les sockets packet ne réassemblent pas
+les fragments IP contrairement aux sockets raw.
+
+Si vous voulez recevoir tous les paquets ICMP pour une socket datagramme, il
+est souvent préférable d'utiliser \fBIP_RECVERR\fP sur cette socket
+particulière, consultez \fBip\fP(7).
+
+Les sockets raw peuvent capturer tous les protocoles IP sous Linux, même les
+protocoles comme ICMP ou TCP qui ont un module dans le noyau. Dans ce cas,
+le paquet est passé simultanément au module du noyau et à la socket raw. Ce
+comportement n'est pas portable, de nombreuses autres implémentations des
+sockets BSD ont des limitations ici.
+
+Linux ne modifie jamais les en\-têtes fournis par l'utilisateur (sauf pour
+remplir les champs ne contenant que des zéros comme cela est décrit pour
+\fBIP_HDRINCL\fP). Ceci diffère de nombreuses autres implémentations des
+sockets raw.
+
+Les sockets raw sont en général peu portables et devrait être évitées dans
+les programmes destinés à être portables.
+
+L'émission sur les sockets raw devrait employer le protocole dans
+\fIsin_port\fP ; ceci a été perdu dans Linux\ 2.2. Un remède est d'utiliser
+\fBIP_HDRINCL\fP.
+.SH BOGUES
+Les extensions de Proxy transparent ne sont pas décrites.
+
+Lorsque l'option \fBIP_HDRINCL\fP est active, les datagrammes ne seront pas
+fragmentés et sont limités au MTU de l'interface.
+
+.\" .SH AUTHORS
+.\" This man page was written by Andi Kleen.
+Utiliser en émission le protocole IP indiqué dans \fIsin_port\fP a été supprimé
+dans Linux\ 2.2. On utilise toujours le protocole auquel la socket a été
+attachée avec \fBbind\fP(2) ou celui de l'appel \fBsocket\fP(2) initial.
+.SH "VOIR AUSSI"
+\fBrecvmsg\fP(2), \fBsendmsg\fP(2), \fBcapabilities\fP(7), \fBip\fP(7), \fBsocket\fP(7).
+
+\fBRFC\ 1191\fP pour la recherche du MTU du chemin. \fBRFC\ 791\fP et le fichier
+d'en\-tête \fI<linux/ip.h>\fP pour le protocole IP.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

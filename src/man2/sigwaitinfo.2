@@ -1,0 +1,157 @@
+.\" Copyright (c) 2002 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SIGWAITINFO 2 "21 juillet 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+sigwaitinfo, sigtimedwait \- Attente synchrone de signaux
+.SH SYNOPSIS
+.nf
+\fB#include <signal.h>\fP
+.sp
+\fBint sigwaitinfo(const sigset_t *\fP\fIset\fP\fB, siginfo_t *\fP\fIinfo\fP\fB);\fP
+.sp
+\fBint sigtimedwait(const sigset_t *\fP\fIset\fP\fB, siginfo_t *\fP\fIinfo\fP\fB, \fP
+\fB                 const struct timespec *\fP\fItimeout\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBsigwaitinfo\fP(), \fBsigtimedwait\fP()\ : _POSIX_C_SOURCE\ >=\ 199309L
+.SH DESCRIPTION
+\fBsigwaitinfo\fP() suspend l'exécution du thread appelant jusqu'à ce que l'un
+des signaux de l'ensemble \fIset\fP soit en attente. (Si l'un des signaux de
+l'ensemble \fIset\fP est déjà en attente pour le thread appelant,
+\fBsigwaitinfo\fP() retourne immédiatement).
+
+\fBsigwaitinfo\fP() retire le signal de l'ensemble des signaux en attente, et
+renvoie le numéro du signal comme valeur de retour. Si l'argument \fIinfo\fP
+n'est pas \fBNULL\fP, alors le tampon vers lequel il pointe est utilisé pour
+renvoyer une structure du type \fIsiginfo_t\fP (consultez \fBsigaction\fP(2))
+contenant les informations concernant le signal.
+.PP
+Si plusieurs signaux de \fIset\fP sont mis en attente pour l'appelant, le
+signal récupéré \fBsigwaitinfo\fP() est déterminé par les règles de classement
+habituelles. Consultez \fBsignal\fP(7) pour plus de détails.
+.PP
+\fBsigtimedwait\fP() opère exactement comme \fBsigwaitinfo\fP() mais elle a un
+argument supplémentaire, \fItimeout\fP, qui permet de définir une limite
+maximale au temps pendant lequel le thread est suspendu dans l'attente d'un
+signal. (Cet intervalle de temps est arrondi à la granularité de l'horloge
+système et cet intervalle peut être modifié légèrement à cause des délais
+d'ordonnancement du noyau.) Cet argument est du type\ :
+.sp
+.in +4n
+.nf
+struct timespec {
+    long    tv_sec;         /* secondes */
+    long    tv_nsec;        /* nanosecondes */
+}
+.fi
+.in
+.sp
+Si les deux champs de cette structure sont nuls, \fBsigtimedwait\fP() revient
+tout de suite, soit avec des informations sur un signal déjà en attente,
+soit avec une erreur si aucun signaux de l'ensemble \fIset\fP n'étaient
+disponibles.
+.SH "VALEUR RENVOYÉE"
+S'ils réussissent \fBsigwaitinfo\fP() et \fBsigtimedwait\fP() renvoient un numéro
+de signal (une valeur supérieure à zéro). S'ils échouent, ils renvoient \-1,
+et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+Aucun signal de l'ensemble \fIset\fP n'a été mis en attente avant expiration du
+délai \fItimeout\fP indiqué pour \fBsigtimedwait\fP().
+.TP 
+\fBEINTR\fP
+L'appel a été interrompu par un gestionnaire de signal\ ; consultez
+\fBsignal\fP(7). (Un signal autre que ceux présents dans l'ensemble \fIset\fP.)
+.TP 
+\fBEINVAL\fP
+\fItimeout\fP était invalide.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+En utilisation habituelle, l'appelant bloque les signaux de l'ensemble
+\fIset\fP au préalable avec un appel \fBsigprocmask\fP(2) (afin que la délivrance
+des signaux ne se produise pas s'ils sont mis en attente entre deux appels
+successifs à \fBsigwaitinfo\fP() ou \fBsigtimedwait\fP()) et n'installe pas de
+gestionnaire pour ces signaux. Dans un programme multithreadé, le signal
+doit être bloqué dans tous les threads pour empêcher que le signal ne soit
+traité conformément à sa disposition par défaut dans un autre thread que
+celui exécutant \fBsigwaitinfo\fP() ou \fBsigtimedwait\fP().
+
+L'ensemble des signaux qui sont en attente pour une thread donné est l'union
+de l'ensemble des signaux spécifiquement en attente pour ce thread et de
+l'ensemble des signaux en attente pour le processus lui\-même (consultez
+\fBsignal\fP(7)).
+
+Les tentatives pour attendre \fBSIGKILL\fP or \fBSIGSTOP\fP seront ignorées
+silencieusement.
+
+Si plusieurs threads d'un processus sont bloqués dans \fBsigwaitinfo\fP() ou
+\fBsigtimedwait\fP() en attente du ou des mêmes signaux, un seul des threads
+recevra réellement le signal s'il est mis en attente pour le processus (dans
+son ensemble)\ ; on ne peut pas savoir quel thread recevra le signal.
+
+POSIX ne spécifie pas le comportement si une valeur NULL est indiquée pour
+l'argument \fItimeout\fP de \fBsigtimedwait\fP(), permettant par exemple d'avoir
+le même comportement que celui de \fBsigwaitinfo\fP(), ce qui est le cas sous
+Linux.
+
+Sous Linux, \fBsigwaitinfo\fP() est une fonction de bibliothèque implémentée au
+dessus de \fBsigtimedwait\fP().
+.SH "VOIR AUSSI"
+\fBkill\fP(2), \fBsigaction\fP(2), \fBsignal\fP(2), \fBsignalfd\fP(2), \fBsigpending\fP(2),
+\fBsigprocmask\fP(2), \fBsigqueue\fP(3), \fBsigsetops\fP(3), \fBsigwait\fP(3),
+\fBsignal\fP(7), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

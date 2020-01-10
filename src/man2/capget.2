@@ -1,0 +1,185 @@
+.\" written by Andrew Morgan <morgan@kernel.org>
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" may be distributed as per GPL
+.\" %%%LICENSE_END
+.\"
+.\" Modified by David A. Wheeler <dwheeler@ida.org>
+.\" Modified 2004-05-27, mtk
+.\" Modified 2004-06-21, aeb
+.\" Modified 2008-04-28, morgan of kernel.org
+.\"     Update in line with addition of file capabilities and
+.\"     64-bit capability sets in kernel 2.6.2[45].
+.\" Modified 2009-01-26, andi kleen
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CAPGET 2 "11 mars 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+capget, capset \- Configurer les capacités des threads
+.SH SYNOPSIS
+\fB#include <sys/capability.h>\fP
+.sp
+\fBint capget(cap_user_header_t \fP\fIhdrp\fP\fB, cap_user_data_t \fP\fIdatap\fP\fB);\fP
+.sp
+\fBint capset(cap_user_header_t \fP\fIhdrp\fP\fB, const cap_user_data_t
+\fP\fIdatap\fP\fB);\fP
+.SH DESCRIPTION
+Depuis Linux 2.2, la toute puissance du superutilisateur (root) a été
+scindée en plusieurs ensembles distincts. Chaque thread dispose d'un
+ensemble de capacités effectives permettant d'identifier ses droits de
+réaliser certaines actions. Chaque thread a aussi un ensemble de capacités
+héritables, qu'il peut transmettre au travers d'un \fBexecve\fP(2) et un
+ensemble de capacités éventuelles qu'il peut rendre effectives ou
+héritables.
+.PP
+Ces deux appels système constituent l'interface brute du noyau pour
+configurer ou lire les capacités d'un thread. Non seulement ces appels
+système sont spécifiques à Linux, mais l'API du noyau est susceptible de
+changer. L'utilisation de ces appels système (en particulier le format du
+type \fIcap_user_*_t\fP) risque d'être étendue lors de nouvelles mises à jour
+du noyau, mais les anciens programmes continueront à fonctionner.
+.sp
+L'interface portable est constituée des fonctions \fBcap_set_proc\fP(3) et
+\fBcap_get_proc\fP(3)\ ; si possible, utilisez plutôt ces routines dans vos
+applications. Si vous désirez vraiment utiliser les extensions Linux,
+essayez d'employer plutôt les interfaces plus simples \fBcapsetp\fP(3) et
+\fBcapgetp\fP(3).
+.SS "Détails actuels"
+Maintenant que vous avez été avertis, quelques détails du noyau actuel. Les
+structures sont définies comme suit.
+.sp
+.nf
+.in +4n
+#define _LINUX_CAPABILITY_VERSION_1  0x19980330
+#define _LINUX_CAPABILITY_U32S_1     1
+
+#define _LINUX_CAPABILITY_VERSION_2  0x20071026
+#define _LINUX_CAPABILITY_U32S_2     2
+
+typedef struct __user_cap_header_struct {
+   __u32 version;
+   int pid;
+} *cap_user_header_t;
+
+typedef struct __user_cap_data_struct {
+   __u32 effective;
+   __u32 permitted;
+   __u32 inheritable;
+} *cap_user_data_t;
+.fi
+.in -4n
+.sp
+\fIeffective, permitted, inheritable\fP sont des champs de bits de capacité
+définis dans \fIcapability\fP(7). Notez que les valeurs \fBCAP_*\fP sont indexées
+par bit et nécessite d'être décalées avant le OU logique avec le champ de
+bit. Pour définir les structures à passer à l'appel système, vous devez
+utilisez les noms \fIstruct __user_cap_header_struct\fP et \fIstruct
+__user_cap_data_struct\fP car les typedefs ne sont que des pointeurs.
+
+Les noyau antérieurs à 2.6.25 préfèrent les capacités 32\ bits avec la
+version \fB_LINUX_CAPABILITY_VERSION_1\fP, et les noyaux 2.6.25 et suivants
+préfèrent les capacités 64\ bits avec la version
+\fB_LINUX_CAPABILITY_VERSION_2\fP. Notez que les capacités 64\ bits utilisent
+\fIdatap\fP[0] et \fIdatap\fP[1], tandis que les capacités 32\ bits n'utilisent que
+\fIdatap\fP[0].
+.sp
+Une autre modification impactant le comportement de ces appels système est
+la gestion par le noyau de fichiers de capacités (la gestion VFS des
+capacité). Cette gestion est actuellement une option de compilation (ajoutée
+dans le noyau 2.6.24).
+.sp
+Pour les appels \fBcapget\fP(), on peut tester les capacités de n'importe quel
+processus en indiquant l'identifiant du processus avec la valeur du champ
+\fIhdrp\->pid\fP.
+.SS "Avec la prise en charge VFS des capacités"
+Avec la prise en charge VFS pour les capacités, il existe une méthode
+permettant d'ajouter des capacités à des exécutables privilégiés à partir
+d'attributs de fichier. Ce modèle de privilèges rend obsolète la prise en
+charge par le noyau du paramétrage asynchrone des capacités d'un processus
+par un autre. C'est\-à\-dire que, avec la prise en charge VFS, pour les appels
+à \fBcapset\fP() les seules valeurs permises pour \fIhdrp\->pid\fP sont 0 et
+\fBgetpid\fP(2), qui sont équivalentes.
+.SS "Sans la gestion VFS des capacités"
+Quand le noyau ne gère pas les capacités en VFS, les appels \fBcapset\fP()
+peuvent s'appliquer aux capacités du thread indiqué par le champ \fIpid\fP de
+\fIhdrp\fP lorsqu'il n'est pas nul, ou à celles du thread courant si \fIpid\fP
+vaut 0. Si \fIpid\fP correspond à un processus n'utilisant pas les threads,
+\fIpid\fP peut être un identifiant de processus classique. Pour configurer les
+capacités d'un thread faisant partie d'un processus multithreadé, il faut
+utiliser un identifiant de thread du type que renvoie \fBgettid\fP(2). Pour
+\fBcapset\fP(), \fIpid\fP peut également être \-1, ce qui affecte tous les threads
+sauf l'appelant et \fBinit\fP(8), ou bien une valeur inférieure à \-1, ce qui
+applique la modification à tous les membres de groupe de processus identifié
+par \-\fIpid\fP.
+
+Pour les détails sur les données, consultez \fBcapabilities\fP(7).
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+
+Les appels échoueront avec l'erreur \fBEINVAL\fP, et définiront le champ
+\fIversion\fP de \fIhdrp\fP avec la valeur \fB_LINUX_CAPABILITY_VERSION_?\fP préférée
+par le noyau quand une \fIversion\fP non prise en charge est fournie. De cette
+façon, on peut tester quelle est la révision de capacité préférée.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+Mauvaise adresse mémoire. \fIhdrp\fP ne doit pas être NULL. \fIdatap\fP ne peut
+être NULL que quand l'utilisateur cherche à déterminer la version du format
+préféré des capacités gérée par le noyau.
+.TP 
+\fBEINVAL\fP
+Un argument est invalide.
+.TP 
+\fBEPERM\fP
+On a essayé d'ajouter une capacité dans l'ensemble éventuel, ou de placer
+une capacité dans l'ensemble effectif ou héritable qui ne se trouvait pas
+dans l'ensemble éventuel.
+.TP 
+\fBEPERM\fP
+Le processus appelant a tenté d'utiliser \fBcapset\fP() pour modifier les
+capacités d'un thread autre que lui\(hymême, sans avoir les privilèges
+nécessaires. Pour les noyaux avec la gestion VFS des capacités, ce n'est
+jamais permis. Pour les noyaux sans la gestion VFS des capacités, la
+capacité \fBCAP_SETPCAP\fP est requise. (En raison d'un bogue dans les noyaux
+antérieurs à 2.6.11, cette erreur était aussi renvoyée si un thread sans
+cette capacité tentait de modifier ses propres capacités en indiquant une
+valeur non nulle de \fIpid\fP (la valeur renvoyée par \fBgetpid\fP(2)).)
+.TP 
+\fBESRCH\fP
+Pas de thread correspondant.
+.SH CONFORMITÉ
+Ces appels système sont spécifiques à Linux.
+.SH NOTES
+L'interface portable pour les fonctions de lecture des capacités et de
+configuration est fournie par la bibliothèque \fIlibcap\fP disponible à\ :
+.br
+.UR http://git.kernel.org/cgit\:/linux\:/kernel\:/git\:/morgan\:\:/libcap.git
+.UE
+.SH "VOIR AUSSI"
+\fBclone\fP(2), \fBgettid\fP(2), \fBcapabilities\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

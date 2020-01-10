@@ -1,0 +1,106 @@
+.\" Copyright (C) 2003 Free Software Foundation, Inc.
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" This file is distributed according to the GNU General Public License.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH IO_GETEVENTS 2 "8 avril 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+io_getevents \- Lire les événements d'E/S asynchrones terminés
+.SH SYNOPSIS
+.nf
+\fB#include <linux/aio_abi.h>\fP         /* Définit les types nécessaires */
+\fB#include <linux/time.h>\fP            /* Définit « struct timespec » */
+
+\fBint io_getevents(aio_context_t \fP\fIctx_id\fP\fB, long \fP\fImin_nr\fP\fB, long \fP\fInr\fP\fB,\fP
+\fB                 struct io_event *\fP\fIevents\fP\fB, struct timespec *\fP\fItimeout\fP\fB);\fP
+.fi
+
+\fIRemarque\fP\ : il n'existe pas de fonction glibc autour de cet appel
+système\ ; consultez \fBNOTES\fP.
+.SH DESCRIPTION
+.PP
+L'appel système \fBio_getevents\fP() essaye de lire de \fImin_nr\fP à \fInr\fP
+événements de la file des événements terminés du contexte d'entrées\-sorties
+asynchrones \fIctx_id\fP. L'argument \fItimeout\fP indique une durée maximale
+d'attente pour les événements. S'il est NULL, l'attente dure jusqu'à avoir
+au moins \fImin_nr\fP événements. Remarquez que \fItimeout\fP est relatif.
+.SH "VALEUR RENVOYÉE"
+\fBio_getevents\fP() renvoie le nombre d'événements lus, zéro s'il n'y en a
+aucun, et moins de \fImin_nr\fP si le délai \fItimeout\fP a expiré. Pour les
+valeurs de retour en cas d'échec, consultez la section NOTES.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fIevents\fP ou \fItimeout\fP est un pointeur invalide.
+.TP 
+\fBEINVAL\fP
+\fIctx_id\fP est invalide, \fImin_nr\fP ou \fInr\fP est incorrect.
+.TP 
+\fBEINTR\fP
+L'appel a été interrompu par un gestionnaire de signal\ ; consultez
+\fBsignal\fP(7).
+.TP 
+\fBENOSYS\fP
+\fBio_getevents\fP() n'est pas implémenté sur cette architecture.
+.SH VERSIONS
+.PP
+Les appels système d'entrées\-sorties asynchrones sont apparus dans
+Linux\ 2.5.
+.SH CONFORMITÉ
+.PP
+\fBio_getevents\fP() est spécifique à Linux et ne doit pas être utilisé dans
+des programmes destinés à être portables.
+.SH NOTES
+.\" http://git.fedorahosted.org/git/?p=libaio.git
+La glibc ne fournit pas de fonction autour de cet appel système. Vous
+pourriez l'invoquer en utilisant \fBsyscall\fP(2), mais vous préférerez sans
+doute utiliser la fonction enveloppe \fBio_getevents\fP() fournie par
+\fIlibaio\fP.
+
+.\" But glibc is confused, since <libaio.h> uses 'io_context_t' to declare
+.\" the system call.
+Remarquez que la fonction enveloppe \fIlibaio\fP utilise un autre type
+(\fIio_context_t\fP) pour l'argument \fIctx_id\fP. Remarquez également que
+l'enveloppe \fIlibaio\fP ne suit pas les conventions classiques de la
+bibliothèque\ C concernant l'indication des erreurs\ : en cas d'erreur, la
+fonction renvoie un nombre négatif (la valeur négative de l'une des valeurs
+indiquées dans la section \fBERREURS\fP). Si l'appel système est invoqué avec
+\fBsyscall\fP(2), la valeur de retour suit les conventions classiques pour
+indiquer l'erreur\ : \-1 avec \fIerrno\fP contenant le code (positif) de
+l'erreur.
+.SH BOGUES
+Un \fIctx_id\fP invalide peut provoquer une erreur de segmentation au lieu de
+générer une erreur \fBEINVAL\fP.
+.SH "VOIR AUSSI"
+.PP
+.\" .SH AUTHOR
+.\" Kent Yoder.
+\fBio_cancel\fP(2), \fBio_destroy\fP(2), \fBio_setup\fP(2), \fBio_submit\fP(2),
+\fBaio\fP(7), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

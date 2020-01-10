@@ -1,0 +1,419 @@
+.\" (C) Copyright 1992-1999 Rickard E. Faith and David A. Wheeler
+.\" (faith@cs.unc.edu and dwheeler@ida.org)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sun Jul 25 11:06:05 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sat Jun  8 00:39:52 1996 by aeb
+.\" Modified Wed Jun 16 23:00:00 1999 by David A. Wheeler (dwheeler@ida.org)
+.\" Modified Thu Jul 15 12:43:28 1999 by aeb
+.\" Modified Sun Jan  6 18:26:25 2002 by Martin Schulze <joey@infodrom.org>
+.\" Modified Tue Jul 27 20:12:02 2004 by Colin Watson <cjwatson@debian.org>
+.\" 2007-05-30, mtk: various rewrites and moved much text to new man-pages.7.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MAN 7 "5 août 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+man \- Macros pour la mise en forme des pages de manuel
+.SH SYNOPSIS
+\fBgroff \-Tascii \-man\fP \fIfichier\fP \&...
+.LP
+\fBgroff \-Tps \-man\fP \fIfichier\fP \&...
+.LP
+\fBman\fP [\fIsection\fP] \fItitre\fP
+.SH DESCRIPTION
+Cette page de manuel explique le contenu du paquet \fBgroff an.tmac\fP (souvent
+appelé paquet de macros \fBman\fP). Ce paquet doit être utilisé par les
+développeurs pour écrire ou porter des pages de manuels. Il est largement
+compatible avec d'autres versions de ce paquet, donc le portage de pages
+pour Linux ne devrait pas poser de problèmes (sauf pour NET\-2 BSD qui
+utilise un paquetage complètement différent appelé mdoc, consultez
+\fBmdoc\fP(7)).
+.PP
+Notez que les pages de manuel NET\-2 BSD peuvent être visualisées avec
+\fBgroff\fP simplement en spécifiant l'option \fB\-mdoc\fP à la place de l'option
+\fB\-man\fP. L'utilisation de l'option \fB\-mandoc\fP est néanmoins recommandée
+puisqu'il détectera automatiquement le paquetage utilisé.
+.PP
+Les conventions utilisées pour les pages de manuel du paquet \fIman\-pages\fP
+pour Linux sont décrites dans \fBman\-pages\fP(7).
+.SS "Ligne de titre"
+La première commande d'une page de manuel (après des lignes de commentaire,
+qui commencent par \fB.\e"\fP) doit être
+.RS
+.sp
+\fB\&.TH\fP \fItitre section date source manuel\fP,
+.sp
+.RE
+Les détails des arguments passés à la commande \fBTH\fP sont décrits dans
+\fBman\-pages\fP(7).
+.PP
+Notez que les pages BSD formatées avec mdoc commencent avec la commande
+\fBDd\fP et non pas \fBTH\fP.
+.SS Sections
+.\" The following doesn't seem to be required (see Debian bug 411303),
+.\" If the name contains spaces and appears
+.\" on the same line as
+.\" .BR \&.SH ,
+.\" then place the heading in double quotes.
+Les sections commencent par \fB\&.SH\fP suivi du titre de section.
+
+La seule section obligatoire est NAME (NOM), qui doit être la première
+section et dont la ligne suivant le titre doit être une description courte
+du programme\ :
+.RS
+.sp
+\&.SH NAME
+.br
+objet \e\- description
+.sp
+.RE
+Ce format doit absolument être respecté, et le tiret suivant le nom de
+l'objet doit être précédé d'une barre oblique inversée. Toute la description
+doit être contenue sur une seule ligne. Cette syntaxe est utilisée par le
+programme \fBmandb\fP(8) pour créer la base de données des descriptions courtes
+pour les commandes \fBwhatis\fP(1) et \fBapropos\fP(1) (consultez \fBlexgrog\fP(1)
+pour de plus amples précisions sur la syntaxe de la section NAME).
+.PP
+Pour une liste des autres sections pouvant apparaître dans une page de
+manuel, consultez \fBman\-pages\fP(7).
+.SS Fontes
+Les commandes pour sélectionner les fontes sont les suivantes\ :
+.TP  4
+\fB\&.B\fP
+Gras.
+.TP 
+\fB\&.BI\fP
+Gras alterné avec Italique (très utile pour les spécifications de
+fonctions).
+.TP 
+\fB\&.BR\fP
+Gras alterné avec Roman (très utile pour les références aux autres pages de
+manuel).
+.TP 
+\fB\&.I\fP
+Italique.
+.TP 
+\fB\&.IB\fP
+Italique alterné avec Gras.
+.TP 
+\fB\&.IR\fP
+Italique alterné avec Roman.
+.TP 
+\fB\&.RB\fP
+Roman alterné avec Gras.
+.TP 
+\fB\&.RI\fP
+Roman alterné avec Italique.
+.TP 
+\fB\&.SB\fP
+Petit alterné avec Gras.
+.TP 
+\fB\&.SM\fP
+Petit (utile pour les acronymes).
+.LP
+Traditionnellement, chaque commande peut avoir jusqu'à six arguments, mais
+les versions GNU semblent éliminer cette contrainte (vous préférerer
+sûrement vous limiter à 6 arguments pour des raisons de portabilité). Les
+arguments sont délimités par des espaces. Des guillemets sont utilisés pour
+encadrer un argument qui contient des espaces. Tous les arguments seront
+imprimés les uns après les autres sans intercaler d'espace, ainsi la
+commande \fB\&.BR\fP peut être utilisée pour indiquer un mot en Gras suivi par
+un signe de ponctuation en Roman. Si aucun argument n'est fourni, la
+commande s'applique à la ligne suivante.
+.SS "Autres macros et chaînes"
+.PP
+Ci\-dessous se trouvent les macros et chaînes prédéfinies. Sauf indication
+contraire, toutes les macros déclenchent un saut de ligne. La plupart de ces
+macros utilisent ou modifient l'indentation courante. Celle\-ci est définie
+par toute macro avec le paramètre \fIi\fP ci\-dessous\ ; les macros peuvent
+omettre le \fIi\fP auquel cas l'indentation courante est utilisée. En
+conséquence, les paragraphes suivants peuvent utiliser la même indentation
+sans la répéter. Un paragraphe normal, non indenté, replace l'indentation
+courante à sa valeur par défaut (0.5 pouces). Par défaut, les indentations
+sont mesurées en ens (largeur d'une lettre «\ n\ »") ou ems («\ m\ »). Ainsi, les largeurs s'ajustent automatiquement en cas de changement de
+police. Les principales macros disponibles sont\ :
+.SS "Paragraphes normaux"
+.TP  9m
+\fB\&.LP\fP
+Comme \fB\&.PP\fP (débute un nouveau paragraphe).
+.TP 
+\fB\&.P\fP
+Comme \fB\&.PP\fP (débute un nouveau paragraphe).
+.TP 
+\fB\&.PP\fP
+Débute un nouveau paragraphe et réinitialise l'indentation courante.
+.SS "Indentation relative"
+.TP  9m
+\fB\&.RS\fP\fI i\fP
+Débute une indentation relative\ : déplace la marge gauche de \fIi\fP vers la
+droite (si \fIi\fP est absent, la valeur d'indentation courante est
+utilisée). Une nouvelle valeur d'indentation est placée à 0.5 pouces. En
+conséquence, tous les paragraphes suivants seront indentés jusqu'au \fB\&.RE\fP
+correspondant.
+.TP 
+\fB\&.RE\fP
+Terminer une indentation relative et restituer les valeurs précédentes
+d'indentation courante.
+.SS "Macros d'indentation de paragraphe"
+.TP  9m
+\fB\&.HP\fP\fI i\fP
+Débute un paragraphe avec une indentation d'accroche (la première ligne du
+paragraphe est le long de la marge gauche, et les autres lignes sont
+indentées).
+.TP 
+\fB\&.IP\fP\fI x i\fP
+Paragraphe indenté avec une balise d'accroche éventuelle. Si la balise \fIx\fP
+est omise, tout le paragraphe est indenté de \fIi\fP. Si la balise \fIx\fP est
+fournie, elle est accrochée le long de la marge gauche, avant le paragraphe
+indenté (c'est comme \fB\&.TP\fP sauf que la balise est incluse avec la
+commande elle\-même plutôt que d'être sur la ligne suivante). Si la balise
+est trop longue, le texte sera transposé à la ligne suivante (le texte ne
+sera ni perdu ni tronqué). Pour les listes à puces, utilisez cette macro
+avec \e(bu (rond) ou \e(em (tiret) comme balise, et pour les listes
+numérotées utilisez le numéro ou la lettre suivi par un point. Cela
+simplifie la traduction dans d'autres formats.
+.TP 
+\fB\&.TP\fP\fI i\fP
+Début d'un paragraphe avec une balise d'accroche. La balise est donnée sur
+la ligne suivante, mais le résultat est identique à celui de la commande
+\fB\&.IP\fP.
+.SS "Macros de liens hypertextes"
+(Fonctionnalité prise en charge par \fBgroff\fP seulement.) Afin d'utiliser les
+macros de liens hypertexte, il est nécessaire de charger le paquet macro
+\fBwww.tmac\fP. Utiliser la requète \fB.mso www.tmac\fP pour le faire.
+.TP  9m
+\fB\&.URL\fP\fI url lien fin\fP
+.\" The following is a kludge to get a paragraph into the listing.
+Insère un lien hypertexte vers l'URI (URL) \fIurl\fP, avec \fIlien\fP comme texte
+du lien. La \fIfin\fP sera affichée immédiatement après. Lors d'une conversion
+en HTML, cela se traduit par les commandes HTML \fB<A
+HREF="\fP\fIurl\fP\fB">\fP\fIlien\fP\fB</A>\fP\fIfin\fP.
+.TP 
+\fB\& \&\fR
+.\" The following is a kludge to get a paragraph into the listing.
+Les macros d'insertion de liens hypertextes sont nouvelles, et de nombreux
+outils n'en feront rien. Mais, comme de nombreux outils (y compris troff)
+les ignoreront simplement (ou au pire écriront leur texte), on peut les
+utiliser sans souci.
+.TP 
+\fB\& \&\fR
+.\" The following is a kludge to get a paragraph into the listing.
+Il peut être utile de définir votre propre macro \fBURL\fP dans les pages de
+manuels pour le bénéfice de ceux qui les regarderont avec un visualisateur
+roff autre que \fBgroff\fP. De cette façon, l'URL, le texte du lien et le texte
+de fin (s'il y en a) restent visibles.
+.TP 
+\fB\& \&\fR
+Voici un exemple\ :
+.RS 1.5i
+\&.de URL
+.br
+\e\e$2 \e(laURL: \e\e$1 \e(ra\e\e$3
+.br
+\&..
+.br
+\&.if \en[.g] .mso www.tmac
+.br
+\&.TH \fI...\fP
+.br
+\fI(plus bas dans la page page)\fP
+.br
+Ce logiciel est fournit par le
+.br
+\&.URL "http://www.gnu.org/" "Projet GNU" " de la"
+.br
+\&.URL "http://www.fsf.org/" "Free Software Foundation" .
+.RE
+.\" The following is a kludge to get a paragraph into the listing.
+.TP 
+\fB\& \&\fR
+Dans ce qui précède, si \fBgroff\fP est utilisé, la définition de la macro URL
+du paquet macro \fBwww.tmac\fP surchargera celle qui est définie localement.
+.PP
+Un certain nombre d'autres macros lien sont disponibles. Consultez
+\fBgroff_www\fP(7) pour plus de précisions.
+.SS "Macros diverses"
+.TP  9m
+\fB\&.DT\fP
+Réinitialiser les tabulations à leurs valeurs par défaut, tous les 0.5\ pouces. Ne provoque pas de saut de ligne.
+.TP 
+\fB\&.PD\fP\fI d\fP
+Définir la distance verticale entre paragraphes à la valeur d (si absent,
+d=0.4v). Ne provoque pas de saut de ligne.
+.TP 
+\fB\&.SS\fP\fI t\fP
+Sous\-chapitre \fIt\fP (comme \fB\&.SH\fP, mais pour les sous\-sections au sein
+d'une section).
+.SS "Chaînes prédéfinies"
+Le paquet \fBman\fP contient les chaînes prédéfinies suivantes\ :
+.IP \e*R
+Symbole d'enregistrement\ : \*R
+.IP \e*S
+Taille de police par défaut.
+.IP \e*(Tm
+Symbole marque déposée\ : \*(Tm
+.IP \e*(lq
+Guillemets en chevrons gauches\ : \*(lq
+.IP \e*(rq
+Guillemets en chevrons droits\ : \*(rq
+.SS "Sous\(hyensemble sûr"
+Bien que techniquement \fBman\fP soit un paquet de macros troff, en réalité un
+grand nombre d'autres outils traitent les fichiers des pages de manuel, sans
+implémenter toutes les possibilités de troff. Il vaut donc mieux éviter
+certaines fonctionnalités exotiques de troff. Évitez d'utiliser les
+préprocesseurs de troff (s'il le faut, utilisez \fBtbl\fP(1), mais essayez
+d'employer plutôt les commandes \fBIP\fP et \fBTP\fP pour les tableaux à deux
+colonnes). Évitez d'utiliser les calculs, la plupart des autres outils ne
+les réalisent pas. Utilisez des commandes simples facile à traduire dans
+d'autres formats. Les macros suivantes sont reconnues comme sûres (même si
+elles sont parfois ignorées par les outils)\ : \fB\e"\fP, \fB.\fP, \fBad\fP, \fBbp\fP,
+\fBbr\fP, \fBce\fP, \fBde\fP, \fBds\fP, \fBel\fP, \fBie\fP, \fBif\fP, \fBfi\fP, \fBft\fP, \fBhy\fP, \fBig\fP,
+\fBin\fP, \fBna\fP, \fBne\fP, \fBnf\fP, \fBnh\fP, \fBps\fP, \fBso\fP, \fBsp\fP, \fBti\fP, \fBtr\fP.
+.PP
+Vous pouvez aussi employer les séquences d'échappement de troff (celles qui
+commencent par \e). Si vous devez insérer une barre oblique inverse comme du
+texte normal, utilisez \ee. Les autres séquences que vous pouvez utiliser, x
+et xx étant des caractères quelconques, et N un chiffre, sont\ : \fB\e'\fP,
+\fB\`\fP, \fB\e\-\fP, \fB\e.\fP, \fB\e"\fP, \fB\e%\fP, \fB\e*x\fP, \fB\e*(xx\fP, \fB\e(xx\fP,
+\fB\e$N\fP, \fB\enx\fP, \fB\en(xx\fP, \fB\efx\fP et \fB\ef(xx\fP. Évitez d'utiliser des
+séquences d'échappement pour dessiner des graphiques.
+.PP
+N'utilisez pas les paramètres optionnels pour \fBbp\fP (break page). Utilisez
+seulement des valeurs positives pour \fBsp\fP (vertical space). Ne définissez
+pas de macro (\fBde\fP) avec le même nom qu'une macro dans ce paquet ou dans
+celui de mdoc avec une signification différente, il est probable que la
+définition en serait ignorée. Toute indentation positive (\fBin\fP) devrait
+être appariée avec une indentation négative identique (bien que vous devriez
+plutôt utiliser les macros \fBRS\fP et \fBRE\fP à la place). Les tests (\fBif,ie\fP)
+ne devraient avoir que «\ t\ » ou «\ n\ » comme condition. Seules les
+traductions (\fBtr\fP) qui peuvent être ignorées devraient être utilisées. Les
+changement de fontes (\fBft\fP et les séquences d'échappement \fB\ef\fP) ne
+doivent prendre comme valeurs que 1, 2, 3, 4, R, I, B, P, ou CW (la commande
+ft peut aussi n'avoir aucun paramètre).
+.PP
+Si vous utilisez d'autres fonctionnalités que celles\-ci, vérifiez le
+résultat soigneusement sur divers outils. Une fois que vous avez
+confirmation que la nouvelle fonctionnalité est sûre, faites\-le savoir au
+mainteneur de cette page.
+.SH FICHIERS
+\fI/usr/share/groff/\fP[*/]\fItmac/an.tmac\fP
+.br
+\fI/usr/man/whatis\fP
+.SH NOTES
+.PP
+Insérez les URLs complets dans le texte lui\-même, certains outils comme
+\fBman2html\fP(1) peuvent les transformer automatiquement en liens
+hypertextes. Vous pouvez aussi utiliser la nouvelle macro \fBURL\fP pour
+associer les liens aux informations correspondantes. Si vous insérer des
+URL, utilisez des URL complets (par exemple
+.UR http://www.kernelnotes.org
+.UE )
+pour s'assurer que les outils les
+trouveront automatiquement.
+.PP
+Les outils traitant ces fichiers devront les ouvrir et examiner le premier
+caractère non blanc. Un point ou un apostrophe simple au début d'une ligne
+indiquent un fichier troff (comme man ou mdoc). Un angle gauche «\ <\ »
+indique un document SGML/XML comme (HTML ou DocBook). Tout autre caractère
+correspond à un texte ASCII simple (par exemple une sortie «\ catman\ »).
+.PP
+Plusieurs pages commencent avec \fB\'\e"\fP suivi d'une espace et d'une liste
+de caractères indiquant comment la page doit être prétraitée. Pour améliorer
+la portabilité vers des traducteurs non troff, nous vous recommandons
+d'éviter d'utiliser autre chose que \fBtbl\fP(1). Sous Linux, la détection en
+est automatique. Néanmoins, vous pouvez inclure cette information pour que
+votre page de manuel puisse être traitée par d'autres systèmes (moins
+capables). Voici la définition des préprocesseurs invoqués par ces
+caractères\ :
+.TP  3
+\fBe\fP
+eqn(1)
+.TP 
+\fBg\fP
+grap(1)
+.TP 
+\fBp\fP
+pic(1)
+.TP 
+\fBr\fP
+refer(1)
+.TP 
+\fBt\fP
+tbl(1)
+.TP 
+\fBv\fP
+vgrind(1)
+.SH BOGUES
+.PP
+La plupart des macros décrivent la mise en forme (police, espacement,\ etc.)
+au lieu de marquer le contenu sémantique (par exemple référence vers une
+autre page) comme le font des formats comme mdoc ou DocBook (même l'HTML a
+des balises plus sémantiques). Cette situation rend le format \fBman\fP
+difficile à traduire sur différents supports. En se limitant au
+sous\-ensemble de macros décrites plus haut, il devrait être plus facile de
+basculer automatiquement vers un autre format de page de référence dans
+l'avenir.
+.LP
+.\" .SH AUTHORS
+.\" .IP \(em 3m
+.\" James Clark (jjc@jclark.com) wrote the implementation of the macro package.
+.\" .IP \(em
+.\" Rickard E. Faith (faith@cs.unc.edu) wrote the initial version of
+.\" this manual page.
+.\" .IP \(em
+.\" Jens Schweikhardt (schweikh@noc.fdn.de) wrote the Linux Man-Page Mini-HOWTO
+.\" (which influenced this manual page).
+.\" .IP \(em
+.\" David A. Wheeler (dwheeler@ida.org) heavily modified this
+.\" manual page, such as adding detailed information on sections and macros.
+La macro Sun \fBTX\fP n'est pas implémentée.
+.SH "VOIR AUSSI"
+\fBapropos\fP(1), \fBgroff\fP(1), \fBlexgrog\fP(1), \fBman\fP(1), \fBman2html\fP(1),
+\fBwhatis\fP(1), \fBgroff_man\fP(7), \fBgroff_www\fP(7), \fBman\-pages\fP(7), \fBmdoc\fP(7),
+\fBmdoc.samples\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,93 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH AIO_RETURN 3 "4 juillet 2013" "" "Manuel du programmeur Linux"
+.SH NOM
+aio_return \- Récupérer l'état de retour d'une opération d'E/S asynchrone
+.SH SYNOPSIS
+\fB#include <aio.h>\fP
+.sp
+\fBssize_t aio_return(struct aiocb *\fP\fIaiocbp\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP.
+.SH DESCRIPTION
+La fonction \fBaio_return\fP() renvoie l'état de retour final d'une requête
+d'E/S asynchrone dont le bloc de contrôle est pointé par
+\fIaiocbp\fP. Consultez \fBaio\fP(7) pour une description de la structure
+\fIaiocb\fP.
+.LP
+Cette fonction ne devrait être appelée qu'une seule fois pour une requête
+donnée, après que la fonction \fBaio_error\fP(3) a renvoyé autre chose que
+\fBEINPROGRESS\fP.
+.SH "VALEUR RENVOYÉE"
+Si l'opération d'E/S asynchrone s'est achevée, cette fonction renvoie la
+valeur qui aurait été retournée dans le cas d'un appel synchrone à
+\fBread\fP(2), \fBwrite\fP(2), \fBfsync\fP(2) ou \fBfdatasync\fP(2).
+
+Si l'opération asynchrone d'E/S n'est pas terminée, la valeur renvoyée et
+l'effet de \fBaio_return\fP() est indéfini.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+\fIaiocbp\fP ne pointe pas vers un bloc de contrôle d'une une requête d'E/S
+asynchrone pour laquelle l'état de retour n'a pas encore été récupéré.
+.TP 
+\fBENOSYS\fP
+\fBaio_return\fP() n'est pas implémenté.
+.SH VERSIONS
+La fonction \fBaio_return\fP() est disponible depuis la glibc\ 2.1.
+.SH ATTRIBUTS
+.SS "Multithreading (voir pthreads(7))"
+La fonction \fBaio_return\fP() est sûre dans un contexte multithread.
+.SH CONFORMITÉ
+POSIX.1\-2001, POSIX.1\-2008.
+.SH EXEMPLE
+Consultez \fBaio\fP(7).
+.SH "VOIR AUSSI"
+\fBaio_cancel\fP(3), \fBaio_error\fP(3), \fBaio_fsync\fP(3), \fBaio_read\fP(3),
+\fBaio_suspend\fP(3), \fBaio_write\fP(3), \fBlio_listio\fP(3), \fBaio\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2004-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

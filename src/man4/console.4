@@ -1,0 +1,86 @@
+.\" Copyright (c) 1994 Andries Brouwer (aeb@cwi.nl), Mon Oct 31 21:03:19 MET 1994
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" Modified, Sun Feb 26 14:58:45 1995, faith@cs.unc.edu
+.\" "
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CONSOLE 4 "31 octobre 1994" Linux "Manuel du programmeur Linux"
+.SH NOM
+console \- Console et terminaux virtuels
+.SH DESCRIPTION
+Un système Linux dispose d'un maximum de 63 \fIconsoles virtuelles\fP
+(périphériques caractères, dont le numéro majeur est 4 et le numéro mineur
+entre 1 et 63), généralement nommées \fI/dev/ttyn\fP avec 1 \(<= \fIn\fP
+\(<= 63. La console en cours est également accessible par
+\fI/dev/console\fP ou \fI/dev/tty0\fP, le périphérique caractère de numéro majeur
+4, et de numéro mineur 0. Les fichiers de périphériques \fI/dev/*\fP sont
+habituellement créés en utilisant le script MAKEDEV, ou en utilisant
+\fBmknod\fP(1), avec le mode d'accès 0622 et le propriétaire \fIroot.tty\fP.
+.LP
+Avant le noyau\ 1.1.54, le nombre de consoles virtuelles était compilé dans
+le noyau (dans \fItty.h\fP\ : #define NR_CONSOLES 8) et ne pouvait être modifié
+qu'en éditant ce fichier, et en recompilant le noyau. Depuis la version\ 1.1.54, les consoles virtuelles sont créées à la volée, sitôt qu'on en a
+besoin.
+.LP
+Les moyens les plus courants de démarrer un processus sur une console sont\ : (a) demander à \fBinit\fP(8)  (dans \fBinittab\fP(5))  de démarrer un
+\fBmingetty\fP(8)  (ou \fBagetty\fP(8))  sur la console\ ; (b) demander à
+\fBopenvt\fP(1)  de lancer un processus sur la console\ ; (c) lancer X qui
+trouvera la première console inutilisée et y effectuera ses affichages. (On
+peut aussi utiliser l'ancien \fBdoshell\fP(8).)
+.LP
+Les moyens courants de basculer de console en console sont\ : (a) utiliser
+Alt+F\fIn\fP ou Ctrl+Alt+F\fIn\fP pour basculer sur la console \fIn\fP\ ; AltGr+F\fIn\fP
+vous amène à la console \fIn\fP+12 (Alt et AltGr correspondent respectivement
+aux ALT gauche et droit)\ ; (b) utiliser Alt+Flèche_droite ou
+Alt+Flèche_gauche pour parcourir les diverses consoles disponibles\ ; (c)
+utiliser le programme \fBchvt\fP(1). Les touches étant redéfinissables, les
+combinaisons mentionnées ici sont celles par défaut. Consultez
+\fBloadkeys\fP(1).
+.LP
+La commande \fBdeallocvt\fP(1)  (précédemment \fBdisalloc\fP())  libère la mémoire
+utilisée par les tampons d'écran des consoles qui n'ont plus de processus
+associés.
+.SS Propriétés
+Les consoles disposent de nombreux états différents. J'espère pouvoir
+documenter cela un jour. Le fait le plus important est que les consoles
+simulent des terminaux vt100. En particulier, une console est réinitialisée
+en recevant les caractères ESC c. Toutes les séquences d'échappement sont
+indiquées dans \fBconsole_codes\fP(4).
+.SH FICHIERS
+\fI/dev/console\fP
+.br
+\fI/dev/tty*\fP
+.SH "VOIR AUSSI"
+\fBchvt\fP(1), \fBdeallocvt\fP(1), \fBloadkeys\fP(1), \fBmknod\fP(1), \fBopenvt\fP(1),
+\fBconsole_codes\fP(4), \fBconsole_ioctl\fP(4), \fBtty\fP(4), \fBttyS\fP(4),
+\fBcharsets\fP(7), \fBagetty\fP(8), \fBinit\fP(8), \fBmapscrn\fP(8), \fBmingetty\fP(8),
+\fBresizecons\fP(8), \fBsetfont\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2007).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

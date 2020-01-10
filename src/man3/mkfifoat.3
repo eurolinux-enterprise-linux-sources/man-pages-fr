@@ -1,0 +1,115 @@
+.\" This manpage is Copyright (C) 2006, Michael Kerrisk
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MKFIFOAT 3 "13 décembre 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+mkfifoat \- Créer une FIFO (un tube nommé) relatif à un descripteur de
+fichier d'un répertoire
+.SH SYNOPSIS
+.nf
+\fB#include <fcntl.h> /* Définition des constantes AT_* */\fP
+\fB#include <sys/stat.h>\fP
+.sp
+\fBint mkfifoat(int \fP\fIdirfd\fP\fB, const char *\fP\fIpathname\fP\fB, mode_t \fP\fImode\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBmkfifoat\fP()\ :
+.PD 0
+.ad l
+.RS 4
+.TP  4
+Depuis la glibc 2.10\ :
+_XOPEN_SOURCE\ >=\ 700 || _POSIX_C_SOURCE\ >=\ 200809L
+.TP 
+Avant la glibc 2.10\ :
+_ATFILE_SOURCE
+.RE
+.ad
+.PD
+.SH DESCRIPTION
+L'appel système \fBmkfifoat\fP() opère exactement de la même façon que
+\fBmkfifo\fP(3), excepté pour les différences décrites dans cette page.
+
+Si le chemin de \fIpathname\fP est relatif, alors il est interprété
+relativement depuis le répertoire référencé par le descripteur \fIdirfd\fP
+(plutôt que relativement au répertoire courant du processus appelant, comme
+c'est le cas pour \fBmkfifo\fP(3) et les chemins relatifs).
+
+Si \fIpathname\fP est relatif et si \fIdirfd\fP a la valeur spéciale \fBAT_FDCWD\fP,
+alors \fIpathname\fP est interprété relativement au répertoire courant du
+processus appelant (comme \fBmkfifo\fP(3)).
+
+Si \fIpathname\fP est un chemin absolu, \fIdirfd\fP est ignoré.
+.SH "VALEUR RENVOYÉE"
+Si elle réussit, \fBmkfifoat\fP() renvoie 0. En cas d'erreur, elle renvoie \-1
+et remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+Les erreurs de \fBmkfifoat\fP sont les mêmes que celles de \fBmkfifo\fP(3). Les
+erreurs supplémentaires suivantes peuvent apparaître avec \fBmkfifoat\fP()\ :
+.TP 
+\fBEBADF\fP
+\fIdirfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBENOTDIR\fP
+\fIpathname\fP est un chemin relatif et \fIdirfd\fP est un descripteur d'un
+fichier et non d'un répertoire.
+.SH VERSIONS
+\fBmkfifoat\fP() a été ajoutée à la glibc\ 2.4. Elle est implémentée avec
+\fBmknod\fP(2), disponible depuis Linux\ 2.6.16.
+.SH CONFORMITÉ
+POSIX.1\-2008.
+.SH NOTES
+Consultez \fBopenat\fP(2) pour des explications à propos de \fBmkfifoat\fP().
+.SH "VOIR AUSSI"
+\fBopenat\fP(2), \fBmkfifo\fP(3), \fBpath_resolution\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

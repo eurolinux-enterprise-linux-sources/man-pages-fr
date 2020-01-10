@@ -1,0 +1,151 @@
+.\" Copyright (c) 2012 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MTRACE 3 "18 avril 2012" GNU "Manuel du programmeur Linux"
+.SH NOM
+mtrace, muntrace \- Suivi de malloc
+.SH SYNOPSIS
+\fB#include <mcheck.h>\fP
+.sp
+\fBvoid mtrace(void);\fP
+.sp
+\fBvoid muntrace(void);\fP
+.SH DESCRIPTION
+La fonction \fBmtrace\fP() installe des fonctions de rappel («\ hook\ ») pour les
+fonctions d'allocation mémoire \fBmalloc\fP(3), \fBrealloc\fP(3)  \fBmemalign\fP(3),
+et \fBfree\fP(3). Ces fonctions de rappel enregistrent l'historique des
+allocations et désallocations de mémoire. Ces informations permettent de
+découvrir des fuites mémoire ou des libérations de mémoire non allouée dans
+un programme.
+
+La fonction \fBmuntrace\fP() désactive les fonctions de rappel («\ hook\ »)
+installées par \fBmtrace\fP() afin d'arrêter l'enregistrement des appels aux
+fonction d'allocation mémoire. Si aucune fonction de rappel n'était
+installée par \fBmtrace\fP(), \fBmuntrace\fP() ne fait rien.
+
+Lors de l'appel à \fBmtrace\fP(), la valeur de la variable d'environnement
+\fBMALLOC_TRACE\fP est lue pour y trouver le chemin du fichier où enregistrer
+l'historique des appels. Si ce fichier est correctement ouvert, il est remis
+à zéro.
+
+Si \fBMALLOC_TRACE\fP n'est pas définie, ou si le chemin passé en paramètre est
+invalide ou ne peut pas être écrit, alors aucune fonction de rappel
+(«\ hook\ ») n'est installé et \fBmtrace\fP() n'aura pas d'effet. Pour les
+programmes \fIsetuid\fP ou \fIsetgid\fP, \fBMALLOC_TRACE\fP est ignoré et \fBmtrace\fP()
+n'est pas d'effet.
+.SH CONFORMITÉ
+Ces fonctions sont des extensions GNU.
+.SH NOTES
+En utilisation habituelle, \fBmtrace\fP() est appelé une fois au début de
+l'exécution du programme, et \fBmuntrace\fP() n'est jamais appelé.
+
+La sortie produite lors d'un appel à \fBmtrace\fP() est sous forme de texte,
+mais n'a pas été prévue pour être lisible par un humain. La bibliothèque GNU
+C fournit un script Perl, \fBmtrace\fP(1), qui interprète l'enregistrement des
+appels mémoire et affiche une sortie lisible. Pour de meilleurs résultats,
+le programme instrumenté devrait être compilé avec les symboles de débogage,
+afin que les numéros de ligne soient inscrits dans l'exécutable.
+
+Le suivi des appels d'allocation mémoire effectué par \fBmtrace\fP() pénalise
+les performances.
+.SH BOGUES
+Le numéro de ligne indiqué par \fBmtrace\fP(1) n'est pas toujours précis\ : il
+peut faire référence à la ligne de code (non vide) précédente ou suivante.
+.SH EXEMPLE
+L'exemple de session suivant montre comment utiliser la fonction \fBmtrace\fP()
+et la commande \fBmtrace\fP(1) dans un programme qui renferme des fuites
+mémoire à deux endroits différents.
+.in +4
+.nf
+
+$ \fBcat t_mtrace.c\fP
+#include <mcheck.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+int
+main(int argc, char *argv[])
+{
+    int j;
+
+    mtrace();
+
+    for (j = 0; j < 2; j++)
+        malloc(100);            /* Jamais libéré \-\- une fuite mémoire */
+
+    calloc(16, 16);             /* Jamais libéré \-\- une fuite mémoire */
+    exit(EXIT_SUCCESS);
+}
+
+.fi
+.in
+Lorsque ce programme est exécuté comme ci\-dessous, \fBmtrace\fP() diagnostique
+des fuites mémoire à deux endroits différents.
+.in +4n
+.nf
+
+$ \fBcc \-g t_mtrace.c \-o t_mtrace\fP
+$ \fBexport MALLOC_TRACE=/tmp/t\fP
+$ \fB./t_mtrace\fP
+$ \fBmtrace ./t_mtrace $MALLOC_TRACE\fP
+Memory not freed:
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+   Address     Size     Caller
+0x084c9378     0x64  at /home/cecilia/t_mtrace.c:12
+0x084c93e0     0x64  at /home/cecilia/t_mtrace.c:12
+0x084c9448    0x100  at /home/cecilia/t_mtrace.c:16
+.fi
+.in
+
+Les deux premiers messages liés à la mémoire non libérée correspondent aux
+deux appels à \fBmalloc\fP(3) dans la boucle \fIfor\fP. Le dernier message
+correspond à l'appel \fBcalloc\fP(3) (qui à son tour appelle \fBmalloc\fP(3)).
+.SH "VOIR AUSSI"
+\fBmtrace\fP(1), \fBmalloc\fP(3), \fBmalloc_hook\fP(3), \fBmcheck\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

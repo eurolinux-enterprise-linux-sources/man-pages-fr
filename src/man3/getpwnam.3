@@ -1,0 +1,274 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's "POSIX Programmer's Guide" (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\"
+.\" Modified 1993-07-24 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 1996-05-27 by Martin Schulze (joey@linux.de)
+.\" Modified 2003-11-15 by aeb
+.\" 2008-11-07, mtk, Added an example program for getpwnam_r().
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETPWNAM 3 "21 juin 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+getpwnam, getpwnam_r, getpwuid, getpwuid_r \- Lire un enregistrement du
+fichier des mots de passe
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <pwd.h>\fP
+.sp
+\fBstruct passwd *getpwnam(const char *\fP\fIname\fP\fB);\fP
+.sp
+\fBstruct passwd *getpwuid(uid_t \fP\fIuid\fP\fB);\fP
+.sp
+\fBint getpwnam_r(const char *\fP\fIname\fP\fB, struct passwd *\fP\fIpwd\fP\fB,\fP
+.br
+\fB            char *\fP\fIbuf\fP\fB, size_t \fP\fIbuflen\fP\fB, struct passwd **\fP\fIresult\fP\fB);\fP
+.sp
+\fBint getpwuid_r(uid_t \fP\fIuid\fP\fB, struct passwd *\fP\fIpwd\fP\fB,\fP
+.br
+\fB            char *\fP\fIbuf\fP\fB, size_t \fP\fIbuflen\fP\fB, struct passwd **\fP\fIresult\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBgetpwnam_r\fP(), \fBgetpwuid_r\fP()\ :
+.RS 4
+_POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE || _BSD_SOURCE || _SVID_SOURCE
+|| _POSIX_SOURCE
+.RE
+.ad b
+.SH DESCRIPTION
+La fonction \fBgetpwnam\fP() renvoie un pointeur sur une structure contenant
+les divers champs de l'enregistrement de la base de données des mots de
+passe (par exemple, la base de données locale \fI/etc/passwd\fP, NIS ou LDAP)
+correspondant au nom d'utilisateur \fIname\fP.
+.PP
+La fonction \fBgetpwuid\fP() renvoie un pointeur sur une structure contenant
+les divers champs de l'enregistrement de la base de données des mots de
+passe correspondant à l'ID utilisateur \fIuid\fP.
+.PP
+La structure \fIpasswd\fP est définie dans \fI<pwd.h>\fP comme ceci\ :
+.sp
+.in +4n
+.nf
+struct passwd {
+    char   *pw_name;       /* Nom d'utilisateur */
+    char   *pw_passwd;     /* Mot de passe de l'utilisateur */
+    uid_t   pw_uid;        /* ID de l'utilisateur */
+    gid_t   pw_gid;        /* ID du groupe */
+    char   *pw_gecos;      /* Information utilisateur */
+    char   *pw_dir;        /* Répertoire personnel */
+    char   *pw_shell;      /* Interpréteur de commande */
+};
+.fi
+.in
+.PP
+Consultez \fBpasswd\fP(5) pour plus d'informations sur ces champs.
+.PP
+Les fonctions \fBgetpwnam_r\fP() et \fBgetpwuid_r\fP() fournissent les mêmes
+informations que \fBgetpwnam\fP() et \fBgetpwuid\fP() mais enregistrent la
+structure \fIpasswd\fP trouvée dans l'espace pointé par \fIpwd\fP. Cette structure
+\fIpasswd\fP contient des pointeurs vers des chaînes qui sont enregistrées dans
+le tampon \fIbuf\fP de taille \fIbuflen\fP. Un pointeur vers le résultat (en cas
+de succès) ou NULL (au cas où aucune entrée n'ait été trouvée ou qu'une
+erreur soit survenue) est enregistré dans \fI*result\fP.
+.PP
+L'appel
+
+    sysconf(_SC_GETPW_R_SIZE_MAX)
+
+renvoie soit \-1 sans modifier \fIerrno\fP, soit une suggestion de taille
+initiale pour \fIbuf\fP (si cette taille est trop petite, l'appel échoue avec
+\fBERANGE\fP, auquel cas l'appelant peut réessayer avec un tampon plus grand).
+.SH "VALEUR RENVOYÉE"
+Les fonctions \fBgetpwnam\fP() et \fBgetpwuid\fP() renvoient un pointeur sur une
+structure \fIpasswd\fP, ou NULL si une erreur se produit, ou si
+l'enregistrement correspondant n'est pas trouvé. En cas d'erreur, \fIerrno\fP
+est positionnée en conséquence. Si on souhaite vérifier \fIerrno\fP après
+l'appel, celle\-ci devrait être positionnée à zéro avant l'appel.
+.LP
+La valeur de retour peut pointer vers une zone statique et donc être écrasée
+par des appels successifs à \fBgetpwent\fP(3), \fBgetpwnam\fP() ou
+\fBgetpwuid\fP(). (Ne pas passer le pointeur renvoyé à \fBfree\fP(3).)
+.LP
+En cas de succès, \fBgetpwnam_r\fP() et \fBgetpwuid_r\fP() renvoient zéro et
+définissent \fI*result\fP à \fIpwd\fP. Si aucun mot de passe ne correspond, ces
+fonctions renvoient 0 et définissent \fI*result\fP à NULL. En cas d'erreur, un
+code d'erreur est renvoyé et \fI*result\fP et définit à NULL.
+.SH ERREURS
+.TP 
+\fB0\fP ou \fBENOENT\fP ou \fBESRCH\fP ou \fBEBADF\fP ou \fBEPERM\fP ou ... 
+Le nom \fIname\fP ou l'identifiant \fIuid\fP n'ont pas été trouvés.
+.TP 
+\fBEINTR\fP
+Un signal a été intercepté.
+.TP 
+\fBEIO\fP
+Erreur d'entrée\-sortie.
+.TP 
+\fBEMFILE\fP
+Le nombre maximal (\fBOPEN_MAX\fP) de fichiers ouverts par le processus est
+atteint.
+.TP 
+\fBENFILE\fP
+Le nombre maximal de fichiers ouverts sur le système est atteint.
+.TP 
+\fBENOMEM\fP
+.\" not in POSIX
+.\" This structure is static, allocated 0 or 1 times. No memory leak. (libc45)
+Pas assez de mémoire pour allouer la structure \fIpasswd\fP.
+.TP 
+\fBERANGE\fP
+L'espace tampon fourni est insuffisant.
+.SH FICHIERS
+.TP 
+\fI/etc/passwd\fP
+Base de données des mots de passe locaux
+.SH ATTRIBUTS
+.SS "Multithreading (voir pthreads(7))"
+Les fonctions \fBgetpwnam\fP() et \fBgetpwuid\fP() ne sont pas sûres dans un
+contexte multithread.
+.LP
+Les fonctions \fBgetpwnam_r\fP() et \fBgetpwuid_r\fP() sont sûres dans un contexte
+multithread.
+.SH CONFORMITÉ
+SVr4, 4.3BSD, POSIX.1\-2001. Le champ \fIpw_gecos\fP n'est pas spécifié dans
+POSIX, mais il est présent sur la plupart des implémentations.
+.SH NOTES
+.\" more precisely:
+.\" AIX 5.1 - gives ESRCH
+.\" OSF1 4.0g - gives EWOULDBLOCK
+.\" libc, glibc up to version 2.6, Irix 6.5 - give ENOENT
+.\" glibc since version 2.7 - give 0
+.\" FreeBSD 4.8, OpenBSD 3.2, NetBSD 1.6 - give EPERM
+.\" SunOS 5.8 - gives EBADF
+.\" Tru64 5.1b, HP-UX-11i, SunOS 5.7 - give 0
+La description "VALEUR RENVOYÉE" ci\-dessus vient de POSIX.1\-2001. Elle ne
+considère pas le cas «\ non trouvé\ » comme une erreur, et ne spécifie pas
+\fIerrno\fP dans ce cas. Cela rend la détection d'erreur impossible. On peut
+dire que, d'après POSIX, \fIerrno\fP est inchangée dans le cas où aucune entrée
+n'est trouvée. Des essais sur de nombreux systèmes UNIX ont fait apparaître
+différentes valeurs dans ce cas\ : 0, ENOENT, EBADF, ESRCH, EWOULDBLOCK,
+EPERM et probablement d'autres.
+
+Le champ \fIpw_dir\fP contient le nom du répertoire de travail initial de
+l'utilisateur. Les programmes de connexion («\ login\ ») utilisent ce champ
+pour initialiser la variable d'environnement \fBHOME\fP pour les interpréteurs
+de commandes initiaux. Une application qui souhaite déterminer le répertoire
+personnel des utilisateurs devrait lire la valeur de \fBHOME\fP (au lieu de la
+valeur de \fIgetpwuid(getuid())\->pw_dir\fP) puisque que ceci permet à
+l'utilisateur de modifier «\ son répertoire personnel\ » lorsqu'il est
+connecté. Pour déterminer le répertoire personnel «\ initial\ » d'un autre
+utilisateur, il est nécessaire d'utiliser
+\fIgetpwnam("utilisateur")\->pw_dir\fP ou un équivalent.
+.SH EXEMPLE
+Le programme suivant est un exemple d'utilisation de \fBgetpwnam_r\fP() pour
+trouver le nom complet et l'identifiant du nom d'utilisateur fourni en
+paramètre.
+
+.nf
+#include <pwd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+
+int
+main(int argc, char *argv[])
+{
+    struct passwd pwd;
+    struct passwd *result;
+    char *buf;
+    size_t bufsize;
+    int s;
+
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s username\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+    if (bufsize == \-1)          /* Value was indeterminate */
+        bufsize = 16384;        /* Should be more than enough */
+
+    buf = malloc(bufsize);
+    if (buf == NULL) {
+        perror("malloc");
+        exit(EXIT_FAILURE);
+    }
+
+    s = getpwnam_r(argv[1], &pwd, buf, bufsize, &result);
+    if (result == NULL) {
+        if (s == 0)
+            printf("Not found\en");
+        else {
+            errno = s;
+            perror("getpwnam_r");
+        }
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Name: %s; UID: %ld\en", pwd.pw_gecos, (long) pwd.pw_uid);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBendpwent\fP(3), \fBfgetpwent\fP(3), \fBgetgrnam\fP(3), \fBgetpw\fP(3),
+\fBgetpwent\fP(3), \fBgetspnam\fP(3), \fBputpwent\fP(3), \fBsetpwent\fP(3), \fBpasswd\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

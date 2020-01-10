@@ -1,0 +1,74 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH WCTOB 3 "22 septembre 2011" GNU "Manuel du programmeur Linux"
+.SH NOM
+wctob \- Essayer de représenter un caractère large sur un seul octet
+.SH SYNOPSIS
+.nf
+\fB#include <wchar.h>\fP
+.sp
+\fBint wctob(wint_t \fP\fIc\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBwctob\fP() vérifie si la représentation multioctet du caractère
+\fIc\fP, en partant d'un état de conversion initial, consiste en un unique
+octet. Si c'est le cas il est renvoyé sous forme d'un \fIunsigned char\fP.
+.PP
+Ne jamais utiliser cette fonction. Elle ne peut pas servir à
+internationaliser les programmes. Il ne faut pas chercher à distinguer les
+caractères multioctet et ceux tenant sur un seul octet.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBwctob\fP() renvoie la représentation sur un seul octet de \fIc\fP
+si elle existe, ou \fBEOF\fP sinon.
+.SH CONFORMITÉ
+C99.
+.SH NOTES
+Le comportement de \fBwctob\fP() dépend de la catégorie \fBLC_CTYPE\fP de la
+locale utilisée.
+.PP
+Cette fonction ne devrait jamais être utilisée. Les programmes
+internationalisés doivent avoir le même comportement avec des caractères
+multioctet et des caractères simples sur un seul octet. Utilisez soit
+\fBmbtowc\fP(3), soit \fBmbrtowc\fP(3) qui est sûre du point de vue des threads, à
+la place.
+.SH "VOIR AUSSI"
+\fBbtowc\fP(3), \fBwcrtomb\fP(3), \fBwctomb\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

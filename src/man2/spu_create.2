@@ -1,0 +1,219 @@
+.\" Copyright (c) International Business Machines Corp., 2006
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_3_PARA)
+.\" This program is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+.\" the GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" HISTORY:
+.\" 2005-09-28, created by Arnd Bergmann <arndb@de.ibm.com>
+.\" 2006-06-16, revised by Eduardo M. Fleury <efleury@br.ibm.com>
+.\" 2007-07-10, some polishing by mtk
+.\" 2007-09-28, updates for newer kernels by Jeremy Kerr <jk@ozlabs.org>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SPU_CREATE 2 "5 août 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+spu_create \- Créer un nouveau contexte spu
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <sys/spu.h>\fP
+
+\fBint spu_create(const char *\fP\fIpathname\fP\fB, int \fP\fIflags\fP\fB, mode_t \fP\fImode\fP\fB);\fP
+\fBint spu_create(const char *\fP\fIpathname\fP\fB, int \fP\fIflags\fP\fB, mode_t \fP\fImode\fP\fB,\fP
+\fB               int \fP\fIneighbor_fd\fP\fB);\fP
+.fi
+
+\fIRemarque\fP\ : il n'existe pas de fonction glibc autour de cet appel
+système\ ; consultez \fBNOTES\fP.
+.SH DESCRIPTION
+L'appel système \fBspu_create\fP() est utilisé sur les PowerPC disposant de
+l'architecture du processeur Cell dans le but d'accéder aux SPU (Synergistic
+Processor Units). Il crée un nouveau contexte logique pour un SPU dans
+\fIpathname\fP et renvoie le descripteur de fichier qui lui est
+associé. \fIpathname\fP doit pointer vers un répertoire qui n'existe pas sur le
+point de montage du système de fichiers SPU (\fBspufs\fP). Si \fBspu_create\fP()
+réussit, un répertoire est créé dans \fIpathname\fP et est rempli par les
+fichiers décrits dans \fBspufs\fP(7).
+
+Lorsqu'un contexte est créé, le descripteur de fichier renvoyé ne peut
+qu'être passé à \fBspu_run\fP(2), utilisé comme paramètre \fIdirfd\fP pour les
+appels système de la famille \fB*at\fP (par exemple, \fBopenat\fP(2)), ou fermé\ ;
+d'autres opérations ne sont pas définies. Un contexte logique SPU est
+détruit (avec tous les fichiers créés dans le répertoire \fIpathname\fP du
+contexte) lorsque la dernière référence au contexte a disparu\ ; cela
+survient généralement lorsque le descripteur de fichier renvoyé par
+\fBspu_create\fP() est fermé.
+
+Le paramètre \fIflags\fP vaut zéro ou une combinaison par un OU bit à bit des
+options suivantes\ :
+.TP 
+\fBSPU_CREATE_EVENTS_ENABLED\fP
+Plutôt que d'utiliser des signaux pour signaler des erreurs DMA, utiliser
+l'argument \fIevent\fP de \fBspu_run\fP(2).
+.TP 
+\fBSPU_CREATE_GANG\fP
+Créer un gang SPU plutôt qu'un contexte. (Un gang est un groupe de contextes
+SPU qui sont en relation fonctionnelle entre eux et qui partagent des
+paramètres d'ordonnancement communs \(em priorité et politique. Dans le
+futur, l'ordonnancement de gangs pourra être implémenté faisant que le
+groupe soit commuté comme une unité simple.)
+
+Un nouveau répertoire sera créé à l'endroit spécifié par l'argument
+\fIpathname\fP. Le gang peut être utilisé pour tenir d'autres contextes en
+fournissant un nom de chemin qui soit à l'intérieur du répertoire du gang
+pour des appels ultérieurs à \fBspu_create\fP().
+.TP 
+\fBSPU_CREATE_NOSCHED\fP
+Crée un contexte qui ne soit pas affecté par l'ordonnanceur SPU. Une fois
+que le contexte est lancé, il ne sera pas déplanifié jusqu'à ce qu'il soit
+détruit par le processus créateur.
+
+Parce que le contexte ne peut pas être supprimé de la SPU, certaines
+fonctionnalités sont désactivées des contextes \fBSPU_CREATE_NOSCHED\fP. Seul
+un sous\-ensemble de fichiers sera disponible dans le répertoire du contexte
+sur le système de fichiers \fBspufs\fP. De plus, les contextes
+\fBSPU_CREATE_NOSCHED\fP ne peuvent pas créer de fichier de vidage lors d'un
+plantage.
+
+La création de contextes \fBSPU_CREATE_NOSCHED\fP nécessite la capacité
+\fBCAP_SYS_NICE\fP.
+.TP 
+\fBSPU_CREATE_ISOLATE\fP
+Crée un contexte SPU isolé. Les contextes isolés sont protégés de certaines
+opérations PPE (PowerPC Processing Element), comme l'accès au stockage local
+de la SPU ou au registre NPC.
+
+La création de contextes \fBSPU_CREATE_ISOLATE\fP nécessite également
+l'attribut \fBSPU_CREATE_NOSCHED\fP.
+.TP 
+\fBSPU_CREATE_AFFINITY_SPU\fP
+Crée un contexte avec l'affinité d'un autre contexte SPU. Cette information
+d'affinité est utilisée dans l'algorithme d'ordonnancement du
+SPU. L'utilisation de cet attribut nécessite que le descripteur de fichier
+référençant l'autre contexte SPU soit passé dans l'argument \fIneighbor_fd\fP.
+.TP 
+\fBSPU_CREATE_AFFINITY_MEM\fP
+Crée un contexte avec l'affinité de la mémoire système. Cette information
+d'affinité est utilisée dans l'algorithme d'ordonnancement du SPU.
+.PP
+Le paramètre \fImode\fP (moins les bits positionnés dans l'\fBumask\fP(2) du
+processus) spécifie les permissions utilisées pour créer le nouveau
+répertoire sur le système de fichiers \fBspufs\fP. Consultez \fBstat\fP(2) pour
+une liste complète des valeurs de \fImode\fP.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBspu_create\fP() renvoie un nouveau descripteur de fichier. En
+cas d'erreur, il renvoie \-1 et \fIerrno\fP contient l'un des codes d'erreur
+listés ci\-dessous.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+L'utilisateur en cours n'a pas accès au point de montage du \fBspufs\fP(7).
+.TP 
+\fBEEXIST\fP
+Un contexte SPU existe déjà dans le chemin fourni.
+.TP 
+\fBEFAULT\fP
+\fIpathname\fP n'est pas un pointeur de chaîne valable dans l'espace d'adresses
+du processus appelant.
+.TP 
+\fBEINVAL\fP
+\fIpathname\fP n'est pas un répertoire du point de montage du \fBspufs\fP(7), ou
+des options non valables ont été fournies.
+.TP 
+\fBELOOP\fP
+Trop de liens symboliques trouvés lors de la résolution de \fIpathname\fP.
+.TP 
+\fBEMFILE\fP
+Le processus a atteint sa limite du nombre de fichiers ouverts.
+.TP 
+\fBENAMETOOLONG\fP
+\fIpathname\fP est trop long.
+.TP 
+\fBENFILE\fP
+Le système a atteint la limite globale du nombre de fichiers ouverts.
+.TP 
+\fBENODEV\fP
+Un contexte isolé a été demandé mais le matériel ne prend pas en charge
+l'isolation SPU.
+.TP 
+\fBENOENT\fP
+Une partie de \fIpathname\fP n'a pas pu être résolue.
+.TP 
+\fBENOMEM\fP
+Le noyau n'a pas pu allouer toutes les ressources nécessaires.
+.TP 
+\fBENOSPC\fP
+Il n'y a pas suffisamment de ressources SPU disponibles pour créer un
+nouveau contexte ou la limite spécifique à l'utilisateur du nombre de
+contextes SPU a été atteinte.
+.TP 
+\fBENOSYS\fP
+La fonctionnalité n'est par fournie par le système actuel parce que le
+matériel ne fournit pas de SPU ou parce que le module spufs n'est pas
+chargé.
+.TP 
+\fBENOTDIR\fP
+Un élément du chemin d'accès \fIpathname\fP n'est pas un répertoire.
+.TP 
+\fBEPERM\fP
+L'attribut \fBSPU_CREATE_NOSCHED\fP a été fourni mais l'utilisateur n'a pas la
+capacité \fBCAP_SYS_NICE\fP.
+.SH FICHIERS
+\fIpathname\fP doit pointer vers un emplacement du point de montage du
+\fBspufs\fP, qui est monté par convention dans \fI/spu\fP.
+.SH VERSIONS
+L'appel système \fBspu_create\fP() est apparu dans Linux 2.6.16.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux et implémenté uniquement sur
+l'architecture PowerPC. Les programmes qui l'utilisent ne sont pas
+portables.
+.SH NOTES
+La glibc ne fournit pas de fonction pour cet appel système\ : utilisez
+\fBsyscall\fP(2) pour l'appeler. Notez cependant que \fBspu_create\fP() est conçu
+pour être appelé depuis des bibliothèques qui implémentent une interface
+plus abstraite pour les SPU, pas pour être appelé directement par les
+applications normales. Consultez
+.UR http://www.bsc.es\:/projects\:/deepcomputing\:/linuxoncell/
+.UE
+pour les
+bibliothèques recommandées.
+.SH EXEMPLE
+Consultez \fBspu_run\fP(2) pour un exemple d'utilisation de \fBspu_create\fP()
+.SH "VOIR AUSSI"
+\fBclose\fP(2), \fBspu_run\fP(2), \fBcapabilities\fP(7), \fBspufs\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

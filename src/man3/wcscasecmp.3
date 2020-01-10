@@ -1,0 +1,89 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH WCSCASECMP 3 "15 septembre 2010" GNU "Manuel du programmeur Linux"
+.SH NOM
+wcscasecmp \- Comparer deux chaînes de caractères larges en ignorant la casse
+.SH SYNOPSIS
+.nf
+\fB#include <wchar.h>\fP
+.sp
+\fBint wcscasecmp(const wchar_t *\fP\fIs1\fP\fB, const wchar_t *\fP\fIs2\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBwcscasecmp\fP()\ :
+.PD 0
+.ad l
+.RS 4
+.TP  4
+Depuis la glibc 2.10\ :
+_XOPEN_SOURCE\ >=\ 700 || _POSIX_C_SOURCE\ >=\ 200809L
+.TP 
+Avant la glibc 2.10\ :
+_GNU_SOURCE
+.RE
+.ad
+.PD
+.SH DESCRIPTION
+La fonction \fBwcscasecmp\fP() est l'équivalent pour caractères larges de la
+fonction \fBstrcasecmp\fP(3). Elle compare la chaîne de caractères larges
+pointée par \fIs1\fP avec celle pointée par \fIs2\fP, en ignorant les différences
+de casse (\fBtowupper\fP(3), \fBtowlower\fP(3)).
+.SH "VALEUR RENVOYÉE"
+La fonction \fBwcscasecmp\fP() renvoie zéro si les chaînes de caractères larges
+\fIs1\fP et \fIs2\fP sont égales excepté pour des distinctions de casse. Elle
+renvoie un entier positif si \fIs1\fP est supérieur à \fIs2\fP, en ignorant la
+casse. Elle renvoie un entier négatif si \fIs1\fP est inférieur à \fIs2\fP, en
+ignorant la casse.
+.SH VERSIONS
+La fonction \fBwcscasecmp\fP() est fournie par la glibc depuis la version\ 2.1.
+.SH CONFORMITÉ
+POSIX.1\-2008. Cette fonction n'est pas spécifiée dans POSIX.1\-2001 et n'est
+que rarement disponible sur d'autres systèmes.
+.SH NOTES
+Le comportement de \fBwcscasecmp\fP() dépend de la catégorie \fBLC_CTYPE\fP de la
+locale utilisée.
+.SH "VOIR AUSSI"
+\fBstrcasecmp\fP(3), \fBwcscmp\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

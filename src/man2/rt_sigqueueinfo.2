@@ -1,0 +1,155 @@
+.\" Copyright (c) 2002, 2011 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RT_SIGQUEUEINFO 2 "13 juillet 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+rt_sigqueueinfo, rt_tgsigqueueinfo \- Mettre un signal et des données dans la
+file d'attente  d'un processus
+.SH SYNOPSIS
+.nf
+\fBint rt_sigqueueinfo(pid_t \fP\fItgid\fP\fB, int \fP\fIsig\fP\fB, siginfo_t *\fP\fIuinfo\fP\fB);\fP
+.sp
+\fBint rt_tgsigqueueinfo(pid_t \fP\fItgid\fP\fB, pid_t \fP\fItid\fP\fB, int \fP\fIsig\fP\fB,\fP
+\fB                      siginfo_t *\fP\fIuinfo\fP\fB);\fP
+.fi
+
+La glibc ne fournit pas de fonction autour de ces appels système\ ;
+consultez les NOTES.
+.SH DESCRIPTION
+Les appels système \fBrt_sigqueueinfo\fP() et \fBrt_tgsigqueueinfo\fP() sont les
+interfaces de bas niveau utilisées pour envoyer un signal accompagné de
+données à un processus ou à un thread. Le récepteur du signal peut obtenir
+les données associées en établissant un gestionnaire de signal à l'aide de
+l'attribut \fBSA_SIGINFO\fP de \fBsigaction\fP(2). 
+
+Ces appels système ne sont pas destinés à être utilisés directement par une
+application\ ; ils sont fournis pour permettre l'implémentation de
+\fBsigqueue\fP(3) et \fBpthread_sigqueue\fP(3).
+
+L'appel système \fBrt_sigqueueinfo\fP() envoie le signal \fIsig\fP au groupe de
+threads dont l'identifiant est \fItgid\fP. (Le terme «\ groupe de threads\ » est
+synonyme de «\ processus\ », et \fItid\fP correspond à l'identifiant de processus
+UNIX traditionnel.) Le signal sera délivré à un membre arbitraire de ce
+groupe de threads (c.\-à\-d. un des threads qui n'est pas en train de bloquer
+le signal).
+
+Le paramètre \fIuinfo\fP spécifie les données devant accompagnant le signal. Ce
+paramètre est un pointeur vers une structure de type \fIsiginfo_t\fP, décrite
+dans \fBsigaction\fP(2) (et définie en incluant
+\fI<sigaction.h>\fP). L'appelant doit positionner dans cette structure
+les champs suivants\ :
+.TP 
+\fIsi_code\fP
+.\" tkill(2) or
+Ceci doit être un des codes \fBSI_*\fP du fichier source du noyau Linux
+\fIinclude/asm\-generic/siginfo.h\fP, avec la restriction que le code doit être
+strictement négatif (c.\-à\-d. qu'il ne peut être égal à \fBSI_USER\fP, qui est
+utilisé par le noyau pour indiquer un signal envoyé par \fBkill\fP(2)) et ne
+peut pas (depuis Linux 2.6.39) être égal à \fBSI_TKILL\fP (qui est utilisé par
+le noyau pour indiqué un signal envoyé en utilisant \fBtgkill\fP(2)).
+.TP 
+\fIsi_pid\fP
+Ceci doit être égal à l'identifiant d'un processus, typiquement celui du
+processus émetteur.
+.TP 
+\fIsi_uid\fP
+Ceci doit être égal à l'identifiant d'un utilisateur, typiquement
+l'identifiant utilisateur réel de l'émetteur.
+.TP 
+\fIsi_value\fP
+Ce champ contien les données utilisateur pour accompagner le signal. Pour
+plus d'informations, consultez la description du dernier argument
+(\fIunion_sigval\fP) de \fBsigqueue\fP(3).
+.PP
+De manière interne, le noyau positionne le champ \fIsi_signo\fP à la valeur
+indiquée dans \fIsig\fP, de sorte que le récepteur du signal puisse aussi
+obtenir le numéro du signal via ce champ.
+
+L'appel système \fBrt_tgsigqueueinfo\fP() fonctionne comme
+\fBrt_sigqueueinfo\fP(), mais n'envoie le signal et les données qu'à l'unique
+thread indiqué par la combinaison de \fItgid\fP, un identifiant de groupe de
+threads, et \fItid\fP, un thread dans ce groupe.
+.SH "VALEUR RENVOYÉE"
+En cas du succès, ces appels système renvoient zéro. Dans le cas contraire,
+ils renvoient \-1 et remplissent \fIerrno\fP avec le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+La limite du nombre de signaux en file a été atteinte (consultez
+\fBsignal\fP(7) pour plus d'informations).
+.TP 
+\fBEINVAL\fP
+\fIsig\fP, \fItgid\fP, or \fItid\fP n'est pas valable.
+.TP 
+\fBEPERM\fP
+Le processus n'a pas la permission d'envoyer un signal au processus
+visé. Pour les permissions nécessaires, consultez \fBkill\fP(2). Ou bien
+\fIuinfo\->si_code\fP n'est pas valable.
+.TP 
+\fBESRCH\fP
+\fBrt_sigqueueinfo\fP()\ : aucun groupe de threads correspondant à \fItgid\fP n'a
+été trouvé.
+.br
+\fBrt_tgsigqueinfo\fP()\ : aucun thread correspondant à \fItgid\fP et \fItid\fP n'a
+été trouvé.
+.SH VERSIONS
+L'appel système \fBrt_sigqueueinfo\fP() a été ajouté à Linux dans la
+version\ 2.2. L'appel système \fBrt_tgsigqueueinfo\fP() a été ajouté à Linux
+dans la version\ 2.6.31.
+.SH CONFORMITÉ
+Ces appels système sont spécifiques à Linux.
+.SH NOTES
+Comme ces appels système ne sont pas destinés à être utilisés par une
+application, il n'existe aucune fonction d'encapsulation glibc\ ; utiliser
+\fBsyscall\fP(2) dans le cas peu probable où vous voudriez les appeler
+directement.
+
+Comme pour \fBkill\fP(2), le signal nul (0) peut être utilisé pour vérifier si
+le processus ou le thread indiqué existe.
+.SH "VOIR AUSSI"
+\fBkill\fP(2), \fBsigaction\fP(2), \fBsigprocmask\fP(2), \fBtgkill\fP(2),
+\fBpthread_sigqueue\fP(3), \fBsigqueue\fP(3), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

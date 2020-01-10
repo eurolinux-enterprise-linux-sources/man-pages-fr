@@ -1,0 +1,137 @@
+.\" Copyright (c) 1983, 1991, 1993
+.\"     The Regents of the University of California.  All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"     This product includes software developed by the University of
+.\"     California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     @(#)rexec.3     8.1 (Berkeley) 6/4/93
+.\" $FreeBSD: src/lib/libcompat/4.3/rexec.3,v 1.12 2004/07/02 23:52:14 ru Exp $
+.\"
+.\" Taken from FreeBSD 5.4; not checked against Linux reality (mtk)
+.\"
+.\" 2013-06-21, mtk, Converted from mdoc to man macros
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH REXEC 3 "4 juillet 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+rewec, rexec_af \- Renvoyer un flux sur une commande distante
+.SH SYNOPSIS
+.nf
+\fB#define _BSD_SOURCE\fP             /* Consultez feature_test_macros(7) */
+\fB#include <netdb.h>\fP
+.sp
+\fBint rexec(char **\fP\fIahost\fP\fB, int \fP\fIinport\fP\fB, char *\fP\fIuser\fP\fB, \fP
+\fB          char *\fP\fIpasswd\fP\fB, char *\fP\fIcmd\fP\fB, int *\fP\fIfd2p\fP\fB);\fP
+.sp
+\fBint rexec_af(char **\fP\fIahost\fP\fB, int \fP\fIinport\fP\fB, char *\fP\fIuser\fP\fB, \fP
+\fB             char *\fP\fIpasswd\fP\fB, char *\fP\fIcmd\fP\fB, int *\fP\fIfd2p\fP\fB,\fP
+\fB             sa_family_t \fP\fIaf\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Cette interface est rendue obsolète par \fBrcmd\fP(3).
+
+La fonction \fBrexec\fP() cherche l'hôte \fI*ahost\fP en utilisant
+\fBgethostbyname\fP(3), elle renvoie \-1 si l'hôte n'existe pas. Autrement,
+\fI*ahost\fP est configuré avec le nom standard de l'hôte. Si un nom
+d'utilisateur et un mot de passe sont également spécifiés, ils sont utilisés
+pour s'authentifier sur l'hôte\ ; autrement, on cherche les informations
+appropriées dans l'environnement puis dans le fichier \fI.netrc\fP de
+l'utilisateur situé dans le répertoire personnel. Si cela échoue, on demande
+l'information à l'utilisateur.
+.PP
+Le port \fIinport\fP spécifie quel port Internet DARPA sera utilisé pour la
+connexion\ ; l'appel \fIgetservbyname("exec", "tcp")\fP (consultez
+\fBgetservent\fP(3)) renverra un pointeur sur une structure qui contient le
+port nécessaire. Le protocole de la connexion est décrit en détails dans
+\fBrexecd\fP(8).
+.PP
+Si la connexion réussit, une socket dans le domaine Internet de type
+\fBSOCK_STREAM\fP est renvoyée à l'appelant et est fournie à la commande
+distante comme \fIstdin\fP et \fIstdout\fP. Si \fIfd2p\fP est non nul, un canal
+auxiliaire sur un processus de contrôle sera configuré et un descripteur de
+celui\-ci sera placé dans \fI*fd2p\fP. Le processus de contrôle renverra une
+sortie de diagnostic de la commande (unité 2) sur ce canal et acceptera les
+octets sur ce même canal comme étant des numéros de signaux UNIX à
+transmettre au groupe du processus de la commande. L'information de
+diagnostic n'inclut pas l'échec d'autorisation distante. Une connexion
+secondaire est configurée après que l'autorisation a été vérifiée. Si
+\fIfd2p\fP vaut 0, \fIstderr\fP (unité 2 de la commande distante) sera la même que
+\fIstdout\fP et aucun canal supplémentaire ne sera utilisé pour envoyer des
+signaux arbitraires au processus distant, bien qu'il soit possible d'obtenir
+son attention en transmettant des données supplémentaires.
+.SS rexec_af()
+La fonction \fBrexec\fP() fonctionne en IPv4 (\fBAF_INET\fP). En revanche, la
+fonction \fBrexec_af\fP() fournit un argument supplémentaire, \fIaf\fP, qui permet
+à l'appelant de sélectionner le protocole. Cet argument peut être indiqué
+comme \fBAF_INET\fP, \fBAF_INET6\fP ou \fBAF_UNSPEC\fP (pour permettre à
+l'implémentation de sélectionner le protocole).
+.SH VERSIONS
+La fonction \fBrexec_af\fP() a été ajoutée dans la version\ 2.2 de la glibc.
+.SH ATTRIBUTS
+.SS "Multithreading (voir pthreads(7))"
+Les fonctions \fBrexec\fP() et \fBrexec_af\fP() ne sont pas sûres dans un contexte
+multithread.
+.SH CONFORMITÉ
+Ces fonctions ne sont pas dans POSIX.1\-2001. La fonction \fBrexec\fP() est
+d'abord apparue dans BSD\ 4.2, et est présente sur BSD, Solaris et bien
+d'autres systèmes. La fonction \fBrexec_af\fP() est plus récente, donc moins
+répandue.
+.SH BOGUES
+La fonction \fBrexec\fP() envoie des mots de passe non chiffrés sur le réseau.
+.PP
+Le service sous\-jacent est considéré comme un gros trou de sécurité et ne
+devrait pas être activé sur bien des machines\ ; consultez \fBrexecd\fP(8) pour
+plus d'explications.
+.SH "VOIR AUSSI"
+\fBrcmd\fP(3), \fBrexecd\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

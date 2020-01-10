@@ -1,0 +1,103 @@
+.\" Copyright (C) 2003 John Levon <levon@movementarian.org>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 2004-06-17 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LOOKUP_DCOOKIE 2 "17 juin 2004" Linux "Manuel du programmeur Linux"
+.SH NOM
+lookup_dcookie \- Renvoyer le chemin d'accès d'un élément de répertoire
+.SH SYNOPSIS
+\fBint lookup_dcookie(u64 \fP\fIcookie\fP\fB, char *\fP\fIbuffer\fP\fB, size_t
+\fP\fIlen\fP\fB);\fP
+.SH DESCRIPTION
+Renvoie le chemin complet de l'élément de répertoire spécifié par la valeur
+\fIcookie\fP. Le cookie est un identifiant opaque référençant de manière unique
+un élément de répertoire donné. Le tampon fourni est rempli avec le chemin
+d'accès complet de cet élément.
+
+Pour que \fBlookup_dcookie\fP() fonctionne, le noyau doit déjà connaître le
+\fIcookie\fP référençant l'élément de répertoire.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBlookup_dcookie\fP() renvoie la longueur de la chaîne copiée
+dans le tampon. En cas d'erreur, il renvoie \-1 et remplit \fIerrno\fP avec le
+code d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+Le tampon est invalide.
+.TP 
+\fBEINVAL\fP
+Le noyau n'a pas d'association cookie/élément de répertoire correspondant au
+cookie, ou le cookie ne fait pas référence à un élément valide.
+.TP 
+\fBENAMETOOLONG\fP
+Le nom ne tient pas dans le tampon.
+.TP 
+\fBENOMEM\fP
+Le noyau ne peut pas allouer assez de mémoire pour les tampons temporaires.
+.TP 
+\fBEPERM\fP
+Le processus n'a pas la capacité \fBCAP_SYS_ADMIN\fP nécessaire pour lire des
+valeurs de cookie.
+.TP 
+\fBERANGE\fP
+Le tampon fourni n'est pas assez grand pour contenir le chemin d'accès.
+.SH VERSIONS
+Disponible depuis Linux 2.5.43. L'erreur \fBENAMETOOLONG\fP a été ajoutée dans
+Linux 2.5.70.
+.SH CONFORMITÉ
+\fBlookup_dcookie\fP() est spécifique à Linux.
+.SH NOTES
+\fBlookup_dcookie\fP() est un appel système spécial, utilisé actuellement
+uniquement par le profiler oprofile. Il s'appuie sur un pilote du noyau pour
+enregistrer les cookies des éléments de répertoire.
+
+Le chemin renvoyé peut avoir un suffixe «\ (deleted)\ » si l'élément de
+répertoire a été supprimé.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

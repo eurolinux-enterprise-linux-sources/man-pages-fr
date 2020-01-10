@@ -1,0 +1,87 @@
+.\" Copyright (C) 1995, Thomas K. Dyas <tdyas@eden.rutgers.edu>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Created   Sat Aug 21 1995     Thomas K. Dyas <tdyas@eden.rutgers.edu>
+.\" Modified Tue Oct 22 22:09:03 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" 2008-06-26, mtk, added some more detail on the work done by sigreturn()
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SIGRETURN 2 "26 juin 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+sigreturn \- Revenir d'un gestionnaire de signaux et nettoyer la pile
+.SH SYNOPSIS
+\fBint sigreturn(unsigned long \fP\fI__unused\fP\fB);\fP
+.SH DESCRIPTION
+Quand le noyau Linux crée un cadre de pile pour un gestionnaire de signaux,
+un appel à \fBsigreturn\fP() est inséré dans ce cadre de manière à ce que le
+retour du gestionnaire appelle \fBsigreturn\fP() avant le retour effectif.
+
+Cet appel à \fBsigreturn\fP() défait tout ce qui a été fait \(em modifier le
+masque de signaux du processus, commutation des piles (consultez
+\fBsigaltstack\fP(2)) \(em de façon à invoquer le gestionnaire de signal\ : il
+restaure le masque de signaux du processus, commute les piles et restaure le
+contexte du processus (registres, drapeaux du processeur), de sorte que le
+processus relance l'exécution à partir du moment où elle a été interrompue
+par le signal.
+.SH "VALEUR RENVOYÉE"
+\fBsigreturn\fP() ne revient jamais.
+.SH FICHIERS
+/usr/src/linux/arch/i386/kernel/signal.c
+.br
+/usr/src/linux/arch/alpha/kernel/entry.S
+.SH CONFORMITÉ
+\fBsigreturn\fP() est spécifique à Linux et ne devrait pas être employé dans un
+programme destiné à être portable.
+.SH NOTES
+L'appel \fBsigreturn\fP() est utilisé dans le noyau pour implémenter les
+gestionnaires de signaux. Il ne doit \fBjamais\fP être appelé
+directement. Mieux, l'utilisation de l'argument \fI__unused\fP dépend de
+l'architecture matérielle.
+.SH "VOIR AUSSI"
+\fBkill\fP(2), \fBsigaltstack\fP(2), \fBsignal\fP(2), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

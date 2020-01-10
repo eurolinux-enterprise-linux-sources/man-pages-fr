@@ -1,0 +1,157 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\"
+.\" Modified 1993-03-29, David Metcalfe
+.\" Modified 1993-07-24, Rik Faith (faith@cs.unc.edu)
+.\" 2006-01-15, mtk, Added example program.
+.\" Modified 2012-03-08, Mark R. Bannister <cambridge@users.sourceforge.net>
+.\"                  and Ben Bacarisse <software@bsb.me.uk>
+.\"     Document qsort_r()
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH QSORT 3 "8 mars 2012" "" "Manuel du programmeur Linux"
+.SH NOM
+qsort, qsort_r \- Trier un tableau
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBvoid qsort(void *\fP\fIbase\fP\fB, size_t \fP\fInmemb\fP\fB, size_t \fP\fIsize\fP\fB,\fP
+\fB           int (*\fP\fIcompar\fP\fB)(const void *, const void *));\fP
+.sp
+\fBvoid qsort_r(void *\fP\fIbase\fP\fB, size_t \fP\fInmemb\fP\fB, size_t \fP\fIsize\fP\fB,\fP
+\fB           int (*\fP\fIcompar\fP\fB)(const void *, const void *, void *),\fP
+\fB           void *\fP\fIarg\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBqsort_r\fP()\ : _GNU_SOURCE
+.ad b
+.SH DESCRIPTION
+La fonction \fBqsort\fP() trie un tableau contenant \fInmemb\fP éléments de taille
+\fIsize\fP. L'argument \fIbase\fP pointe sur le début du tableau.
+.PP
+Le contenu du tableau est trié en ordre croissant, en utilisant la fonction
+de comparaison pointée par \fIcompar\fP, laquelle est appelée avec deux
+arguments pointant sur les objets à comparer.
+.PP
+La fonction de comparaison doit renvoyer un entier inférieur, égal, ou
+supérieur à zéro si le premier argument est respectivement considéré comme
+inférieur, égal ou supérieur au second. Si la comparaison des deux arguments
+renvoie une égalité (valeur de retour nulle), l'ordre des deux éléments est
+indéfini.
+.PP
+La fonction \fBqsort_r\fP() est identique à \fBqsort\fP() si ce n'est que la
+fonction de comparaison \fIcompar\fP prend un troisième argument. Un pointeur
+est passé à la fonction de comparaison à l'aide de \fIarg\fP. De cette façon,
+la fonction de comparaison n'a pas besoin d'utiliser des variables globales
+à passer à l'aide d'arguments arbitraires, et est par conséquent réentrante
+et sécurisée pour utiliser dans des threads.
+.SH "VALEUR RENVOYÉE"
+Les fonction \fBqsort\fP() et \fBqsort_r\fP() ne renvoient pas de valeur.
+.SH VERSIONS
+\fBqsort_r\fP() a été ajoutée à la glibc dans la version\ 2.8.
+.SH CONFORMITÉ
+La fonction \fBqsort\fP() est conforme à SVr4, 4.3BSD, C89 et C99.
+.SH NOTES
+\fBalphasort\fP(3) et \fBversionsort\fP(3) font partie des routines de
+bibliothèque utilisables comme argument \fIcompar\fP de \fBqsort\fP(). Pour
+comparer des chaînes de caractères C, la fonction de comparaison peut
+appeler \fBstrcmp\fP(3), comme dans l'exemple ci\-dessous.
+.SH EXEMPLE
+Pour un exemple d'utilisation, voir l'exemple de la page \fBbsearch\fP(3).
+
+Un autre exemple d'utilisation est le programme ci\-dessous, qui trie les
+chaînes données sur la ligne de commande\ :
+.sp
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+static int
+cmpstringp(const void *p1, const void *p2)
+{
+    /* Les arguments de cette fonction sont des « pointeurs de
+       pointeurs sur des caractères », mais les arguments de
+       strcmp(3) sont des « pointeurs sur des caractères », d'où
+       le forçage de type et l'utilisation de l'astérisque */
+
+    return strcmp(* (char * const *) p1, * (char * const *) p2);
+}
+
+int
+main(int argc, char *argv[])
+{
+    int j;
+
+    if (argc < 2) {
+	fprintf(stderr, "Utilisation : %s <chaîne>...\en", argv[0]);
+	exit(EXIT_FAILURE);
+    }
+
+    qsort(&argv[1], argc \- 1, sizeof(char *), cmpstringp);
+
+    for (j = 1; j < argc; j++)
+        puts(argv[j]);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBsort\fP(1), \fBalphasort\fP(3), \fBstrcmp\fP(3), \fBversionsort\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

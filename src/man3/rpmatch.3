@@ -1,0 +1,137 @@
+.\" Copyright (C) 2006 Justin Pryzby <pryzbyj@justinpryzby.com>
+.\"
+.\" %%%LICENSE_START(PERMISSIVE_MISC)
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+.\" CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+.\" TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+.\" SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+.\" %%%LICENSE_END
+.\"
+.\" References:
+.\"   glibc manual and source
+.\"
+.\" 2006-05-19, mtk, various edits and example program
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RPMATCH 3 "26 juillet 2007" GNU "Manuel du programmeur Linux"
+.SH NOM
+rpmatch \- Déterminer si la réponse à une question est affirmative ou
+négative
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+
+\fBint rpmatch(const char *\fP\fIréponse\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBrpmatch\fP()\ : _SVID_SOURCE
+.SH DESCRIPTION
+\fBrpmatch\fP() gère une réponse d'un utilisateur à une question oui ou non,
+avec support pour l'internationalisation.
+
+\fIréponse\fP doit être une chaîne de caractères, terminée par le caractère
+nul, contenant une réponse fournie par un utilisateur, peut\-être obtenue
+avec \fBfgets\fP(3) ou \fBgetline\fP(3).
+
+La préférence de langue de l'utilisateur est prise en compte par les
+variables d'environnement \fBLANG\fP, \fBLC_MESSAGES\fP et \fBLC_ALL\fP si le
+programme a appelé \fBsetlocale\fP(3) pour effectuer leurs modifications.
+
+Quels que soient les paramètres régionaux, les réponses correspondant à
+\fB^[Yy]\fP sont toujours acceptées comme affirmatives, et celles correspondant
+à \fB^[Nn]\fP sont toujours acceptées comme négatives.
+.SH "VALEUR RENVOYÉE"
+Après l'examen de \fIréponse\fP, \fBrpmatch\fP() renvoie 0 dans le cas d'une
+réponse négative («\ Non\ »), 1 dans le cas d'une réponse affirmative («\ Oui\ »), et \-1 si la valeur de \fIréponse\fP n'est pas reconnue.
+.SH ERREURS
+Une valeur de retour de \-1 indique soit une entrée invalide, soit une autre
+erreur. Il n'est pas correct de ne tester que la non nullité de la valeur de
+retour.
+
+\fBrpmatch\fP() peut échouer pour les mêmes raisons que \fBregcomp\fP(3) ou
+\fBregexec\fP(3) échouerait\ ; la cause de l'erreur n'est pas disponible dans
+\fIerrno\fP ou ailleurs mais indique un échec du moteur d'expressions
+rationnelles (mais ce cas ne peut pas être distingué de celui d'une valeur
+de \fIréponse\fP non reconnue).
+.SH CONFORMITÉ
+.\" It is available on at least AIX 5.1 and FreeBSD 6.0.
+\fBrpmatch\fP() n'est requise par aucun standard mais est disponible sur
+quelques autres systèmes.
+.SH BOGUES
+L'implémentation de \fBrpmatch\fP() ne regarde que le premier caractère de
+\fIréponse\fP. En conséquence, «\ noui\ » renvoie 0 et «\ ynon, jamais, pas
+dans un million d'années\ » renvoie 1. Il serait préférable d'accepter des
+chaînes de manière plus stricte, par exemple (en utilisant la notation des
+expressions rationnelles étendues décrites dans \fBregex\fP(7))\ :
+\fB^([yY]|yes|YES)$\fP et \fB^([nN]|no|NO)$\fP.
+.SH EXEMPLE
+Le programme exemple suivant affiche les résultats lorsque \fBrpmatch\fP() est
+appliqué à la chaîne fournie comme argument de la ligne de commande du
+programme.
+.nf
+
+#define _SVID_SOURCE
+#include <locale.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+int
+main(int argc, char *argv[])
+{
+    if (argc != 2 || strcmp(argv[1], "\-\-help") == 0) {
+        fprintf(stderr, "%s réponse\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    setlocale(LC_ALL, "");
+    printf("rpmatch() a renvoyé\ : %d\en", rpmatch(argv[1]));
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBfgets\fP(3), \fBgetline\fP(3), \fBnl_langinfo\fP(3), \fBregcomp\fP(3),
+\fBsetlocale\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

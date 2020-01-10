@@ -1,0 +1,1649 @@
+.\"	$OpenBSD: elf.5,v 1.12 2003/10/27 20:23:58 jmc Exp $
+.\"Copyright (c) 1999 Jeroen Ruigrok van der Werven
+.\"All rights reserved.
+.\"
+.\" %%%LICENSE_START(PERMISSIVE_MISC)
+.\"Copyright (c) 2005-2006 Jean-Philippe Guérard pour la v.f.
+.\"Tous droits réservés.
+.\"
+.\"Sont autorisées la redistribution et l'utilisation, en format
+.\"source et binaire, avec ou sans modifications, du moment que les
+.\"conditions suivantes sont respectées :
+.\"1. La redistribution du code source doit conserver la mention
+.\"   du copyright, cette liste de conditions et le texte ci-dessous
+.\"   précisant les limitations de responsabilité.
+.\"2. La redistribution en format binaire doit reproduire la mention
+.\"   du copyright, cette liste de conditions et le texte ci-dessous
+.\"   précisant les limitations de responsabilité, dans la
+.\"   documentation ou dans les documents accompagnant la distribution.
+.\"
+.\"CE LOGICIEL EST FOURNI PAR L'AUTEUR ET LES CONTRIBUTEURS « TEL QUEL »
+.\"ET SANS AUCUNE GARANTIE, EXPLICITE OU IMPLICITE, Y COMPRIS (MAIS PAS
+.\"UNIQUEMENT) LES GARANTIES IMPLICITES D'ADAPTATION À UN BUT
+.\"PARTICULIER ET DE COMMERCIALISATION. EN AUCUN CAS LES AUTEURS OU
+.\"LES CONTRIBUTEURS NE PEUVENT ÊTRE TENUS RESPONSABLES DE TOUS DOMMAGES
+.\"DIRECTS, INDIRECTS, ACCIDENTELS, SPÉCIAUX, EXEMPLAIRES OU CONSÉQUENTS
+.\"(Y COMPRIS, MAIS PAS UNIQUEMENT, LE REMPLACEMENT DES BIENS OU
+.\"DES SERVICES, LA PERTE D'UTILISATION, DE DONNÉES OU DE BÉNÉFICES, OU
+.\"L'INTERRUPTION DU TRAVAIL), SURVENUS SUITE À L'UTILISATION DE CE
+.\"LOGICIEL, MÊME S'ILS EN ONT ÉTÉ AVERTIS, QUELQUE SOIT LA FAÇON DONT
+.\"CEUX-CI ONT ÉTÉ CAUSÉ ET QUELQUE SOIT LE PRINCIPE DE RESPONSABILITÉ,
+.\"QU'ELLE SOIT CONTRACTUELLE, STRICT, OU AUX DÉPENDS (Y COMPRIS EN
+.\"AUTRES LA NÉGLIGENCE).
+.\"
+.\"Redistribution and use in source and binary forms, with or without
+.\"modification, are permitted provided that the following conditions
+.\"are met:
+.\"1. Redistributions of source code must retain the above copyright
+.\"   notice, this list of conditions and the following disclaimer.
+.\"2. Redistributions in binary form must reproduce the above copyright
+.\"   notice, this list of conditions and the following disclaimer in the
+.\"   documentation and/or other materials provided with the distribution.
+.\"
+.\"THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+.\"ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\"IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\"ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+.\"FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\"DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\"OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\"HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\"LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\"OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\"SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"	$FreeBSD: src/share/man/man5/elf.5,v 1.21 2001/10/01 16:09:23 ru Exp $
+.\"
+.\" Slightly adapted - aeb, 2004-01-01
+.\" 2005-07-15, Mike Frysinger <vapier@gentoo.org>, various fixes
+.\" 2007-10-11, Mike Frysinger <vapier@gentoo.org>, various fixes
+.\" 2007-12-08, mtk, Converted from mdoc to man macros
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ELF 5 "17 avril 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+elf \- Format des fichiers exécutables ELF («\ Executable and Linking
+Format\ »)
+.SH SYNOPSIS
+.nf
+.\" .B #include <elf_abi.h>
+\fB#include <elf.h>\fP
+.fi
+.SH DESCRIPTION
+Le fichier d'en\-tête \fI<elf.h>\fP définit le format des fichiers
+binaires exécutables ELF. Ces fichiers peuvent être soit des fichiers
+exécutables normaux, des fichiers objets repositionnables, des fichiers core
+ou des bibliothèques partagées.
+.PP
+Un fichier exécutable utilisant le format de fichier ELF est constitué d'un
+en\-tête ELF, suivi d'une table d'en\-tête de programme ou d'une table des
+en\-têtes de sections, ou des deux. L'en\-tête ELF est toujours situé à un
+déplacement de zéro par rapport au début du fichier. Les déplacements dans
+le fichier des tables d'en\-tête de programme et des en\-têtes de sections
+sont définis dans l'en\-tête ELF. Ces deux tables décrivent le reste des
+particularités du fichier.
+.PP
+.\" Applications which wish to process ELF binary files for their native
+.\" architecture only should include
+.\" .I <elf_abi.h>
+.\" in their source code.
+.\" These applications should need to refer to
+.\" all the types and structures by their generic names
+.\" "Elf_xxx"
+.\" and to the macros by
+.\" ELF_xxx".
+.\" Applications written this way can be compiled on any architecture,
+.\" regardless of whether the host is 32-bit or 64-bit.
+.\" .PP
+.\" Should an application need to process ELF files of an unknown
+.\" architecture, then the application needs to explicitly use either
+.\" "Elf32_xxx"
+.\" or
+.\" "Elf64_xxx"
+.\" type and structure names.
+.\" Likewise, the macros need to be identified by
+.\" "ELF32_xxx"
+.\" or
+.\" "ELF64_xxx".
+.\" .PP
+Ce fichier d'en\-tête décrit, sous la forme de structures C, les en\-têtes
+mentionnés précédemment et inclut également des structures pour les sections
+dynamiques, les sections de repositionnement et les tables de symboles.
+.PP
+Les types suivants sont utilisés pour les architectures N\-bit (avec
+\fIN=32,64\fP\ ; \fIElfN\fP signifie \fIElf32\fP ou \fIElf64\fP\ ; \fIuintN_t\fP signifie
+\fIuint32_t\fP ou \fIuint64_t\fP)\ :
+.in +4n
+.nf
+
+.\" Elf32_Size  Unsigned object size
+ElfN_Addr       adresse (non signée) du programme, uintN_t
+ElfN_Off        déplacement (non signé) dans le fichier, uintN_t
+ElfN_Section    indice (non signé) de section, uint16_t
+ElfN_Versym     informations (non signées) sur les versions
+                des symboles, uint16_t
+Elf_Byte        caractère (char) non signé
+ElfN_Half       uint16_t
+ElfN_Sword      int32_t
+ElfN_Word       uint32_t
+ElfN_Sxword     int64_t
+ElfN_Xword      uint64_t
+.fi
+.in
+.PP
+(Note\ : la terminologie *BSD est quelque peu différente. \fIElf64_Half\fP est
+deux fois plus grand que \fIElf32_Half\fP et \fIElf64Quarter\fP est utilisé pour
+\fIuint16_t\fP. Afin d'éviter toute confusion, ces types seront remplacés par
+des types plus explicites dans la suite de ce document).
+.PP
+Toutes les structures de données définies par le format de fichier suivent
+la taille «\ naturelle\ » et les principes d'alignement de la classe
+correspondante. Si nécessaire, les structures de données contiennent un
+remplissage explicite pour assurer l'alignement sur 4\ octets des objets de
+4\ octets, et pour forcer les tailles des structures à être des multiples de
+4, etc.
+.PP
+L'en\-tête ELF est décrit par le type \fIElf32_Ehdr\fP ou par le type
+\fIElf64_Ehdr\fP\ :
+.in +4n
+.nf
+
+#define EI_NIDENT 16
+
+typedef struct {
+    unsigned char e_ident[EI_NIDENT];
+    uint16_t      e_type;
+    uint16_t      e_machine;
+    uint32_t      e_version;
+    ElfN_Addr     e_entry;
+    ElfN_Off      e_phoff;
+    ElfN_Off      e_shoff;
+    uint32_t      e_flags;
+    uint16_t      e_ehsize;
+    uint16_t      e_phentsize;
+    uint16_t      e_phnum;
+    uint16_t      e_shentsize;
+    uint16_t      e_shnum;
+    uint16_t      e_shstrndx;
+} ElfN_Ehdr;
+.fi
+.in
+.PP
+.\" .Bl -tag -width "e_phentsize"
+Les champs ont les significations suivantes\ :
+.TP  12
+\fIe_ident\fP
+Ce tableau d'octets indique comment interpréter le fichier, indépendamment
+du processeur ou du reste du contenu du fichier. Dans ce tableau, chacun des
+éléments s'appelle une macro qui commence par le préfixe \fBEI_\fP et peut
+contenir des valeurs commençant par le préfixe \fBELF\fP. Les macros suivantes
+sont définies\ :
+.RS 12
+.\" .Bl -tag -width "EI_VERSION" \" EI_ABIVERSION
+.TP  12
+\fBEI_MAG0\fP
+Premier octet du nombre magique. Il doit être rempli par \fBELFMAG0\fP (0:
+0x7f).
+.TP 
+\fBEI_MAG1\fP
+Deuxième octet du nombre magique. Il doit être rempli par \fBELFMAG1\fP (1:
+«\ E\ »).
+.TP 
+\fBEI_MAG2\fP
+Troisième octet du nombre magique. Il doit être rempli par \fBELFMAG2\fP (2:
+«\ L\ »).
+.TP 
+\fBEI_MAG3\fP
+Quatrième octet du nombre magique. Il doit être rempli par \fBELFMAG3\fP (3:
+«\ F\ »).
+.TP 
+\fBEI_CLASS\fP
+Le cinquième octet indique l'architecture pour ce binaire\ :
+.RS 12
+.\" .Bl -tag -width "ELFCLASSNONE" -compact
+.TP  14
+.PD 0
+\fBELFCLASSNONE\fP
+Cette classe n'est pas valable.
+.TP 
+\fBELFCLASS32\fP
+Ceci définit une architecture 32\ bits. Elle permet d'utiliser des machines
+avec des espaces d'adressage virtuels et des fichiers d'une taille allant
+jusqu'à 4\ gigaoctets.
+.TP 
+\fBELFCLASS64\fP
+Ceci définit une architecture 64\ bits.
+.PD
+.RE
+.\" .El
+.TP 
+\fBEI_DATA\fP
+.\" .Bl -tag -width "ELFDATA2LSB" -compact
+Le sixième octet indique le codage utilisé pour les données de ce fichier
+spécifiques au processeur. Actuellement, les codages suivants sont permis\ :
+.RS 12
+.TP  14
+.PD 0
+\fBELFDATANONE\fP
+Format de données inconnu.
+.TP 
+\fBELFDATA2LSB\fP
+Complément à deux, petit boutiste.
+.TP 
+\fBELFDATA2MSB\fP
+Complément à deux, gros boutiste.
+.PD
+.RE
+.\" .El
+.TP 
+.PD 0
+\fBEI_VERSION\fP
+.\" .Bl -tag -width "EV_CURRENT" -compact
+Le 7e octet est le numéro de version de la spécification du format ELF\ :
+.RS 12
+.TP  14
+\fBEV_NONE\fP
+Version non valable.
+.TP 
+\fBEV_CURRENT\fP
+Version actuelle.
+.PD
+.RE
+.\".El
+.TP 
+\fBEI_OSABI\fP
+.\" .Bl -tag -width "ELFOSABI_STANDALONE" -compact
+Le 8e octet identifie le système d'exploitation et l'interface binaire des
+applications (ABI) auxquels cet objet est destiné. Certains des champs
+d'autres structures ELF contiennent des valeurs et des drapeaux dont la
+signification dépend de la plate\-forme\ ; l'interprétation de ces champs
+dépend de la valeur de cet octet. Par exemple\ :
+.RS 12
+.TP  20
+.PD 0
+\fBELFOSABI_NONE\fP
+.\" 0
+Identique à ELFOSABI_SYSV
+.TP 
+\fBELFOSABI_SYSV\fP
+.\" 0
+.\" synonym: ELFOSABI_NONE
+ABI UNIX System\ V.
+.TP 
+\fBELFOSABI_HPUX\fP
+.\" 1
+ABI HP\-UX.
+.TP 
+\fBELFOSABI_NETBSD\fP
+.\" 2
+ABI NetBSD.
+.TP 
+\fBELFOSABI_LINUX\fP
+.\" 3
+.\" .TP
+.\" .BR ELFOSABI_HURD
+.\" Hurd ABI.
+.\" 4
+.\" .TP
+.\" .BR ELFOSABI_86OPEN
+.\" 86Open Common IA32 ABI.
+.\" 5
+ABI Linux.
+.TP 
+\fBELFOSABI_SOLARIS\fP
+.\" 6
+.\" .TP
+.\" .BR ELFOSABI_MONTEREY
+.\" Monterey project ABI.
+.\" Now replaced by
+.\" ELFOSABI_AIX
+.\" 7
+ABI Solaris.
+.TP 
+\fBELFOSABI_IRIX\fP
+.\" 8
+ABI IRIX.
+.TP 
+\fBELFOSABI_FREEBSD\fP
+.\" 9
+ABI FreeBSD.
+.TP 
+\fBELFOSABI_TRU64\fP
+.\" 10
+.\" ELFOSABI_MODESTO
+.\" 11
+.\" ELFOSABI_OPENBSD
+.\" 12
+ABI UNIX TRU64.
+.TP 
+\fBELFOSABI_ARM\fP
+.\" 97
+ABI de l'architecture ARM.
+.TP 
+\fBELFOSABI_STANDALONE\fP
+.\" 255
+.\" .El
+ABI autonome (embarqué).
+.PD
+.RE
+.TP 
+\fBEI_ABIVERSION\fP
+Le 9e octet identifie la version de l'interface binaire des applications
+(ABI) à laquelle cet objet est destiné. Ce champ permet de différencier des
+versions incompatibles d'une même ABI. L'interprétation de ce numéro de
+version dépend de l'ABI indiquée par le champ \fBEI_OSABI\fP. Les applications
+respectant cette spécification utilisent la valeur 0.
+.TP 
+\fBEI_PAD\fP
+.\" As reported by Yuri Kozlov and confirmed by Mike Frysinger, EI_BRAND is
+.\" not in GABI (http://www.sco.com/developers/gabi/latest/ch4.eheader.html)
+.\" It looks to be a BSDism
+.\" .TP
+.\" .BR EI_BRAND
+.\" Start of architecture identification.
+Début de remplissage. Ces octets sont réservés et positionnés à zéro. Les
+programmes qui les lisent ne doivent pas en tenir compte. La valeur de
+\fBEI_PAD\fP sera modifiée dans le futur si l'on décide de donner une
+signification à des octets actuellement inutilisés.
+.TP 
+\fBEI_NIDENT\fP
+.\" .El
+Taille du tableau \fIe_ident\fP.
+.RE
+.TP 
+\fIe_type\fP
+Ce membre de la structure identifie le type de fichier objet\ :
+.RS 12
+.\" .Bl -tag -width "ET_NONE" -compact
+.TP  12
+.PD 0
+\fBET_NONE\fP
+Type inconnu.
+.TP 
+\fBET_REL\fP
+Fichier repositionnable.
+.TP 
+\fBET_EXEC\fP
+Fichier exécutable.
+.TP 
+\fBET_DYN\fP
+Objet partagé.
+.TP 
+\fBET_CORE\fP
+Fichier core.
+.PD
+.RE
+.\" .El
+.TP 
+\fIe_machine\fP
+Ce membre indique l'architecture nécessaire à un fichier particulier. Par
+exemple\ :
+.RS 12
+.\" .Bl -tag -width "EM_MIPS_RS4_BE" -compact
+.TP  12
+.PD 0
+\fBEM_NONE\fP
+.\" 0
+Machine inconnue.
+.TP 
+\fBEM_M32\fP
+.\" 1
+AT&T WE 32100.
+.TP 
+\fBEM_SPARC\fP
+.\" 2
+Sun Microsystems SPARC.
+.TP 
+\fBEM_386\fP
+.\" 3
+Intel 80386.
+.TP 
+\fBEM_68K\fP
+.\" 4
+Motorola 68000.
+.TP 
+\fBEM_88K\fP
+.\" 5
+.\" .TP
+.\" .BR EM_486
+.\" Intel 80486.
+.\" 6
+Motorola 88000.
+.TP 
+\fBEM_860\fP
+.\" 7
+Intel 80860.
+.TP 
+\fBEM_MIPS\fP
+.\" 8
+.\" EM_S370
+.\" 9
+.\" .TP
+.\" .BR EM_MIPS_RS4_BE
+.\" MIPS RS4000 (big-endian only). Deprecated.
+.\" 10
+.\" EM_MIPS_RS3_LE (MIPS R3000 little-endian)
+.\" 10
+MIPS RS3000 (uniquement gros\-boutiste).
+.TP 
+\fBEM_PARISC\fP
+.\" 15
+HP/PA.
+.TP 
+\fBEM_SPARC32PLUS\fP
+.\" 18
+SPARC avec jeu d'instructions étendu.
+.TP 
+\fBEM_PPC\fP
+.\" 20
+PowerPC.
+.TP 
+\fBEM_PPC64\fP
+.\" 21
+PowerPC 64\ bits.
+.TP 
+\fBEM_S390\fP
+.\" 22
+IBM S/390
+.TP 
+\fBEM_ARM\fP
+.\" 40
+Machines de technologie RISC avancées
+.TP 
+\fBEM_SH\fP
+.\" 42
+Renesas SuperH
+.TP 
+\fBEM_SPARCV9\fP
+.\" 43
+SPARC v9 64\ bits.
+.TP 
+\fBEM_IA_64\fP
+.\" 50
+Intel Itanium
+.TP 
+\fBEM_X86_64\fP
+.\" 62
+AMD x86\-64
+.TP 
+\fBEM_VAX\fP
+.\" 75
+.\" EM_CRIS
+.\" 76
+.\" .TP
+.\" .BR EM_ALPHA
+.\" Compaq [DEC] Alpha.
+.\" .TP
+.\" .BR EM_ALPHA_EXP
+.\" Compaq [DEC] Alpha with enhanced instruction set.
+DEC Vax.
+.PD
+.RE
+.\" .El
+.TP 
+\fIe_version\fP
+.\" .Bl -tag -width "EV_CURRENT" -compact
+Ce membre indique la version du fichier\ :
+.RS 12
+.TP  12
+.PD 0
+\fBEV_NONE\fP
+Version non valable.
+.TP 
+\fBEV_CURRENT\fP
+.\" .El
+Version actuelle.
+.PD
+.RE
+.TP 
+\fIe_entry\fP
+Ce membre indique l'adresse virtuelle à laquelle le système transfère
+initialement le contrôle, démarrant ainsi le processus. Si ce fichier ne
+comporte pas de point d'entrée, ce champ contient zéro.
+.TP 
+\fIe_phoff\fP
+Ce membre contient le déplacement en octets de la table contenant l'en\-tête
+de programme. Si ce fichier ne comporte pas de table d'en\-tête de programme,
+ce champ contient zéro.
+.TP 
+\fIe_shoff\fP
+Ce membre contient le déplacement en octets de la table des en\-têtes de
+sections. Si ce fichier ne comporte pas de table des en\-têtes des sections,
+ce champ contient zéro.
+.TP 
+\fIe_flags\fP
+Ce membre contient des drapeaux spécifiques au processeur. Le nom de ces
+drapeaux est de la forme EF_machine_drapeau. À l'heure actuelle, aucun
+drapeau n'a été défini.
+.TP 
+\fIe_ehsize\fP
+Ce membre contient la taille de l'en\-tête ELF en octets.
+.TP 
+\fIe_phentsize\fP
+Ce membre contient la taille en octets d'une entrée de la table d'en\-tête de
+programme\ ; toutes les entrées sont de même taille.
+.TP 
+\fIe_phnum\fP
+Ce membre contient le nombre d'entrées de la table d'en\-tête de
+programme. Ainsi, la taille en octets de la table pourra être obtenue en
+multipliant \fIe_phentsize\fP par \fIe_phnum\fP. Si un fichier ne comporte pas
+d'en\-tête de programme, \fIe_phnum\fP contiendra la valeur zéro.
+.IP
+.\" This is a Linux extension, added in Linux 2.6.34.
+.\" .Bl -tag -width "PN_XNUM"
+Si le nombre d'entrées de la table d'en\-tête de programme est supérieur ou
+égal à \fBPN_XNUM\fP (0xffff), ce membre contient \fBPN_XNUM\fP (0xffff) et le
+nombre réel d'entrées dans la table d'en\-tête de programme est stocké dans
+le membre \fIsh_info\fP de l'entrée initiale de la table des en\-têtes de
+sections. Dans le cas contraire, le membre \fIsh_info\fP de l'entrée initiale
+de la table des en\-têtes de sections contient la valeur zéro.
+.RS 12
+.TP  9
+\fBPN_XNUM\fP
+Est défini comme 0xffff, le plus grand nombre que \fIe_phnum\fP peut valoir,
+qui spécifie où le nombre actuel d'en\-têtes de programme est assigné.
+.PD
+.RE
+.\" .El
+.IP
+.TP 
+\fIe_shentsize\fP
+Ce membre contient la taille en octets d'un en\-tête de section. Un en\-tête
+de section est une entrée de la table des en\-têtes de sections\ ; toutes les
+entrées sont de même taille.
+.TP 
+\fIe_shnum\fP
+Ce membre contient le nombre d'entrées de la table des en\-têtes de
+sections. Ainsi, la taille en octets de la table des en\-têtes de sections
+pourra être obtenue en multipliant \fIe_shentsize\fP par \fIe_shnum\fP. Si un
+fichier ne comporte pas de table des en\-têtes de sections, le champ
+\fIe_shnum\fP contiendra zéro.
+.IP
+Si le nombre d'entrées de la table des en\-têtes de sections est supérieur ou
+égal à \fBSHN_LORESERVE\fP (0xff00), \fIe_shnum\fP contient la valeur zéro et le
+nombre réel d'entrées dans la table des en\-têtes de sections est stocké dans
+le membre \fIsh_size\fP de l'entrée initiale de la table des en\-têtes de
+sections. Dans le cas contraire, le membre \fIsh_size\fP de l'entrée initiale
+de la table des en\-têtes de sections contient la valeur zéro.
+.TP 
+\fIe_shstrndx\fP
+Ce membre contient l'indice dans la table des en\-têtes de sections de
+l'entrée associée à la table des chaînes de noms des sections. Si le fichier
+ne comporte pas de table des chaînes de noms des sections, ce champ
+contiendra la valeur \fBSHN_UNDEF\fP.
+.IP
+Si l'indice de la section de la table des chaînes de noms des sections est
+supérieur ou égal à \fBSHN_LORESERVE\fP (0xff00), ce membre contient la valeur
+\fBSHN_XINDEX\fP (0xffff) et l'indice réel de la section de la table des
+chaînes de noms des sections est stocké dans le membre \fIsh_link\fP de
+l'entrée initiale de la table des en\-têtes de sections. Dans le cas
+contraire, le membre \fIsh_link\fP de l'entrée initiale de la table des
+en\-têtes de sections contient la valeur zéro.
+.RS 12
+.\" .Bl -tag -width "SHN_LORESERVE"
+.TP  14
+\fBSHN_UNDEF\fP
+Cette valeur indique une référence de section non définie, manquante, non
+pertinente ou, d'une façon ou d'une autre, sans signification. Par exemple,
+un symbole «\ defined\ » se rapportant à la section de numéro \fBSHN_UNDEF\fP
+est un symbole indéfini.
+.TP 
+\fBSHN_LORESERVE\fP
+Cette valeur indique la borne inférieure de la plage des indices réservés.
+.TP 
+\fBSHN_LOPROC\fP
+Les valeurs supérieures ou égales à \fBSHN_HIPROC\fP sont réservées à des
+sémantiques spécifiques au processeur.
+.TP 
+\fBSHN_HIPROC\fP
+Les valeurs inférieures ou égales à \fBSHN_LOPROC\fP sont réservées à des
+sémantiques spécifiques au processeur.
+.TP 
+\fBSHN_ABS\fP
+Cette valeur indique que les références correspondantes sont des valeurs
+absolues. Par exemple, les symboles définis par rapport à une section
+\fBSHN_ABS\fP ont des valeurs absolues et ne sont pas affectées par le
+repositionnement.
+.TP 
+\fBSHN_COMMON\fP
+Les symboles définis par rapport à cette section sont des symboles communs,
+comme par exemple des COMMON Fortran ou des variables externes C non
+allouées.
+.TP 
+\fBSHN_HIRESERVE\fP
+Cette valeur indique la borne supérieure de la plage des indices réservés
+entre \fBSHN_LORESERVE\fP et \fBSHN_HIRESERVE\fP, inclus\ ; ces valeurs ne sont pas
+des références de la table des en\-têtes des sections. Autrement dit, la
+table des en\-têtes de sections ne contient \fIpas\fP d'entrée pour les indices
+réservés.
+.RE
+.\" .El
+.\" .El
+.PP
+La table d'en\-tête de programme d'un exécutable ou d'un fichier objet
+partagé est un tableau de structures, chacune d'entre elles décrivant un
+segment ou d'autres informations dont le système a besoin pour préparer
+l'exécution du programme. Un \fIsegment\fP de fichier objet contient une ou
+plusieurs \fIsections\fP. L'en\-tête de programme n'a de sens que pour les
+fichiers objets partagés ou les fichiers exécutables. Un fichier indique la
+taille de son propre en\-tête de programme à l'aide des membres
+\fIe_phentsize\fP et \fIe_phnum\fP de l'en\-tête ELF. Selon l'architecture,
+l'en\-tête de programme ELF est représenté par un type \fIElf32_Phdr\fP ou un
+type \fIElf64_Phdr\fP\ :
+.in +4n
+.nf
+
+typedef struct {
+    uint32_t   p_type;
+    Elf32_Off  p_offset;
+    Elf32_Addr p_vaddr;
+    Elf32_Addr p_paddr;
+    uint32_t   p_filesz;
+    uint32_t   p_memsz;
+    uint32_t   p_flags;
+    uint32_t   p_align;
+} Elf32_Phdr;
+.fi
+.in
+.in +4n
+.nf
+
+typedef struct {
+    uint32_t   p_type;
+    uint32_t   p_flags;
+    Elf64_Off  p_offset;
+    Elf64_Addr p_vaddr;
+    Elf64_Addr p_paddr;
+    uint64_t   p_filesz;
+    uint64_t   p_memsz;
+    uint64_t   p_align;
+} Elf64_Phdr;
+.fi
+.in
+.PP
+.\" .Bl -tag -width "p_offset"
+La principale différence entre l'en\-tête d'un programme 32\ bits et l'en\-tête
+d'un programme 64\ bits repose sur emplacement du champ \fIp_flags\fP au sein de
+la structure complète.
+.TP  12
+\fIp_type\fP
+.\" .Bl -tag -width "PT_DYNAMIC"
+Ce membre de la structure Phdr indique le type de segment décrit par cet
+élément de tableau ou comment interpréter ses informations.
+.RS 12
+.TP  12
+\fBPT_NULL\fP
+Cet élément du tableau est inutilisé et les valeurs des autres membres ne
+sont pas définis. Cela permet à l'en\-tête de programme de contenir des
+entrées qui ne sont pas prises en compte.
+.TP 
+\fBPT_LOAD\fP
+Cet élément du tableau indique un segment chargeable, décrit par \fIp_filesz\fP
+et \fIp_memsz\fP. Les octets du fichier sont projetés au début du segment
+mémoire. Si la taille mémoire du segment \fIp_memsz\fP est plus grande que la
+taille du fichier \fIp_filesz\fP, les octets «\ supplémentaires\ » sont définis
+comme contenant la valeur 0 et placés à la suite de la zone initialisée du
+segment. La taille du fichier ne peut être supérieure à la taille de la
+mémoire. Dans la table d'en\-tête de programme, les entrées de segments
+chargeables sont indiquées par ordre croissant, classées selon le membre
+\fIp_vaddr\fP.
+.TP 
+\fBPT_DYNAMIC\fP
+L'élément de tableau contient des informations de liaison dynamique.
+.TP 
+\fBPT_INTERP\fP
+L'élément de tableau contient l'emplacement et la taille du nom de chemin,
+terminé par un caractère «\ null\ », utilisé pour invoquer l'interpréteur. Ce
+type de segment n'a de sens que pour des fichiers exécutables (bien qu'il
+puisse être présent dans des objets partagés). Il ne peut être présent
+qu'une seule fois dans un fichier. S'il est présent, il doit précéder chaque
+entrée de segment chargeable.
+.TP 
+\fBPT_NOTE\fP
+L'élément de tableau contient l'emplacement et la taille d'informations
+auxiliaires.
+.TP 
+\fBPT_SHLIB\fP
+Ce type de segment est réservé, mais sa sémantique n'est pas définie. Les
+programmes contenant un tel élément de tableau ne sont pas conformes à
+l'interface binaire (ABI).
+.TP 
+\fBPT_PHDR\fP
+L'élément de tableau, s'il est présent, contiendra l'emplacement et la
+taille de la table d'en\-tête de programme elle\-même, à la fois dans le
+fichier et dans l'image mémoire du programme. Ce type de segment ne peut
+être présent qu'une seule fois dans un fichier. Qui plus est, il ne peut
+être présent que si l'en\-tête de programme fait partie de l'image mémoire du
+programme. S'il est présent, il doit précéder chaque entrée de segment
+chargeable.
+.TP 
+\fBPT_LOPROC\fP
+Les valeurs supérieures ou égales à \fBPT_HIPROC\fP sont réservées à des
+sémantiques spécifiques au processeur.
+.TP 
+\fBPT_HIPROC\fP
+Les valeurs inférieures ou égales à \fBPT_LOPROC\fP sont réservées à des
+sémantiques spécifiques au processeur.
+.TP 
+\fBPT_GNU_STACK\fP
+.\" .El
+Extension GNU qui est utilisée par le noyau de Linux pour contrôler l'état
+de la pile via l'indicateur positionné dans le membre \fIp_flags\fP.
+.RE
+.TP 
+\fIp_offset\fP
+Ce membre contient le déplacement du premier octet du segment par rapport au
+début du fichier.
+.TP 
+\fIp_vaddr\fP
+Ce membre contient l'adresse virtuelle à laquelle se trouve en mémoire le
+premier octet du segment.
+.TP 
+\fIp_paddr\fP
+Su les systèmes pour lesquels l'adresse physique est pertinente, ce membre
+est réservé pour l'adresse physique du segment. Sous BSD, ce champ n'est pas
+utilisé et doit avoir la valeur zéro.
+.TP 
+\fIp_filesz\fP
+Ce membre contient la taille en octets dans l'image fichier de ce
+segment. Il peut être égal à zéro.
+.TP 
+\fIp_memsz\fP
+Ce membre contient la taille en octets de l'image mémoire de ce segment. Il
+peut être égal à zéro.
+.TP 
+\fIp_flags\fP
+.\" .Bl -tag -width "PF_X" -compact
+Ce membre contient un masque de bits d'options relatives à ce segment\ :
+.RS 12
+.TP 
+.PD 0
+\fBPF_X\fP
+Segment exécutable.
+.TP 
+\fBPF_W\fP
+Segment accessible en écriture.
+.TP 
+\fBPF_R\fP
+Segment accessible en lecture.
+.PD
+.RE
+.\" .El
+.IP
+Un segment de texte est souvent affecté des drapeaux \fBPF_X\fP et \fBPF_R\fP. Un
+segment de données est souvent affecté des drapeaux \fBPF_X\fP, \fBPF_W\fP et
+\fBPF_R\fP.
+.TP 
+\fIp_align\fP
+.\" .El
+Ce membre contient la valeur selon laquelle les segments sont alignés en
+mémoire et dans le fichier. Pour des segments de processus chargeables, les
+valeurs \fIp_vaddr\fP et \fIp_offset\fP doivent être congrues, modulo la taille de
+la page. Des valeurs de zéro ou de un indiquent qu'aucun alignement n'est
+nécessaire. Sinon, \fIp_align\fP doit être un nombre positif, puissance entière
+de deux et \fIp_vaddr\fP doit être égal à \fIp_offset\fP modulo \fIp_align\fP.
+.PP
+La table des en\-têtes de sections d'un fichier permet de retrouver toutes
+les sections du fichier. C'est un tableau de structures \fIElf32_Shdr\fP ou
+\fIElf64_Shdr\fP. Le champ \fIe_shoff\fP de l'en\-tête ELF donne son déplacement en
+octets depuis le début du fichier. \fIe_shnum\fP contient le nombre d'entrées
+que contient la table des en\-têtes de sections. \fIe_shentsize\fP contient la
+taille en octets de chaque entrée.
+.PP
+.\" .Bl -tag -width "SHN_LORESERVE"
+Un indice de la table des en\-têtes de sections est un indice de ce
+tableau. Certains de ces indices de table des en\-têtes de sections sont
+réservés\ : l'entrée initiale et toutes les entrées comprises entre
+\fBSHN_LORESERVE\fP et \fBSHN_HIRESERVE\fP. L'entrée initiale est utilisée par des
+extensions ELF pour \fIe_phnum\fP, \fIe_shnum\fP et \fIe_strndx\fP\ ; dans les autres
+cas, chaque champ de l'entrée initiale est mis à zéro. Un fichier objet ne
+contient pas de section correspondant à ces indices spéciaux\ :
+.RS
+.TP  14
+\fBSHN_UNDEF\fP
+Cette valeur indique une référence de section non définie, manquante, non
+pertinente ou, d'une manière ou d'une autre, sans signification.
+.TP 
+\fBSHN_LORESERVE\fP
+Cette valeur indique la borne inférieure de la plage des indices réservés.
+.TP 
+\fBSHN_LOPROC\fP
+Les valeurs supérieures ou égales à \fBSHN_HIPROC\fP sont réservées à des
+sémantiques spécifiques au processeur.
+.TP 
+\fBSHN_HIPROC\fP
+Les valeurs inférieures ou égales à \fBSHN_LOPROC\fP sont réservées à des
+sémantiques spécifiques au processeur.
+.TP 
+\fBSHN_ABS\fP
+Cette valeur définit la valeur absolue de la référence correspondante. Par
+exemple, un symbole défini par rapport à la section numéro \fBSHN_ABS\fP a une
+valeur absolue et n'est pas affecté par un repositionnement.
+.TP 
+\fBSHN_COMMON\fP
+Les symboles définis par rapport à cette section sont des symboles communs,
+comme par exemple des COMMON Fortran ou des variables externes C non
+allouées.
+.TP 
+\fBSHN_HIRESERVE\fP
+Cette valeur indique la borne supérieure de la plage des indices
+réservés. Le système réserve les indices compris entre \fBSHN_LORESERVE\fP et
+\fBSHN_HIRESERVE\fP, inclus. La table des en\-têtes de sections ne contient pas
+d'entrée pour les indices réservés.
+.RE
+.\" .El
+.PP
+L'en\-tête de section a la structure suivante\ :
+.in +4n
+.nf
+
+typedef struct {
+    uint32_t   sh_name;
+    uint32_t   sh_type;
+    uint32_t   sh_flags;
+    Elf32_Addr sh_addr;
+    Elf32_Off  sh_offset;
+    uint32_t   sh_size;
+    uint32_t   sh_link;
+    uint32_t   sh_info;
+    uint32_t   sh_addralign;
+    uint32_t   sh_entsize;
+} Elf32_Shdr;
+.fi
+.in
+.in +4n
+.nf
+
+typedef struct {
+    uint32_t   sh_name;
+    uint32_t   sh_type;
+    uint64_t   sh_flags;
+    Elf64_Addr sh_addr;
+    Elf64_Off  sh_offset;
+    uint64_t   sh_size;
+    uint32_t   sh_link;
+    uint32_t   sh_info;
+    uint64_t   sh_addralign;
+    uint64_t   sh_entsize;
+} Elf64_Shdr;
+.fi
+.in
+.PP
+.\" .Bl -tag -width "sh_addralign"
+Il n'y a pas de réelle différence entre les en\-têtes des sections 32 bits et
+64 bits.
+.TP  10
+\fIsh_name\fP
+Ce membre indique le nom de la section. Sa valeur est un indice de la table
+des chaînes des en\-têtes de sections, contenant l'emplacement d'une chaîne
+terminée par un caractère nul.
+.TP 
+\fIsh_type\fP
+.\" .Bl -tag -width "SHT_PROGBITS"
+Ce membre définit le contenu et la sémantique de la section.
+.RS 10
+.TP  15
+\fBSHT_NULL\fP
+Cette valeur indique que cet en\-tête de section est inactif. Il n'est donc
+associé à aucune section. Les valeurs des autres champs de l'en\-tête de
+section ne sont pas définies.
+.TP 
+\fBSHT_PROGBITS\fP
+Cette section contient des informations définies par le programme, dont le
+format et le sens ne sont déterminés que par celui\-ci.
+.TP 
+\fBSHT_SYMTAB\fP
+Cette section contient une table de symboles. Typiquement, \fBSHT_SYMTAB\fP
+contient des symboles pour l'édition de liens, bien qu'elle puisse aussi
+être utilisée pour la liaison dynamique. Comme il s'agit d'une table de
+symboles complète, elle peut contenir de nombreux symboles inutiles à la
+liaison dynamique. Un fichier objet peut aussi contenir une section
+\fBSHT_DYNSYM\fP.
+.TP 
+\fBSHT_STRTAB\fP
+Cette section contient une table de chaînes. Un fichier objet peut contenir
+plusieurs sections de ce type.
+.TP 
+\fBSHT_RELA\fP
+Cette section contient des entrées de repositionnement ayant des additifs
+explicites, par exemple les entrées du type \fIElf32_Rela\fP pour les fichiers
+objets 32\ bits. Un objet peut avoir plusieurs sections de ce type.
+.TP 
+\fBSHT_HASH\fP
+Cette section contient une table de hachage pour les symboles. Un objet
+participant à une liaison dynamique doit en contenir une. Un fichier objet
+ne peut contenir qu'une seule table de hachage.
+.TP 
+\fBSHT_DYNAMIC\fP
+Cette section contient les informations de liaison dynamique. Un fichier
+objet ne peut contenir qu'une seule section dynamique.
+.TP 
+\fBSHT_NOTE\fP
+Cette section contient des informations servant à marquer le fichier d'une
+façon ou d'une autre.
+.TP 
+\fBSHT_NOBITS\fP
+Une section de ce type ressemble à \fBSHT_PROGBITS\fP mais n'occupe pas
+d'espace dans le fichier. Bien que cette section ne contienne aucun octet,
+le membre \fIsh_offset\fP contient son déplacement théorique dans le fichier.
+.TP 
+\fBSHT_REL\fP
+Cette section contient des entrées de repositionnement sans additif
+explicite, par exemple du type \fIElf32_Rel\fP pour les fichiers objets de la
+classe de 32\ bits. Un objet peut contenir plusieurs sections de
+repositionnement.
+.TP 
+\fBSHT_SHLIB\fP
+Cette section est réservée et sa sémantique n'est pas définie.
+.TP 
+\fBSHT_DYNSYM\fP
+Cette section contient un jeu minimum de symboles de liaison dynamique. Un
+fichier objet peut aussi contenir une section \fBSHT_SYMTAB\fP.
+.TP 
+\fBSHT_LOPROC\fP
+Cette valeur et les valeurs suivantes jusqu'à \fBSHT_HIPROC\fP incluse sont
+réservées à des sémantiques spécifiques au processeur.
+.TP 
+\fBSHT_HIPROC\fP
+Cette valeur et les valeurs précédentes depuis \fBSHT_LOPROC\fP incluse sont
+réservées à des sémantiques spécifiques au processeur.
+.TP 
+\fBSHT_LOUSER\fP
+Cette valeur indique la borne inférieure de la plage des indices réservés
+aux programmes applicatifs.
+.TP 
+\fBSHT_HIUSER\fP
+.\" .El
+Cette valeur indique la borne supérieure de la plage des indices réservés
+aux programmes applicatifs. Les types des sections entre \fBSHT_LOUSER\fP et
+\fBSHT_HIUSER\fP peuvent être utilisés par l'application, sans que cela n'entre
+en conflit avec les types de section actuels ou futurs définis par le
+système.
+.RE
+.TP 
+\fIsh_flags\fP
+.\" .Bl -tag -width "SHF_EXECINSTR" -compact
+Les sections contiennent des indicateurs sous forme d'un bit décrivant
+divers attributs. Si, dans \fIsh_flags\fP, le bit correspondant à un indicateur
+est positionné, l'attribut est «\ activé\ » pour cette section. Sinon,
+l'attribut est «\ désactivé\ » ou ne s'applique pas. Les attributs non
+définis sont mis à zéro.
+.RS 10
+.TP  15
+\fBSHF_WRITE\fP
+Cette section contient des données qu'il devrait être possible d'écrire
+durant l'exécution du processus.
+.TP 
+\fBSHF_ALLOC\fP
+Cette section est présente en mémoire durant l'exécution du
+processus. Certaines sections de contrôle ne sont pas présentes dans l'image
+mémoire d'un fichier objet. Cet attribut est désactivé pour ces sections.
+.TP 
+\fBSHF_EXECINSTR\fP
+Cette section contient des instructions machine exécutables.
+.TP 
+\fBSHF_MASKPROC\fP
+Tous les bits contenus dans ce masque sont réservés à des sémantiques
+spécifiques au processeur.
+.RE
+.\" .El
+.TP 
+\fIsh_addr\fP
+Si cette section apparaît dans l'image mémoire d'un processus, ce membre
+contient l'adresse à laquelle le premier octet de la section doit se
+trouver. Sinon, ce membre contient zéro.
+.TP 
+\fIsh_offset\fP
+La valeur de ce membre indique le déplacement du premier octet de la section
+par rapport au début du fichier. Une section de type \fBSHT_NOBITS\fP, n'occupe
+pas de place dans le fichier et son champ \fIsh_offset\fP indique son
+emplacement théorique dans le fichier.
+.TP 
+\fIsh_size\fP
+Ce membre contient la taille en octets de la section. À moins que cette
+section ne soit de type \fBSHT_NOBITS\fP, elle occupe \fIsh_size\fP octets dans le
+fichier. Une section de type \fBSHT_NOBITS\fP peut avoir une taille non nulle,
+mais elle n'occupera cependant aucune place dans le fichier.
+.TP 
+\fIsh_link\fP
+Ce membre contient un lien vers un indice de la table des en\-têtes de
+sections, son interprétation dépend du type de section.
+.TP 
+\fIsh_info\fP
+Ce membre contient des informations complémentaires, son l'interprétation
+dépend du type de section.
+.TP 
+\fIsh_addralign\fP
+Certaines sections ont des contraintes d'alignement d'adresse. Si une
+section contient un mot double, le système doit s'assurer que la section
+tout entière est alignée sur les mots doubles. Autrement dit, la valeur de
+\fIsh_addr\fP doit être congrue à zéro, modulo la valeur de
+\fIsh_addralign\fP. Seules zéro ou des puissances entières positives de deux
+sont autorisés. Une valeur de zéro ou de un indique qu'aucune contrainte
+d'alignement ne s'applique à la section.
+.TP 
+\fIsh_entsize\fP
+.\" .El
+Certaines sections contiennent une table contenant un nombre d'entrées fixe,
+comme par exemple les tables de symboles. Pour de telles sections, ce champ
+donne la taille en octets de chaque entrée. Ce membre contient zéro si cette
+section ne contient pas une table de ce type.
+.PP
+.\" .Bl -tag -width ".shstrtab"
+Diverses sections contiennent des informations de contrôle et sur le
+programme\ :
+.TP  10
+\&\fI.bss\fP
+Cette section contient des données non initialisées qui font partie de
+l'image mémoire du programme. Par définition, le système initialise ces
+données avec des zéros lorsque le programme démarre. Cette section est du
+type \fBSHT_NOBITS\fP. Les types de ses attributs sont \fBSHF_ALLOC\fP et
+\fBSHF_WRITE\fP.
+.TP 
+\&\fI.comment\fP
+Cette section contient des informations de suivi des versions. Cette section
+est du type \fBSHT_PROGBITS\fP. Aucun attribut n'est utilisé.
+.TP 
+\&\fI.ctors\fP
+Cette section contient des pointeurs initialisés vers des constructeurs
+C++. Cette section est du type \fBSHT_PROGBITS\fP. Les types de ses attributs
+sont \fBSHF_ALLOC\fP et \fBSHF_WRITE\fP.
+.TP 
+\&\fI.data\fP
+Cette section contient des données faisant partie de l'image mémoire du
+programme. Elle est du type \fBSHT_PROGBITS\fP. Les types de ses attributs sont
+\fBSHF_ALLOC\fP et \fBSHF_WRITE\fP.
+.TP 
+\&\fI.data1\fP
+Cette section contient des données faisant partie de l'image mémoire du
+programme. Elle est du type \fBSHT_PROGBITS\fP. Les types de ses attributs sont
+\fBSHF_ALLOC\fP et \fBSHF_WRITE\fP.
+.TP 
+\&\fI.debug\fP
+Cette section contient des données de débogage symbolique. Son contenu n'est
+pas précisé. Elle est du type \fBSHT_PROGBITS\fP. Aucun type d'attribut n'est
+utilisé.
+.TP 
+\&\fI.dtors\fP
+Cette section contient des pointeurs initialisés vers des destructeurs
+C++. Elle est du type \fBSHT_PROGBITS\fP. Les types de ses attributs sont
+\fBSHF_ALLOC\fP et \fBSHF_WRITE\fP.
+.TP 
+\&\fI.dynamic\fP
+Cette section contient des informations de liaison dynamique. Les attributs
+de cette section comprennent le bit \fBSHF_ALLOC\fP. Le positionnement du bit
+\fBSHF_WRITE\fP est spécifique au processeur. Cette section est du type
+\fBSHT_DYNAMIC\fP. Voir ci\-dessus pour les attributs.
+.TP 
+\&\fI.dynstr\fP
+Cette section contient les chaînes nécessaires à la liaison dynamique, le
+plus souvent les chaînes représentant les noms associés aux entrées de la
+table des symboles. Cette section est du type \fBSHT_STRTAB\fP. Le type
+d'attribut utilisé est \fBSHF_ALLOC\fP.
+.TP 
+\&\fI.dynsym\fP
+Cette section contient la table des symboles de liaison dynamique. Cette
+section est du type \fBSHT_DYNSYM\fP. Le type d'attribut utilisé est
+\fBSHF_ALLOC\fP.
+.TP 
+\&\fI.fini\fP
+Cette section contient des instructions exécutables qui font partie du code
+de fin du processus. Lorsqu'un programme se termine normalement, le système
+organise l'exécution du code de cette section. Elle est du type
+\fBSHT_PROGBITS\fP. Les attributs utilisés sont \fBSHF_ALLOC\fP et
+\fBSHF_EXECINSTR\fP.
+.TP 
+\&\fI.gnu.version\fP
+Cette section contient la table des symboles de version, tableau d'éléments
+\fIElfN_Half\fP. Cette section est du type \fBSHT_GNU_versym\fP. Le type
+d'attribut utilisé est \fBSHF_ALLOC\fP.
+.TP 
+\&\fI.gnu.version_d\fP
+Cette section contient les définitions de version de symboles, une table de
+structures  \fIElfN_Verdef\fP. Cette section est du type \fBSHT_GNU_verdef\fP. Le
+type d\*(rqattribut utilisé est \fBSHF_ALLOC\fP.
+.TP 
+\&\fI.gnu.version_r\fP
+Cette section contient la version de symbole des éléments nécessaires, une
+table de structures \fIElfN_Verneed\fP. Cette section est type
+\fBSHT_GNU_versym\fP. Le type d'attribut utilisé est \fBSHF_ALLOC\fP.
+.TP 
+\&\fI.got\fP
+Cette section contient la table globale des déplacements. Elle est du type
+\fBSHT_PROGBITS\fP. Les attributs sont spécifiques au processeur.
+.TP 
+\&\fI.hash\fP
+Cette section contient la table de hachage des symboles. Elle est du type
+\fBSHT_HASH\fP. L'attribut utilisé est \fBSHF_ALLOC\fP.
+.TP 
+\&\fI.init\fP
+Cette section contient des instructions exécutables qui font partie du code
+d'initialisation du processus. Lorsqu'un programme démarre, le système
+organise l'exécution du code de cette section avant d'appeler le point
+d'entrée principal du programme. Cette section est du type
+\fBSHT_PROGBITS\fP. Les attributs utilisés sont \fBSHF_ALLOC\fP et
+\fBSHF_EXECINSTR\fP.
+.TP 
+\&\fI.interp\fP
+Cette section contient le chemin vers un interpréteur de programmes. Si le
+fichier comporte un segment chargeable contenant cette section, les
+attributs de la section contiendront le bit \fBSHF_ALLOC\fP. Sinon, ce bit sera
+désactivé. Cette section est du type \fBSHT_PROGBITS\fP.
+.TP 
+\&\fI.line\fP
+Cette section contient des informations sur les numéros de lignes, qui
+seront utilisées pour le débogage symbolique. Ces informations établissent
+la correspondance entre le code source du programme et le code machine. Le
+contenu de cette section n'est pas spécifié. Cette section est du type
+\fBSHT_PROGBITS\fP. Aucun attribut n'est utilisé.
+.TP 
+\&\fI.note\fP
+Cette section contient des informations dans le format «\ Note Section\ ». Elle est de type \fBSHT_NOTE\fP. Aucun attribut n'est utilisé. Les
+exécutables natifs OpenBSD contiennent en général une section
+\&\fI.note.openbsd.ident\fP leur permettant de s'identifier, afin que le noyau
+court\-circuite, lors du chargement du fichier, toutes les vérifications de
+compatibilité de l'émulation binaire ELF.
+.TP 
+\&\fI.note.GNU\-stack\fP
+Cette section est utilisée dans les fichiers objets de Linux pour déclarer
+les attributs de la pile. Cette section est du type \fBSHT_PROGBITS\fP. Le seul
+attribut utilisé est \fBSHF_EXECINSTR\fP. Ceci indique à l'éditeur de liens GNU
+que le fichier objet requière une pile exécutable.
+.TP 
+\&\fI.plt\fP
+Cette section contient une table de liaison des procédures. Elle est du type
+\fBSHT_PROGBITS\fP. Ses attributs sont spécifiques au processeur.
+.TP 
+\&\fI.relNOM\fP
+Cette section contient des informations de repositionnement, comme décrit
+ci\-dessous. Si ce fichier comporte un segment chargeable comprenant du
+repositionnement, les attributs de la section contiendront le bit
+\fBSHF_ALLOC\fP. Sinon, ce bit sera désactivé. Par convention, le «\ NOM\ » est
+fourni par la section à laquelle le repositionnement s'applique. Ainsi, une
+section de repositionnement pour du \fB.text\fP s'appellera normalement
+\&\fB.rel.text\fP. Cette section est du type \fBSHT_REL\fP.
+.TP 
+\&\fI.relaNOM\fP
+Cette section contient des informations de repositionnement, comme décrit
+ci\-dessous. Si ce fichier comporte un segment chargeable comprenant du
+repositionnement, les attributs de la section contiendront le bit
+\fBSHF_ALLOC\fP. Sinon, ce bit sera désactivé. Par convention, le «\ NOM\ » est
+fourni par la section à laquelle le repositionnement s'applique. Ainsi, une
+section de repositionnement pour du \fB.text\fP s'appellera normalement
+\&\fB.rela.text\fP. Cette section est du type \fBSHT_RELA\fP.
+.TP 
+\&\fI.rodata\fP
+Cette section contient des données en lecture seule, qui feront
+classiquement partie d'un segment non accessible en écriture dans l'image du
+processus. Cette section est du type \fBSHT_PROGBITS\fP. L'attribut utilisé est
+\fBSHF_ALLOC\fP.
+.TP 
+\&\fI.rodata1\fP
+Cette section contient des données en lecture seule, qui feront
+classiquement partie d'un segment non accessible en écriture dans l'image du
+processus. Cette section est du type \fBSHT_PROGBITS\fP. L'attribut utilisé est
+\fBSHF_ALLOC\fP.
+.TP 
+\&\fI.shstrtab\fP
+Cette section contient les noms des sections. Elle est du type
+\fBSHT_STRTAB\fP. Aucun type d'attribut.
+.TP 
+\&\fI.strtab\fP
+Cette section contient des chaînes, le plus souvent ces chaînes représentent
+les noms associés aux entrées de la table des symboles. Si ce fichier
+comporte un segment chargeable comprenant la table des chaînes de symboles,
+les attributs de la section contiendront le bit \fBSHF_ALLOC\fP. Sinon, ce bit
+sera désactivé. Cette section est du type \fBSHT_STRTAB\fP.
+.TP 
+\&\fI.symtab\fP
+Cette section contient une table des symboles. Si ce fichier comporte un
+segment chargeable contenant la table des symboles, les attributs de la
+section contiendront le bit \fBSHF_ALLOC\fP. Sinon, ce bit sera
+désactivé. Cette section est du type \fBSHT_SYMTAB\fP.
+.TP 
+\&\fI.text\fP
+.\" .El
+Cette section contient le «\ texte\ », autrement dit les instructions
+exécutables, d'un programme. Cette section est du type \fBSHT_PROGBITS\fP. Les
+attributs utilisés sont \fBSHF_ALLOC\fP et \fBSHF_EXECINSTR\fP.
+.PP
+Les sections de tables de chaînes contiennent des séquences de caractères
+terminées par un zéro binaire («\ null\ »), communément appelées chaînes. Le
+fichier objet utilise ces chaînes pour représenter les noms des symboles et
+des sections. Le premier octet, qui est l'indice zéro, est défini comme
+contenant un null. De même, le dernier octet de la table de chaînes est
+défini comme contenant un null, ce qui assure que toutes les chaînes se
+termineront bien par un null.
+.PP
+La table des symboles d'un fichier objet contient les informations
+permettant de localiser et de repositionner les définitions et références
+symboliques d'un programme. Un indice dans une table de symbole est un
+indice de ce tableau.
+.in +4n
+.nf
+
+typedef struct {
+    uint32_t      st_name;
+    Elf32_Addr    st_value;
+    uint32_t      st_size;
+    unsigned char st_info;
+    unsigned char st_other;
+    uint16_t      st_shndx;
+} Elf32_Sym;
+.fi
+.in
+.in +4n
+.nf
+
+typedef struct {
+    uint32_t      st_name;
+    unsigned char st_info;
+    unsigned char st_other;
+    uint16_t      st_shndx;
+    Elf64_Addr    st_value;
+    uint64_t      st_size;
+} Elf64_Sym;
+.fi
+.in
+.PP
+.\" .Bl -tag -width "st_value"
+Les versions 32 bits et 64 bits comportent les mêmes membres, seul leur
+ordre diffère.
+.TP  10
+\fIst_name\fP
+Ce membre contient un indice de la table des chaînes de symboles d'un
+fichier objet. Cette table contient la représentation sous la forme de
+chaînes de caractères des noms des symboles. Si la valeur de ce champ est
+non nulle, il représente l'indice de la table des chaînes qui donne son nom
+au symbole. Sinon, le symbole n'a pas de nom.
+.TP 
+\fIst_value\fP
+Ce membre donne la valeur associée au symbole.
+.TP 
+\fIst_size\fP
+De nombreux symboles sont associés à des tailles. Ce champ contient zéro si
+le symbole n'a pas de taille ou si sa taille est inconnue.
+.TP 
+\fIst_info\fP
+.\" .Bl -tag -width "STT_SECTION"
+Ce membre indique le type de symbole et ses attributs de liaison\ :
+.RS 10
+.TP  12
+\fBSTT_NOTYPE\fP
+Le type de ce symbole n'est pas défini.
+.TP 
+\fBSTT_OBJECT\fP
+Ce symbole est associé à un objet de données.
+.TP 
+\fBSTT_FUNC\fP
+Ce symbole est associé à une fonction ou un autre code exécutable.
+.TP 
+\fBSTT_SECTION\fP
+Ce symbole est associé à une section. Les entrées de ce type de la table des
+symboles existent principalement pour le repositionnement et ont normalement
+des liaisons \fBSTB_LOCAL\fP.
+.TP 
+\fBSTT_FILE\fP
+Par convention, le nom de ce symbole donne le nom du fichier source associé
+au fichier objet. Un symbole de ce type a des liaisons \fBSTB_LOCAL\fP, son
+indice de section est \fBSHN_ABS\fP, et, s'il est présent, il précède les
+autres symboles \fBSTB_LOCAL\fP du fichier.
+.TP 
+\fBSTT_LOPROC\fP
+Cette valeur et les valeurs suivantes jusqu'à \fBSTT_HIPROC\fP (valeur
+comprise) sont réservées à des sémantiques spécifiques au processeur.
+.TP 
+\fBSTT_HIPROC\fP
+.\" .El
+.\" .Bl -tag -width "STB_GLOBAL"
+Cette valeur et les valeurs précédentes depuis \fBSTT_LOPROC\fP incluse sont
+réservées à des sémantiques spécifiques au processeur.
+.TP 
+\fBSTB_LOCAL\fP
+Les symboles locaux ne sont pas visibles en dehors du fichier objet
+contenant leur définition. Des symboles locaux de même nom peuvent exister
+dans plusieurs fichiers sans interférer entre eux.
+.TP 
+\fBSTB_GLOBAL\fP
+Les symboles globaux sont visibles de tous les fichiers objets devant être
+réunis. La définition par un fichier d'un symbole global satisfera une
+référence non définie d'un autre fichier à ce même symbole.
+.TP 
+\fBSTB_WEAK\fP
+Les symboles faibles ressemblent à des symboles globaux, mais leur
+définition a une priorité plus faible.
+.TP 
+\fBSTB_LOPROC\fP
+Cette valeur et les valeurs suivantes jusqu'à \fBSTB_HIPROC\fP (valeur
+comprise) sont réservées à des sémantiques spécifiques au processeur.
+.TP 
+\fBSTB_HIPROC\fP
+Cette valeur et les valeurs précédentes depuis \fBSTB_LOPROC\fP incluse sont
+réservées à des sémantiques spécifiques au processeur.
+.IP
+Il existe des macros permettant de coder et de décoder les champs de type et
+de liaison\ :
+.IP
+\fBELF32_ST_BIND\fP(info) ou \fBELF64_ST_BIND\fP(info) extrait une liaison d'une
+valeur \fIst_info\fP.
+.IP
+\fBELF32_ST_TYPE\fP(info) ou \fBELF64_ST_TYPE\fP(info)
+.br
+extraire un type d'une valeur \fIst_info\fP.
+.IP
+\fBELF32_ST_INFO\fP(liaison, type) ou \fBELF64_ST_INFO\fP(liaison, type)
+.br
+convertir une liaison et un type en une valeur \fIst_info\fP.
+.RE
+.\" .El
+.TP 
+\fIst_other\fP
+.\" .Bl -tag -width "STV_PROTECTED"
+Ce membre définit la visibilité du symbole.
+.RS 10
+.TP  16
+.PD 0
+\fBSTV_DEFAULT\fP
+Règles par défaut de visibilité du symbole.
+.TP 
+\fBSTV_INTERNAL\fP
+Classe caché spécifique au processeur.
+.TP 
+\fBSTV_HIDDEN\fP
+Le symbole n"est pas disponible dans d'autres modules.
+.TP 
+\fBSTV_PROTECTED\fP
+Non préemptible, non exporté.
+.PD
+.PP
+Il existe des macros permettant d'extraire le type de visibilité\ :
+.PP
+\fBELF32_ST_VISIBILITY\fP(autre)  ou \fBELF64_ST_VISIBILITY\fP(autre)
+.RE
+.\" .El
+.TP 
+\fIst_shndx\fP
+.\" .El
+Chaque entrée de la table des symboles est «\ définie\ » en relation avec une
+section. Ce membre contient l'indice correspondant de la table des en\-têtes
+de sections.
+.PP
+Le repositionnement est le processus consistant à relier des références
+symboliques à des définitions symboliques. Les fichiers repositionnables
+doivent contenir des informations décrivant comment modifier le contenu de
+leurs sections, ce qui permet aux fichiers objets partagés et exécutables de
+détenir les bonnes informations concernant l'image mémoire d'un
+programme. Les entrées de repositionnement sont ces données.
+.PP
+Structures de repositionnement pour lesquelles un additif est nécessaire\ :
+.in +4n
+.nf
+
+typedef struct {
+    Elf32_Addr r_offset;
+    uint32_t   r_info;
+} Elf32_Rel;
+.fi
+.in
+.in +4n
+.nf
+
+typedef struct {
+    Elf64_Addr r_offset;
+    uint64_t   r_info;
+} Elf64_Rel;
+.fi
+.in
+.PP
+Structures de repositionnement pour lesquelles un additif est nécessaire\ :
+.in +4n
+.nf
+
+typedef struct {
+    Elf32_Addr r_offset;
+    uint32_t   r_info;
+    int32_t    r_addend;
+} Elf32_Rela;
+.fi
+.in
+.in +4n
+.nf
+
+typedef struct {
+    Elf64_Addr r_offset;
+    uint64_t   r_info;
+    int64_t    r_addend;
+} Elf64_Rela;
+.fi
+.in
+.\" .Bl -tag -width "r_offset"
+.TP  12
+\fIr_offset\fP
+Ce membre donne l'emplacement où appliquer l'action de
+repositionnement. Pour un fichier repositionnable, sa valeur est le
+déplacement en octets depuis le début de la section jusqu'à l'unité de
+stockage affectée par le repositionnement. Pour un fichier exécutable ou un
+objet partagé, sa valeur est l'adresse virtuelle de l'unité de stockage
+affectée par le repositionnement.
+.TP 
+\fIr_info\fP
+Ce membre donne à la fois l'indice de la table des symboles par rapport
+auquel on doit effectuer le repositionnement et le type de repositionnement
+à appliquer. Les types de repositionnement dépendent du processeur. Lorsque
+le texte mentionne le type de repositionnement ou l'indice de la table des
+symboles d'une entrée de repositionnement, il s'agit du résultat de
+l'application de \fBELF[32|64]_R_TYPE\fP ou \fBELF[32|64]_R_SYM\fP,
+respectivement, au champ \fIr_info\fP de cette entrée.
+.TP 
+\fIr_addend\fP
+.\" .El
+Ce membre indique un additif constant pour le calcul de la valeur à stocker
+dans le champ repositionnable.
+.PP
+La section .dynamic comporte une série de structures qui contiennent les
+informations relatives à l'édition de liens dynamique. Le membre d_tag
+contrôle l'interprétation de d_un.
+.in +4n
+.nf
+
+typedef struct {
+    Elf32_Sword    d_tag;
+    union {
+        Elf32_Word d_val;
+        Elf32_Addr d_ptr;
+    } d_un;
+} Elf32_Dyn;
+extern Elf32_Dyn _DYNAMIC[];
+.fi
+.in
+.in +4n
+.nf
+
+typedef struct {
+    Elf64_Sxword    d_tag;
+    union {
+        Elf64_Xword d_val;
+        Elf64_Addr  d_ptr;
+    } d_un;
+} Elf64_Dyn;
+extern Elf64_Dyn _DYNAMIC[];
+.fi
+.in
+.\" .Bl -tag -width "d_tag"
+.TP  10
+\fId_tag\fP
+.\" .Bl -tag -width "DT_SYMBOLIC"
+Ce membre peut prendre l'une des trois valeurs suivantes\ :
+.RS 10
+.TP  12
+\fBDT_NULL\fP
+Indique la fin de la section dynamique
+.TP 
+\fBDT_NEEDED\fP
+Décalage dans la table des chaînes vers le nom d'une bibliothèque nécessaire
+.TP 
+\fBDT_PLTRELSZ\fP
+Taille en octets des relocations PLT
+.TP 
+\fBDT_PLTGOT\fP
+Adresse de plt et/ou de GOT
+.TP 
+\fBDT_HASH\fP
+Adresse de la table de hachage des symboles
+.TP 
+\fBDT_STRTAB\fP
+Adresse de la table des chaînes
+.TP 
+\fBDT_SYMTAB\fP
+Adresse de la table des symboles
+.TP 
+\fBDT_RELA\fP
+Adresse de la table des relocations Rela
+.TP 
+\fBDT_RELASZ\fP
+Taille, en octets, de la table Rela
+.TP 
+\fBDT_RELAENT\fP
+Taille, en octets, d'une entrée de la table Rela
+.TP 
+\fBDT_STRSZ\fP
+Taille, en octets, de la table des chaînes
+.TP 
+\fBDT_SYMENT\fP
+Taille, en octets, d'une entrée de la table des symboles
+.TP 
+\fBDT_INIT\fP
+Adresse de la fonction d'initialisation
+.TP 
+\fBDT_FINI\fP
+Adresse de la fonction de terminaison
+.TP 
+\fBDT_SONAME\fP
+Déplacement dans la table des chaînes vers le nom de l'objet partagé
+.TP 
+\fBDT_RPATH\fP
+Déplacement dans la table des chaînes pour le chemin de recherche de la
+bibliothèque (déprécié)
+.TP 
+\fBDT_SYMBOLIC\fP
+Demander à l'éditeur de liens de rechercher les symboles dans cet objet
+partagé avant l'exécutable
+.TP 
+\fBDT_REL\fP
+Adresse de la table des relocations Rel
+.TP 
+\fBDT_RELSZ\fP
+Taille en octets de la table Rel
+.TP 
+\fBDT_RELENT\fP
+Taille en octets d'une entrée de la table Rel
+.TP 
+\fBDT_PLTREL\fP
+Type de relocation auquel se réfère PLT (Rela ou Rel)
+.TP 
+\fBDT_DEBUG\fP
+Utilisation non définie pour le débogage
+.TP 
+\fBDT_TEXTREL\fP
+Son absence indique qu'aucune relocation ne devrait s'appliquer à un segment
+non accessible en écriture
+.TP 
+\fBDT_JMPREL\fP
+Adresse des entrées de relocation, uniquement pour la PLT
+.TP 
+\fBDT_BIND_NOW\fP
+Informer l'éditeur de liens dynamique de traiter toutes les relocations
+avant de transférer le contrôle à l'exécutable
+.TP 
+\fBDT_RUNPATH\fP
+Décalage dans la table des chaînes pour le chemin de recherche de la
+bibliothèque
+.TP 
+\fBDT_LOPROC\fP
+Début des sémantiques spécifiques au processeur
+.TP 
+\fBDT_HIPROC\fP
+Fin de la sémantique propre au processeur
+.RE
+.\" .El
+.TP 
+\fId_val\fP
+Ce membre représente des valeurs entières ayant des interprétations
+diverses.
+.TP 
+\fId_ptr\fP
+Ce membre représente les adresses virtuelles du programme. Lors de
+l'interprétation de ces adresses, l'adresse réelle doit être calculée en se
+basant sur la valeur originale du fichier et sur l'adresse de base de la
+mémoire. Les fichiers ne contiennent pas d'entrées de repositionnement pour
+corriger ces adresses.
+.TP 
+\fI_DYNAMIC\fP
+.\" .El
+Tableau contenant toutes les structures de la section .dynamic. Ceci est
+automatiquement rempli par l'éditeur de liens.
+.SH NOTES
+.\" OpenBSD
+.\" ELF support first appeared in
+.\" OpenBSD 1.2,
+.\" although not all supported platforms use it as the native
+.\" binary file format.
+ELF est apparu d'abord dans le System V. Le format ELF est un standard
+adopté.
+.PP
+.\" .SH AUTHORS
+.\" The original version of this manual page was written by
+.\" .An Jeroen Ruigrok van der Werven
+.\" .Aq asmodai@FreeBSD.org
+.\" with inspiration from BSDi's
+.\" .Bsx
+.\" .Nm elf
+.\" man page.
+Les extensions pour \fIe_phnum\fP, \fIe_shnum\fP et \fIe_strndx\fP sont des
+extensions Linux. Sun, BSD et AMD64 les gèrent aussi. Pour plus
+d'informations, veuillez lire la section VOIR AUSSI.
+.SH "VOIR AUSSI"
+\fBas\fP(1), \fBgdb\fP(1), \fBld\fP(1), \fBobjdump\fP(1), \fBexecve\fP(2), \fBcore\fP(5)
+.PP
+Hewlett\-Packard, \fIFormat de fichiers Elf\-64\fP (\fIElf\-64 Object File
+Format\fP).
+.PP
+Santa Cruz Operation, \fIInterface binaire des applications System\ V\fP
+(\fISystem V Application Binary Interface\fP).
+.PP
+UNIX System Laboratories, "Object Files", \fIFormat des fichiers exécutables
+ELF\fP (\fIExecutable and Linking Format\fP)
+.PP
+Sun Microsystems, \fIGuide de l'éditeur de liens et des bibliothèques\fP
+(\fILinker and Libraries Guide\fP).
+.PP
+Version préliminaire de l'ABI AMD64 (\fISystem V Application Binary Interface
+AMD64 Architecture Processor Supplement\fP).
+.PP
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Jean-Philippe Guérard (2005),
+Alain Portal <http://manpagesfr.free.fr/> (2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

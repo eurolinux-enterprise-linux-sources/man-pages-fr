@@ -1,0 +1,623 @@
+.\" This manpage is Copyright (C) 1992 Drew Eckhardt;
+.\"             and Copyright (C) 1993 Michael Haardt, Ian Jackson.
+.\"             and Copyright (C) 2008 Greg Banks
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 1993-07-21 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1994-08-21 by Michael Haardt
+.\" Modified 1996-04-13 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 1996-05-13 by Thomas Koenig
+.\" Modified 1996-12-20 by Michael Haardt
+.\" Modified 1999-02-19 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 1998-11-28 by Joseph S. Myers <jsm28@hermes.cam.ac.uk>
+.\" Modified 1999-06-03 by Michael Haardt
+.\" Modified 2002-05-07 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" 2004-12-08, mtk, reordered flags list alphabetically
+.\" 2004-12-08, Martin Pool <mbp@sourcefrog.net> (& mtk), added O_NOATIME
+.\" 2007-09-18, mtk, Added description of O_CLOEXEC + other minor edits
+.\" 2008-01-03, mtk, with input from Trond Myklebust
+.\"     <trond.myklebust@fys.uio.no> and Timo Sirainen <tss@iki.fi>
+.\"     Rewrite description of O_EXCL.
+.\" 2008-01-11, Greg Banks <gnb@melbourne.sgi.com>: add more detail
+.\"     on O_DIRECT.
+.\" 2008-02-26, Michael Haardt: Reorganized text for O_CREAT and mode
+.\"
+.\" FIXME . Apr 08: The next POSIX revision has O_EXEC, O_SEARCH, and
+.\" O_TTYINIT.  Eventually these may need to be documented.  --mtk
+.\" FIXME Linux 2.6.33 has O_DSYNC, and a hidden __O_SYNC.
+.\" FIXME: Linux 2.6.39 added O_PATH
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH OPEN 2 "18 février 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+open, creat \- Ouvrir ou créer éventuellement un fichier ou un périphérique
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <sys/stat.h>\fP
+\fB#include <fcntl.h>\fP
+.sp
+\fBint open(const char *\fP\fIpathname\fP\fB, int \fP\fIflags\fP\fB);\fP
+\fBint open(const char *\fP\fIpathname\fP\fB, int \fP\fIflags\fP\fB, mode_t \fP\fImode\fP\fB);\fP
+
+\fBint creat(const char *\fP\fIpathname\fP\fB, mode_t \fP\fImode\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Étant donné le chemin \fIpathname\fP d'un fichier, \fBopen\fP() renvoie un
+descripteur de fichier (petit entier positif ou nul) qui pourra ensuite être
+utilisé dans d'autres appels système (\fBread\fP(2), \fBwrite\fP(2), \fBlseek\fP(2),
+\fBfcntl\fP(2), etc.). Le descripteur de fichier renvoyé par un appel réussi
+sera le plus petit descripteur de fichier non actuellement ouvert par le
+processus.
+.PP
+Par défaut, le nouveau descripteur de fichier est configuré pour rester
+ouvert après un appel à \fBexecve\fP(2) (son attribut \fBFD_CLOEXEC\fP décrit dans
+\fBfcntl\fP(2) est initialement désactivé). L'attribut \fBO_CLOEXEC\fP décrit
+ci\-dessous permet de modifier ce comportement par défaut. La position dans
+le fichier est définie au début du fichier (consultez \fBlseek\fP(2)).
+.PP
+Un appel à \fBopen\fP() crée une nouvelle \fIdescription de fichier ouvert\fP, une
+entrée dans la table de fichiers ouverts du système. Cette entrée enregistre
+la position dans le fichier et les attributs d'état du fichier (modifiables
+par l'opération \fBF_SETFL\fP de \fBfcntl\fP(2)). Un descripteur de fichier est
+une référence à l'une de ces entrées\ ; cette référence n'est pas modifiée
+si \fIpathname\fP est ensuite supprimé ou modifié pour correspondre à un autre
+fichier. La nouvelle description de fichier ouvert n'est initialement
+partagée avec aucun autre processus, mais ce partage peut apparaître après
+un \fBfork\fP(2).
+.PP
+Le paramètre \fIflags\fP est l'un des éléments \fBO_RDONLY\fP, \fBO_WRONLY\fP ou
+\fBO_RDWR\fP qui réclament respectivement l'ouverture du fichier en lecture
+seule, écriture seule, ou lecture/écriture.
+
+.\" SUSv4 divides the flags into:
+.\" * Access mode
+.\" * File creation
+.\" * File status
+.\" * Other (O_CLOEXEC, O_DIRECTORY, O_NOFOLLOW)
+.\" though it's not clear what the difference between "other" and
+.\" "File creation" flags is.  I raised an Aardvark to see if this
+.\" can be clarified in SUSv4; 10 Oct 2008.
+.\" http://thread.gmane.org/gmane.comp.standards.posix.austin.general/64/focus=67
+.\" TC1 (balloted in 2013), resolved this, so that those three constants
+.\" are also categorized" as file status flags.
+.\"
+De plus, zéro ou plus d'attributs de création de fichier et d'attributs
+d'état de fichier peuvent être spécifiés dans \fIflags\fP avec un OU
+binaire. Les attributs de création de fichier sont \fBO_CLOEXEC\fP, \fBO_CREAT\fP,
+\fBO_DIRECTORY\fP, \fBO_EXCL\fP, \fBO_NOCTTY\fP, \fBO_NOFOLLOW\fP, \fBO_TRUNC\fP, and
+\fBO_TTY_INIT\fP. Les attributs d'état de fichier sont tous les autres
+attributs listés ci\(hydessous. La distinction entre ces deux groupes est
+que les attributs d'état de fichier peuvent être lus et (dans certains cas)
+modifiés avec \fBfcntl\fP(2). La liste complète des attributs de création et
+d'état de fichier est la suivante\ :
+.TP 
+\fBO_APPEND\fP
+.\" For more background, see
+.\" http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=453946
+.\" http://nfs.sourceforge.net/
+Le fichier est ouvert en mode «\ ajout\ ». Initialement, et avant chaque
+\fBwrite\fP(2), la tête de lecture/écriture est placée à la fin du fichier
+comme avec \fBlseek\fP(2). Il y a un risque d'endommager le fichier lorsque
+\fBO_APPEND\fP est utilisé, sur un système de fichiers NFS, si plusieurs
+processus tentent d'ajouter des données simultanément au même fichier. Ceci
+est dû au fait que NFS ne supporte pas l'opération d'ajout de données dans
+un fichier, aussi le noyau du client est obligé de la simuler, avec un
+risque de concurrence des tâches.
+.TP 
+\fBO_ASYNC\fP
+Déclencher un signal (\fBSIGIO\fP par défaut, mais peut être changé via
+\fBfcntl\fP(2)) lorsque la lecture ou l'écriture deviennent possibles sur ce
+descripteur. Ceci n'est possible que pour les terminaux, pseudoterminaux,
+sockets et (depuis Linux 2.6) tubes et FIFO. Consultez \fBfcntl\fP(2) pour plus
+de détails.
+.TP 
+\fBO_CLOEXEC\fP (Depuis Linux 2.6.23)
+.\" This flag fixes only one form of the race condition;
+.\" The race can also occur with, for example, descriptors
+.\" returned by accept(), pipe(), etc.
+Activer l'attribut «\ close\-on\-exec\ » pour le nouveau descripteur de
+fichier. Spécifier cet attribut permet à un programme d'éviter des
+opérations supplémentaires \fBF_SETFD\fP de \fBfcntl\fP(2) pour positionner
+l'attribut \fBFD_CLOEXEC\fP. De plus, l'utilisation de cet attribut est
+essentielle dans certains programmes multithreadés puisque l'utilisation
+d'une opération \fBF_SETFD\fP de \fBfcntl\fP(2) pour positionner l'attribut
+\fBFD_CLOEXEC\fP ne suffit pas pour éviter les conditions de concurrence
+lorsqu'un thread ouvre un descripteur de fichier en même temps qu'un autre
+thread effectue un \fBfork\fP(2) plus un \fBexecve\fP(2).
+.TP 
+\fBO_CREAT\fP
+.\" As at 2.6.25, bsdgroups is supported by ext2, ext3, ext4, and
+.\" XFS (since 2.6.14).
+Créer le fichier s'il n'existe pas. Le possesseur (UID) du fichier est
+renseigné avec l'UID effectif du processus. Le groupe propriétaire (GID) du
+fichier est le GID effectif du processus ou le GID du répertoire parent
+(ceci dépend du système de fichiers, des options de montage, du mode du
+répertoire parent, etc.) Consultez par exemple les options de montage
+\fIbsdgroups\fP et \fIsysvgroups\fP décrites dans la page \fBmount\fP(8)).
+.RS
+.PP
+Le paramètre \fImode\fP indique les permissions à utiliser si un nouveau
+fichier est créé. Ce paramètre doit être fourni quand \fBO_CREAT\fP est
+spécifié dans les \fIflags\fP\ ; si \fBO_CREAT\fP n'est pas précisé, \fImode\fP est
+ignoré. Les permissions effectives sont modifiées par le \fIumask\fP du
+processus\ : la véritable valeur utilisée est \fI(mode\ &\ ~umask)\fP. Notez
+que ce mode ne s'applique qu'aux accès ultérieurs au fichier nouvellement
+créé. L'appel \fBopen\fP() qui crée un fichier dont le mode est en lecture
+seule fournira quand même un descripteur de fichier en lecture et écriture.
+.PP
+Les constantes symboliques suivantes sont disponibles pour \fImode\fP\ :
+.TP  9
+\fBS_IRWXU\fP
+00700 L'utilisateur (propriétaire du fichier) a les autorisations de
+lecture, écriture, exécution.
+.TP 
+\fBS_IRUSR\fP
+00400 L'utilisateur a l'autorisation de lecture.
+.TP 
+\fBS_IWUSR\fP
+00200 L'utilisateur a l'autorisation d'écriture.
+.TP 
+\fBS_IXUSR\fP
+00100 L'utilisateur a l'autorisation d'exécution.
+.TP 
+\fBS_IRWXG\fP
+00070 Le groupe a les autorisations de lecture, écriture, exécution.
+.TP 
+\fBS_IRGRP\fP
+00040 Le groupe a l'autorisation de lecture.
+.TP 
+\fBS_IWGRP\fP
+00020 Le groupe a l'autorisation d'écriture.
+.TP 
+\fBS_IXGRP\fP
+00010 Le groupe a l'autorisation d'exécution.
+.TP 
+\fBS_IRWXO\fP
+00007 Tout le monde a les autorisations de lecture, écriture, exécution.
+.TP 
+\fBS_IROTH\fP
+00004 Tout le monde a l'autorisation de lecture.
+.TP 
+\fBS_IWOTH\fP
+00002 Tout le monde a l'autorisation d'écriture.
+.TP 
+\fBS_IXOTH\fP
+00001 Tout le monde a l'autorisation d'exécution.
+.RE
+.TP 
+\fBO_DIRECT\fP (Depuis Linux 2.4.10)
+Essayer de minimiser les effets du cache d'entrée\-sortie sur ce
+fichier. Cela dégradera en général les performances, mais est utile dans des
+situations spéciales, comme lorsque les applications ont leur propre
+cache. Les entrées\-sorties de fichier sont faites directement de et vers les
+tampons d'espace utilisateur. L'ajout de l'attribut \fBO_DIRECT\fP fait que les
+entrées\-sorties sont synchrones\ ; en réalité un effort est fait pour rendre
+le transfert synchrone mais cela n'offre pas la garantie fournie par
+l'attribut \fBO_SYNC\fP que les données et métadonnées sont transférées. Pour
+garantir des entrées\-sorties synchrones, l'attribut \fBO_SYNC\fP doit être
+utilisé en plus de l'attribut \fBO_DIRECT\fP. Consultez la section \fBNOTES\fP
+ci\-dessous.
+.sp
+Une interface à la sémantique similaire (mais dépréciée) pour les
+périphériques blocs est décrite à la page \fBraw\fP(8).
+.TP 
+\fBO_DIRECTORY\fP
+.\" But see the following and its replies:
+.\" http://marc.theaimsgroup.com/?t=112748702800001&r=1&w=2
+.\" [PATCH] open: O_DIRECTORY and O_CREAT together should fail
+.\" O_DIRECTORY | O_CREAT causes O_DIRECTORY to be ignored.
+Si \fIpathname\fP n'est pas un répertoire, l'ouverture échoue. Cet attribut est
+spécifique à Linux et fut ajouté dans la version 2.1.126 du noyau, pour
+éviter des problèmes de dysfonctionnement si \fBopendir\fP(3) est invoqué sur
+une FIFO ou un périphérique de bande. Cet attribut ne devrait jamais être
+utilisé ailleurs que dans l'implémentation de \fBopendir\fP(3).
+.TP 
+\fBO_EXCL\fP
+S'assurer que cet appel crée le fichier\ : si cet attribut est spécifié en
+conjonction avec \fBO_CREAT\fP et si le fichier \fIpathname\fP existe déjà,
+\fBopen\fP() échouera.
+
+.\" POSIX.1-2001 explicitly requires this behavior.
+Lorsque ces deux attributs sont spécifiés, les liens symboliques ne sont pas
+suivis\ : si \fIpathname\fP est un lien symbolique, \fBopen\fP() échouera quelque
+soit l'endroit où pointe le lien symbolique.
+
+En général, le comportement de \fBO_EXCL\fP est indéterminé s'il est utilisé
+sans \fBO_CREAT\fP. Il existe une exception toutefois\ : à partir de Linux\ 2.6,
+\fBO_EXCL\fP peut être utilisé sans \fBO_CREAT\fP si \fIpathname\fP fait référence à
+un périphérique bloc. Si le périphérique bloc est utilisé par le système
+(par exemple, s'il est monté), \fBopen\fP() échoue avec l'erreur \fBEBUSY\fP.
+
+Sur les systèmes de fichiers NFS, \fBO_EXCL\fP n'est pris en charge qu'avec la
+version NFSv3 ou ultérieure, sur les noyaux 2.6 ou plus récents. Dans les
+environnements NFS où la prise en charge d'\fBO_EXCL\fP n'est pas fournie, les
+programmes qui ont besoin de cette fonctionnalité pour verrouiller des
+tâches risquent de rencontrer une concurrence critique (race condition). Les
+programmes portables qui veulent effectuer un verrouillage fichier atomique
+en utilisant un fichier verrou et qui doivent éviter la dépendance de la
+prise en charge NFS pour \fBO_EXCL\fP peuvent créer un fichier unique sur le
+même système de fichiers (par exemple, avec le PID et le nom de l'hôte), et
+utiliser \fBlink\fP(2) pour créer un lien sur un fichier de verrouillage. Si
+\fBlink\fP(2) renvoie 0, le verrouillage est réussi. Sinon, utiliser \fBstat\fP(2)
+sur ce fichier unique pour vérifier si le nombre de liens a augmenté jusqu'à
+2, auquel cas le verrouillage est également réussi.pour vérifier si le
+nombre de liens a augmenté jusqu'à 2. Ne pas utiliser la valeur de retour de
+\fBlink\fP(2).
+.TP 
+\fBO_LARGEFILE\fP
+(LFS) Permet d'ouvrir des fichiers dont la taille ne peut pas être
+représentée dans un \fIoff_t\fP (mais peut l'être dans un \fIoff64_t\fP). La macro
+\fB_LARGEFILE64_SOURCE\fP doit être définie (avant d'inclure \fItout\fP fichier
+d'en\(hytête) pour obtenir cette définition. Définir la macro
+\fB_FILE_OFFSET_BITS\fP à 64 est la méthode à favoriser pour accéder à des
+grands fichiers sur des systèmes 32\ bits, plutôt que d'utiliser
+\fBO_LARGEFILE\fP (consultez \fBfeature_test_macros\fP(7)).
+.TP 
+\fBO_NOATIME\fP (Depuis Linux 2.6.8)
+.\" The O_NOATIME flag also affects the treatment of st_atime
+.\" by mmap() and readdir(2), MTK, Dec 04.
+Ne pas mettre à jour l'heure de dernier accès au fichier (champ \fIst_atime\fP
+de l'inœud) quand le fichier est lu avec \fBread\fP(2). Ce attribut est
+seulement conçu pour les programmes d'indexation et d'archivage, pour
+lesquels il peut réduire significativement l'activité du disque. L'attribut
+peut ne pas être effectif sur tous les systèmes de fichiers. Par exemple,
+avec NFS, l'heure d'accès est mise à jour par le serveur.
+.TP 
+\fBO_NOCTTY\fP
+Si \fIpathname\fP correspond à un périphérique de terminal \(em\ consultez
+\fBtty\fP(4)\ \(em, il ne deviendra pas le terminal contrôlant le processus même
+si celui\-ci n'est attaché à aucun autre terminal.
+.TP 
+\fBO_NOFOLLOW\fP
+.\" The headers from glibc 2.0.100 and later include a
+.\" definition of this flag; \fIkernels before 2.1.126 will ignore it if
+.\" used\fP.
+Si \fIpathname\fP est un lien symbolique, l'ouverture échoue. Ceci est une
+extension FreeBSD, qui fut ajoutée à Linux dans la version 2.1.126. Les
+liens symboliques se trouvant dans le chemin d'accès proprement dit seront
+suivis normalement.
+.TP 
+\fBO_NONBLOCK\fP ou \fBO_NDELAY\fP
+Le fichier est ouvert en mode «\ non\-bloquant\ ». Ni la fonction \fBopen\fP()
+ni aucune autre opération ultérieure sur ce fichier ne laissera le processus
+appelant en attente. Pour la manipulation des FIFO (tubes nommés), voir
+également \fBfifo\fP(7). Pour une explication de l'effet de \fBO_NONBLOCK\fP en
+conjonction avec les verrouillages impératifs et les baux de fichiers, voir
+\fBfcntl\fP(2).
+.TP 
+\fBO_SYNC\fP
+Le fichier est ouvert en écriture synchronisée. Chaque appel à \fBwrite\fP(2)
+sur le fichier bloquera le processus appelant jusqu'à ce que les données
+aient été écrites physiquement sur le support matériel (voir la section
+NOTES plus bas).
+.TP 
+\fBO_TRUNC\fP
+Si le fichier existe, est un fichier ordinaire, et est ouvert en écriture
+(\fBO_RDWR\fP ou \fBO_WRONLY\fP), il sera tronqué à une longueur nulle. Si le
+fichier est une FIFO ou un périphérique terminal, l'attribut \fBO_TRUNC\fP est
+ignoré. Sinon, le comportement de \fBO_TRUNC\fP n'est pas précisé. Sur de
+nombreuses versions de Linux, il sera ignoré\ ; sur d'autres versions il
+déclenchera une erreur).
+.PP
+Certains de ces attributs optionnels peuvent être modifiés par la suite avec
+la fonction \fBfcntl\fP(2).
+
+\fBcreat\fP() est équivalent à \fBopen\fP() avec l'attribut \fIflags\fP égal à
+\fBO_CREAT | O_WRONLY | O_TRUNC\fP.
+.SH "VALEUR RENVOYÉE"
+\fBopen\fP() et \fBcreat\fP() renvoient le nouveau descripteur de fichier s'ils
+réussissent, ou \-1 s'ils échouent, auquel cas \fIerrno\fP contient le code
+d'erreur.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+L'accès demandé au fichier est interdit, ou la permission de parcours pour
+l'un des répertoires du chemin \fIpathname\fP est refusée, ou le fichier
+n'existe pas encore et le répertoire parent ne permet pas
+l'écriture. (Consultez aussi \fBpath_resolution\fP(7).)
+.TP 
+\fBEDQUOT\fP
+Si \fBO_CREAT\fP est indiqué, le fichier n'existe pas et le quota de blocs de
+disque ou d'inœuds de l'utilisateur sur le système de fichiers a été
+atteint.
+.TP 
+\fBEEXIST\fP
+\fIpathname\fP existe déjà et \fBO_CREAT\fP et \fBO_EXCL\fP ont été indiqués.
+.TP 
+\fBEFAULT\fP
+\fIpathname\fP pointe en\(hydehors de l'espace d'adressage accessible.
+.TP 
+\fBEFBIG\fP
+Consultez \fBEOVERFLOW\fP.
+.TP 
+\fBEINTR\fP
+Pendant qu'il était bloqué en attente de l'ouverture d'un périphérique lent
+(par exemple, une FIFO\ ; consultez \fBfifo\fP(7)), l'appel a été interrompu par
+un gestionnaire de signal\ ; consultez \fBsignal\fP(7).
+.TP 
+\fBEISDIR\fP
+On a demandé une écriture alors que \fIpathname\fP correspond à un répertoire
+(en fait, \fBO_WRONLY\fP ou \fBO_RDWR\fP ont été demandés).
+.TP 
+\fBELOOP\fP
+Trop de liens symboliques ont été rencontrés en parcourant \fIpathname\fP, ou
+l'attribut \fBO_NOFOLLOW\fP est indiqué et \fIpathname\fP est un lien symbolique.
+.TP 
+\fBEMFILE\fP
+Le processus a déjà ouvert le nombre maximal de fichiers.
+.TP 
+\fBENAMETOOLONG\fP
+\fIpathname\fP est trop long.
+.TP 
+\fBENFILE\fP
+La limite du nombre total de fichiers ouverts sur le système a été atteinte.
+.TP 
+\fBENODEV\fP
+\fIpathname\fP correspond à un fichier spécial et il n'y a pas de périphérique
+correspondant. (Ceci est un bogue du noyau Linux\ ; dans cette situation,
+\fBENXIO\fP devrait être renvoyé.)
+.TP 
+\fBENOENT\fP
+\fBO_CREAT\fP est absent et le fichier n'existe pas. Ou un répertoire du chemin
+d'accès \fIpathname\fP n'existe pas, ou est un lien symbolique pointant nulle
+part.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.TP 
+\fBENOSPC\fP
+\fIpathname\fP devrait être créé mais le périphérique concerné n'a plus assez
+de place pour un nouveau fichier.
+.TP 
+\fBENOTDIR\fP
+Un élément du chemin d'accès \fIpathname\fP n'est pas un répertoire, ou
+l'attribut \fBO_DIRECTORY\fP est utilisé et \fIpathname\fP n'est pas un
+répertoire.
+.TP 
+\fBENXIO\fP
+\fBO_NONBLOCK\fP | \fBO_WRONLY\fP est indiqué, le fichier est une FIFO et le
+processus n'a pas de fichier ouvert en lecture. Ou le fichier est un nœud
+spécial et il n'y a pas de périphérique correspondant.
+.TP 
+\fBEOVERFLOW\fP
+.\" See http://bugzilla.kernel.org/show_bug.cgi?id=7253
+.\" "Open of a large file on 32-bit fails with EFBIG, should be EOVERFLOW"
+.\" Reported 2006-10-03
+\fIpathname\fP fait référence à un fichier ordinaire qui est trop grand pour
+être ouvert. Cela arrive quand une application compilée sur une plate\-forme
+32\ bits sans \fI\-D_FILE_OFFSET_BITS=64\fP essaie d'ouvrir un fichier dont la
+taille dépasse \fI(2<<31)\-1\fP bits\ ; consultez également
+\fBO_LARGEFILE\fP ci\-dessus. C'est l'erreur spécifiée par POSIX.1\-2001\ ; dans
+les noyaux antérieurs à la version 2.6.24, Linux fournissait l'erreur
+\fBEFBIG\fP dans ce cas.
+.TP 
+\fBEPERM\fP
+.\" Strictly speaking, it's the file system UID... (MTK)
+L'attribut \fBO_NOATIME\fP est indiqué, mais l'UID effectif de l'appelant n'est
+pas le propriétaire du fichier, et l'appelant n'est pas privilégié
+(\fBCAP_FOWNER\fP).
+.TP 
+\fBEROFS\fP
+Un accès en écriture est demandé alors que \fIpathname\fP réside sur un système
+de fichiers en lecture seule.
+.TP 
+\fBETXTBSY\fP
+On a demandé une écriture alors que \fIpathname\fP correspond à un fichier
+exécutable actuellement utilisé.
+.TP 
+\fBEWOULDBLOCK\fP
+L'attribut \fBO_NONBLOCK\fP est indiqué, et un bail incompatible est détenu sur
+le fichier (consultez \fBfcntl\fP(2)).
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3, POSIX.1\-2001. Les attributs \fBO_DIRECTORY\fP, \fBO_NOATIME\fP et
+\fBO_NOFOLLOW\fP sont spécifiques à Linux; il faut définir la macro
+\fB_GNU_SOURCE\fP (avant d'inclure \fItout\fP fichier d'en\(hytête) pour avoir
+leurs définitions.
+
+L'attribut \fBO_CLOEXEC\fP n'est pas spécifié dans POSIX.1\-2001, mais l'est
+dans POSIX.1\-2008.
+
+\fBO_DIRECT\fP n'est pas spécifié par POSIX\ ; il faut définir la macro
+\fB_GNU_SOURCE\fP (avant d'inclure \fItout\fP fichier d'en\(hytête) pour obtenir
+sa définition.
+.SH NOTES
+Sous Linux, l'attribut \fBO_NONBLOCK\fP indique que l'on veut ouvrir mais pas
+nécessairement dans l'intention de lire ou d'écrire. Il est typiquement
+utilisé pour ouvrir des périphériques dans le but de récupérer un
+descripteur de fichier pour l'utiliser avec \fBioctl\fP(2).
+
+.\" See for example util-linux's disk-utils/setfdprm.c
+.\" For some background on access mode 3, see
+.\" http://thread.gmane.org/gmane.linux.kernel/653123
+.\" "[RFC] correct flags to f_mode conversion in __dentry_open"
+.\" LKML, 12 Mar 2008
+Contrairement aux autres valeurs qui peuvent être indiquées dans \fIflags\fP,
+les valeurs du \fImode d'accès\fP \fBO_RDONLY\fP, \fBO_WRONLY\fP et \fBO_RDWR\fP ne sont
+pas des bits individuels. Ils définissent l'ordre des deux bits de poids
+faible de \fIflags\fP, et ont pour valeur respective 0, 1 et 2. En d'autres
+mots, la combinaison \fBO_RDONLY | O_WRONLY\fP est une erreur logique et n'a
+certainement pas la même signification que \fBO_RDWR\fP. Linux réserve le mode
+d'accès, particulier et non standard, mode 3 (11 en binaire) à \fIflags\fP pour
+signifier\ : vérifier les permissions de lecture et d'écriture du fichier et
+renvoyer un descripteur de fichier qui ne pourra pas être utilisé pour une
+lecture ou une écriture. Ce mode d'accès non standard est utilisé par
+certains pilotes Linux pour renvoyer un descripteur qui ne sera utilisé que
+par des opérations \fBioctl\fP(2) spécifiques au périphérique.
+.LP
+.\" Linux 2.0, 2.5: truncate
+.\" Solaris 5.7, 5.8: truncate
+.\" Irix 6.5: truncate
+.\" Tru64 5.1B: truncate
+.\" HP-UX 11.22: truncate
+.\" FreeBSD 4.7: truncate
+L'effet (indéfini) de \fBO_RDONLY | O_TRUNC\fP varie selon
+l'implémentation. Sur de nombreux systèmes, le fichier est effectivement
+tronqué.
+.PP
+Plusieurs problèmes se posent avec le protocole NFS, concernant entre autres
+\fBO_SYNC\fP, et \fBO_NDELAY\fP .
+
+POSIX fournit trois variantes différentes des entrées\-sorties synchronisées,
+correspondant aux attributs \fBO_SYNC\fP, \fBO_DSYNC\fP et
+\fBO_RSYNC\fP. Actuellement (2.6.31), Linux implémente seulement \fBO_SYNC\fP,
+mais la glibc définit \fBO_DSYNC\fP et \fBO_RSYNC\fP à la même valeur que
+\fBO_SYNC\fP. La plupart des systèmes de fichiers Linux n'implémentent en fait
+pas la sémantique \fBO_SYNC\fP de POSIX (qui demande que les mises à jour des
+métadonnées d'une écriture soient sur le disque lors du retour en espace
+utilisateur), mais la sémantique \fBO_DSYNC\fP (qui ne demande uniquement que
+les données des fichiers et les métadonnées nécessaires pour les retrouvées
+soit sur le disque au moment ou l'appel système rend la main).
+
+Notez que \fBopen\fP() peut ouvrir des fichiers spéciaux mais \fBcreat\fP() ne
+peut pas en créer, il faut utiliser \fBmknod\fP(2) à la place.
+.LP
+Sur les systèmes de fichiers NFS, où la correspondance d'UID est activée,
+\fBopen\fP() peut renvoyer un descripteur de fichier alors qu'une requête
+\fBread\fP(2) par exemple sera refusée avec le code d'erreur \fBEACCES\fP. En
+effet, le client a effectué \fBopen\fP() en vérifiant les autorisations
+d'accès, mais la correspondance d'UID est calculée par le serveur au moment
+des requêtes de lecture ou d'écriture.
+
+Si un fichier est créé, ses horodatages \fIst_atime\fP, \fIst_ctime\fP,
+\fIst_mtime\fP (respectivement heure de dernier accès, de dernière modification
+d'état, et de dernière modification\ ; consultez \fBstat\fP(2)) sont définis à
+l'heure actuelle, ainsi que les champs \fIst_ctime\fP et \fIst_mtime\fP du
+répertoire parent. Sinon, si le fichier est modifié à cause de l'attribut
+\fBO_TRUNC\fP, ses champs \fIst_ctime\fP et \fIst_mtime\fP sont remplis avec l'heure
+actuelle.
+.SS O_DIRECT
+.LP
+L'attribut \fBO_DIRECT\fP peut imposer, pour des raisons d'alignement, des
+restrictions sur la longueur et l'adresse des tampons de l'espace
+utilisateur et des déplacements dans les entrées\-sorties de fichiers. Sous
+Linux, les restrictions d'alignement varient en fonction du système de
+fichiers et de la version du noyau, et il peut aussi ne pas y en
+avoir. Cependant, il n'y a pas actuellement d'interface indépendante du
+système de fichiers qui permette aux applications de découvrir ces
+restrictions pour un fichier ou système de fichiers donné. Certains systèmes
+de fichiers fournissent leur propre interface pour faire cela, comme par
+exemple l'opération \fBXFS_IOC_DIOINFO\fP de \fBxfsctl\fP(3).
+.LP
+Sous Linux\ 2.4, la taille des transferts, l'alignement du tampon et la
+position dans le fichier doivent être des multiples de la taille de blocs
+logiques du système de fichiers. Sous Linux\ 2.6, un alignement sur des
+multiples de 512\ octets est suffisant.
+.LP
+Les E/S \fBO_DIRECT\fP ne devraient jamais être exécutées en même temps que
+l'appel système \fBfork\fP(2), si le tampon mémoire est une projection privée
+(c'est\-à\-dire n'importe quelle projection en mémoire créée avec l'attribut
+\fBMAP_PRIVATE\fP de \fBmmap\fP(2), y compris la mémoire allouée sur le tas et les
+tampons alloués de façon statique). Toutes ces E/S, qu'elles soient soumises
+par l'intermédiaire d'une interface d'E/S asynchrone ou depuis un autre
+thread du processus, devraient être achevées avant l'appel de \fBfork\fP(2). En
+cas d'échec, les conséquences pourraient être une corruption de mémoire ou
+un comportement imprévisible dans les processus père et fils. Cette
+restriction ne s'applique pas quand le tampon mémoire pour les E/S
+\fBO_DIRECT\fP a été créé en utilisant \fBshmat\fP(2) ou \fBmmap\fP(2) avec
+l'attribut \fBMAP_SHARED\fP. Cette restriction ne s'applique pas non plus quand
+le tampon mémoire a été configuré comme \fBMADV_DONTFORK\fP avec \fBmadvise\fP(2),
+en s'assurant qu'il ne sera pas disponible au fils après \fBfork\fP(2).
+.LP
+L'attribut \fBO_DIRECT\fP a été introduit par SGI IRIX, qui a des restrictions
+d'alignement identiques à Linux 2.4. IRIX a aussi un appel \fBfcntl\fP(2) pour
+obtenir les alignements et tailles appropriés. FreeBSD 4.x a introduit un
+attribut du même nom, mais sans les restrictions d'alignement.
+.LP
+La gestion de \fBO_DIRECT\fP a été ajouté dans Linux 2.4.10. Les noyaux plus
+anciens ignorent simplement cet attribut. Certains système de fichiers
+peuvent ne pas supporter cet attribut et \fBopen\fP() échouera avec l'erreur
+\fBEINVAL\fP s'il a été utilisé.
+.LP
+Les applications devraient éviter de mélanger des entrées\-sorties
+\fBO_DIRECT\fP et normales pour le même fichier, en particulier sur des régions
+d'un même fichier qui se recouvrent. Même si le système de fichiers gère les
+problèmes de cohérence dans cette situation, le débit global
+d'entrées\-sorties sera moindre que si un seul mode était utilisé. De la même
+façon, les applications devraient éviter de mélanger l'utilisation de
+\fBmmap\fP(2) et d'entrées\-sorties directes pour les mêmes fichiers.
+.LP
+Le comportement de \fBO_DIRECT\fP avec NFS diffère des systèmes de fichiers
+locaux. Les anciens noyaux, ou les noyaux configurés d'une certaine façon,
+peuvent ne pas gérer cette combinaison. Le protocole NFS ne gère pas le
+passage de l'attribut au serveur, les entrées\-sorties \fBO_DIRECT\fP ne font
+donc que le cache des pages du client\ ; le serveur pourra toujours utiliser
+un cache pour les entrées\-sorties. Le client demande au serveur de rendre
+les entrées\-sorties synchrones pour préserver la sémantique synchrone de
+\fBO_DIRECT\fP. Certains serveurs fonctionnent mal dans ces circonstances, tout
+particulièrement si les entrées\-sorties sont de petite taille. Certains
+serveurs peuvent aussi être configurés pour mentir aux clients et indiquer
+que les entrées\-sorties ont atteint un espace de stockage stable\ ; ceci
+évitera la perte de performance en augmentant les risques pour l'intégrité
+des données en cas de problème d'alimentation du serveur. Le client NFS
+Linux n'a pas de restriction d'alignement pour les entrées\-sorties
+\fBO_DIRECT\fP.
+.PP
+En résumé, \fBO_DIRECT\fP est un outil potentiellement puissant qui doit être
+utilisé avec précaution. Les applications devraient utiliser \fBO_DIRECT\fP
+comme une option pour améliorer les performances, qui devrait être
+désactivée par défaut.
+.PP
+.RS
+«\ Ce qui m'a toujours dérangé avec O_DIRECT est que toute l'interface est
+stupide et a probablement été conçue par un singe dérangé, sous l'influence
+de substances psychotropes puissantes.\ » \(em Linus.
+.RE
+.SH BOGUES
+.\" FIXME . Check bugzilla report on open(O_ASYNC)
+.\" See http://bugzilla.kernel.org/show_bug.cgi?id=5993
+Actuellement, il n'est pas possible d'activer les entrées\-sorties contrôlées
+par les signaux en indiquant \fBO_ASYNC\fP lors de l'appel \fBopen\fP()\ ; il faut
+utiliser \fBfcntl\fP(2) pour activer cet attribut.
+.SH "VOIR AUSSI"
+\fBchmod\fP(2), \fBchown\fP(2), \fBclose\fP(2), \fBdup\fP(2), \fBfcntl\fP(2), \fBlink\fP(2),
+\fBlseek\fP(2), \fBmknod\fP(2), \fBmmap\fP(2), \fBmount\fP(2), \fBopenat\fP(2), \fBread\fP(2),
+\fBsocket\fP(2), \fBstat\fP(2), \fBumask\fP(2), \fBunlink\fP(2), \fBwrite\fP(2),
+\fBfopen\fP(3), \fBfifo\fP(7), \fBpath_resolution\fP(7), \fBsymlink\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

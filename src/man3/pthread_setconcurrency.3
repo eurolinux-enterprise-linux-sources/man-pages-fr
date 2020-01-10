@@ -1,0 +1,108 @@
+.\" Copyright (c) 2009 Michael Kerrisk, <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_SETCONCURRENCY 3 "10 avril 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_setconcurrency, pthread_getconcurrency \- Définir ou récupérer le
+niveau de concurrence
+.SH SYNOPSIS
+.nf
+\fB#include <pthread.h>\fP
+
+\fBint pthread_setconcurrency(int \fP\fInew_level\fP\fB);\fP
+\fBint pthread_getconcurrency(void);\fP
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+La fonction \fBpthread_setconcurrency\fP() informe l'implémentation du niveau
+de concurrence (nombre de threads exécutés en parallèle indiqué par
+\fInew_level\fP) souhaité par l'application. Ce n'est qu'une indication pour
+l'implémentation\ : POSIX.1 ne spécifie pas le niveau de concurrence qui doit
+résulter d'un appel à \fBpthread_setconcurrency\fP().
+
+Une valeur de 0 pour \fInew_level\fP indique à l'implémentation qu'elle peut
+gérer le niveau de concurrence au niveau qu'elle juge approprié.
+
+\fBpthread_getconcurrency\fP() renvoie le niveau de concurrence du processus.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, \fBpthread_setconcurrency\fP() renvoie 0\ ; en cas d'erreur,
+elle renvoie un numéro d'erreur non nul.
+
+\fBpthread_getconcurrency\fP() ne peut pas échouer et renvoie le niveau de
+concurrence défini par l'appel précédent à \fBpthread_setconcurrency\fP() ou 0
+si \fBpthread_setconcurrency\fP() n'a pas été appelé auparavant.
+.SH ERREURS
+\fBpthread_setconcurrency\fP() peut échouer avec les erreurs suivantes\ :
+.TP 
+\fBEINVAL\fP
+\fInew_level\fP est négatif.
+.PP
+POSIX.1\-2001 documente également une erreur \fBEAGAIN\fP («\ la valeur indiquée
+par \fInew_level\fP entraînerait un dépassement des ressources du système\ »).
+.SH VERSIONS
+Ces fonctions sont disponibles dans la glibc depuis la version 2.1.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Le niveau de concurrence par défaut est de 0.
+
+Les niveaux de concurrence n'ont de sens que pour les implémentations des
+threads M:N, pour lesquelles à un moment donné un sous\-ensemble de threads
+d'un processus peut être associé à un plus petit nombre d'entités
+ordonnançable du noyau. Définir le niveau de concurrence permet à une
+application de donner une indication au noyau pour qu'il fournisse le bon
+nombre d'entités ordonnançable pour une exécution efficace de l'application.
+
+A la fois LinuxThreads et NPTL sont des implémentations des threads 1:1,
+donc définir le niveau de concurrence n'a pas de signification. En d'autres
+termes, sous Linux ces fonctions existent essentiellement pour la
+compatibilité avec d'autres systèmes et elles n'ont aucun effet sur
+l'exécution d'un programme.
+.SH "VOIR AUSSI"
+\fBpthread_attr_setscope\fP(3), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

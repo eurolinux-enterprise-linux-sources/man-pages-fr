@@ -1,0 +1,269 @@
+.\" Copyright (C) 1995 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Written 11 June 1995 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 22 July 1995 by Michael Chastain <mec@duracef.shout.net>:
+.\"   Derived from 'readdir.2'.
+.\" Modified Tue Oct 22 08:11:14 EDT 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETDENTS 2 "3 août 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+getdents \- Obtenir les points d'entrée d'un répertoire
+.SH SYNOPSIS
+.nf
+\fBint getdents(unsigned int \fP\fIfd\fP\fB, struct linux_dirent *\fP\fIdirp\fP\fB,\fP
+\fB             unsigned int \fP\fIcount\fP\fB);\fP
+.fi
+
+\fIRemarque\fP\ : il n'existe pas de fonction glibc autour de cet appel
+système\ ; consultez \fBNOTES\fP.
+.SH DESCRIPTION
+Ce n'est pas la fonction qui vous intéresse. Veuillez regarder \fBreaddir\fP(3)
+pour l'interface de la fonction de même nom de la bibliothèque C conforme à
+la spécification POSIX. Cette page documente l'interface de l'appel système
+du noyau.
+.PP
+L'appel système \fBgetdents\fP() lit plusieurs structures \fIlinux_dirent\fP
+depuis le répertoire référencé par le descripteur de fichier ouvert \fIfd\fP et
+les place dans la zone de mémoire pointée par \fIdirp\fP. Le paramètre \fIcount\fP
+spécifie la taille de cette zone mémoire.
+.PP
+La structure \fIlinux_dirent\fP est déclarée comme ceci\ :
+.PP
+.in +4n
+.nf
+struct linux_dirent {
+    unsigned long  d_ino;     /* Numéro d'inœud */
+    unsigned long  d_off;     /* Distance au prochain \fIlinux_dirent\fP */
+    unsigned short d_reclen;  /* Longueur de ce \fIlinux_dirent\fP */
+    char           d_name[];  /* Nom de fichier (fini par 0) */
+                        /* La longueur est en fait (d_reclen \- 2 \-
+                           offsetof(struct linux_dirent, d_name)) */
+    /*
+    char           pad;       // Octet nul de remplissage
+    char           d_type;    // Type de fichier (seulement depuis
+                              // Linux 2.6.4) ; sa position est
+                              // (d_reclen \- 1)
+    */
+
+}
+.fi
+.in
+.PP
+\fId_ino\fP est un numéro d'inœud. \fId_off\fP est la distance entre le début du
+répertoire et le début de la prochaine structure
+\fIlinux_dirent\fP. \fId_reclen\fP est la taille complète de
+\fIlinux_dirent\fP. \fId_name\fP est le nom de fichier terminé par un caractère
+nul.
+
+\fId_type\fP est un octet placé à la fin de la structure qui indique le type du
+fichier. Il contient l'une des valeurs suivantes (définies dans
+\fI<dirent.h>\fP)\ :
+.TP  12
+\fBDT_BLK\fP
+Il s'agit d'un périphérique bloc.
+.TP 
+\fBDT_CHR\fP
+Il s'agit d'un périphérique caractère.
+.TP 
+\fBDT_DIR\fP
+Il s'agit d'un répertoire
+.TP 
+\fBDT_FIFO\fP
+Il s'agit d'un tube nommé (FIFO).
+.TP 
+\fBDT_LNK\fP
+Il s'agit d'un lien symbolique.
+.TP 
+\fBDT_REG\fP
+Il s'agit d'un fichier ordinaire.
+.TP 
+\fBDT_SOCK\fP
+Il s'agit d'une socket de domaine UNIX.
+.TP 
+\fBDT_UNKNOWN\fP
+Le type du fichier est inconnu.
+.PP
+Le champ \fId_type\fP est implémenté depuis Linux 2.6.4. Il occupe un espace
+qui était auparavant un octet de remplissage rempli par des zéros dans la
+structure \fIlinux_dirent\fP. Ainsi, sur les noyaux antérieurs à 2.6.3, les
+accès à ce champ fournissent toujours la valeur 0 (\fBDT_UNKNOWN\fP).
+.PP
+.\" kernel 2.6.27
+.\" The same sentence is in readdir.2
+Actuellement, seuls certains systèmes de fichiers (parmi lesquels Btrfs,
+ext2, ext3 et ext4) prennent complètement en charge le renvoi du type de
+fichier dans \fId_type\fP. Toutes les applications doivent gérer correctement
+une valeur de retour valant \fBDT_UNKNOWN\fP.
+.SH "VALEUR RENVOYÉE"
+\fBgetdents\fP renvoie le nombre d'octets lus s'il réussit (0 en fin de
+répertoire), ou \-1 s'il échoue, auquel cas \fIerrno\fP contient le code
+d'erreur.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBEFAULT\fP
+L'argument pointe en dehors de l'espace d'adressage du processus appelant.
+.TP 
+\fBEINVAL\fP
+Le tampon de résultat est trop petit.
+.TP 
+\fBENOENT\fP
+Répertoire inexistant.
+.TP 
+\fBENOTDIR\fP
+Le descripteur de fichier ne pointe pas sur un répertoire.
+.SH CONFORMITÉ
+.\" SVr4 documents additional ENOLINK, EIO error conditions.
+SVr4.
+.SH NOTES
+La glibc ne fournit pas de fonction autour de cet appel système\ ; vous
+devez utiliser \fBsyscall\fP(2) pour l'appeler. Vous devrez définir la
+structure \fIlinux_dirent\fP vous\-même. Cependant, \fBreaddir\fP(3) peut
+avantageusement être utilisé à la place.
+
+Cette fonction remplace \fBreaddir\fP(2).
+
+L'appel système \fBgetdents\fP() original de Linux ne permettait pas de gérer
+les gros fichiers et les positions dans les gros fichiers. En conséquence,
+Linux\ 2.4 a ajouté \fBgetdents64\fP(), avec un type élargi pour les champs
+\fId_ino\fP et \fId_off\fP de la structure \fIlinux_dirent\fP.
+.SH EXEMPLE
+.\" FIXME: This program uses the older getdents() system call
+.\" and the structure with smaller field widths.
+Le programme ci\-dessous démontre l'utilisation de \fBgetdents\fP(). La sortie
+suivante montre un exemple de ce que donne le programme sur une répertoire
+ext2\ :
+
+.in +4n
+.nf
+$\fB ./a.out /testfs/\fP
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- nread=120 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+i\-node#  file type  d_reclen  d_off   d_name
+       2  directory    16         12  .
+       2  directory    16         24  ..
+      11  directory    24         44  lost+found
+      12  regular      16         56  a
+  228929  directory    16         68  sub
+   16353  directory    16         80  sub2
+  130817  directory    16       4096  sub3
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#define _GNU_SOURCE
+#include <dirent.h>     /* Définie les constantes DT_* */
+#include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/syscall.h>
+
+#define handle_error(msg) \e
+        do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+struct linux_dirent {
+    long           d_ino;
+    off_t          d_off;
+    unsigned short d_reclen;
+    char           d_name[];
+};
+
+#define BUF_SIZE 1024
+
+int
+main(int argc, char *argv[])
+{
+    int fd, nread;
+    char buf[BUF_SIZE];
+    struct linux_dirent *d;
+    int bpos;
+    char d_type;
+
+    fd = open(argc > 1 ? argv[1] : ".", O_RDONLY | O_DIRECTORY);
+    if (fd == \-1)
+        handle_error("open");
+
+    for ( ; ; ) {
+        nread = syscall(SYS_getdents, fd, buf, BUF_SIZE);
+        if (nread == \-1)
+            handle_error("getdents");
+
+        if (nread == 0)
+            break;
+
+        printf("\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- nread=%d \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\en", nread);
+        printf("i\-node#  file type  d_reclen  d_off   d_name\en");
+        for (bpos = 0; bpos < nread;) {
+            d = (struct linux_dirent *) (buf + bpos);
+            printf("%8ld  ", d\->d_ino);
+            d_type = *(buf + bpos + d\->d_reclen \- 1);
+            printf("%\-10s ", (d_type == DT_REG) ?  "regular" :
+                             (d_type == DT_DIR) ?  "directory" :
+                             (d_type == DT_FIFO) ? "FIFO" :
+                             (d_type == DT_SOCK) ? "socket" :
+                             (d_type == DT_LNK) ?  "symlink" :
+                             (d_type == DT_BLK) ?  "block dev" :
+                             (d_type == DT_CHR) ?  "char dev" : "???");
+            printf("%4d %10lld  %s\en", d\->d_reclen,
+                    (long long) d\->d_off, d\->d_name);
+            bpos += d\->d_reclen;
+        }
+    }
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBreaddir\fP(2), \fBreaddir\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

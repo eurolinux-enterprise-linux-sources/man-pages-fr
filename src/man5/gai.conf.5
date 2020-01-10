@@ -1,0 +1,108 @@
+.\" Copyright (C) 2006 Red Hat, Inc. All rights reserved.
+.\" Author: Ulrich Drepper <drepper@redhat.com>
+.\"
+.\" %%%LICENSE_START(GPLv2_MISC)
+.\" This copyrighted material is made available to anyone wishing to use,
+.\" modify, copy, or redistribute it subject to the terms and conditions of the
+.\" GNU General Public License v.2.
+.\"
+.\" This program is distributed in the hope that it will be useful, but WITHOUT
+.\" ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+.\" FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+.\" more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GAI.CONF 5 "13 février 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+gai.conf \- Fichier de configuration pour getaddrinfo(3)
+.SH DESCRIPTION
+Un appel à \fBgetaddrinfo\fP(3) peut renvoyer plusieurs réponses. D'après la
+RFC\ 3484, ces réponses doivent être triées de telle sorte que celles
+possédant une plus grande probabilité de succès apparaissent en premier dans
+la liste. La RFC fournit un algorithme pour le tri. Mais les règles
+statiques ne sont pas toujours adéquates. Pour cette raison, la RFC demande
+également à ce que les administrateurs système aient une chance de modifier
+dynamiquement le tri. Pour l'implémentation de la glibc, ceci peut être fait
+avec le fichier \fB/etc/gai.conf\fP.
+.PP
+Chaque ligne du fichier de configuration consiste en un mot clé et ses
+paramètres. Les espaces sont ignorés. Les lignes qui commencent par un «\ #\ »
+sont des commentaires et sont ignorés.
+.PP
+Les mots clés reconnus à l'heure actuelle sont\ :
+.TP 
+\fBlabel\fP \fImasque_réseau\fP \fIpriorité\fP
+La valeur est ajoutée à la table des étiquettes utilisée par le tri de la
+RFC\\ 3484. Si une définition de type \fBlabel\fP est présente dans le fichier
+de configuration, la table par défaut n'est pas utilisée. Toutes les
+définitions des étiquettes de la table par défaut qui doivent être
+conservées doivent être dupliquées. Après le mot clé, un masque réseau et la
+priorité doivent suivre sur la ligne.
+.TP 
+\fBprecedence\fP \fImasque_réseau\fP \fIpriorité\fP
+Ce mot clé est similaire à \fBlabel\fP mais la valeur est ajoutée à la table
+des priorités («\ precedence\ ») spécifiée dans la RFC\\ 3484. De même, la
+définition de \fBprecedence\fP dans le fichier de configuration fera que la
+table par défaut ne sera pas utilisée.
+.TP 
+\fBreload\fP <\fByes\fP|\fBno\fP>
+Ce mot clé permet de vérifier si le fichier de configuration a été modifié
+depuis sa dernière lecture. Si la valeur est «\ \fByes\fP\ », le fichier sera
+relu. Ceci peut causer des problèmes dans les applications multithreads et
+est généralement une mauvaise idée. La valeur par défaut est «\ \fBno\fP\ ».
+.TP 
+\fBscopev4\fP \fImasque\fP \fIvaleur\fP
+Ajouter une autre règle à la table de scope RFC\ 3484 pour les adresses
+IPv4. Par défaut les identifiants de scope décrits en section\ 3.2 de la
+RFC\\ 3438 sont utilisés. La modification de ces valeurs par défaut ne
+devrait guère être nécessaire
+.SH FICHIERS
+\fI/etc/gai.conf\fP
+.SH EXEMPLE
+La table par défaut d'après la RFC\\ 3484 correspond au fichier de
+configuration suivant\ :
+
+.nf
+label  ::1/128       0
+label  ::/0          1
+label  2002::/16     2
+label ::/96          3
+label ::ffff:0:0/96  4
+precedence  ::1/128       50
+precedence  ::/0          40
+precedence  2002::/16     30
+precedence ::/96          20
+precedence ::ffff:0:0/96  10
+.fi
+.\" .SH AUTHOR
+.\" Ulrich Drepper <drepper@redhat.com>
+.\"
+.SH "VOIR AUSSI"
+\fBgetaddrinfo(3),\fP RFC\ 3484
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

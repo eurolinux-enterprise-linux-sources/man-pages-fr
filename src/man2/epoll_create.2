@@ -1,0 +1,127 @@
+.\"  Copyright (C) 2003  Davide Libenzi
+.\"  Davide Libenzi <davidel@xmailserver.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_3_PARA)
+.\"  This program is free software; you can redistribute it and/or modify
+.\"  it under the terms of the GNU General Public License as published by
+.\"  the Free Software Foundation; either version 2 of the License, or
+.\"  (at your option) any later version.
+.\"
+.\"  This program is distributed in the hope that it will be useful,
+.\"  but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\"  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\"  GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 2004-06-17 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2005-04-04 by Marko Kohtala <marko.kohtala@gmail.com>
+.\" 2008-10-10, mtk: add description of epoll_create1()
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH EPOLL_CREATE 2 "15 avril 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+epoll_create, epoll_create1 \- Ouvrir un descripteur de fichier epoll
+.SH SYNOPSIS
+.nf
+\fB#include <sys/epoll.h>\fP
+.sp
+\fBint epoll_create(int \fP\fIsize\fP\fB);\fP
+\fBint epoll_create1(int \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBepoll_create\fP() crée une instance \fBepoll\fP(7). Depuis Linux\ 2.6.8, le
+paramètre \fIsize\fP est ignoré, mais doit être strictement positif. Consultez
+\fBNOTES\fP ci\-dessous.
+
+\fBepoll_create\fP() renvoie un descripteur de fichier référençant la nouvelle
+instance epoll. Ce descripteur de fichier est utilisé pour tous les appels à
+l'interface \fBepoll\fP. Lorsqu'il n'est plus nécessaire, le descripteur de
+fichier renvoyé par \fBepoll_create\fP() devrait être fermé avec
+\fBclose\fP(2). Lorsque tous les descripteurs de fichier faisant référence à
+une instance epoll sont fermés, le noyau détruit l'instance et libère les
+ressources associées pour une nouvelle utilisation.
+.SS epoll_create1()
+Si \fIflags\fP vaut 0, alors, en plus du fait que le paramètre obsolète \fIsize\fP
+n'est plus précisé, \fBepoll_create1\fP() est identique à \fBepoll_create\fP(). La
+valeur suivante peut être incluse dans \fIflags\fP pour obtenir un comportement
+différent\ :
+.TP 
+\fBEPOLL_CLOEXEC\fP
+Placer l'attribut «\ close\-on\-exec\ » (\fBFD_CLOEXEC\fP) sur le nouveau
+descripteur de fichier. Consultez la description de l'attribut \fBO_CLOEXEC\fP
+dans \fBopen\fP(2) pour savoir pourquoi cela peut être utile.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, ces appels système renvoient un descripteur de fichier
+positif. En cas d'erreur, ils renvoient \-1 et remplissent \fIerrno\fP avec la
+valeur d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+\fIsize\fP est négatif ou nul.
+.TP 
+\fBEINVAL\fP
+(\fBepoll_create1\fP()) \fIflags\fP contient une valeur incorrecte.
+.TP 
+\fBEMFILE\fP
+La limite par utilisateur du nombre d'instances epoll imposée par
+\fI/proc/sys/fs/epoll/max_user_instances\fP a été atteinte. Consultez
+\fBepoll\fP(7) pour plus de détails.
+.TP 
+\fBENFILE\fP
+La limite du nombre total de fichiers ouverts sur le système a été atteinte.
+.TP 
+\fBENOMEM\fP
+Il n'y a pas assez de mémoire pour que le noyau crée les objets nécessaires.
+.SH VERSIONS
+\fBepoll_create\fP a été introduite dans le noyau Linux\ 2.6. La prise en charge
+par la glibc a été ajoutée dans la version\ 2.3.2.
+
+.\" To be precise: kernel 2.5.44.
+.\" The interface should be finalized by Linux kernel 2.5.66.
+\fBepoll_create1\fP a été introduite dans le noyau Linux\ 2.6.27. La prise en
+charge par la glibc a été ajoutée dans la version\ 2.9.
+.SH CONFORMITÉ
+\fBepoll_create\fP() est spécifique à Linux.
+.SH NOTES
+Dans l'implémentation initiale d'\fBepoll_create\fP(), le paramètre \fIsize\fP
+informait le noyau du nombre de descripteurs de fichier que l'appelant
+s'attend à ajouter à l'instance \fBepoll\fP. Le noyau utilisait ce
+renseignement comme indice pour la quantité d'espace à allouer initialement
+dans les structures de données internes décrivant les événements (si
+nécessaire, le noyau allouerait plus d'espace si l'utilisation de l'appelant
+dépasse l'indice donné en \fIsize\fP). Maintenant, cet indice n'est plus
+nécessaire (le noyau dimensionne dynamiquement les structures de données
+sans avoir besoin de cet indice), mais \fIsize\fP doit toujours être
+strictement positif, par compatibilité ascendante, si de nouvelles
+applications \fBepoll\fP sont exécutées sur d'anciens noyaux.
+.SH "VOIR AUSSI"
+\fBclose\fP(2), \fBepoll_ctl\fP(2), \fBepoll_wait\fP(2), \fBepoll\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

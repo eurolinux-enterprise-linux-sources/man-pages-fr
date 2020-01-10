@@ -1,0 +1,186 @@
+.\"  Copyright (C) 2003  Davide Libenzi
+.\"  Davide Libenzi <davidel@xmailserver.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_3_PARA)
+.\"  This program is free software; you can redistribute it and/or modify
+.\"  it under the terms of the GNU General Public License as published by
+.\"  the Free Software Foundation; either version 2 of the License, or
+.\"  (at your option) any later version.
+.\"
+.\"  This program is distributed in the hope that it will be useful,
+.\"  but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\"  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\"  GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH EPOLL_CTL 2 "15 avril 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+epoll_ctl \- Interface de contrôle pour un descripteur epoll
+.SH SYNOPSIS
+\fB#include <sys/epoll.h>\fP
+.sp
+\fBint epoll_ctl(int \fP\fIepfd\fP\fB, int \fP\fIop\fP\fB, int \fP\fIfd\fP\fB, struct
+epoll_event *\fP\fIevent\fP\fB);\fP
+.SH DESCRIPTION
+Cet appel système effectue des opérations de contrôle sur l'instance
+\fBepoll\fP(7) référencée par le descripteur de fichier \fIepfd\fP. Il nécessite
+que l'opération \fIop\fP soit effectuée sur le descripteur de fichier cible
+\fIfd\fP.
+
+Les valeurs autorisées pour le paramètre \fIop\fP sont\ :
+.TP 
+\fBEPOLL_CTL_ADD\fP
+Enregistre le descripteur de fichier cible \fIfd\fP pour l'instance \fBepoll\fP
+indiquée par le descripteur de fichier \fIepfd\fP et associe l'événement
+\fIevent\fP avec le fichier représenté par \fIfd\fP.
+.TP 
+\fBEPOLL_CTL_MOD\fP
+Change l'événement \fIevent\fP associé au descripteur de fichier \fIfd\fP.
+.TP 
+\fBEPOLL_CTL_DEL\fP
+Supprime (désenregistre) le descripteur de fichier \fIfd\fP de l'instance
+\fBepoll\fP indiquée par \fIepfd\fP. Le paramètre \fIevent\fP est ignoré et peut être
+NULL (mais consultez la section BOGUES ci\(hydessous).
+.PP
+Le paramètre \fIevent\fP décrit l'objet lié au descripteur de fichier \fIfd\fP. La
+structure \fIepoll_event\fP est définie ainsi\ :
+.sp
+.in +4n
+.nf
+typedef union epoll_data {
+    void        *ptr;
+    int          fd;
+    uint32_t     u32;
+    uint64_t     u64;
+} epoll_data_t;
+
+struct epoll_event {
+    uint32_t events;        /* Événements epoll     */
+    epoll_data_t data;      /* Variable utilisateur */
+};
+.fi
+.in
+
+Le membre \fIevents\fP est un masque de bits composé à partir des événements
+disponibles suivants\ :
+.TP 
+\fBEPOLLIN\fP
+Le descripteur associé est disponible pour un appel \fBread\fP(2).
+.TP 
+\fBEPOLLOUT\fP
+Le descripteur associé est disponible pour un appel \fBwrite\fP(2).
+.TP 
+\fBEPOLLRDHUP\fP (depuis Linux 2.6.17)
+Le correspondant sur une socket en mode flux a fermé la connexion, ou bien a
+terminé la partie écriture de la connexion. (Cet attribut est
+particulièrement utile pour écrire du code simple permettant de détecter la
+fermeture de la connexion par le correspondant en détection de changement
+d'état.)
+.TP 
+\fBEPOLLPRI\fP
+Il y a des données urgentes disponibles pour un appel \fBread\fP(2).
+.TP 
+\fBEPOLLERR\fP
+Une erreur s'est produite sur le descripteur de fichier
+associé. \fBepoll_wait\fP(2) attend toujours cet événement, il n'est pas
+nécessaire de l'indiquer dans \fIevents\fP.
+.TP 
+\fBEPOLLHUP\fP
+Une déconnexion s'est produite sur le descripteur associé. \fBepoll_wait\fP(2)
+attend toujours cet événement, il n'est pas nécessaire de l'indiquer dans
+\fIevents\fP.
+.TP 
+\fBEPOLLET\fP
+Définir le comportement en détection de changement d'état sur le
+descripteur. Par défaut \fBepoll\fP fonctionne en détection de
+niveau. Consultez \fBepoll\fP(7) pour plus de détails sur les comportements en
+détection de niveau et de changements d'état.
+.TP 
+\fBEPOLLONESHOT\fP (depuis Linux 2.6.2)
+Définir le comportement «\ coup unique\ » (Ndt\ : one\(hyshot) pour le
+descripteur de fichier associé. Cela signifie qu'après qu'un événement a été
+retiré avec \fBepoll_wait\fP(2), le descripteur de fichier est désactivé de
+manière interne et aucun autre événement ne sera rapporté par l'interface
+\fBepoll\fP. L'utilisateur doit appeler \fBepoll_ctl\fP() avec \fBEPOLL_CTL_MOD\fP
+pour réarmer le descripteur de fichier avec le nouveau masque d'événement.
+.SH "VALEUR RENVOYÉE"
+Lorsqu'il réussit, l'appel \fBepoll_ctl\fP() renvoie zéro. Si une erreur se
+produit, \fBepoll_ctl\fP() renvoie \-1 et \fIerrno\fP contient le code approprié.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIepfd\fP ou \fIfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBEEXIST\fP
+\fIop\fP est \fBEPOLL_CTL_ADD\fP, mais le descripteur de fichier \fIfd\fP est déjà
+enregistrée dans cette instance epoll.
+.TP 
+\fBEINVAL\fP
+Le descripteur de fichier \fIepfd\fP, n'est pas un descripteur \fBepoll\fP, ou
+\fIfd\fP et \fIepfd\fP sont identiques, ou l'opération demandée \fIop\fP n'est pas
+supportée par cette interface.
+.TP 
+\fBENOENT\fP
+\fIop\fP est \fBEPOLL_CTL_MOD\fP ou \fBEPOLL_CTL_DEL\fP, et \fIfd\fP n'est pas
+enregistré dans cette instance epoll.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire dans le noyau pour traiter l'opération \fIop\fP demandée.
+.TP 
+\fBENOSPC\fP
+La limite imposée par \fI/proc/sys/fs/epoll/max_user_watches\fP a été
+rencontrée en essayant d'enregistrer (\fBEPOLL_CTL_ADD\fP) un nouveau
+descripteur de fichier sur une instance epoll. Consultez \fBepoll\fP(7) pour
+plus de détails.
+.TP 
+\fBEPERM\fP
+Le fichier cible \fIfd\fP n'est pas supporté par \fBepoll\fP.
+.SH VERSIONS
+.\" To be precise: kernel 2.5.44.
+.\" The interface should be finalized by Linux kernel 2.5.66.
+\fBepoll_ctl\fP() a été ajouté au noyau Linux dans sa version 2.6.
+.SH CONFORMITÉ
+\fBepoll_ctl\fP() est spécifique à Linux. La prise en charge par la glibc a été
+ajoutée dans la version\ 2.3.2.
+.SH NOTES
+L'interface \fBepoll\fP supporte tous les descripteurs de fichier supportés par
+\fBpoll\fP(2).
+.SH BOGUES
+Dans les versions du noyau antérieures à 2.6.9, l'opération \fBEPOLL_CTL_DEL\fP
+nécessitait un pointeur non NULL dans \fIevent\fP, alors que ce paramètre est
+ignoré. Depuis Linux 2.6.9, \fIevent\fP peut être NULL lors d'une opération
+\fBEPOLL_CTL_DEL\fP. Les applications qui doivent être portables pour les
+noyaux antérieurs à 2.6.9 devraient utiliser un pointeur différent de NULL
+dans \fIevent\fP.
+.SH "VOIR AUSSI"
+\fBepoll_create\fP(2), \fBepoll_wait\fP(2), \fBpoll\fP(2), \fBepoll\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

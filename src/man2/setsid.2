@@ -1,0 +1,94 @@
+.\" Copyright Michael Haardt (michael@cantor.informatik.rwth-aachen.de)
+.\"     Sat Aug 27 20:43:50 MET DST 1994
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sun Sep 11 19:19:05 1994 <faith@cs.unc.edu>
+.\" Modified Mon Mar 25 10:19:00 1996 <aeb@cwi.nl> (merged a few
+.\"	tiny changes from a man page by Charles Livingston).
+.\" Modified Sun Jul 21 14:45:46 1996 <aeb@cwi.nl>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SETSID 2 "11 février 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+setsid \- Créer une session et définir l'identifiant du groupe de processus
+.SH SYNOPSIS
+.ad l
+\fB#include <unistd.h>\fP
+.sp
+\fBpid_t setsid(void);\fP
+.br
+.ad b
+.SH DESCRIPTION
+\fBsetsid\fP() crée une nouvelle session si le processus appelant n'est pas un
+leader de groupe. Le processus appelant devient le leader du nouveau groupe,
+et n'a pas de terminal de contrôle. L'ID du groupe de processus et l'ID de
+session du processus appelant sont définis à la valeur de PID du processus
+en cours. Le processus en cours sera le seul dans son groupe et sa session.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, l'identifiant de la (nouvelle) session du processus
+appelant est renvoyé. En cas d'échec, \fI(pid_t)\ \-1\fP est renvoyé, et
+\fIerrno\fP contient le code de l'erreur.
+.SH ERREURS
+.TP 
+\fBEPERM\fP
+L'identifiant du groupe de processus d'un processus quelconque est égal au
+PID du processus appelant. En particulier \fBsetsid\fP() échoue si le processus
+appelant est déjà leader d'un groupe.
+.SH CONFORMITÉ
+SVr4, POSIX.1\-2001.
+.SH NOTES
+Un fils créé par \fBfork\fP(2) hérite de l'identifiant de session de son
+père. L'identifiant de session est conservé au travers d'un \fBexecve\fP(2).
+
+Le leader d'un groupe est le processus dont le PID est égal à l'ID du
+groupe. Pour s'assurer que \fBsetsid\fP() réussira, il faut effectuer un
+\fBfork\fP(2), suivi d'un \fB_exit\fP(2) pour le père, et le fils appellera
+\fBsetsid\fP().
+.SH "VOIR AUSSI"
+\fBsetsid\fP(1), \fBgetsid\fP(2), \fBsetpgid\fP(2), \fBsetpgrp\fP(2), \fBtcgetsid\fP(3),
+\fBcredentials\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

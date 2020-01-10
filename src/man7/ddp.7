@@ -1,0 +1,217 @@
+.\" This man page is Copyright (C) 1998 Alan Cox.
+.\"
+.\" %%%LICENSE_START(VERBATIM_ONE_PARA)
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" %%%LICENSE_END
+.\"
+.\" $Id: ddp.7,v 1.3 1999/05/13 11:33:22 freitag Exp $
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH DDP 7 "20 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+ddp \- Implémentation Linux du protocole AppleTalk
+.SH SYNOPSIS
+\fB#include <sys/socket.h>\fP
+.br
+\fB#include <netatalk/at.h>\fP
+.sp
+\fIddp_socket\fP\fB = socket(AF_APPLETALK, SOCK_DGRAM, 0);\fP
+.br
+\fIraw_socket\fP\fB = socket(AF_APPLETALK, SOCK_RAW, \fP\fIprotocole\fP\fB);\fP
+.SH DESCRIPTION
+Linux implémente le protocole AppleTalk décrit dans le document \fIInside
+Appletalk\fP. Seuls le niveau DDP et l'AARP sont présents dans le noyau, ils
+sont conçus pour être utilisés via les bibliothèques du protocole
+\fBnetatalk\fP. Cette page documente l'interface pour ceux qui ont envie (ou
+besoin) d'utiliser directement le niveau DDP.
+.PP
+La communication entre Appletalk et le programme utilisateur fonctionne en
+utilisant une interface compatible avec les sockets BSD. Consultez
+\fBsocket\fP(7).
+.PP
+Une socket AppleTalk est créée en appelant la fonction \fBsocket\fP(2) avec un
+argument \fBAF_APPLETALK\fP en famille de socket. Les types valides sont
+\fBSOCK_DGRAM\fP pour ouvrir une socket \fBddp\fP ou \fBSOCK_RAW\fP pour ouvrir une
+socket \fBraw\fP. \fIprotocole\fP est le protocole Appletalk pour envoyer ou
+recevoir des données. Pour le type \fBSOCK_RAW\fP il faut indiquer
+\fBATPROTO_DDP\fP.
+.PP
+Les sockets raw peuvent seulement être ouvertes par un processus ayant UID
+effectif nul ou ayant la capacité \fBCAP_NET_RAW\fP.
+.SS "Format d'adresse"
+Une socket AppleTalk est définie comme la combinaison d'un numéro de réseau,
+d'un numéro de nœud et d'un numéro de port.
+.PP
+.in +4n
+.nf
+struct at_addr {
+    unsigned short s_net;
+    unsigned char  s_node;
+};
+
+struct sockaddr_atalk {
+    sa_family_t    sat_family;    /* Famille d'adresse */
+    unsigned char  sat_port;      /* Port              */
+    struct at_addr sat_addr;      /* Réseau / Noeud    */
+};
+.fi
+.in
+.PP
+.\" FIXME this doesn't make sense [johnl]
+\fIsat_family\fP doit toujours être rempli avec \fBAF_APPLETALK\fP. \fIsat_port\fP
+contient le numéro de port. Les numéros inférieurs à 129 sont
+\fIréservés\fP. Seuls les processus ayant un UID effectif nul ou la capacité
+\fBCAP_NET_BIND_SERVICE\fP peut appeler \fBbind\fP(2) sur ces sockets. \fIsat_addr\fP
+est l'adresse de l'hôte. Le membre \fInet\fP de la structure \fIat_addr\fP
+contient le numéro de réseau dans l'ordre des octets du réseau («\ network
+byte order\ »). La valeur \fBAT_ANYNET\fP est générique et correspond aussi à
+«\ ce réseau\ ». Le membre \fInode\fP de la structure \fIat_addr\fP contient le
+numéro d'hôte. La valeur \fBAT_ANYNODE\fP est générique, et correspond aussi à
+«\ cet hôte\ ». La valeur \fBATADDR_BCAST\fP est une adresse broadcast locale.
+.SS "Options de sockets"
+Il n'y a pas d'options spécifiques au protocole sur les sockets.
+.SS "Interfaces /proc"
+IP prend en charge une série d'interfaces \fI/proc\fP pour configurer certains
+paramètres AppleTalk globaux. On peut y accéder en lisant ou écrivant les
+fichiers du répertoire \fI/proc/sys/net/atalk/\fP.
+.TP 
+\fIaarp\-expiry\-time\fP
+L'intervalle de temps (en secondes) avant qu'une entrée du cache AARP
+expire.
+.TP 
+\fIaarp\-resolve\-time\fP
+L'intervalle de temps (en secondes) avant qu'une entrée du cache AARP soit
+résolue.
+.TP 
+\fIaarp\-retransmit\-limit\fP
+Le nombre de retransmissions d'une demande AARP avant de déclarer le nœud
+mort.
+.TP 
+\fIaarp\-tick\-time\fP
+La période (en secondes) de la temporisation dirigeant l'AARP.
+.PP
+Les valeurs par défaut correspondent aux spécifications et ne doivent
+normalement pas être modifiées.
+.SS Ioctls
+.\" FIXME Add a section about multicasting
+Toutes les ioctls décrits dans \fBsocket\fP(7) s'appliquent à DDP.
+.SH ERREURS
+.\" FIXME document all errors. We should really fix the kernels to
+.\" give more uniform error returns (ENOMEM vs ENOBUFS, EPERM vs
+.\" EACCES etc.)
+.TP 
+\fBEACCES\fP
+L'utilisateur a essayé d'exécuter une opération sans avoir les permissions
+adéquates. Ceci inclut l'envoi vers une adresse broadcast sans avoir
+l'attribut correspondant, ou la tentative d'utilisation de port réservé sans
+UID effectif nul et sans la capacité \fBCAP_NET_BIND_SERVICE\fP.
+.TP 
+\fBEADDRINUSE\fP
+Tentative d'attachement à une adresse déjà utilisée.
+.TP 
+\fBEADDRNOTAVAIL\fP
+Une interface inexistante a été demandée, ou l'adresse d'émission demandée
+n'était pas locale.
+.TP 
+\fBEAGAIN\fP
+L'opération sur une socket non bloquante devrait bloquer.
+.TP 
+\fBEALREADY\fP
+Une connexion est déjà en cours sur la socket non bloquante.
+.TP 
+\fBECONNABORTED\fP
+Une connexion a été fermée durant un appel à \fBaccept\fP(2).
+.TP 
+\fBEHOSTUNREACH\fP
+Aucune entrée dans la table de routage ne correspond à l'adresse de
+destination.
+.TP 
+\fBEINVAL\fP
+Un paramètre non valable a été fourni.
+.TP 
+\fBEISCONN\fP
+\fBconnect\fP(2) a été appelée sur une socket déjà connectée.
+.TP 
+\fBEMSGSIZE\fP
+Le datagramme est plus grand que le MTU DDP.
+.TP 
+\fBENODEV\fP
+Le périphérique réseau n'est pas disponible ou est incapable d'utiliser le
+protocole IP.
+.TP 
+\fBENOENT\fP
+\fBSIOCGSTAMP\fP a été appelé sur une socket qu'aucun paquet n'a atteint.
+.TP 
+\fBENOMEM\fP et \fBENOBUFS\fP
+Pas assez de mémoire.
+.TP 
+\fBENOPKG\fP
+Un sous\-système du noyau n'est pas configuré.
+.TP 
+\fBENOPROTOOPT\fP et \fBEOPNOTSUPP\fP
+Passage d'une option de socket non valable.
+.TP 
+\fBENOTCONN\fP
+L'opération n'est définie que sur une socket connectée, mais cette socket
+n'était pas connectée.
+.TP 
+\fBEPERM\fP
+L'utilisateur n'a pas les permissions nécessaires.
+.TP 
+\fBEPIPE\fP
+La connexion a été fermée prématurément ou volontairement à l'autre
+extrémité.
+.TP 
+\fBESOCKTNOSUPPORT\fP
+La socket n'est pas configurée ou on a demandé un type inconnu.
+.SH VERSIONS
+Appletalk est pris en charge par Linux\ 2.0 et ultérieurs. Les interfaces
+\fI/proc\fP existent depuis Linux\ 2.2.
+.SH NOTES
+Soyez très prudents avec l'option \fBSO_BROADCAST\fP, elle n'est pas
+privilégiée sous Linux. Il est facile de surcharger le réseau en écrivant
+sans faire attention vers des adresses broadcast.
+.SS Compatibilité
+L'interface socket AppleTalk de base est compatible avec \fBnetatalk\fP sur les
+systèmes dérivés de BSD. Plusieurs systèmes BSD peuvent échouer à vérifier
+\fBSO_BROADCAST\fP lorsqu'ils envoient des trames broadcast. Ceci peut poser
+des problèmes de compatibilité.
+.PP
+Le mode socket \fBraw\fP est spécifique à Linux et existe pour prendre en
+charge le paquetage CAP et les outils de supervision AppleTalk plus
+facilement.
+.SH BOGUES
+Il y a trop de valeurs d'erreurs hétérogènes.
+.PP
+Les ioctls utilisées pour configurer les tables de routage, les
+périphériques, et les tables AARP ne sont pas encore décrites.
+.SH "VOIR AUSSI"
+\fBrecvmsg\fP(2), \fBsendmsg\fP(2), \fBcapabilities\fP(7), \fBsocket\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

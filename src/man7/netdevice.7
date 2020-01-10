@@ -1,0 +1,302 @@
+.\" t
+.\" This man page is Copyright (C) 1999 Andi Kleen <ak@muc.de>.
+.\"
+.\" %%%LICENSE_START(VERBATIM_ONE_PARA)
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" %%%LICENSE_END
+.\"
+.\" $Id: netdevice.7,v 1.10 2000/08/17 10:09:54 ak Exp $
+.\"
+.\" Modified, 2004-11-25, mtk, formatting and a few wording fixes
+.\"
+.\" Modified, 2011-11-02, <bidulock@openss7.org>, added many basic
+.\"  but missing ioctls, such as SIOCGIFADDR.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH NETDEVICE 7 "26 avril 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+netdevice \- Accès bas niveau aux périphériques réseau sous Linux
+.SH SYNOPSIS
+\fB#include <sys/ioctl.h>\fP
+.br
+\fB#include <net/if.h>\fP
+.SH DESCRIPTION
+Cette page de manuel décrit l'interface des sockets permettant de configurer
+les périphériques réseau.
+
+Linux prend en charge certains ioctls standard pour configurer les
+périphériques réseau. Il servent sur n'importe quel descripteur de socket,
+quelle qu'en soit la famille ou le type. Ils utilisent une structure
+\fIifreq\fP\ :
+
+.in +4n
+.nf
+struct ifreq {
+    char ifr_name[IFNAMSIZ]; /* nom interface */
+    union {
+        struct sockaddr ifr_addr;
+        struct sockaddr ifr_dstaddr;
+        struct sockaddr ifr_broadaddr;
+        struct sockaddr ifr_netmask;
+        struct sockaddr ifr_hwaddr;
+        short           ifr_flags;
+        int             ifr_ifindex;
+        int             ifr_metric;
+        int             ifr_mtu;
+        struct ifmap    ifr_map;
+        char            ifr_slave[IFNAMSIZ];
+        char            ifr_newname[IFNAMSIZ];
+        char           *ifr_data;
+    };
+};
+
+struct ifconf {
+    int                 ifc_len; /* taille tampon */
+    union {
+        char *          ifc_buf; /* adresse tampon */
+        struct ifreq   *ifc_req; /* table de structures */
+    };
+};
+.fi
+.in
+
+Normalement, l'utilisateur indique le périphérique concerné en remplissant
+\fIifr_name\fP avec le nom de l'interface. Tous les autres membres de la
+structure peuvent partager la mémoire.
+.SS Ioctls
+Si un ioctl est indiqué comme privilégié, alors il nécessite un UID effectif
+nul ou la capacité \fBCAP_NET_ADMIN\fP. Sinon, il renverra l'erreur \fBEPERM\fP.
+.TP 
+\fBSIOCGIFNAME\fP
+En utilisant \fIifr_ifindex\fP, renvoie le nom de l'interface dans
+\fIifr_name\fP. C'est le seul ioctl qui renvoie un résultant dans \fIifr_name\fP.
+.TP 
+\fBSIOCGIFINDEX\fP
+Retrouve le numéro d'interface et le place dans \fIifr_ifindex\fP.
+.TP 
+\fBSIOCGIFFLAGS\fP, \fBSIOCSIFFLAGS\fP
+.\" Do not right adjust text blocks in tables
+Lire ou écrire les attributs actifs du périphérique. \fIifr_flags\fP est un mot
+contenant un masque de bits combinant les valeurs suivantes\ :
+.na
+.TS
+tab(:);
+c s
+l l.
+Attributs de périphérique
+IFF_UP:Interface fonctionne.
+IFF_BROADCAST:Adresse de broadcast valide.
+IFF_DEBUG:Attribut interne de débogage.
+IFF_LOOPBACK:Interface de type loopback.
+IFF_POINTOPOINT:Interface de type point\-à\-point.
+IFF_RUNNING:Resources allouées.
+IFF_NOARP:T{
+Pas de protocole ARP, adresse de destination L2 absente.
+T}
+IFF_PROMISC:Interface en mode promiscuous.
+IFF_NOTRAILERS:N'utilise pas les postambules.
+IFF_ALLMULTI:Accepte tous les paquets multicast.
+IFF_MASTER:Maître d'un système de répartition de charge.
+IFF_SLAVE:Esclave d'un système de répartition de charge.
+IFF_MULTICAST:Support multicast.
+IFF_PORTSEL:Capable de sélectionner le média via ifmap.
+IFF_AUTOMEDIA:Sélection automatique du média.
+IFF_DYNAMIC:T{
+Adresse perdue quand l'interfac est arrêtée.
+T}
+IFF_LOWER_UP:T{
+Le pilote signale la disponibilité de niveau L1 (depuis Linux\ 2.6.17)
+T}
+IFF_DORMANT:T{
+Le pilote signale les someils (depuis Linux\ 2.6.17)
+T}
+IFF_ECHO:T{
+Renvoyer les paquets envoyé (depuis Linux\ 2.6.25)
+T}
+
+.TE
+.ad
+Écrire les attributs est une opération privilégiée, mais tout processus peut
+les lire.
+.TP 
+\fBSIOCGIFPFLAGS\fP, \fBSIOCSIFPFLAGS\fP
+Lire ou écrire les attributs (privés) étendus du périphérique. \fIifr_flags\fP
+est un mot contenant un masque de bits combinant les valeurs suivantes\ :
+.TS
+tab(:);
+c s
+l l.
+Attributs privés
+IFF_802_1Q_VLAN:Périphérique de type VLAN 802.1Q.
+IFF_EBRIDGE:Périphérique de pontage Ethernet.
+IFF_SLAVE_INACTIVE:Esclave de bonding inactif.
+IFF_MASTER_8023AD:Maître de bonding 802.3ad.
+IFF_MASTER_ALB:Maître de bonding balance\-alb.
+IFF_BONDING:Maître ou esclave de bonding.
+IFF_SLAVE_NEEDARP:ARP nécessaires pour la validation de l'interface.
+IFF_ISATAP:Interface de type ISATAP RFC4214.
+.TE
+.sp
+Écrire les attributs (privés) étendus du périphérique est une opération
+privilégiée.
+.TP 
+\fBSIOCGIFADDR\fP, \fBSIOCSIFADDR\fP
+Lire ou écrire l'adresse du périphérique en utilisant \fIifr_addr\fP. Écrire
+l'adresse du périphérique est une opération privilégiée. Pour assurer la
+compatibilité, seules les adresses \fBAF_INET\fP sont acceptées ou renvoyées.
+.TP 
+\fBSIOCGIFDSTADDR\fP, \fBSIOCSIFDSTADDR\fP
+Lire ou écrire l'adresse de destination d'un périphérique point\-à\-point en
+utilisant \fIifr_dstaddr\fP. Pour assurer la compatibilité, seules les adresses
+\fBAF_INET\fP sont acceptées ou renvoyées. Écrire l'adresse de destination est
+une opération privilégiée.
+.TP 
+\fBSIOCGIFBRDADDR\fP, \fBSIOCSIFBRDADDR\fP
+Lire ou écrire l'adresse de broadcast pour un périphérique en utilisant
+\fIifr_brdaddr\fP. Pour assurer la compatibilité, seules les adresses
+\fBAF_INET\fP sont acceptées ou renvoyées. Écrire l'adresse de broadcast est
+une opération privilégiée.
+.TP 
+\fBSIOCGIFNETMASK\fP, \fBSIOCSIFNETMASK\fP
+Lire ou écrire le masque réseau pour un périphérique en utilisant
+\fIifr_netmask\fP. Pour assurer la compatibilité, seules les adresses
+\fBAF_INET\fP sont acceptées ou renvoyées. Écrire le masque réseau est une
+opération privilégiée.
+.TP 
+\fBSIOCGIFMETRIC\fP, \fBSIOCSIFMETRIC\fP
+Lire ou écrire la métrique du périphérique en utilisant \fIifr_metric\fP. Ceci
+n'est pas encore implémenté, il renvoie dans \fIifr_metric\fP la valeur\ 0 si on
+essaye de lire, et renvoie l'erreur \fBEOPNOTSUPP\fP si on essaye d'écrire.
+.TP 
+\fBSIOCGIFMTU\fP, \fBSIOCSIFMTU\fP
+Lire ou écrire le MTU (Maximum Transfer Unit) du périphérique avec
+\fIifr_mtu\fP. Définir le MTU est une opération privilégiée. Définir un MTU
+trop petit peut faire planter le noyau.
+.TP 
+\fBSIOCGIFHWADDR\fP, \fBSIOCSIFHWADDR\fP
+Lire ou écrire l'adresse matérielle du périphérique en utilisant
+\fIifr_hwaddr\fP. Cette adresse matérielle est indiquée dans une structure
+\fIsockaddr\fP. \fIsa_family\fP contient le type de périphérique ARPHRD_*,
+\fIsa_data\fP est l'adresse matérielle L2 commençant par l'octet 0. Écrire
+l'adresse matérielle est une opération privilégiée.
+.TP 
+\fBSIOCSIFHWBROADCAST\fP
+Définir l'adresse de broadcast du périphérique à partir de
+\fIifr_hwaddr\fP. C'est une opération privilégiée.
+.TP 
+\fBSIOCGIFMAP\fP, \fBSIOCSIFMAP\fP
+Lire ou écrire les paramètres matériels de l'interface en utilisant
+\fIifr_map\fP. L'écriture des paramètres est une opération privilégiée.
+
+.in +4n
+.nf
+struct ifmap {
+    unsigned long   mem_start;
+    unsigned long   mem_end;
+    unsigned short  base_addr;
+    unsigned char   irq;
+    unsigned char   dma;
+    unsigned char   port;
+};
+.fi
+.in
+
+L'interprétation de la structure ifmap dépend du pilote de périphérique et
+de l'architecture.
+.TP 
+\fBSIOCADDMULTI\fP, \fBSIOCDELMULTI\fP
+Ajouter ou supprimer une adresse des filtres multicast du niveau liaison du
+périphérique en utilisant \fIifr_hwaddr\fP. Ce sont des opérations
+privilégiées. Consultez aussi \fBpacket\fP(7) pour une autre possibilité.
+.TP 
+\fBSIOCGIFTXQLEN\fP, \fBSIOCSIFTXQLEN\fP
+Lire ou écrire la taille de la file d'émission du périphérique avec
+\fIifr_qlen\fP. L'écriture de la taille de la file est une opération
+privilégiée.
+.TP 
+\fBSIOCSIFNAME\fP
+Changer le nom de l'interface indiquée dans \fIifr_name\fP pour
+\fIifr_newname\fP. C'est une opération privilégiée. Elle n'est possible que si
+l'interface n'est pas en fonctionnement.
+.TP 
+\fBSIOCGIFCONF\fP
+.\" Slaving isn't supported in 2.2
+.\" .
+.\" .TP
+.\" .BR SIOCGIFSLAVE ", " SIOCSIFSLAVE
+.\" Get or set the slave device using
+.\" .IR ifr_slave .
+.\" Setting the slave device is a privileged operation.
+.\" .PP
+.\" FIXME add amateur radio stuff.
+Renvoyer une liste des adresses (couche de transport) des interfaces. Cela
+ne fonctionne actuellement qu'avec les adresses \fBAF_INET\fP (IPv4) pour des
+raisons de compatibilité. L'utilisateur passe une structure \fIifconf\fP en
+argument à l'ioctl. Elle contient un pointeur sur une table de structures
+\fIifreq\fP dans son membre \fIifc_req\fP et la longueur en octets dans
+\fIifc_len\fP. Le noyau remplit les ifreqs avec toutes les adresses L3 des
+interfaces en fonctionnement\ : \fIifr_name\fP contient le nom de l'interface
+(eth0:1 etc.), et \fIifr_addr\fP l'adresse. Le noyau renvoie la longueur réelle
+dans \fIifc_len\fP. Si \fIifc_len\fP est égal à la longueur d'origine du tampon,
+on a probablement atteint la limite, et il est conseillé de recommencer avec
+un tampon plus grand. S'il réussit, l'ioctl renvoie 0, sinon il renvoie
+\-1. Atteindre la limite du tampon n'est pas considéré comme une erreur.
+.PP
+La plupart des protocoles prennent en charge leurs propres ioctls pour
+configurer les options d'interface spécifiques aux protocoles. Consultez les
+pages de manuel correspondantes. Pour configurer les adresses IP, consultez
+\fBip\fP(7).
+.PP
+De plus, certains périphériques prennent en charge des ioctls privés, non
+décrits ici.
+.SH NOTES
+Strictement parlant, \fBSIOCGIFCONF\fP et les autres ioctls qui n'acceptent ou
+ne renvoient que des adresses de socket \fBAF_INET\fP sont spécifiques à IP et
+devraient se trouver dans \fBip\fP(7).
+.LP
+Les noms des interfaces sans adresses, ou celles qui n'ont pas l'attribut
+\fBIFF_RUNNING\fP peuvent être trouvés dans \fI/proc/net/dev\fP.
+.LP
+Les adresses IPv6 locales se trouvent dans \fI/proc/net\fP ou grâce à
+\fBrtnetlink\fP(7).
+.SH BOGUES
+Dans la glibc\ 2.1 il manque la macro \fIifr_newname\fP dans
+\fI<net/if.h>\fP. Ajoutez les lignes suivantes dans votre programme\ :
+.sp
+.in +4n
+.nf
+#ifndef ifr_newname
+#define ifr_newname     ifr_ifru.ifru_slave
+#endif
+.fi
+.in
+.SH "VOIR AUSSI"
+\fBproc\fP(5), \fBcapabilities\fP(7), \fBip\fP(7), \fBrtnetlink\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

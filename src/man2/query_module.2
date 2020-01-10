@@ -1,0 +1,162 @@
+.\" Copyright (C) 1996 Free Software Foundation, Inc.
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" This file is distributed according to the GNU General Public License.
+.\" %%%LICENSE_END
+.\"
+.\" 2006-02-09, some reformatting by Luc Van Oostenryck; some
+.\" reformatting and rewordings by mtk
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH QUERY_MODULE 2 "27 janvier 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+query_module \- Interroger le noyau sur diverses choses relatives aux modules
+.SH SYNOPSIS
+.nf
+\fB#include <linux/module.h>\fP
+.sp
+\fBint query_module(const char *\fP\fIname\fP\fB, int \fP\fIwhich\fP\fB, void *\fP\fIbuf\fP\fB,\fP
+\fB                 size_t \fP\fIbufsize\fP\fB, size_t *\fP\fIret\fP\fB);\fP
+.fi
+
+\fIRemarque\fP\ : il n'existe pas de fonction glibc autour de cet appel
+système\ ; consultez \fBNOTES\fP.
+.SH DESCRIPTION
+\fBRemarque\fP\ : cet appel système n'est présent dans Linux qu'avant le
+noyau\ 2.6.
+
+\fBquery_module\fP()  demande au noyau des informations sur les modules
+chargeables. L'information renvoyée est placée dans un tampon pointé par
+\fIbuf\fP. L'appelant doit indiquer la taille de \fIbuf\fP dans \fIbufsize\fP. La
+nature précise et le format de l'information retournée dépendent de
+l'opération qui a été spécifiée dans \fIwhich\fP. Certaines opérations
+nécessitent un \fIname\fP pour identifier un module actuellement chargé,
+d'autres permettent que \fIname\fP soit NULL, indiquant le noyau.
+
+\fIwhich\fP peut prendre les valeurs suivantes\ :
+.TP 
+\fB0\fP
+Retourner avec succès si le noyau prend en charge \fBquery_module\fP(). Utilisé
+pour tester la disponibilité de l'appel système.
+.TP 
+\fBQM_MODULES\fP
+.\" ret is set on ENOSPC
+Renvoyer les noms de tous les modules chargés. Le tampon renvoyé consiste en
+une séquence de chaînes de caractères terminées par un octet nul\ ; \fIret\fP
+prend la valeur du nombre de modules.
+.TP 
+\fBQM_DEPS\fP
+.\" ret is set on ENOSPC
+Renvoyer le nom de tous les modules utilisés par le module indiqué. Le
+tampon renvoyé consiste en une séquence de chaînes de caractères terminées
+par un octet nul\ ; \fIret\fP prend la valeur du nombre de modules.
+.TP 
+\fBQM_REFS\fP
+.\" ret is set on ENOSPC
+Renvoyer le nom de tous les modules utilisant le module indiqué. C'est
+l'inverse de \fBQM_DEPS\fP. Le tampon renvoyé consiste en une séquence de
+chaînes de caractères terminées par un octet nul\ ; \fIret\fP prend la valeur
+du nombre de modules.
+.TP 
+\fBQM_SYMBOLS\fP
+.\" ret is set on ENOSPC
+Renvoyer les symboles et valeurs exportés par le noyau ou le module
+indiqué. Le tampon renvoyé est un tableau de structures de la forme
+suivante\ :
+.in +4n
+.nf
+
+struct module_symbol {
+    unsigned long value;
+    unsigned long name;
+};
+.fi
+.in
+.IP
+suivi par des chaînes de caractères terminées par un octet nul. La valeur de
+\fIname\fP est le décalage en caractère de la chaîne relativement au début de
+\fIbuf\fP\ ; \fIret\fP prend la valeur du nombre de modules.
+.TP 
+\fBQM_INFO\fP
+Renvoyer diverses informations sur le module indiqué. Le format du tampon de
+sortie est de la forme\ :
+.in +4n
+.nf
+
+struct module_info {
+    unsigned long address;
+    unsigned long size;
+    unsigned long flags;
+};
+.fi
+.in
+.IP
+où \fIaddress\fP est l'adresse noyau où se trouve le module, \fIsize\fP est la
+taille en octets du module et \fIflags\fP un masque de \fBMOD_RUNNING\fP,
+\fBMOD_AUTOCLEAN\fP,\ etc., qui indique l'état actuel du module (consultez le
+fichier \fIinclude/linux/module.h\fP dans les sources du noyau Linux). \fIret\fP
+prend la valeur de la taille de la structure \fImodule_info\fP.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+définit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+Au moins une adresse parmi \fIname\fP, \fIbuf\fP ou \fIret\fP est en dehors de
+l'espace d'adressage accessible du programme.
+.TP 
+\fBEINVAL\fP
+.\" Not permitted with QM_DEPS, QM_REFS, or QM_INFO.
+\fIwhich\fP est invalide ou \fIname\fP est NULL (indiquant le noyau) mais ce n'est
+pas permis avec la valeur de \fIwhich\fP.
+.TP 
+\fBENOENT\fP
+Aucun module du nom \fIname\fP n'existe.
+.TP 
+\fBENOSPC\fP
+La taille du tampon fournie est trop petite\ ; \fIret\fP prend la valeur de la
+taille minimum nécessaire.
+.TP 
+\fBENOSYS\fP
+\fBquery_module\fP() n'est pas pris en charge par cette version du noyau (par
+exemple un noyau en version\ 2.6 ou au\-delà).
+.SH VERSIONS
+.\" Removed in Linux 2.5.48
+Cet appel système n'est présent dans Linux que jusqu'au noyau\ 2.4\ ; il a
+été supprimé dans Linux\ 2.6.
+.SH CONFORMITÉ
+\fBquery_module\fP()  est spécifique à Linux.
+.SH NOTES
+Certaines renseignements, qui étaient auparavant disponibles avec
+\fBquery_module\fP(), peuvent être obtenues dans \fI/proc/modules\fP,
+\fI/proc/kallsyms\fP et les fichiers du répertoire \fI/sys/modules\fP.
+
+La glibc ne fournit pas de fonction autour de cet appel système\ ; dans
+l'éventualité où vous devriez quand même l'utiliser sur un ancien noyau,
+utilisez \fBsyscall\fP(2).
+.SH "VOIR AUSSI"
+\fBcreate_module\fP(2), \fBdelete_module\fP(2), \fBget_kernel_syms\fP(2),
+\fBinit_module\fP(2), \fBlsmod\fP(8), \fBmodinfo\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2006-2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

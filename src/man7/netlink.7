@@ -1,0 +1,404 @@
+.\" t
+.\" This man page is Copyright (c) 1998 by Andi Kleen.
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Subject to the GPL.
+.\" %%%LICENSE_END
+.\"
+.\" Based on the original comments from Alexey Kuznetsov
+.\" Modified 2005-12-27 by Hasso Tepper <hasso@estpak.ee>
+.\" $Id: netlink.7,v 1.8 2000/06/22 13:23:00 ak Exp $
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH NETLINK 7 "15 mars 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+netlink \- Communication entre noyau et espace utilisateur (AF_NETLINK)
+.SH SYNOPSIS
+.nf
+\fB#include <asm/types.h>\fP
+\fB#include <sys/socket.h>\fP
+\fB#include <linux/netlink.h>\fP
+
+\fBnetlink_socket = socket(AF_NETLINK, \fP\fItype_socket\fP\fB, \fP\fInetlink_family\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Netlink sert à transférer des informations entre les modules du noyau et les
+processus de l'espace utilisateur. Il consiste en une interface basée sur
+les sockets standards pour les processus utilisateur et d'une API interne
+pour les modules du noyau. Cette interface n'est pas documentée dans cette
+page de manuel. Il existe aussi une interface obsolète via un périphérique
+caractère netlink, réservée pour compatibilité et non documentée ici.
+
+Netlink est un service orienté datagramme. Les deux types \fBSOCK_RAW\fP et
+\fBSOCK_DGRAM\fP sont des valeurs possibles pour \fItype_socket\fP\ ; toutefois,
+le protocole netlink ne distingue pas les sockets raw et datagrammes.
+
+\fInetlink_family\fP sélectionne le module du noyau ou le groupe netlink avec
+qui communiquer. Les familles netlink actuellement affectées sont\ :
+.TP 
+\fBNETLINK_ROUTE\fP
+Reçoit les modifications de routage et de lien et peut être utilisé pour
+mettre à jour les tables de routage (IPv4 et IPv6), les adresses IP, les
+paramètres de lien, les configurations de voisins, les politiques
+d'ordonnancement, les classes de trafic et les classificateurs de paquets
+(consultez \fBrtnetlink\fP(7)).
+.TP 
+\fBNETLINK_W1\fP
+Messages du sous\-système 1 fil (1\(hywire).
+.TP 
+\fBNETLINK_USERSOCK\fP
+Réservé pour les futurs protocoles dans l'espace utilisateur.
+.TP 
+\fBNETLINK_FIREWALL\fP
+Transporte les paquets IPv4 de netfilter à l'espace utilisateur. Utilisé par
+le module noyau \fIip_queue\fP.
+.TP 
+\fBNETLINK_INET_DIAG\fP
+.\" FIXME More details on NETLINK_INET_DIAG needed.
+Surveillance de sockets INET.
+.TP 
+\fBNETLINK_NFLOG\fP
+Messages ULOG de netfilter/iptables.
+.TP 
+\fBNETLINK_XFRM\fP
+.\" FIXME More details on NETLINK_XFRM needed.
+IPsec.
+.TP 
+\fBNETLINK_SELINUX\fP
+Notifications d'événements SELinux.
+.TP 
+\fBNETLINK_ISCSI\fP
+.\" FIXME More details on NETLINK_ISCSI needed.
+Open\-iSCSI.
+.TP 
+\fBNETLINK_AUDIT\fP
+.\" FIXME More details on NETLINK_AUDIT needed.
+Audit.
+.TP 
+\fBNETLINK_FIB_LOOKUP\fP
+.\" FIXME More details on NETLINK_FIB_LOOKUP needed.
+Accès à la recherche FIB depuis l'espace utilisateur.
+.TP 
+\fBNETLINK_CONNECTOR\fP
+«\ Connector\ » du noyau. Pour plus d'informations, voir
+\fIDocumentation/connector/*\fP dans les sources du noyau Linux.
+.TP 
+\fBNETLINK_NETFILTER\fP
+.\" FIXME More details on NETLINK_NETFILTER needed.
+Sous\-système netfilter.
+.TP 
+\fBNETLINK_IP6_FW\fP
+Transporte les paquets IPv6 de netfilter à l'espace utilisateur. Utilisé par
+le module noyau \fIip6_queue\fP.
+.TP 
+\fBNETLINK_DNRTMSG\fP
+Messages de routage DECnet.
+.TP 
+\fBNETLINK_KOBJECT_UEVENT\fP
+.\" FIXME More details on NETLINK_KOBJECT_UEVENT needed.
+Messages du noyau à l'espace utilisateur.
+.TP 
+\fBNETLINK_GENERIC\fP
+Famille netlink générique pour une utilisation simplifiée de netlink.
+.PP
+Les messages netlink consistent en un flux d'octets avec un ou plusieurs
+en\-têtes \fInlmsghdr\fP et les contenus associés. Le flux d'octets ne doit être
+accédé qu'à travers les macros standards \fBNLMSG_*\fP. Consultez \fBnetlink\fP(3)
+pour plus d'informations..
+
+Pour les messages multiparties, (plusieurs en\(hytêtes \fInlmsghdr\fP avec
+contenus associés dans un même flux d'octets), tous les en\-têtes ont
+l'attribut \fBNLM_F_MULTI\fP actif, sauf le dernier en\-tête qui a le type
+\fBNLMSG_DONE\fP.
+
+Le contenu suit chaque \fInlmsghdr\fP.
+
+.in +4n
+.nf
+struct nlmsghdr {
+    __u32 nlmsg_len;    /* Longueur y compris en\-tête. */
+    __u16 nlmsg_type;   /* Type de contenu du message. */
+    __u16 nlmsg_flags;  /* Attributs supplémentaires. */
+    __u32 nlmsg_seq;    /* Numéro de séquence. */
+    __u32 nlmsg_pid;    /* Identifiant du port émetteur. */
+};
+.fi
+.in
+
+\fInlmsg_type\fP peut être l'un des types standards de message\ : \fBNLMSG_NOOP\fP
+message à ignorer, \fBNLMSG_ERROR\fP message indiquant une erreur, son contenu
+est une structure \fInlmsgerr\fP, \fBNLMSG_DONE\fP message final d'un ensemble
+multiparties.
+
+.in +4n
+.nf
+struct nlmsgerr {
+    int error;            /* errno négatif ou 0 pour acquit */
+    struct nlmsghdr msg;  /* en\(hytête du message causant l'erreur */
+};
+.fi
+.in
+
+Une famille netlink contient des types supplémentaires de message, voir la
+page de manuel appropriée, par exemple \fBrtnetlink\fP(7) pour
+\fBNETLINK_ROUTE\fP.
+.TS
+tab(:);
+l s
+lB l.
+Attributs standards dans \fInlmsg_flags\fP
+_
+NLM_F_REQUEST:Doit être positionné pour toutes les requêtes.
+NLM_F_MULTI:T{
+Le message contient plusieurs parties, et terminé par
+\fBNLMSG_DONE\fP.
+T}
+NLM_F_ACK:Envoyer un acquittement de réussite.
+NLM_F_ECHO:Renvoyer cette requête.
+.TE
+.ad
+.sp 1
+.\" No right adjustment for text blocks in tables
+.na
+.TS
+tab(:);
+l s
+lB l.
+Attributs supplémentaires pour requêtes GET
+_
+NLM_F_ROOT:Renvoyer toute la table plutôt qu'une seule entrée.
+NLM_F_MATCH:T{
+Renvoyer toutes les entrées correspondant au critère passé dans le contenu du message.
+Pas encore implémenté.
+T}
+.\" FIXME NLM_F_ATOMIC is not used any more?
+NLM_F_ATOMIC:Renvoyer une image instantanée de la table.
+NLM_F_DUMP:T{
+Macro équivalente à (NLM_F_ROOT|NLM_F_MATCH).
+T}
+.TE
+.ad
+.sp 1
+Notez que \fBNLM_F_ATOMIC\fP nécessite la capacité \fBCAP_NET_ADMIN\fP ou un UID
+effectif nul.
+.na
+.TS
+tab(:);
+l s
+lB l.
+Attributs supplémentaires pour requêtes NEW
+_
+NLM_F_REPLACE:Écraser l'objet existant.
+NLM_F_EXCL:Ne pas remplacer l'objet s'il existe déjà.
+NLM_F_CREATE:Créer un objet s'il n'existe pas.
+NLM_F_APPEND:Ajouter à la fin de la liste d'objets.
+.TE
+.ad
+.sp 1
+\fInlmsg_seq\fP et \fInlmsg_pid\fP sont utilisés pour suivre les
+messages. \fInlmsg_pid\fP montre l'origine du message. Remarquez qu'il n'y a
+pas de relation d'équivalence entre \fInlmsg_pid\fP et le PID du processus si
+le message vient d'une socket netlink. Consultez la section \fBFORMAT
+D'ADRESSE\fP pour plus d'informations.
+
+.\" FIXME Explain more about nlmsg_seq and nlmsg_pid.
+\fInlmsg_seq\fP et \fInlmsg_pid\fP sont opaques pour netlink.
+
+Netlink n'est pas un protocole fiable. Il fait de son mieux pour conduire
+les messages à destination, mais peut abandonner des messages s'il n'a pas
+assez de mémoire ou si une erreur se produit. Pour un transfert fiable,
+l'émetteur peut demander un acquittement du récepteur en activant l'attribut
+\fBNLM_F_ACK\fP. Un acquittement est un paquet \fBNLMSG_ERROR\fP avec le champ
+erreur à zéro. L'application doit envoyer des acquittements pour les
+messages elle\-même. Le noyau essaye d'envoyer un message \fBNLMSG_ERROR\fP pour
+chaque paquet échoué. Le processus utilisateur devrait suivre aussi cette
+convention.
+
+Cependant, garantir des transmissions fiables entre le noyau et l'espace
+utilisateur est impossible. Le noyau ne peut pas envoyer de message netlink
+si le tampon de la socket est plein\ : le message sera abandonné et le noyau
+et le processus utilisateur n'auront pas la même information sur l'état du
+noyau. C'est à l'application de détecter cette condition (via l'erreur
+\fBENOBUFS\fP renvoyée par \fBrecvmsg\fP(2)) et de resynchroniser.
+.SS "Formats d'adresse"
+La structure \fIsockaddr_nl\fP décrit un client netlink dans l'espace
+utilisateur ou dans le noyau. Une \fIsockaddr_nl\fP peut être soit unicast (un
+seul destinataire) soit envoyée à des groupes multicast netlink
+(\fInl_groups\fP différent de 0).
+
+.in +4n
+.nf
+struct sockaddr_nl {
+    sa_family_t     nl_family;  /* AF_NETLINK */
+    unsigned short  nl_pad;     /* Zéro. */
+    pid_t           nl_pid;     /* Identifiant de port. */
+    __u32           nl_groups;  /* Masque groupes multicast. */
+};
+.fi
+.in
+
+\fInl_pid\fP est l'adresse unicast de la socket netlink. Elle vaut toujours 0
+si la destination est dans le noyau. Pour un processus utilisateur,
+\fInl_pid\fP est généralement le PID du processus auquel appartient la socket
+de destination. Cependant, \fInl_pid\fP identifie une socket netlink, pas un
+processus. Si un processus a plusieurs sockets netlink, \fInl_pid\fP ne peut
+être égal au PID de ce processus que pour une socket au plus. Il y a deux
+façons d'assigner \fInl_pid\fP à une socket netlink. Si l'application définit
+\fInl_pid\fP avant d'appeler \fBbind\fP(2), c'est à l'application de s'assurer que
+\fInl_pid\fP est unique. Si l'application le définit à 0, le noyau se charge de
+lui donner une valeur. Le noyau donne le PID à la première socket netlink
+ouverte par le processus, et donne une valeur de \fInl_pid\fP unique à chaque
+socket netlink créée par la suite.
+
+.\" commit d629b836d151d43332492651dd841d32e57ebe3b
+\fInl_groups\fP est un masque de bits représentant un ensemble de groupes
+netlink. Chaque famille netlink a un ensemble de 32\ groupes multicast. Quand
+on appelle \fBbind\fP(2) sur la socket, le champ \fInl_groups\fP de la structure
+\fIsockaddr_nl\fP doit contenir un masque de bits des groupes que l'on désire
+écouter. La valeur par défaut pour ce champ est zéro, ce qui signifie
+qu'aucun groupe multicast ne sera reçu. Une socket peut envoyer un message
+sur n'importe quel groupe multicast en remplissant le champ \fInl_groups\fP
+avec un masque de bit des groupes visés, lors de l'appel \fBsendmsg\fP(2) ou
+lors du \fBconnect\fP(2). Seuls les processus avec un UID effectif nul ou ayant
+la capacité \fBCAP_NET_ADMIN\fP peuvent envoyer ou recevoir sur un groupe
+multicast netlink. Depuis Linux 2.6.13, les messages ne peuvent être envoyés
+en broadcast vers plusieurs groupes. Toute réponse pour un message reçu sur
+un groupe multicast doit être renvoyée au PID émetteur et au groupe
+multicast. Certains sous\-systèmes du noyau Linux peuvent en plus autoriser
+d'autres utilisateurs à envoyer des messages. Dans Linux\ 3.0, les groupes
+\fBNETLINK_KOBJECT_UEVENT\fP, \fBNETLINK_GENERIC\fP, \fBNETLINK_ROUTE\fP et
+\fBNETLINK_SELINUX\fP autorisent d'autres utilisateurs à recevoir des
+messages. Aucun groupe ne permet à d'autres utilisateurs d'envoyer des
+messages.
+.SH VERSIONS
+L'interface par socket de netlink est une nouveauté dans Linux\ 2.2.
+
+Linux\ 2.0 avait une interface netlink plus primitive, basée sur un
+périphérique caractère (toujours valable pour compatibilité). Cette
+interface obsolète n'est pas décrite ici.
+
+NETLINK_SELINUX est apparu dans Linux\ 2.6.4.
+
+NETLINK_AUDIT est apparu dans Linux\ 2.6.6.
+
+NETLINK_KOBJECT_UEVENT est apparu dans Linux\ 2.6.10.
+
+NETLINK_W1 et NETLINK_FIB_LOOKUP sont apparus dans Linux\ 2.6.13.
+
+NETLINK_INET_DIAG, NETLINK_CONNECTOR et NETLINK_NETFILTER sont apparus dans
+Linux\ 2.6.14.
+
+NETLINK_GENERIC et NETLINK_ISCSI sont apparus dans Linux\ 2.6.15.
+.SH NOTES
+Il est souvent plus facile d'utiliser netlink à travers la bibliothèque
+\fIlibnetlink\fP ou \fIlibnl\fP que via l'interface bas\-niveau du noyau.
+.SH BOGUES
+Cette page de manuel n'est pas complète.
+.SH EXEMPLE
+L'exemple suivant crée une socket netlink \fBNETLINK_ROUTE\fP qui écoute les
+groupes multicast \fBRTMGRP_LINK\fP (événements de
+création/suppression/configuration/déconfiguration d'interface réseau) et
+\fBRTMGRP_IPV4_IFADDR\fP (événements d'ajout/suppression d'adresses IPv4).
+
+.in +4n
+.nf
+struct sockaddr_nl sa;
+
+memset(&sa, 0, sizeof(sa));
+sa.nl_family = AF_NETLINK;
+sa.nl_groups = RTMGRP_LINK | RTMGRP_IPV4_IFADDR;
+
+fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
+bind(fd, (struct sockaddr *) &sa, sizeof(sa));
+.fi
+.in
+
+L'exemple suivant montre comment envoyer un message netlink au noyau
+(PID\ 0). Notez que l'application doit gérer les numéros de séquence des
+messages pour prendre en compte correctement les acquits.
+
+.in +4n
+.nf
+struct nlmsghdr *nh;    /* L'en\(hytête nlmsghdr avec contenu à envoyer. */
+struct sockaddr_nl sa;
+struct iovec iov = { nh, nh\->nlmsg_len };
+struct msghdr msg;
+
+msg = { &sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
+memset(&sa, 0, sizeof(sa));
+sa.nl_family = AF_NETLINK;
+nh\->nlmsg_pid = 0;
+nh\->nlmsg_seq = ++sequence_number;
+/* Demander une confirmation du noyau en définissant NLM_F_ACK. */
+nh\->nlmsg_flags |= NLM_F_ACK;
+
+sendmsg(fd, &msg, 0);
+.fi
+.in
+
+Le dernier exemple montre comment lire un message netlink.
+
+.in +4n
+.nf
+int len;
+char buf[4096];
+struct iovec iov = { buf, sizeof(buf) };
+struct sockaddr_nl sa;
+struct msghdr msg;
+struct nlmsghdr *nh;
+
+msg = { &sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
+len = recvmsg(fd, &msg, 0);
+
+for (nh = (struct nlmsghdr *) buf; NLMSG_OK (nh, len);
+     nh = NLMSG_NEXT (nh, len)) {
+    /* Fin d'un message multiparties. */
+    if (nh\->nlmsg_type == NLMSG_DONE)
+        return;
+
+    if (nh\->nlmsg_type == NLMSG_ERROR)
+        /* Gestion d'erreurs. */
+    ...
+
+    /* Analyser le contenu. */
+    ...
+}
+.fi
+.in
+.SH "VOIR AUSSI"
+\fBcmsg\fP(3), \fBnetlink\fP(3), \fBcapabilities\fP(7), \fBrtnetlink\fP(7)
+
+.UR ftp://ftp.inr.ac.ru\:/ip\-routing\:/iproute2*
+pour des informations
+sur libnetlink
+.UE
+
+.UR http://people.suug.ch\:/~tgr\:/libnl/
+pour des informations sur libnl
+.UE
+
+RFC\ 3549 «\ Linux Netlink as an IP Services Protocol\ »
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

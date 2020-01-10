@@ -1,0 +1,156 @@
+.\" Copyright (c) 2008, Linux Foundation, written by Michael Kerrisk
+.\" <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CLOCK_GETCPUCLOCKID 3 "4 juillet 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+clock_getcpuclockid \- Obtenir l'identifiant de l'horloge CPU d'un processus
+.SH SYNOPSIS
+\fB#include <time.h>\fP
+.nf
+.sp
+\fBint clock_getcpuclockid(pid_t \fP\fIpid\fP\fB, clockid_t *\fP\fIclock_id\fP\fB);\fP
+.fi
+.sp
+Lier avec \fI\-lrt\fP (seulement pour les versions de glibc antérieures à 2.17).
+.sp
+.ad l
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBclock_getcpuclockid\fP()\ :
+.RS 4
+_XOPEN_SOURCE\ >=\ 600 || _POSIX_C_SOURCE\ >=\ 200112L
+.RE
+.ad
+.SH DESCRIPTION
+La fonction \fBclock_getcpuclockid\fP() obtient l'identifiant de l'horloge CPU
+du processus dont l'identifiant est \fIpid\fP et le renvoie dans l'emplacement
+pointé par \fIclock_id\fP. Si \fIpid\fP est nul, alors l'identifiant de l'horloge
+CPU du processus appelant est renvoyé.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, \fBclock_getcpuclockid\fP() renvoie 0. En cas d'erreur,
+elle renvoie un numéro d'erreur positif listé dans ERRORS.
+.SH ERREURS
+.TP 
+\fBENOSYS\fP
+Le noyau ne permet pas d'obtenir l'horloge CPU d'un autre processus et
+\fIpid\fP ne correspond pas au processus appelant.
+.TP 
+\fBEPERM\fP
+L'appelant n'a pas les permissions pour accéder à l'horloge CPU du processus
+indiqué par \fIpid\fP. (Spécifiée comme une erreur optionnelle dans
+POSIX.1\-2001\ ; elle ne se produit pas sous Linux à moins que le noyau ne
+permette pas d'obtenir l'horloge CPU d'un autre processus)
+.TP 
+\fBESRCH\fP
+Il n'y a pas de processus ayant pour identifiant \fIpid\fP
+.SH VERSIONS
+La fonction \fBclock_getcpuclockid\fP() est disponible dans la glibc depuis la
+version 2.2.
+.SH ATTRIBUTS
+.SS "Multithreading (voir pthreads(7))"
+La fonction \fBclock_getcpuclockid\fP() est sûre dans un contexte multithread.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Un appel à \fBclock_gettime\fP(2) avec l'identifiant d'horloge obtenu par un
+appel à \fBclock_getcpuclockid\fP() avec un \fIpid\fP de 0 revient à utiliser
+l'identifiant d'horloge \fBCLOCK_PROCESS_CPUTIME_ID\fP.
+.SH EXEMPLE
+Le programme d'exemple ci\-dessous obtient l'identifiant de l'horloge CPU du
+processus dont l'identifiant est fourni sur la ligne de commande, puis
+utilise \fBclock_gettime\fP(2) pour obtenir l'heure de cette horloge. Un
+exemple d'exécution suit\ :
+.in +4n
+.nf
+
+$\fB ./a.out 1\fP                 # Show CPU clock of init process
+CPU\-time clock for PID 1 is 2.213466748 seconds
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#define _XOPEN_SOURCE 600
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <time.h>
+
+int
+main(int argc, char *argv[])
+{
+    clockid_t clockid;
+    struct timespec ts;
+
+    if (argc != 2) {
+        fprintf(stderr, "%s <process\-ID>\en", argv[0]);
+	exit(EXIT_FAILURE);
+    }
+
+    if (clock_getcpuclockid(atoi(argv[1]), &clockid) != 0) {
+	perror("clock_getcpuclockid");
+	exit(EXIT_FAILURE);
+    }
+
+    if (clock_gettime(clockid, &ts) == \-1) {
+	perror("clock_gettime");
+	exit(EXIT_FAILURE);
+    }
+
+    printf("CPU\-time clock for PID %s is %ld.%09ld seconds\en",
+	    argv[1], (long) ts.tv_sec, (long) ts.tv_nsec);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBclock_getres\fP(2), \fBtimer_create\fP(2), \fBpthread_getcpuclockid\fP(3),
+\fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

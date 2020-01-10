@@ -1,0 +1,285 @@
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\" and Copyright (c) 1998 Andries Brouwer (aeb@cwi.nl)
+.\" and Copyright (c) 2007, 2008 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified 1993-07-21 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1996-07-09 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 1996-11-06 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1997-05-18 by Michael Haardt <michael@cantor.informatik.rwth-aachen.de>
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" 2007-07-08, mtk, added an example program; updated SYNOPSIS
+.\" 2008-05-08, mtk, Describe rules governing ownership of new files
+.\"     (bsdgroups versus sysvgroups, and the effect of the parent
+.\"     directory's set-group-ID permission bit).
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CHOWN 2 "22 novembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+chown, fchown, lchown \- Modifier l'appartenance d'un fichier
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBint chown(const char *\fP\fIpath\fP\fB, uid_t \fP\fIowner\fP\fB, gid_t \fP\fIgroup\fP\fB);\fP
+.br
+\fBint fchown(int \fP\fIfd\fP\fB, uid_t \fP\fIowner\fP\fB, gid_t \fP\fIgroup\fP\fB);\fP
+.br
+\fBint lchown(const char *\fP\fIpath\fP\fB, uid_t \fP\fIowner\fP\fB, gid_t \fP\fIgroup\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBfchown\fP(), \fBlchown\fP()\ :
+.PD 0
+.ad l
+.RS 4
+_BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.br
+|| /* Depuis la glibc 2.12\ : */ _POSIX_C_SOURCE\ >=\ 200809L
+.RE
+.ad
+.PD
+.SH DESCRIPTION
+Ces appels système modifient le propriétaire et le groupe d'un fichier. Ils
+diffèrent seulement dans la façon dont le fichier est spécifié\ :
+.IP * 2
+\fBchown\fP() modifie l'appartenance du fichier indiqué dans \fIpath\fP, qui est
+déréférencé s'il s'agit d'un lien symbolique.
+.IP *
+\fBfchown\fP() modifie l'appartenance du fichier référencé par le descripteur
+de fichier ouvert \fIfd\fP.
+.IP *
+\fBlchown\fP() est comme \fBchown\fP(), mais ne déréférence pas les liens
+symboliques.
+.PP
+Seul un processus privilégié (sous Linux\ : un processus qui a la capacité
+\fBCAP_CHOWN\fP) peut modifier le propriétaire d'un fichier. Le propriétaire
+peut modifier le groupe du fichier pour n'importe quel groupe auquel il
+appartient. Un processus privilégié (sous Linux\ : avec la capacité
+\fBCAP_CHOWN\fP) peut modifier le groupe arbitrairement.
+
+Si l'argument \fIowner\fP ou \fIgroup\fP vaut \-1, l'élément correspondant n'est
+pas changé.
+
+.\" In Linux 2.0 kernels, superuser was like everyone else
+.\" In 2.2, up to 2.2.12, these bits were not cleared for superuser.
+.\" Since 2.2.13, superuser is once more like everyone else.
+Quand le propriétaire, ou le groupe d'un fichier exécutable sont modifiés
+par un utilisateur ordinaire, les bits \fBS_ISUID\fP et \fBS_ISGID\fP sont
+effacés. POSIX ne précise pas s'il faut agir de même lorsque c'est le
+superutilisateur qui invoque \fBchown\fP(). Le comportement de Linux dans ce
+cas dépend de la version du noyau. Si le fichier n'est pas exécutable par
+les membres de son groupe (c'est\-à\-dire un fichier pour lequel le bit
+\fBS_IXGRP\fP n'est pas positionné), le bit \fBS_ISGID\fP indique la présence d'un
+verrou obligatoire sur le fichier, et n'est donc pas effacé par un
+\fBchown\fP().
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+Suivant le type de système de fichiers, plusieurs erreurs peuvent être
+renvoyées. Les plus courantes pour \fBchown\fP() sont les suivantes\ :
+.TP 
+\fBEACCES\fP
+L'accès à un élément du chemin est interdit. (Voir aussi
+\fBpath_resolution\fP(7).)
+.TP 
+\fBEFAULT\fP
+\fIpath\fP pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBELOOP\fP
+\fIpath\fP contient une référence circulaire (à travers un lien symbolique)
+.TP 
+\fBENAMETOOLONG\fP
+\fIpath\fP est trop long.
+.TP 
+\fBENOENT\fP
+Le fichier n'existe pas.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.TP 
+\fBENOTDIR\fP
+Un élément du chemin d'accès n'est pas un répertoire.
+.TP 
+\fBEPERM\fP
+Le processus appelant n'a pas les permissions nécessaires (voir plus haut)
+pour modifier le propriétaire et/ou le groupe.
+.TP 
+\fBEROFS\fP
+Le fichier spécifié réside sur un système de fichiers en lecture seule.
+.PP
+Les erreurs courantes pour \fBfchown\fP() sont les suivantes\ :
+.TP 
+\fBEBADF\fP
+Le descripteur de fichier est invalide.
+.TP 
+\fBEIO\fP
+Une erreur d'entrée\-sortie bas niveau s'est produite durant la modification
+de l'inœud.
+.TP 
+\fBENOENT\fP
+Voir plus haut.
+.TP 
+\fBEPERM\fP
+Voir plus haut.
+.TP 
+\fBEROFS\fP
+Voir plus haut.
+.SH CONFORMITÉ
+BSD\ 4.4, SVr4, POSIX.1\-2001.
+
+.\" chown():
+.\" SVr4 documents EINVAL, EINTR, ENOLINK and EMULTIHOP returns, but no
+.\" ENOMEM.  POSIX.1 does not document ENOMEM or ELOOP error conditions.
+.\" fchown():
+.\" SVr4 documents additional EINVAL, EIO, EINTR, and ENOLINK
+.\" error conditions.
+La version BSD\ 4.4 ne peut être appelée que par le superutilisateur (ce qui
+signifie qu'un utilisateur ordinaire ne peut pas céder la propriété d'un
+fichier).
+.SH NOTES
+Les appels système \fBchown\fP(), \fBfchown\fP() et \fBlchown\fP() originaux de Linux
+ne géraient que des identifiants d'utilisateur et de groupe sur 16\ bits. En
+conséquence, Linux\ 2.4 a ajouté \fBchown32\fP(), \fBfchown32\fP() et \fBlchown32\fP()
+qui prennent en charge des identifiants 32\ bits. Les fonctions \fBchown\fP(),
+\fBfchown\fP() et \fBlchown\fP() de la glibc qui les encapsulent gèrent de manière
+transparente ces différences entre noyaux.
+
+Lorsqu'un nouveau fichier est créé (par exemple avec \fBopen\fP(2) ou
+\fBmkdir\fP(2)), son propriétaire est le même que l'UID du système de fichiers
+du processus créateur. Le groupe du fichier dépend de plusieurs facteurs,
+incluant le type du système de fichiers, les options utilisées pour monter
+le système de fichiers, et si le bit de permission SGID est activé pour le
+répertoire parent. Si le système de fichiers accepte les options \fI\-o\ grpid\fP
+(ou de façon identique \fI\-o\ bsdgroups\fP) et \fI\-o\ nogrpid\fP (ou de façon
+identique \fI\-o\ sysvgroups\fP) de \fBmount\fP(8), les règles sont alors les
+suivantes\ :
+.IP * 2
+Si le système de fichiers est monté avec l'option \fI\-o\ grpid\fP, le groupe du
+nouveau fichier est celui du répertoire parent.
+.IP *
+Si le système de fichiers est monté avec l'option \fI\-o\ nogrpid\fP et si le
+bit SGID est déactivé pour le répertoire parent, le groupe du nouveau
+fichier est le GID du système de fichiers du processus.
+.IP *
+Si le système de fichiers est monté avec l'option \fI\-o\ nogrpid\fP et si le
+bit SGID est activé pour le répertoire parent, le groupe du nouveau fichier
+est celui du répertoire parent.
+.PP
+Dans Linux\ 2.6.25, les options de montage \fI\-o\ grpid\fP et \fI\-o\ nogrpid\fP
+sont acceptées par ext2, ext3, ext4 et XFS. Les systèmes de fichiers qui
+n'acceptent pas ces options de montage suivent les règles de l'option \fI\-o\ nogrpid\fP.
+.PP
+La sémantique de \fBchown\fP() est volontairement modifiée sur les systèmes de
+fichiers NFS où la correspondance d'UID est activée. De plus, c'est la
+sémantique de tous les appels système accédant au contenu des fichiers qui
+est modifiée, puisque \fBchown\fP() peut déclencher une interdiction immédiate
+d'accès à des fichiers déjà ouverts. Un cache situé du côté client peut
+induire un délai entre l'instant où l'appartenance du fichier est modifiée
+et le moment où l'accès est effectivement accordé à l'utilisateur.
+
+Dans les versions de Linux antérieures à 2.1.81 (sauf 2.1.46), \fBchown\fP() ne
+suivait pas les liens symboliques. Depuis cette version, \fBchown\fP() suit les
+liens symboliques, et il existe un nouvel appel système, \fBlchown\fP(), qui ne
+les suit pas. Depuis Linux 2.1.86, ce nouvel appel système (qui a donc la
+même sémantique que l'ancien \fBchown\fP()) a pris son numéro de syscall, et
+\fBchown\fP() a reçu un nouveau numéro.
+.SH EXEMPLE
+.PP
+Le programme suivant change le propriétaire d'un fichier fourni comme second
+paramètre de la ligne de commande, en l'attribuant au propriétaire fourni en
+premier argument. Le nouveau propriétaire peut être précisé par une valeur
+numérique ou par le nom de l'utilisateur (qui sera converti en UID avec
+\fBgetpwnam\fP(3) pour rechercher dans le fichier des mots de passe du système.
+.nf
+
+#include <pwd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int
+main(int argc, char *argv[])
+{
+    uid_t uid;
+    struct passwd *pwd;
+    char *endptr;
+
+    if (argc != 3 || argv[1][0] == \(aq\e0\(aq) {
+        fprintf(stderr, "%s <propriétaire> <fichier>\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    uid = strtol(argv[1], &endptr, 10);  /* Permet une chaîne numérique */
+
+    if (*endptr != \(aq\e0\(aq) {         /* N'était pas une chaîne numérique */
+        pwd = getpwnam(argv[1]);    /* Essai de récupérer l'UID de l'utilisateur */
+        if (pwd == NULL) {
+            perror("getpwnam");
+            exit(EXIT_FAILURE);
+        }
+
+        uid = pwd\->pw_uid;
+    }
+
+    if (chown(argv[2], uid, \-1) == \-1) {
+        perror("chown");
+        exit(EXIT_FAILURE);
+    }
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBchmod\fP(2), \fBfchownat\fP(2), \fBflock\fP(2), \fBpath_resolution\fP(7),
+\fBsymlink\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

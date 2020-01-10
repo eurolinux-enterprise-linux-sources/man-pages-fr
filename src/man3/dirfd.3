@@ -1,0 +1,113 @@
+.\" Copyright (C) 2002 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH DIRFD 3 "19 avril 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+dirfd \- Obtenir un descripteur de fichier d'un répertoire
+.SH SYNOPSIS
+\fB#include <sys/types.h>\fP
+.br
+\fB#include <dirent.h>\fP
+.sp
+\fBint dirfd(DIR *\fP\fIdirp\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBdirfd\fP()\ :
+.br
+.RS 4
+.PD 0
+.ad l
+_BSD_SOURCE || _SVID_SOURCE
+.br
+|| /* Depuis la glibc 2.10\ : */
+.RS 4
+(_POSIX_C_SOURCE\ >=\ 200809L || _XOPEN_SOURCE\ >=\ 700)
+.RE
+.PD
+.RE
+.ad
+.SH DESCRIPTION
+La fonction \fBdirfd\fP() renvoie le descripteur de fichier associé au flux du
+répertoire \fIdirp\fP.
+.LP
+Ce descripteur est celui qui utilisé en interne par le flux du
+répertoire. Il est donc seulement utile pour les fonctions qui ne dépendent
+pas ou n'altèrent pas la position du fichier, comme \fBfstat\fP(2) et
+\fBfchdir\fP(2). Il est automatiquement fermé lorsque \fBclosedir\fP(3) est
+appelée.
+.SH "VALEUR RENVOYÉE"
+Si elle réussit, cette fonction renvoie un descripteur de fichier non
+négatif. En cas d'erreur, \-1 est renvoyé, et \fIerrno\fP contient le code
+d'erreur.
+.SH ERREURS
+.\" glibc 2.8
+POSIX.1.2008 définit deux erreurs, aucune d'elles n'est retournée par
+l'implémentation actuelle.
+.TP 
+\fBEINVAL\fP
+\fIdirp\fP ne fait pas référence à un flux répertoire valable.
+.TP 
+\fBENOTSUP\fP
+L'implémentation ne gère pas l'association d'un descripteur de fichier avec
+un répertoire.
+.SH CONFORMITÉ
+.\" It is present in libc5 (since 5.1.2) and in glibc2.
+POSIX.1.2008. Cette fonction est une extension BSD\ ; présente dans
+4.3BSD.Reno, non présente dans 4.2BSD.
+.SH NOTES
+Le prototype de \fBdirfd\fP() n'est disponible que si \fB_BSD_SOURCE\fP ou
+\fB_SVID_SOURCE\fP est définie.
+.SH "VOIR AUSSI"
+\fBopen\fP(2), \fBclosedir\fP(3), \fBopendir\fP(3), \fBreaddir\fP(3), \fBrewinddir\fP(3),
+\fBscandir\fP(3), \fBseekdir\fP(3), \fBtelldir\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

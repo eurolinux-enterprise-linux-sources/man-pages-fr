@@ -1,0 +1,187 @@
+.\" This manpage is Copyright (C) 2006 Jens Axboe
+.\" and Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SPLICE 2 "4 mai 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+splice \- Copier des données vers/depuis un tube
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP         /* Consultez feature_test_macros(7) */
+\fB#include <fcntl.h>\fP
+
+.\" Return type was long before glibc 2.7
+\fBssize_t splice(int \fP\fIfd_in\fP\fB, loff_t *\fP\fIoff_in\fP\fB, int \fP\fIfd_out\fP\fB,\fP
+\fB               loff_t *\fP\fIoff_out\fP\fB, size_t \fP\fIlen\fP\fB, unsigned int \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBsplice\fP() déplace des données entre deux descripteurs de fichier sans les
+copier entre l'espace d'adressage noyau et l'espace utilisateur. Jusqu'à
+\fIlen\fP octets de données sont transférés du descripteur de fichier \fIfd_in\fP
+au descripteur de fichier \fIfd_out\fP, où l'un des descripteurs doit
+correspondre à un tube.
+
+Si \fIfd_in\fP correspond à un tube, alors \fIoff_in\fP doit être NULL. Si
+\fIfd_in\fP ne correspond pas à un tube et \fIoff_in\fP est NULL, alors les octets
+sont lus depuis \fIfd_in\fP à partir de la position courante dans le fichier et
+la position courante est mise à jour de façon appropriée. Si \fIfd_in\fP ne
+correspond pas à un tube et \fIoff_in\fP n'est pas NULL, alors \fIoff_in\fP doit
+pointer vers un tampon qui indique la position à partir de laquelle les
+données seront lues dans \fIfd_in\fP\ ; dans ce cas, la position courante dans
+\fIfd_in\fP n'est pas modifiée. Il en va de même pour \fIfd_out\fP et \fIoff_out\fP.
+
+L'argument \fIflags\fP est constitué par un \fIOU\fP binaire entre une ou
+plusieurs des valeurs suivantes\ :
+.TP  1.9i
+\fBSPLICE_F_MOVE\fP
+Essayer de déplacer des pages au lieu de les copier. Ceci n'est qu'un
+conseil au noyau\ : des pages peuvent quand même être copiées si le noyau ne
+peut pas déplacer les pages du tube, ou si les tampons du tube ne
+correspondent pas à des pages entières. La première implémentation de cet
+attribut comportait un bogue\ : ainsi, à partir de Linux 2.6.21 il ne fait
+rien (mais est toujours permis dans un appel à \fBsplice\fP())\ ; dans le futur,
+une implémentation correcte pourra être restaurée.
+.TP 
+\fBSPLICE_F_NONBLOCK\fP
+Ne pas bloquer sur les entrées\-sorties. Cela rend les opérations de splice
+sur le tube non bloquantes, mais \fBsplice\fP() peut tout de même bloquer car
+les descripteurs de fichier sur lesquels il opère peuvent bloquer (sauf
+s'ils ont l'attribut \fBO_NONBLOCK\fP).
+.TP 
+\fBSPLICE_F_MORE\fP
+Des données supplémentaires seront copiées plus tard. C'est un indice utile
+lorsque \fIfd_out\fP correspond à une socket (voir aussi la description de
+\fBMSG_MORE\fP dans \fBsend\fP(2), et la description de \fBTCP_CORK\fP dans
+\fBtcp\fP(7)).
+.TP 
+\fBSPLICE_F_GIFT\fP
+N'a pas d'effet pour \fBsplice\fP()\ ; consultez \fBvmsplice\fP(2).
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, \fBsplice\fP() renvoie le nombre d'octets raccordés depuis
+ou vers le tube. Une valeur de retour de 0 signifie qu'il n'y avait pas de
+données à transférer, et qu'il serait insensé de bloquer, parce qu'il n'y a
+pas d'écrivain connecté à l'autre bout du tube correspondant à \fIfd_in\fP.
+
+En cas d'erreur, \fBsplice\fP() renvoie \-1 et \fIerrno\fP est positionné pour
+indiquer la cause de l'erreur.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+Au moins un des descripteurs de fichier n'est pas valide, ou n'a pas le mode
+de lecture ou d'écriture approprié.
+.TP 
+\fBEINVAL\fP
+.\" The append-mode error is given since 2.6.27; in earlier kernels,
+.\" splice() in append mode was broken
+Le système de fichiers cible ne gère pas le splice\ ; le fichier cible est
+ouvert en mode ajout\ ; aucun des descripteurs de fichiers ne correspond à un
+tube\ ; ou bien une position a été indiquée pour un périphérique sur lequel
+le déplacement est impossible.
+.TP 
+\fBENOMEM\fP
+Plus de mémoire disponible.
+.TP 
+\fBESPIPE\fP
+\fIoff_in\fP ou \fIoff_out\fP est différent de NULL, mais le descripteur de
+fichier correspondant pointe vers un tube.
+.SH VERSIONS
+L'appel système \fBsplice\fP() est apparu dans Linux\ 2.6.17, la glibc le gère
+depuis la version\ 2.5.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux.
+.SH NOTES
+Les trois appels système \fBsplice\fP(), \fBvmsplice\fP(2) et \fBtee\fP(2)
+fournissent aux programmes utilisateur le contrôle complet d'un tampon
+arbitraire du noyau, implémenté côté noyau en utilisant le même type de
+tampons que pour les tubes. Ces appels système assurent les tâches
+suivantes\ :
+.TP  1.2i
+\fBsplice\fP()
+déplace des données depuis le tampon vers un descripteur de fichier
+arbitraire, ou vice versa, ou bien depuis un tampon vers un autre.
+.TP 
+\fBtee\fP(2)
+«\ copie\ » les données d'un tampon vers un autre.
+.TP 
+\fBvmsplice\fP(2)
+«\ copie\ » des données de l'espace utilisateur vers le tampon.
+.PP
+.\"
+.\" Linus: Now, imagine using the above in a media server, for example.
+.\" Let's say that a year or two has passed, so that the video drivers
+.\" have been updated to be able to do the splice thing, and what can
+.\" you do? You can:
+.\"
+.\" - splice from the (mpeg or whatever - let's just assume that the video
+.\"   input is either digital or does the encoding on its own - like they
+.\"   pretty much all do) video input into a pipe (remember: no copies - the
+.\"   video input will just DMA directly into memory, and splice will just
+.\"   set up the pages in the pipe buffer)
+.\" - tee that pipe to split it up
+.\" - splice one end to a file (ie "save the compressed stream to disk")
+.\" - splice the other end to a real-time video decoder window for your
+.\"   real-time viewing pleasure.
+.\"
+.\" Linus: Now, the advantage of splice()/tee() is that you can
+.\" do zero-copy movement of data, and unlike sendfile() you can
+.\" do it on _arbitrary_ data (and, as shown by "tee()", it's more
+.\" than just sending the data to somebody else: you can duplicate
+.\" the data and choose to forward it to two or more different
+.\" users - for things like logging etc.).
+.\"
+Bien qu'il soit question de copie, les vraies copies sont en général
+évitées. Le noyau implémente en effet le tampon d'un tube comme un ensemble
+de pointeurs vers des pages de mémoire noyau pouvant être référencées
+plusieurs fois. Le noyau crée des «\ copies\ » des pages dans un tampon en
+créant de nouveaux pointeurs (pour le tampon de sortie) pointant vers les
+pages, et en incrémentant les compteurs de références des pages\ : seuls les
+pointeurs sont copiés, et pas les pages du tampon.
+.SH EXEMPLE
+Consultez \fBtee\fP(2).
+.SH "VOIR AUSSI"
+\fBsendfile\fP(2), \fBtee\fP(2), \fBvmsplice\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

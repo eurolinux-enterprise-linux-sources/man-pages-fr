@@ -1,0 +1,144 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   OpenGroup's Single UNIX specification
+.\"	http://www.UNIX-systems.org/online.html
+.\"
+.\" 2000-06-30 correction by Yuichi SATO <sato@complex.eng.hokudai.ac.jp>
+.\" 2000-11-15 aeb, fixed prototype
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ICONV 3 "10 mai 2012" GNU "Manuel du programmeur Linux"
+.SH NOM
+iconv \- Conversion de jeux de caractères
+.SH SYNOPSIS
+.nf
+\fB#include <iconv.h>\fP
+.sp
+\fBsize_t iconv(iconv_t \fP\fIcd\fP\fB,\fP
+\fB             char **\fP\fIinbuf\fP\fB, size_t *\fP\fIinbytesleft\fP\fB,\fP
+\fB             char **\fP\fIoutbuf\fP\fB, size_t *\fP\fIoutbytesleft\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBiconv\fP() convertit une séquence de caractères dans un jeu de
+caractères en une séquence de caractères dans un autre jeu de caractères. Le
+paramètre \fIcd\fP est un descripteur de conversion (en anglais \fIconversion
+descriptor\fP), créé préalablement par un appel à \fBiconv_open\fP(3)\ ; le
+descripteur de conversion définit les jeux de caractères qu'\fBiconv\fP()
+utilise pour cette conversion. Le paramètre \fIinbuf\fP est l'adresse d'une
+variable qui pointe vers le premier caractère de la séquence d'entrée\ ; le
+paramètre \fIoutbuf\fP est l'adresse d'une variable qui pointe vers le premier
+octet disponible dans le tampon de sortie, et \fIoutbytesleft\fP indique le
+nombre d'octets disponibles dans le tampon de sortie.
+.PP
+Cette routine est principalement utilisée quand \fIinbuf\fP et \fI*inbuf\fP sont
+non NULL. Dans ce cas, \fBiconv\fP() convertit la séquence multioctet débutant
+en \fI*inbuf\fP en une séquence multioctet commençant en \fI*outbuf\fP. Au plus
+\fI*inbytesleft\fP octets seront lus, en partant de \fI*inbuf\fP. Au plus
+\fI*outbytesleft\fP octets seront écrits en commençant en \fI*outbuf\fP.
+.PP
+La fonction \fBiconv\fP() convertit un caractère multioctet à la fois. Pour
+chaque conversion, elle augmente \fI*inbuf\fP et diminue \fI*inbytesleft\fP du
+nombre d'octets d'entrée convertis, et elle augmente \fI*outbuf\fP et diminue
+\fI*outbytesleft\fP du nombre d'octets de sortie écrits et met à jour l'état de
+conversion contenu au sein de \fIcd\fP. La conversion peut s'arrêter pour
+quatre raisons\ :
+.IP 1. 3
+Une séquence multioctet invalide a été trouvée en entrée. Dans ce cas,
+\fIerrno\fP est définie à \fBEILSEQ\fP et la fonction renvoie \fI(size_t)\ \-1\fP. Ensuite, \fI*inbuf\fP pointera sur le début de la séquence multioctet
+invalide.
+.IP 2.
+La séquence d'entrée multioctet a été convertie entièrement, c'est\-à\-dire
+que \fI*inbytesleft\fP est descendu jusqu'à zéro. Dans ce cas, \fBiconv\fP()
+renvoie le nombre de conversions irréversibles réalisées durant l'appel.
+.IP 3.
+Une séquence multioctet incomplète a été trouvée alors que la séquence
+d'entrée se terminait. Dans ce cas, \fIerrno\fP est définie à \fBEINVAL\fP et la
+fonction renvoie \fI(size_t)\ \-1\fP. Ensuite, \fI*inbuf\fP pointera sur le début
+de la séquence multioctet incomplète.
+.IP 4.
+Le tampon de sortie n'a plus de place pour stocker le prochain caractère
+converti. Dans ce cas, \fIerrno\fP contiendra \fBE2BIG\fP et la fonction renverra
+\fI(size_t)\ \-1\fP.
+.PP
+Une autre possibilité se présente quand \fIinbuf\fP ou \fI*inbuf\fP est NULL, mais
+si ni \fIoutbuf\fP, ni \fI*outbuf\fP ne le sont. Dans ce cas, la fonction
+\fBiconv\fP() essaye de mettre l'état de conversion de \fIcd\fP dans l'état
+initial, et de mémoriser la séquence de décalage correspondante dans
+\fI*outbuf\fP. Au maximum \fI*outbytesleft\fP octets seront écrits en commençant
+en \fI*outbuf\fP. Si le tampon de sortie ne contient pas assez de place pour
+réinitialiser la séquence, \fIerrno\fP est définie à \fBE2BIG\fP et la fonction
+renvoie \fI(size_t)\ \-1\fP. Sinon, elle augmente \fI*outbuf\fP et diminue
+\fI*outbytesleft\fP du nombre d'octets écrits.
+.PP
+Un troisième cas est possible, si \fIinbuf\fP ou \fI*inbuf\fP est NULL, et si
+\fIoutbuf\fP ou \fI*outbuf\fP est NULL. Dans ce cas, la fonction \fBiconv\fP()
+replace l'état de conversion \fIcd\fP dans l'état de conversion initial.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBiconv\fP() renvoie le nombre de caractères convertis de manière
+irréversible durant l'appel. Les conversions réversibles ne sont pas prises
+en compte. En cas d'erreur la fonction remplit \fIerrno\fP et renvoie
+\fI(size_t)\ \-1\fP.
+.SH ERREURS
+Les erreurs suivantes peuvent se produire, entre autres\ :
+.TP 
+\fBE2BIG\fP
+Il n'y a pas assez de place dans \fI*outbuf\fP.
+.TP 
+\fBEILSEQ\fP
+Une séquence multioctet invalide a été trouvée en entrée.
+.TP 
+\fBEINVAL\fP
+Une séquence multioctet incomplète a été trouvée en entrée.
+.SH VERSIONS
+Cette fonction est disponible dans la glibc depuis la version\ 2.1.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Bien qu'\fIinbuf\fP et \fIoutbuf\fP soient déclarés de type \fIchar\ **\fP, cela ne
+signifie pas que les objets vers lesquels ils pointent puissent être
+interprétés comme des chaînes de caractères C ou comme des tableaux de
+caractères\ ; l'interprétation des séquences d'octets comme caractères est
+gérée de manière interne par les fonctions de conversion. Dans certains jeux
+de caractères, un octet nul peut être une partie valide d'un caractère
+multioctet.
+
+Celui qui appelle \fBiconv\fP() doit s'assurer que les pointeurs passés à la
+fonction permettent d'accéder aux caractères dans le jeu de caractères
+approprié. Il faut en particulier assurer un alignement correct sur les
+plateformes qui ont des exigences très strictes en matière d'alignement.
+.SH "VOIR AUSSI"
+\fBiconv_close\fP(3), \fBiconv_open\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

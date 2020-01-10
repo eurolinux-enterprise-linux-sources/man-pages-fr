@@ -1,0 +1,138 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 21:48:06 1993 by Rik Faith (faith@cs.unc.edu)
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETNETENT 3 "19 août 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+getnetent, getnetbyname, getnetbyaddr, setnetent, endnetent \- Lire les
+informations réseau
+.SH SYNOPSIS
+.nf
+\fB#include <netdb.h>\fP
+.sp
+\fBstruct netent *getnetent(void);\fP
+.sp
+\fBstruct netent *getnetbyname(const char *\fP\fIname\fP\fB);\fP
+.sp
+\fBstruct netent *getnetbyaddr(uint32_t \fP\fInet\fP\fB, int \fP\fItype\fP\fB);\fP
+.sp
+\fBvoid setnetent(int \fP\fIstayopen\fP\fB);\fP
+.sp
+\fBvoid endnetent(void);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBgetnetent\fP() lit l'entrée suivante de la base de données
+réseau, et renvoie un pointeur sur une structure \fInetent\fP contenant les
+différents champs de l'entrée. Une connexion vers la base de données est
+créée si nécessaire.
+.PP
+La fonction \fBgetnetbyname\fP() renvoie une structure \fInetent\fP de l'entrée de
+la base de données qui correspond au nom de réseau \fIname\fP.
+.PP
+La fonction \fBgetnetbyaddr\fP() renvoie une structure \fInetent\fP de l'entrée de
+la base de données qui correspond au numéro de réseau \fInet\fP de type
+\fItype\fP. L'argument \fInet\fP doit être dans l'ordre des octets de l'hôte.
+.PP
+La fonction \fBsetnetent\fP() ouvre un connexion à une base données et définit
+la prochaine entrée à l'entrée suivante. Si \fIstayopen\fP est non nul, alors
+la connexion à la base de ne sera pas fermée entre deux appels aux fonctions
+\fBgetnet*\fP().
+.PP
+La fonction \fBendnetent\fP()ferme la connexion à la base de données.
+.PP
+La structure \fInetent\fP est définie dans \fI<netdb.h>\fP ainsi\ :
+.sp
+.in +4n
+.nf
+struct netent {
+    char      *n_name;     /* Nom officiel du réseau */
+    char     **n_aliases;  /* Liste d'alias */
+    int        n_addrtype; /* Type d'adresse réseau */
+    uint32_t   n_net;      /* Adresse du réseau */
+}
+.fi
+.in
+.PP
+Les membres de la structures \fInetent\fP sont\ :
+.TP 
+\fIn_name\fP
+Le nom officiel du réseau.
+.TP 
+\fIn_aliases\fP
+Une liste terminée par NULL, d'alternatives au nom du réseau.
+.TP 
+\fIn_addrtype\fP
+Le type d'adresse du réseau\ ; toujours \fBAF_INET\fP.
+.TP 
+\fIn_net\fP
+L'adresse du réseau, utilisant l'ordre des octets de l'hôte.
+.SH "VALEUR RENVOYÉE"
+Les fonctions \fBgetnetent\fP(), \fBgetnetbyname\fP() et \fBgetnetbyaddr\fP()
+renvoient un pointeur vers une structure \fInetent\fP allouée statiquement ou
+un pointeur NULL si une erreur se produit, ou si la fin du fichier est
+atteinte.
+.SH FICHIERS
+.TP 
+\fI/etc/networks\fP
+Base de données des réseaux
+.SH CONFORMITÉ
+BSD\ 4.3, POSIX.1\-2001.
+.SH NOTES
+Pour les glibc antérieurs à la version 2.2, l'argument \fInet\fP de
+\fBgetnetbyaddr\fP() était de type \fIlong\fP.
+.SH "VOIR AUSSI"
+.\" .BR networks (5)
+\fBgetnetent_r\fP(3), \fBgetprotoent\fP(3), \fBgetservent\fP(3)
+.br
+RFC\ 1101
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

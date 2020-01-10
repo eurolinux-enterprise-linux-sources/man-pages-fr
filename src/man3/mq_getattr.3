@@ -1,0 +1,124 @@
+.\" t
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MQ_GETATTR 3 "29 août 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+mq_getattr, mq_setattr \- Lire et écrire les attributs d'une file de messages
+.SH SYNOPSIS
+.nf
+\fB#include <mqueue.h>\fP
+.sp
+\fBint mq_getattr(mqd_t \fP\fImqdes\fP\fB, struct mq_attr *\fP\fIattr\fP\fB);\fP
+
+\fBint mq_setattr(mqd_t \fP\fImqdes\fP\fB, struct mq_attr *\fP\fInewattr\fP\fB,\fP
+\fB                 struct mq_attr *\fP\fIoldattr\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP.
+.SH DESCRIPTION
+Les fonctions \fBmq_getattr\fP() et \fBmq_setattr\fP() extraient et modifient les
+attributs de la file de messages référencée par le descripteur \fImqdes\fP.
+
+\fBmq_getattr\fP() renvoie une structure \fImq_attr\fP dans le tampon pointé par
+\fIattr\fP. Cette structure est définie comme suit\ :
+.in +4n
+.nf
+
+struct mq_attr {
+    long mq_flags;       /* Drapeaux : 0 or O_NONBLOCK */
+    long mq_maxmsg;      /* Max. # de messages dans la file */
+    long mq_msgsize;     /* Max de la taille du message (octets) */
+    long mq_curmsgs;     /* # de messages actuellement dans la file */
+};
+.fi
+.in
+.PP
+Le champ \fImq_flags\fP contient des drapeaux associés à la description de la
+file de messages ouverte. Ce champ est initialisé lorsque la file est créée
+avec \fBmq_open\fP(3). Le seul drapeau qui peut apparaître dans ce champ est
+\fBO_NONBLOCK\fP.
+
+Les champs \fImq_maxmsg\fP et \fImq_msgsize\fP sont définis lorsque la file de
+messages est créée avec \fBmq_open\fP(3). Le champ \fImq_maxmsg\fP est le nombre
+maximal de messages qui peuvent être placés dans la file avec
+\fBmq_send\fP(3). Le champ \fImq_msgsize\fP est la taille maximale des messages
+qui peuvent être placés dans la file. Chacun de ces champs doit avoir une
+valeur supérieure à zéro. Deux fichiers de \fI/proc\fP qui plafonnent ces
+valeurs pour ces champs sont décrites dans \fBmq_open\fP(3).
+
+Le champ \fImq_curmsgs\fP renvoie le nombre de messages actuellement dans la
+file.
+
+\fBmq_setattr\fP() définit les attributs de la file de messages avec les
+informations fournies par la structure \fImq_attr\fP pointée par \fInewattr\fP. Le
+seul attribut qui peut être modifié est le drapeau \fBO_NONBLOCK\fP de
+\fImq_flags\fP. Les autres champs de \fInewattr\fP sont ignorés. Si le champ
+\fIoldattr\fP est non NULL, alors le tampon qu'il pointe est utilisé pour
+renvoyer une structure \fImq_attr\fP contenant les mêmes informations que la
+fonction \fBmq_getattr\fP() renverrait.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBmq_getattr\fP() et \fBmq_setattr\fP() renvoient 0. En cas
+d'erreur, elles renvoient \-1 et définissent \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+Le descripteur spécifié dans \fImqdes\fP n'est pas valable.
+.TP 
+\fBEINVAL\fP
+\fInewattr\->mq_flags\fP contient des bits définis autres que \fBO_NONBLOCK\fP.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Sous Linux, \fBmq_getattr\fP() et \fBmq_setattr\fP()  sont des fonctions de
+bibliothèque au dessus de l'appel système \fBmq_getsetattr\fP(2).
+.SH "VOIR AUSSI"
+\fBmq_close\fP(3), \fBmq_notify\fP(3), \fBmq_open\fP(3), \fBmq_receive\fP(3),
+\fBmq_send\fP(3), \fBmq_unlink\fP(3), \fBmq_overview\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

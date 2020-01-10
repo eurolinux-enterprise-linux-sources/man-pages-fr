@@ -1,0 +1,80 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\"
+.\" Modified Sun Feb 26 14:52:00 1995 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Tue Oct 22 23:48:10 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" "
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH BCOPY 3 "15 mars 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+bcopy \- Copier une séquence d'octets
+.SH SYNOPSIS
+.nf
+\fB#include <strings.h>\fP
+.sp
+\fBvoid bcopy(const void *\fP\fIsrc\fP\fB, void *\fP\fIdest\fP\fB, size_t \fP\fIn\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBbcopy\fP() copie \fIn\fP octets depuis \fIsrc\fP vers \fIdest\fP. Le
+résultat est correct même si les deux zones se chevauchent.
+.SH "VALEUR RENVOYÉE"
+Aucune.
+.SH CONFORMITÉ
+BSD\ 4.3. Cette fonction est déconseillée (marquée «\ LEGACY\ » dans
+POSIX.1\-2001), utilisez plutôt \fBmemcpy\fP(3) ou \fBmemmove\fP(3) dans de
+nouveaux programmes. Notez que les deux premiers paramètres sont inversés
+par rapport à \fBmemcpy\fP(3) et \fBmemmove\fP(3). POSIX.1\-2008 supprime la
+spécification de \fBbcopy\fP().
+.SH "VOIR AUSSI"
+\fBmemccpy\fP(3), \fBmemcpy\fP(3), \fBmemmove\fP(3), \fBstrcpy\fP(3), \fBstrncpy\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

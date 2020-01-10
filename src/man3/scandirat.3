@@ -1,0 +1,105 @@
+.\" Copyright (c) 2012, Mark R. Bannister <cambridge@users.sourceforge.net>
+.\"        based on text in mkfifoat.3 Copyright (c) 2006, Michael Kerrisk
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SCANDIRAT 3 "17 mars 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+scandirat \- Parcourir un répertoire relatif au descripteur de fichier d'un
+répertoire
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP         /* Consultez feature_test_macros(7) */
+
+\fB#include <fcntl.h>\fP          /* Définition des constantes AT_* */
+\fB#include <dirent.h>\fP
+.sp
+.fi
+\fBint scandirat(int \fP\fIdirfd\fP\fB, const char *\fP\fIdirp\fP\fB,\fP \fBstruct dirent
+***\fP\fInamelist\fP\fB,\fP
+.nf
+.RS
+\fBint (*\fP\fIfilter\fP\fB)(const struct dirent *),\fP
+\fBint (*\fP\fIcompar\fP\fB)(const struct dirent **, const struct dirent **));\fP
+.RE
+.fi
+.SH DESCRIPTION
+L'appel système \fBscandirat\fP() opère exactement de la même façon que
+\fBscandir\fP(3), à l'exception des différences décrites dans cette page de
+manuel.
+
+Si le nom de chemin donné dans \fIdirp\fP est relatif, il est considéré relatif
+au répertoire référencé par le descripteur de fichier \fIdirfd\fP (plutôt que
+relatif au répertoire de travail actuel du processus appelant, comme avec
+\fBscandir\fP(3) pour un nom de chemin relatif).
+
+Si \fIdirp\fP est relatif est que \fIdirfd\fP est la valeur particulière
+\fBAT_FDCWD\fP, alors \fIdirp\fP est considéré relatif au répertoire de travail
+actuel du processus appelant (comme \fBscandir\fP(3)).
+
+Si \fIdirp\fP est absolu, alors \fIdirfd\fP est ignoré.
+.SH "VALEUR RENVOYÉE"
+\fBscandirat\fP renvoie le nombre d'entrées de répertoires sélectionnées s'il
+réussit, ou \-1 s'il échoue, auquel cas \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+Les mêmes erreurs que pour \fBscandir\fP(3) peuvent aussi se produire avec
+\fBscandirat\fP(). Les erreurs supplémentaires suivantes peuvent se produire
+avec \fBscandirat\fP().
+.TP 
+\fBEBADF\fP
+\fIdirfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBENOTDIR\fP
+\fIdirp\fP est un chemin relatif et \fIdirfd\fP est un descripteur de fichier
+référençant un fichier qui n'est pas un répertoire.
+.SH VERSIONS
+\fBscandirat\fP() a été ajoutée à la glibc dans la version\ 2.15.
+.SH CONFORMITÉ
+Cette fonction est une extension GNU.
+.SH NOTES
+Consultez \fBopenat\fP(2) pour une explication sur la nécessité de
+\fBscandirat\fP().
+.SH "VOIR AUSSI"
+\fBopenat\fP(2), \fBscandir\fP(3), \fBpath_resolution\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

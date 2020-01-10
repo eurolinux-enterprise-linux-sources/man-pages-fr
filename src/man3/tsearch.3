@@ -1,0 +1,231 @@
+.\" Copyright 1995 by Jim Van Zandt <jrv@vanzandt.mv.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TSEARCH 3 "3 août 2012" GNU "Manuel du programmeur Linux"
+.SH NOM
+tsearch, tfind, tdelete, twalk, tdestroy \- Manipuler un arbre binaire
+.SH SYNOPSIS
+.nf
+\fB#include <search.h>\fP
+.sp
+\fBvoid *tsearch(const void *\fP\fIkey\fP\fB, void **\fP\fIrootp\fP\fB,\fP
+\fB                int (*\fP\fIcompar\fP\fB)(const void *, const void *));\fP
+.sp
+\fBvoid *tfind(const void *\fP\fIkey\fP\fB, const void **\fP\fIrootp\fP\fB,\fP
+\fB                int (*\fP\fIcompar\fP\fB)(const void *, const void *));\fP
+.sp
+\fBvoid *tdelete(const void *\fP\fIkey\fP\fB, void **\fP\fIrootp\fP\fB,\fP
+\fB                int (*\fP\fIcompar\fP\fB)(const void *, const void *));\fP
+.sp
+\fBvoid twalk(const void *\fP\fIroot\fP\fB, void (*\fP\fIaction\fP\fB)(const void *\fP\fInodep\fP\fB,\fP
+\fB                                   const VISIT \fP\fIwhich\fP\fB,\fP
+\fB                                   const int \fP\fIdepth\fP\fB));\fP
+.sp
+\fB#define _GNU_SOURCE\fP         /* Consultez feature_test_macros(7) */
+.br
+\fB#include <search.h>\fP
+.sp
+\fBvoid tdestroy(void *\fP\fIroot\fP\fB, void (*\fP\fIfree_node\fP\fB)(void *\fP\fInodep\fP\fB));\fP
+.fi
+.SH DESCRIPTION
+\fBtsearch\fP(), \fBtfind\fP(), \fBtwalk\fP() et \fBtdelete\fP() permettent de manipuler
+un arbre binaire. Ces fonctions implémentent une généralisation de
+l'algorithme T de Knuth (6.2.2). Le premier membre de chaque nœud de l'arbre
+est un pointeur vers la donnée elle\-même (le programme appelant doit prendre
+en charge le stockage de ces données). \fIcompar\fP pointe sur une routine de
+comparaison prenant en argument deux pointeurs sur ces données. Elle doit
+renvoyer un entier négatif, nul, ou positif suivant que le premier élément
+est inférieur, égal ou supérieur au second.
+.PP
+\fBtsearch\fP() recherche un élément dans l'arbre. \fIkey\fP pointe sur l'élément
+à chercher. \fIrootp\fP pointe vers une variable qui pointe à la racine de
+l'arbre. Si l'arbre est vide, alors \fIrootp\fP doit pointer sur une variable
+pointant sur \fBNULL\fP. Si l'élément est trouvé dans l'arbre, \fBtsearch\fP()
+renvoie un pointeur sur celui\-ci. Sinon \fBtsearch\fP() ajoute l'élément dans
+l'arbre et renvoie un pointeur sur lui.
+.PP
+\fBtfind\fP() fonctionne comme \fBtsearch\fP(), sauf que si l'élément n'est pas
+trouvé, la fonction \fBtfind\fP() renvoie \fBNULL\fP.
+.PP
+\fBtdelete\fP() supprime un élément de l'arbre. Ses arguments sont les mêmes
+que ceux de \fBtsearch\fP().
+.PP
+\fBtwalk\fP() exécute un parcours en profondeur d'abord, de gauche à droite
+ensuite, de l'arbre binaire. \fIroot\fP pointe sur le nœud de départ du
+parcours. S'il ne s'agit pas de la vraie racine de l'arbre, seule une partie
+de celui\-ci sera balayée. \fBtwalk\fP() appelle la fonction \fIaction\fP chaque
+fois qu'un nœud est rencontré (c'est\-à\-dire trois fois pour un nœud interne
+et une seule fois pour une feuille de l'arbre). \fIaction\fP doit accepter
+trois arguments. Le premier argument est un pointeur sur le nœud
+rencontré. La structure du nœud n'est pas spécifiée, mais il est possible
+transformer le pointeur sous forme de pointeur\-vers\-pointeur\-vers\-élément
+afin d'accéder à l'élément enregistré dans le nœud. L'application ne doit
+pas modifier la structure pointée par cet argument. Le deuxième argument est
+un entier prenant l'une des valeurs suivantes\ : \fBpreorder\fP, \fBpostorder\fP
+ou \fBendorder\fP suivant qu'il s'agisse de la première, deuxième ou troisième
+rencontre du nœud, ou la valeur \fBleaf\fP s'il s'agit d'un nœud feuille (ces
+symboles sont définis dans \fI<search.h>\fP). Le troisième argument est
+la profondeur du nœud dans l'arbre, le nœud racine ayant la profondeur zéro.
+.PP
+Ordinairement, \fBpreorder\fP, \fBpostorder\fP et \fBendorder\fP sont connus sous le
+nom \fBpreorder\fP (préfixe), \fBinorder\fP (infixe), et \fBpostorder\fP (postfixe)\ : avant de visiter le nœud fils, après le premier et avant le second, après
+avoir visité les enfants. Ainsi, le choix du nom \fBpost\%order\fP est un peu
+déroutant.
+.PP
+\fBtdestroy\fP() supprime tout l'arbre pointé par \fIroot\fP, libérant toutes les
+ressources allouées par la fonction \fBtsearch\fP(). Pour libérer les données
+de chaque nœud, la fonction \fIfree_node\fP est invoquée. Le pointeur sur les
+données est passé en argument à cette fonction. Si aucune libération n'est
+nécessaire, \fIfree_node\fP doit pointer vers une fonction ne faisant rien.
+.SH "VALEUR RENVOYÉE"
+\fBtsearch\fP() renvoie un pointeur sur un élément correspondant de l'arbre,
+sur l'élément nouvellement ajouté, ou \fBNULL\fP s'il n'y avait pas assez de
+mémoire pour ajouter le nœud. \fBtfind\fP() renvoie un pointeur sur l'élément
+recherché ou \fBNULL\fP si aucune correspondance n'a été trouvée. Si plusieurs
+éléments correspondent à la clé, celui renvoyé n'est pas spécifié.
+.PP
+\fBtdelete\fP() renvoie un pointeur sur le nœud père de celui détruit, ou
+\fBNULL\fP si l'élément n'a pas été trouvé.
+.PP
+\fBtsearch\fP(), \fBtfind\fP() et \fBtdelete\fP() renvoient également \fBNULL\fP si
+\fIrootp\fP valait \fBNULL\fP.
+.SH CONFORMITÉ
+SVr4, POSIX.1\-2001. La fonction \fBtdestroy\fP() est une extension GNU.
+.SH NOTES
+\fBtwalk\fP() utilise un pointeur sur la racine, alors que les autres fonctions
+utilisent un pointeur sur une variable pointant sur la racine.
+.PP
+\fBtdelete\fP() libère la mémoire nécessaire au stockage du nœud dans
+l'arbre. Le programme appelant est responsable de la libération de la
+mémoire occupée par l'élément de donnée correspondant.
+.PP
+Le programme d'exemple s'appuie sur le fait que \fBtwalk\fP() ne fait plus
+jamais référence à un nœud après avoir appelé la fonction utilisateur avec
+l'argument «\ endorder\ » ou «\ leaf\ ». Ceci fonctionne avec
+l'implémentation de la bibliothèque GNU, mais n'est pas spécifié sous
+System\ V.
+.SH EXEMPLE
+Le programme suivant insère douze nombres aléatoires dans un arbre binaire,
+où les doublons sont supprimés, puis affiche les nombres classés.
+.sp
+.nf
+#define _GNU_SOURCE     /* Expose la déclaration de tdestroy() */
+#include <search.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+
+void *racine = NULL;
+
+void *
+xmalloc(unsigned n)
+{
+    void *p;
+    p = malloc(n);
+    if (p)
+        return p;
+    fprintf(stderr, "pas assez de mémoire\en");
+    exit(EXIT_FAILURE);
+}
+
+int
+compare(const void *pa, const void *pb)
+{
+    if (*(int *) pa < *(int *) pb)
+        return \-1;
+    if (*(int *) pa > *(int *) pb)
+        return 1;
+    return 0;
+}
+
+void
+action(const void *nodep, const VISIT type, const int prof)
+{
+    int *datap;
+
+    switch (type) {
+    case preorder:
+        break;
+    case postorder:
+        datap = *(int **) nodep;
+        printf("%6d\en", *datap);
+        break;
+    case endorder:
+        break;
+    case leaf:
+        datap = *(int **) nodep;
+        printf("%6d\en", *datap);
+        break;
+    }
+}
+
+int
+main(void)
+{
+    int i, *ptr;
+    void *val;
+
+    srand(time(NULL));
+    for (i = 0; i < 12; i++) {
+        ptr = xmalloc(sizeof(int));
+        *ptr = rand() & 0xff;
+        val = tsearch((void *) ptr, &root, compare);
+        if (val == NULL)
+            exit(EXIT_FAILURE);
+        else if ((*(int **) val) != ptr)
+            free(ptr);
+    }
+    twalk(root, action);
+    tdestroy(root, free);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBbsearch\fP(3), \fBhsearch\fP(3), \fBlsearch\fP(3), \fBqsort\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

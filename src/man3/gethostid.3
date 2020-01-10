@@ -1,0 +1,124 @@
+.\" Copyright 1993 Rickard E. Faith (faith@cs.unc.edu)
+.\"
+.\" Updated with additions from Mitchum DSouza <m.dsouza@mrc-apu.cam.ac.uk>
+.\" Portions Copyright 1993 Mitchum DSouza <m.dsouza@mrc-apu.cam.ac.uk>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Tue Oct 22 00:22:35 EDT 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETHOSTID 3 "20 septembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+gethostid, sethostid \- Lire/écrire l'identifiant unique de l'hôte
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBlong gethostid(void);\fP
+.br
+\fBint sethostid(long \fP\fIhostid\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+.br
+\fBgethostid\fP()\ :
+.RS 4
+_BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.RE
+\fBsethostid\fP()\ :
+.RS 4
+_BSD_SOURCE || (_XOPEN_SOURCE && _XOPEN_SOURCE\ <\ 500)
+.RE
+.ad b
+.SH DESCRIPTION
+\fBgethostid\fP() et \fBsethostid\fP() récupèrent et définissent respectivement un
+identifiant 32 bits unique pour la machine. L'identifiant 32 bits est
+supposé être unique pour tous les systèmes UNIX. En général, il ressemble à
+l'adresse internet de la machine local, comme renvoyée par
+\fBgethostbyname\fP(3) et il ne devrait pas être nécessaire de le définir.
+
+L'appel de \fBsethostid\fP() est bien sûr limité au superutilisateur.
+.SH "VALEUR RENVOYÉE"
+\fBgethostid\fP() retourne l'identifiant sur 32 bits de l'hôte, tel qu'il a été
+positionné par \fBsethostid\fP().
+
+Si elle réussit, \fBsethostid\fP() renvoie 0. En cas d'erreur, elle renvoie \-1
+et remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+\fBsethostid\fP() peut échouer pour les raisons suivantes\ :
+.TP 
+\fBEACCES\fP
+L'appelant n'a pas les permissions d'écrire dans le fichier utilisé pour
+sauvegarder l'ID de l'hôte.
+.TP 
+\fBEPERM\fP
+L'ID de l'utilisateur ou du groupe effectif du processus appelant ne
+correspond pas à l'ID réel.
+.SH CONFORMITÉ
+BSD\ 4.2. Ces fonctions ont été abandonnées dans BSD\ 4.4. SVr4 contient
+\fBgethostid\fP() mais pas \fBsethostid\fP(). POSIX.1\-2001 spécifie \fBgethostid\fP()
+mais pas \fBsethostid\fP().
+.SH NOTES
+.\" libc5 used /etc/hostid; libc4 didn't have these functions
+Dans l'implémentation de la glibc, \fIhostid\fP est sauvegardé dans le fichier
+\fI/etc/hostid\fP (pour les versions antérieures à la glibc\ 2.2,
+\fI/var/adm/hostid\fP était utilisé).
+
+Dans l'implémentation de la glibc, si \fBgethostid\fP() ne peut pas ouvrir le
+fichier contenant l'ID de l'hôte, alors elle obtient le nom d'hôte avec
+\fBgethostname\fP(2), passe ce nom d'hôte à \fBgethostbyname_r\fP(3) de façon à
+obtenir l'adresse IPv4 de l'hôte, et renvoie l'adresse IPv4 modifée par
+manipulation de bits («\ bit\-twilling\ ») (cette valeur peut ne pas être
+unique).
+.SH BOGUES
+Il est impossible de s'assurer que l'identifiant est globalement unique.
+.SH "VOIR AUSSI"
+\fBhostid\fP(1), \fBgethostbyname\fP(3).
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

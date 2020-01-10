@@ -1,0 +1,389 @@
+.\" Copyright 1995 Yggdrasil Computing, Incorporated.
+.\" written by Adam J. Richter (adam@yggdrasil.com),
+.\" with typesetting help from Daniel Quinlan (quinlan@yggdrasil.com).
+.\" and Copyright 2003 Michael Kerrisk (mtk.manpages@gmail.com).
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by David A. Wheeler <dwheeler@dwheeler.com> 2000-11-28.
+.\" Applied patch by Terran Melconian, aeb, 2001-12-14.
+.\" Modified by Hacksaw <hacksaw@hacksaw.org> 2003-03-13.
+.\" Modified by Matt Domsch, 2003-04-09: _init and _fini obsolete
+.\" Modified by Michael Kerrisk <mtk.manpages@gmail.com> 2003-05-16.
+.\" Modified by Walter Harms: dladdr, dlvsym
+.\" Modified by Petr Baudis <pasky@suse.cz>, 2008-12-04: dladdr caveat
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH DLOPEN 3 "6 décembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+dladdr, dlclose, dlerror, dlopen, dlsym, dlvsym \- Interface de programmation
+pour le chargeur de bibliothèques dynamiques
+.SH SYNOPSIS
+\fB#include <dlfcn.h>\fP
+.sp
+\fBvoid *dlopen(const char *\fP\fIfilename\fP\fB, int \fP\fIflag\fP\fB);\fP
+.sp
+\fBchar *dlerror(void);\fP
+.sp
+\fBvoid *dlsym(void *\fP\fIhandle\fP\fB, const char *\fP\fIsymbol\fP\fB);\fP
+.sp
+\fBint dlclose(void *\fP\fIhandle\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-ldl\fP.
+.SH DESCRIPTION
+Les quatre fonctions \fBdlopen\fP(), \fBdlsym\fP(), \fBdlclose\fP(), \fBdlerror\fP()
+implémentent l'interface pour le chargeur de bibliothèques dynamiques.
+.SS dlerror()
+La fonction \fBdlerror\fP() renvoie une chaîne de caractères, compréhensible
+par l'homme, décrivant la dernière erreur survenue dans \fBdlopen\fP(),
+\fBdlsym\fP() ou \fBdlclose\fP() depuis le dernier appel à \fBdlerror\fP(). Elle
+renvoie NULL si aucune erreur n'est survenue depuis l'initialisation ou
+depuis son dernier appel.
+.SS dlopen()
+La fonction \fBdlopen\fP() charge la bibliothèque dynamique dont le nom est
+fourni dans la chaîne \fIfilename\fP (terminée par un caractère nul) et renvoie
+un descripteur opaque («\ handle\ ») représentant la bibliothèque
+dynamique. Si l'argument \fIfilename\fP est un pointeur NULL, le descripteur
+renvoyé correspond au programme principal. Si \fIfilename\fP contient une barre
+oblique («\ /\ »), il est interprété comme un chemin (relatif ou
+absolu). Autrement, le chargeur dynamique cherche la bibliothèque de la
+façon suivante (consultez \fBld.so\fP(8) pour plus de détails)\ :
+.IP o 4
+(ELF seulement) si le fichier exécutable pour le programme appelant contient
+la balise DT_RPATH mais pas la balise DT_RUNPATH, les répertoires listés
+dans la balise DT_RPATH seront parcourus.
+.IP o
+Si à l'instant où le programme est démarré, la variable d'environnement
+\fBLD_LIBRARY_PATH\fP est définie et contient une liste de répertoires (séparés
+par des deux\-points «\ :\ »), ces répertoires seront parcourus. (Par mesure
+de sécurité, cette variable est ignorée dans le cas de programmes set\-UID et
+set\-GID).
+.IP o
+(ELF seulement) si le fichier exécutable pour le programme appelant contient
+la balise DT_RUNPATH, les répertoires listés dans cette balise seront
+parcourus.
+.IP o
+Le fichier de cache \fI/etc/ld.so.cache\fP (maintenu par \fBldconfig\fP(8)) est
+vérifié pour voir s'il contient une entrée correspondant à \fIfilename\fP.
+.IP o
+Les répertoires \fI/lib\fP et \fI/usr/lib\fP sont parcourus (dans cet ordre).
+.PP
+Si la bibliothèque a des dépendances sur d'autres bibliothèques partagées,
+celles\-ci seront automatiquement chargées par le chargeur dynamique, en
+utilisant les mêmes règles. (Le processus peut être récursif si ces
+bibliothèques ont, à leur tour, des dépendances, et ainsi de suite.)
+.PP
+L'une des deux valeurs suivantes doit être incluse dans \fIflag\fP\ :
+.TP 
+\fBRTLD_LAZY\fP
+Effectuer des liaisons paresseuses. Résoudre seulement les symboles dont le
+code qui les référence est exécuté. Si le symbole n'est jamais référencé,
+alors il n'est jamais résolu. (Les bindings paresseux ne sont seulement
+effectués que pour les références de fonctions\ ; les références de
+variables sont toujours immédiatement liées quand la bibliothèque est
+chargée).
+.TP 
+\fBRTLD_NOW\fP
+Si cette valeur est spécifiée, ou que la variable d'environnement
+\fBLD_BIND_NOW\fP est définie avec une chaîne non vide, tous les symboles non
+définis de la bibliothèque sont résolus avant le retour de \fBdlopen\fP(). Si
+cela ne peut pas être fait, une erreur est renvoyée.
+.PP
+Zéro ou plusieurs des valeurs suivantes peuvent être spécifiées avec un OU
+binaire dans \fIflag\fP\ :
+.TP 
+\fBRTLD_GLOBAL\fP
+Les symboles définis par cette bibliothèque seront disponibles pour la
+résolution des symboles des futurs chargements de bibliothèques.
+.TP 
+\fBRTLD_LOCAL\fP
+C'est la réciproque de \fBRTLD_GLOBAL\fP, et le comportement par défaut si
+aucun drapeau n'est spécifié. Les symboles définis dans cette bibliothèque
+ne sont pas disponibles pour résoudre les références des chargements de
+bibliothèques futurs.
+.TP 
+\fBRTLD_NODELETE\fP (depuis la glibc\ 2.2)
+.\" (But it is present on Solaris.)
+Ne pas décharger la bibliothèque lors de \fBdlclose\fP(). En conséquence, les
+variables statiques de la bibliothèque ne sont pas réinitialisées si la
+bibliothèque est chargée ultérieurement avec \fBdlopen\fP() . Ce drapeau n'est
+pas spécifié dans POSIX.1\-2001.
+.TP 
+\fBRTLD_NOLOAD\fP (depuis la glibc\ 2.2)
+.\" (But it is present on Solaris.)
+.\"
+Ne pas charger la bibliothèque. Ceci peut être utilisé pour tester si la
+bibliothèque n'est pas déjà chargée (\fBdlopen\fP() renvoie NULL si elle n'est
+pas chargée, ou le descripteur de la bibliothèque si elle déjà chargée). Ce
+drapeau peut aussi être utilisé pour promouvoir les drapeaux d'une
+bibliothèque déjà chargée. Par exemple, une bibliothèque qui a été chargée
+avec \fBRTLD_LOCAL\fP peut être de nouveau ouverte avec \fBRTLD_NOLOAD\ |\ RTLD_GLOBAL\fP. Ce drapeau n'est pas spécifié dans POSIX.1\-2001.
+.TP 
+\fBRTLD_DEEPBIND\fP (depuis la glibc\ 2.3.4)
+.\" Inimitably described by UD in
+.\" http://sources.redhat.com/ml/libc-hacker/2004-09/msg00083.html.
+Placer l'espace de recherche des symboles de cette bibliothèque avant
+l'espace global. Cela signifie qu'une bibliothèque autonome utilisera ses
+propres symboles de préférence aux symboles globaux de même noms contenus
+dans les bibliothèques déjà chargées. Ce drapeau n'est pas spécifié dans
+POSIX.1\-2001.
+.PP
+Si l'argument \fIfilename\fP est un pointeur NULL, le descripteur renvoyé
+correspond au programme principal. Lorsqu'il est passé à \fBdlsym\fP(), ce
+descripteur provoque la recherche d'un symbole dans le programme principal,
+puis dans toutes les bibliothèques partagées chargées au démarrage du
+programme, puis dans toutes les bibliothèques partagées chargées par
+\fBdlopen\fP() avec l'attribut \fBRTLD_GLOBAL\fP.
+.PP
+Les références externes de la bibliothèque sont résolues en utilisant les
+bibliothèques mentionnées dans sa liste de dépendances, et toutes les autres
+bibliothèques éventuellement ouvertes auparavant avec le drapeau
+\fBRTLD_GLOBAL\fP. Si l'édition des liens de l'exécutable a été faite avec
+l'option «\ \-rdynamic\ » (ou, de manière synonyme, avec «\ \-\-export\-dynamic\ »), alors les symboles globaux du programme seront également utilisés pour
+résoudre les références d'une bibliothèque chargée dynamiquement.
+.PP
+Si la même bibliothèque est chargée une nouvelle fois avec \fBdlopen\fP(), le
+même descripteur sera renvoyé. Un compte du nombre de chargements est
+toutefois conservé afin d'éviter de la décharger avant que la fonction
+\fBdlclose\fP() n'ait été appelée autant de fois que \fBdlopen\fP() a réussi. La
+routine \fB_init\fP, si elle existe, est appelée une seule fois. Mais un appel
+postérieur avec \fBRTLD_NOW\fP peut forcer la résolution des symboles pour une
+bibliothèque précédemment chargée avec \fBRTLD_LAZY\fP.
+.PP
+Si \fBdlopen\fP() échoue pour une raison quelconque, elle renvoie NULL.
+.SS dlsym()
+La fonction \fBdlsym\fP() prend comme arguments, un «\ descripteur\ » de
+bibliothèque dynamique renvoyé par \fBdlopen\fP() et un nom de symbole terminé
+par un caractère nul, et renvoie l'adresse où ce symbole a été chargé en
+mémoire. Si le symbole n'est pas trouvé, soit dans la bibliothèque
+spécifiée, soit dans n'importe quelle bibliothèque chargée automatiquement
+par \fBdlopen\fP() lorsque cette bibliothèque a été chargée, \fBdlsym\fP() renvoie
+NULL. (La recherche effectuée par \fBdlsym\fP() est d'abord en largeur à
+travers l'arbre des dépendances de ces bibliothèques). Le symbole pouvant
+légitimement avoir la valeur NULL (la valeur NULL renvoyée par \fBdlsym\fP()
+n'indique pas nécessairement une erreur), la bonne manière de vérifier si
+une erreur s'est produite est d'appeler \fBdlerror\fP() pour effacer toute
+ancienne condition d'erreur, puis d'appeler \fBdlsym\fP() et appeler une
+nouvelle fois \fBdlerror\fP() en sauvegardant sa valeur de retour dans une
+variable et vérifier si la valeur sauvegardée n'est pas NULL.
+.PP
+Il y a deux pseudodescripteurs spéciaux\ : \fBRTLD_DEFAULT\fP et
+\fBRTLD_NEXT\fP. Le premier recherche la première occurrence du symbole désiré
+en utilisant l'ordre de recherche des bibliothèques par défaut. Le second
+recherche l'occurrence suivante d'une fonction à partir de la bibliothèque
+en cours. Ceci permet de fournir une enveloppe pour une fonction se trouvant
+dans une autre bibliothèque partagée.
+.SS dlclose()
+La fonction \fBdlclose\fP() décrémente le nombre de références d'une
+bibliothèque dynamique dont le descripteur est \fIhandle\fP. Si ce nombre
+atteint zéro et si aucune autre bibliothèque n'emploie des symboles exportés
+par celle\-ci, elle est déchargée.
+.LP
+La fonction \fBdlclose\fP() renvoie 0 si elle réussit, et une valeur non nulle
+en cas d'erreur.
+.SS "Les symboles obsolètes _init() et _fini()"
+L'éditeur de liens reconnaît les symboles spéciaux \fB_init\fP et \fB_fini\fP. Si
+une bibliothèque dynamique exporte une routine nommée \fB_init\fP(), alors son
+code est exécuté après le chargement, avant le retour de \fBdlopen\fP(). Si la
+bibliothèque exporte une routine nommée \fB_fini\fP, elle est appelée juste
+avant le déchargement. Au cas où vous voudriez éviter de lier l'exécutable
+avec les fichiers de démarrage du système, vous pouvez spécifier le
+paramètre \fI\-nostartfiles\fP à la ligne de commande de \fBgcc\fP(1).
+.LP
+.\" void _init(void) __attribute__((constructor));
+.\" void _fini(void) __attribute__((destructor));
+L'utilisation de ces routines ou des options gcc \fB\-nostartfiles\fP ou
+\fB\-nostdlib\fP n'est pas recommandée. Il peut en résulter un comportement non
+désiré tant que les routines constructeur/destructeur ne sont pas exécutées
+(à moins que des mesures spéciales ne soient prises).
+.LP
+À la place, les bibliothèques devraient exporter les routines en utilisant
+les fonctions attribut \fB__attribute__((constructor))\fP et
+\fB__attribute__((destructor))\fP. Consultez la documentation de gcc au format
+Info pour plus d'information sur celles\-ci. Les routines constructeur sont
+exécutées avant que \fBdlopen\fP revienne et les routines destructeur sont
+exécutées avant que \fBdlclose\fP revienne.
+.SS "Extensions de la glibc\ :dladdr() et dlvsym()"
+La glibc a ajouté deux fonctions, qui ne sont pas décrites par POSIX, dont
+les prototypes sont\ :
+.sp
+.nf
+\fB#define _GNU_SOURCE\fP         /* Consultez feature_test_macros(7) */
+\fB#include <dlfcn.h>\fP
+.sp
+\fBint dladdr(void *\fP\fIaddr\fP\fB, Dl_info *\fP\fIinfo\fP\fB);\fP
+.sp
+\fBvoid *dlvsym(void *\fP\fIhandle\fP\fB, char *\fP\fIsymbol\fP\fB, char *\fP\fIversion\fP\fB);\fP
+.fi
+.PP
+La fonction \fBdladdr\fP() prend un pointeur vers une fonction et essaie de
+résoudre le nom et le fichier où il se trouve. L'information est stockée
+dans une structure \fIDl_info\fP\ :
+.sp
+.in +4n
+.nf
+typedef struct {
+    const char *dli_fname; /* Chemin du fichier de l'objet partagé
+                              contenant l'adresse */
+    void       *dli_fbase; /* Adresse à laquelle l'objet partagé
+                              est chargé */
+    const char *dli_sname; /* Nom du symbole le plus proche avec
+                              une adresse inférieure à \fIaddr\fP */
+    void       *dli_saddr; /* Adresse exacte du symbole dont
+                              le nom est \fIdli_sname\fP */
+} Dl_info;
+.fi
+.in
+.PP
+Si aucun symbole correspondant à l'adresse \fIaddr\fP ne peut être trouvé,
+\fIdli_sname\fP et \fIdli_saddr\fP sont définis à NULL.
+.PP
+\fBdladdr\fP() renvoie 0 en cas d'erreur et une valeur non nulle en cas de
+succès.
+.PP
+La fonction \fBdlvsym\fP(), fournie par la glibc depuis la version\ 2.1,
+effectue la même chose que \fBdlsym\fP() mais prend une version sous forme de
+chaîne comme argument supplémentaire.
+.SH CONFORMITÉ
+POSIX.1\-2001 décrit \fBdlclose\fP(), \fBdlerror\fP(), \fBdlopen\fP() et \fBdlsym\fP().
+.SH NOTES
+.\" .LP
+.\" The string returned by
+.\" .BR dlerror ()
+.\" should not be modified.
+.\" Some systems give the prototype as
+.\" .sp
+.\" .in +5
+.\" .B "const char *dlerror(void);"
+.\" .in
+Les symboles \fBRTLD_DEFAULT\fP et \fBRTLD_NEXT\fP sont définis dans
+\fI<dlfcn.h>\fP seulement si \fB_GNU_SOURCE\fP a été définie avant
+l'inclusion.
+
+Depuis la glibc\ 2.2.3, \fBatexit\fP(3) peut être utilisée pour enregistrer un
+gestionnaire de sortie qui sera automatiquement appelé quand une
+bibliothèque sera déchargée.
+.SS Historique
+L'interface standard dlopen provient de SunOS. Ce système possède également
+\fBdladdr\fP() mais pas \fBdlvsym\fP().
+.SH BOGUES
+Quelquefois, les pointeurs de fonctions passés à \fBdladdr\fP() peuvent vous
+surprendre. Sur certaines architectures (notablement i386 et x86_64),
+\fIdli_fname\fP et \fIdli_fbase\fP peuvent pointés sur l'objet depuis lequel vous
+appelez \fBdladdr\fP(), même si la fonction utilisée en paramètre semble
+provenir d'une bibliothèque liée dynamiquement.
+.PP
+Le problème est que le pointeur de fonction ne sera résolu que lors de la
+compilation, mais pointe simplement vers la section de l'objet original
+\fIplt\fP (table de procédure d'édition des liens), qui redirige l'appel après
+avoir demandé à l'éditeur de liens dynamique de résoudre le symbole). Un
+contournement consiste à compiler le code pour qu'il soit indépendant de son
+adressage\ : dans ce cas le compilateur ne peut pas préparer le pointeur à la
+compilation, et de nos jours, \fBgcc\fP(1) générera du code qui chargera juste
+l'adresse finale du symbole depuis la table \fIGOT\fP (table d'offset globale)
+lors de l'exécution, avant de la passer à \fBdladdr\fP().
+.SH EXEMPLE
+Charger la bibliothèque mathématique et afficher le cosinus de 2,0\ :
+.nf
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <dlfcn.h>
+
+int
+main(int argc, char **argv)
+{
+    void *handle;
+    double (*cosine)(double);
+    char *error;
+
+    handle = dlopen("libm.so", RTLD_LAZY);
+    if (!handle) {
+        fprintf(stderr, "%s\en", dlerror());
+        exit(EXIT_FAILURE);
+    }
+
+    dlerror();    /* Clear any existing error */
+
+    /* Writing: cosine = (double (*)(double)) dlsym(handle, "cos");
+       would seem more natural, but the C99 standard leaves
+       casting from "void *" to a function pointer undefined.
+       The assignment used below is the POSIX.1\-2003 (Technical
+       Corrigendum 1) workaround; see the Rationale for the
+       POSIX specification of dlsym(). */
+
+.\" But in fact "gcc -O2 -Wall" will complain about the preceding cast.
+    *(void **) (&cosine) = dlsym(handle, "cos");
+
+    if ((error = dlerror()) != NULL)  {
+        fprintf(stderr, "%s\en", error);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("%f\en", (*cosine)(2.0));
+    dlclose(handle);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.PP
+Supposons que le programme s'appelle «\ foo.c\ », on doit le compiler ainsi\ :
+.in +4n
+.LP
+    gcc \-rdynamic \-o foo foo.c \-ldl
+.in
+.PP
+Une bibliothèque (\fIbar.c\fP dans l'exemple suivant) qui exporte \fB_init()\fP et
+\fB_fini()\fP sera compilée comme suit\ :
+.in +4n
+.LP
+    gcc \-shared \-nostartfiles \-o bar bar.c
+.in
+.SH "VOIR AUSSI"
+\fBld\fP(1), \fBldd\fP(1), \fBdl_iterate_phdr\fP(3), \fBrtld\-audit\fP(7), \fBld.so\fP(8),
+\fBldconfig\fP(8)
+
+les pages Info de ld.so, gcc, ld
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

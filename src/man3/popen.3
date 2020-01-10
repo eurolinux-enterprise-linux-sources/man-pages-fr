@@ -1,0 +1,169 @@
+.\" Copyright 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     @(#)popen.3	6.4 (Berkeley) 4/30/91
+.\"
+.\" Converted for Linux, Mon Nov 29 14:45:38 1993, faith@cs.unc.edu
+.\" Modified Sat May 18 20:37:44 1996 by Martin Schulze (joey@linux.de)
+.\" Modified 7 May 1998 by Joseph S. Myers (jsm28@cam.ac.uk)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH POPEN 3 "19 avril 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+popen, pclose \- Tuyau entrant ou sortant pour un processus
+.SH SYNOPSIS
+.nf
+\fB#include <stdio.h>\fP
+.sp
+\fBFILE *popen(const char *\fP\fIcommand\fP\fB, const char *\fP\fItype\fP\fB);\fP
+.sp
+\fBint pclose(FILE *\fP\fIstream\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.ad l
+.in
+.sp
+\fBpopen\fP(), \fBpclose\fP()\ :
+.RS 4
+_POSIX_C_SOURCE\ >=\ 2 || _XOPEN_SOURCE || _BSD_SOURCE || _SVID_SOURCE
+.RE
+.ad b
+.SH DESCRIPTION
+La fonction \fBpopen\fP() engendre un processus en créant un tube (pipe),
+exécutant un \fBfork\fP(), et en invoquant le shell. Comme un tube est
+unidirectionnel par définition, l'argument \fItype\fP doit indiquer seulement
+une lecture ou une écriture, et non pas les deux. Le flux correspondant sera
+ouvert en lecture seule ou écriture seule.
+.PP
+L'argument \fIcommand\fP est un pointeur sur une chaîne de caractères, terminée
+par un caractère nul, et contenant une ligne de commande shell. Cette
+commande est transmise à \fI/bin/sh\fP en utilisant l'option
+\fB\-c\fP. L'interprétation en est laissée au shell. L'argument \fItype\fP est un
+pointeur sur une chaîne de caractères, terminée par un caractère nul, qui
+doit contenir soit la lettre «\ r\ » pour la lecture soit la lettre «\ w\ »
+pour l'écriture. Depuis la glibc\ 2.9, ce paramètre peut également contenir
+la lettre «\ e\ », qui a pour conséquence l'activation de l'attribut
+«\ close\-on\-exec\ » (\fBFD_CLOEXEC\fP) pour le descripteur de fichier\ ; consultez
+la description de l'attribut \fBO_CLOEXEC\fP dans \fBopen\fP(2) pour savoir quand
+c'est utile.
+.PP
+La valeur renvoyée par \fBpopen\fP() est un flux d'entrée\-sortie normal, à la
+seule différence qu'il doit être fermé en appelant \fBpclose\fP() à la place de
+\fBfclose\fP(3). L'écriture dans le flux correspond à écrire sur l'entrée
+standard de la commande. Le flux de sortie standard de la commande est le
+même que celui du processus appelant \fBpopen\fP(), à moins que la commande le
+modifie. Symétriquement, la lecture depuis un flux ouvert par \fBpopen\fP()
+correspond à lire la sortie standard de la commande, et dans ce cas l'entrée
+standard de la commande est la même que celle du processus appelant
+\fBpopen\fP().
+.PP
+Notez que, par défaut, les flux de sortie fournis par \fBpopen\fP() disposent
+d'un tampon.
+.PP
+La fonction \fBpclose\fP() attend que le processus correspondant se termine, et
+renvoie alors l'état de sortie de la commande, comme en utilisant
+\fBwait4\fP(2).
+.SH "VALEUR RENVOYÉE"
+La fonction \fBpopen\fP() renvoie NULL si l'appel système \fBfork\fP(2) ou
+\fBpipe\fP(2) échoue, ou s'il n'a pas assez de mémoire.
+.PP
+.\" These conditions actually give undefined results, so I commented
+.\" them out.
+.\" .I stream
+.\" is not associated with a "popen()ed" command, if
+.\".I stream
+.\" already "pclose()d", or if
+La fonction \fBpclose\fP() renvoie \-1 si \fBwait4\fP(2) échoue, ou si une autre
+erreur est détectée. En cas d'erreur, \fIerrno\fP permet d'identifier la cause
+de l'erreur.
+.SH ERREURS
+La fonction \fBpopen\fP ne remplit pas \fIerrno\fP si une allocation mémoire
+échoue. Si les appels \fBfork\fP(2) ou \fBpipe\fP(2) sous\-jacents échouent,
+\fIerrno\fP est correctement rempli. Si l'argument \fItype\fP est invalide, et si
+cette condition est détectée, \fIerrno\fP contient \fBEINVAL\fP.
+.PP
+Si \fBpclose\fP() n'arrive pas à obtenir l'état du fils, \fIerrno\fP contient
+\fBECHILD\fP.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+
+La valeur «\ e\ » pour \fItype\fP est une extension Linux.
+.SH BOGUES
+Comme l'entrée standard d'une commande ouverte en lecture partage son
+pointeur de position dans le flux avec le processus appelant \fBpopen\fP(), si
+le processus original a effectué des lectures en tampon, la position du flux
+d'entrée de la commande peut être différente de celle
+attendue. Symétriquement, la sortie d'une commande ouverte en écriture peut
+s'emmêler avec celle du processus original. Le second problème peut être
+évité en appelant \fBfflush\fP(3) avant \fBpopen\fP().
+.PP
+.\" .SH HISTORY
+.\" A
+.\" .BR popen ()
+.\" and a
+.\" .BR pclose ()
+.\" function appeared in Version 7 AT&T UNIX.
+Il n'est pas possible de distinguer un échec d'exécution du shell lui\-même,
+d'un échec d'exécution d'une commande par le shell, ni même d'une sortie
+immédiate de la commande. Le seul indice est un code de retour de 127.
+.SH "VOIR AUSSI"
+\fBsh\fP(1), \fBfork\fP(2), \fBpipe\fP(2), \fBwait4\fP(2), \fBfclose\fP(3), \fBfflush\fP(3),
+\fBfopen\fP(3), \fBstdio\fP(3), \fBsystem\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

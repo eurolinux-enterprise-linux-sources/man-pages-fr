@@ -1,0 +1,480 @@
+.\" Copyright (c) 2009 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 2009-01-12, mtk, Created
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RTLD\-AUDIT 7 "7 juillet 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+rtld\-audit \- API d'audit pour l'éditeur de liens dynamique
+.SH SYNOPSIS
+\fB#define _GNU_SOURCE\fP /* Consultez feature_test_macros(7) */
+
+\fB#include <link.h>\fP
+.SH DESCRIPTION
+L'éditeur de liens dynamique GNU (l'éditeur de liens à l'exécution) fournit
+une API d'audit qui permet à une application d'être notifiée quand
+différents événements liés à l'édition de liens surviennent. Cette API est
+très similaire à l'interface d'audit fournie par l'éditeur de liens
+Solaris. Les constantes et prototypes nécessaires sont définis en incluant
+\fI<link.h>\fP.
+
+Pour utiliser cette interface, le programmeur crée une bibliothèque partagée
+qui implémente un ensemble standard de noms de fonctions. Toutes les
+fonctions n'ont pas à être implémentées\ : dans la plupart des cas, si le
+programmeur n'est pas intéressé dans une certaine classe d'événements
+d'audit, alors aucune implémentation n'a à être fournie pour la fonction
+d'audit correspondante.
+
+Pour utiliser l'interface d'audit, la variable d'environnement \fBLD_AUDIT\fP
+doit être définie avec une liste de bibliothèques partagées, séparées par
+des «\ deux\-points\ », qui peuvent implémenter l'API (ou une partie)
+d'audit. Quand un événement pouvant être surveillé survient, la fonction
+correspondante est appelée dans chaque bibliothèque, dans l'ordre où sont
+listées les bibliothèques.
+.SS la_version()
+\&
+.nf
+\fBunsigned int la_version(unsigned int \fP\fIversion\fP\fB);\fP
+.fi
+.PP
+Il s'agit de la seule fonction qui \fIdoit\fP être définie par une bibliothèque
+d'audit\ : elle effectue la présentation initiale entre l'éditeur de liens et
+la bibliothèque d'audit. Lorsque cette fonction est appelée, l'éditeur de
+liens passe, dans \fIversion\fP, la version la plus importante de l'interface
+d'audit qui soit prise en charge par l'éditeur de liens. Si nécessaire, la
+bibliothèque d'audit peut vérifier que cette version suffit à ses besoins.
+
+En retour, cette fonction doit renvoyer la version de l'interface d'audit
+que cette bibliothèque d'audit va utiliser (renvoyer \fIversion\fP est
+permis). Si la valeur de retour est 0 ou une version supérieure à celle
+prise en charge par l'éditeur de liens, alors la bibliothèque d'audit est
+ignorée.
+.SS la_objsearch()
+\&
+.nf
+\fBchar *la_objsearch(const char *\fP\fIname\fP\fB, uintptr_t *\fP\fIcookie\fP\fB,\fP
+\fB                   unsigned int \fP\fIflag\fP\fB);\fP
+.fi
+.PP
+L'éditeur de liens appelle cette fonction pour informer la bibliothèque
+d'audit qu'il va se mettre à la recherche d'un objet partagé. Le paramètre
+\fIname\fP est le nom de fichier ou le chemin dans lequel s'effectue la
+recherche. \fIcookie\fP identifie l'objet partagé qui a déclenché la
+recherche. \fIflag\fP est l'une des valeurs suivantes\ :
+.TP  17
+\fBLA_SER_ORIG\fP
+Il s'agit du nom de départ de la recherche. Généralement ce nom provient
+d'une entrée ELF \fBDT_NEEDED\fP ou est le paramètre \fIfilename\fP fourni à
+\fBdlopen\fP(3).
+.TP 
+\fBLA_SER_LIBPATH\fP
+\fIname\fP a été créé en utilisant un répertoire indiqué dans
+\fBLD_LIBRARY_PATH\fP.
+.TP 
+\fBLA_SER_RUNPATH\fP
+\fIname\fP a été créé en utilisant un répertoire indiqué dans une liste ELF
+\fBDT_RPATH\fP ou \fBDT_RUNPATH\fP.
+.TP 
+\fBLA_SER_CONFIG\fP
+\fIname\fP a été trouvé par le cache \fBldconfig\fP(8) (\fI/etc/ld.so.cache\fP).
+.TP 
+\fBLA_SER_DEFAULT\fP
+\fIname\fP a été trouvé par une recherche dans un des répertoires par défaut.
+.TP 
+\fBLA_SER_SECURE\fP
+\fIname\fP est spécifique à un objet sûr (pas utilisé sous Linux).
+.PP
+\fBla_objsearch\fP() renvoie comme valeur de retour le chemin que l'éditeur de
+liens devrait utiliser pour les opérations suivantes. Si NULL est renvoyé,
+alors le chemin est ignoré par la suite. Les bibliothèques qui ne cherche
+qu'à observer les chemins de recherche devraient renvoyer \fIname\fP.
+.SS la_activity()
+\&
+.nf
+\fBvoid la_activity( uintptr_t *\fP\fIcookie\fP\fB, unsigned int \fP\fIflag\fP\fB);\fP
+.fi
+.PP
+L'éditeur de liens appelle cette fonction pour informer la bibliothèque
+d'audit d'activités sur la table des liens. \fIcookie\fP identifie l'objet à la
+tête de la table. Quand l'éditeur de liens appelle cette fonction, \fIflag\fP
+vaut l'une des valeurs suivantes\ :
+.TP  19
+\fBLA_ACT_ADD\fP
+De nouveaux objets sont ajoutés à la table.
+.TP 
+\fBLA_ACT_DELETE\fP
+Des objets sont retirés d ela table.
+.TP 
+\fBLA_ACT_CONSISTENT\fP
+L'activité sur la table est terminée\ : la table est de nouveau cohérente.
+.SS la_objopen()
+\&
+.nf
+\fBunsigned int la_objopen(struct link_map *\fP\fImap\fP\fB, Lmid_t \fP\fIlmid\fP\fB,\fP
+\fB                        uintptr_t *\fP\fIcookie\fP\fB);\fP
+.fi
+.PP
+L'éditeur de liens appelle cette fonction quand un nouvel objet partagé est
+chargé. Le paramètre \fImap\fP est un pointeur vers la structure d'une table de
+liens qui décrit l'objet. Le champ \fIlmid\fP prend une des valeurs suivantes\ :
+.TP  17
+\fBLM_ID_BASE\fP
+La table fait partie de l'espace de noms de départ.
+.TP 
+\fBLM_ID_NEWLM\fP
+La table fait partie d'un nouvel espace de noms demandé avec \fBdlmopen\fP(3).
+.PP
+\fIcookie\fP est un pointeur vers un identifiant pour un objet. L'identifiant
+est fourni aux appels suivants des fonctions de la bibliothèque d'audit afin
+d'identifier l'objet. L'identifiant est initialisé pour pointer vers la
+table de l'objet, mais la bibliothèque d'audit peut changer l'identifiant
+pour une autre valeur qu'elle préférerait utiliser pour identifier l'objet.
+.PP
+\fBla_objopen\fP() renvoie comme valeur de retour un masque de bits créé en
+combinant zéro ou plusieurs constantes avec un OU binaire, ce qui permet à
+la bibliothèque d'audit de sélectionner les objets à surveiller avec les
+fonctions \fBla_symbind*\fP()\ :
+.TP  17
+\fBLA_FLG_BINDTO\fP
+Surveiller les associations de symboles à cet objet.
+.TP 
+\fBLA_FLG_BINDFROM\fP
+Surveiller les associations de symboles provenant de cet objet.
+.PP
+Une valeur de retour de 0 pour \fBla_objopen\fP() indique qu'aucune association
+de symbole n'est à surveiller pour cet objet.
+.SS la_objclose()
+\&
+.nf
+\fBunsigned int la_objclose(uintptr_t *\fP\fIcookie\fP\fB);\fP
+.fi
+.PP
+L'éditeur de liens appelle cette fonction après l'exécution du code de
+finalisation pour l'objet (s'il y en a), et avant que l'objet soit
+déchargé. Le paramètre \fIcookie\fP est l'identifiant obtenu par l'appel
+précédent à \fBla_objopen\fP().
+
+Dans l'implémentation actuelle, la valeur renvoyée par \fBla_objclose\fP() est
+ignorée.
+.SS la_preinit()
+\&
+.nf
+\fBvoid la_preinit(uintptr_t *\fP\fIcookie\fP\fB);\fP
+.fi
+.PP
+L'éditeur de liens appelle cette fonction après que tous les objets partagés
+ont été chargés, avant que le contrôle soit donné à l'application
+(c'est\-à\-dire avant l'appel à \fImain\fP()). Notez que \fImain\fP() peut encore
+charger des objets dynamiquement en utilisant \fBdlopen\fP(3).
+.SS la_symbind*()
+\&
+.nf
+\fBuintptr_t la_symbind32(Elf32_Sym *\fP\fIsym\fP\fB, unsigned int \fP\fIndx\fP\fB,\fP
+\fB                       uintptr_t *\fP\fIrefcook\fP\fB, uintptr_t *\fP\fIdefcook\fP\fB,\fP
+\fB                       unsigned int *\fP\fIflags\fP\fB, const char *\fP\fIsymname\fP\fB);\fP
+\fBuintptr_t la_symbind64(Elf64_Sym *\fP\fIsym\fP\fB, unsigned int \fP\fIndx\fP\fB,\fP
+\fB                       uintptr_t *\fP\fIrefcook\fP\fB, uintptr_t *\fP\fIdefcook\fP\fB,\fP
+\fB                       unsigned int *\fP\fIflags\fP\fB, const char *\fP\fIsymname\fP\fB);\fP
+.fi
+.PP
+L'éditeur de liens appelle une de ces fonctions quand une association de
+symbole survient entre deux objets partagés qui ont été marqués comme étant
+surveillés par \fBla_objopen\fP(). La fonction \fBla_symbind32\fP() est utilisée
+pour les plate\-formes 32\ bits\ ; la fonction \fBla_symbind64\fP() est utilisée
+pour les plate\-formes 64\ bits.
+
+Le paramètre \fIsym\fP est un pointeur vers une structure qui fournit des
+informations sur le symbole en cours d'association. La définition de la
+structure se trouve dans \fI<elf.h>\fP. Parmi les champs de la
+structure, \fIst_value\fP indique l'adresse à laquelle le symbole est associé.
+
+Le paramètre \fIndx\fP fournit l'index du symbole dans la table des symboles de
+l'objet partagé associé.
+
+Le paramètre \fIrefcook\fP identifie l'objet partagé qui crée la référence du
+symbole\ ; il s'agit du même identifiant fourni à la fonction \fBla_objopen\fP()
+qui a renvoyé \fBLA_FLG_BINDFROM\fP. Le paramètre \fIdefcook\fP identifie l'objet
+partagé qui défini le symbole référencé\ ; il s'agit du même identifiant
+fourni à la fonction \fBla_objopen\fP() qui a renvoyé \fBLA_FLG_BINDTO\fP.
+
+Le paramètre \fIsymname\fP pointe vers une chaîne contenant le nom du symbole.
+
+.\" LA_SYMB_STRUCTCALL appears to be unused
+Le paramètre \fIflags\fP est un masque de bits qui peut à la fois fournir des
+informations sur le symbole et être utilisé pour modifier encore plus la
+surveillance de cette entrée de la PLT (Procedure Linkage Table). L'éditeur
+de liens dynamique peut fournir les bits suivants dans ce paramètre\ :
+.TP  22
+\fBLA_SYMB_DLSYM\fP
+L'association provient d'un appelle à \fBdlsym\fP(3).
+.TP 
+\fBLA_SYMB_ALTVALUE\fP
+Un appel précédent à \fBla_symbind*\fP() a renvoyé une autre valeur pour ce
+symbole.
+.PP
+.\" pltenter/pltexit are called for non-dynamically loaded libraries,
+.\" but don't seem to be called for dynamically loaded libs?
+.\" Is this the same on Solaris?
+Par défaut, si la bibliothèque d'audit implémente les fonctions
+\fBla_pltenter\fP() et \fBla_pltexit\fP() (voir ci\-dessous), alors ces fonctions
+sont appelées, après \fBla_symbind\fP(), pour les entrées de la PLT, à chaque
+fois que le symbole est référencé. Les drapeaux suivants peuvent être
+fournis en les combinant avec un OU binaire dans \fI*flags\fP pour modifier ce
+comportement par défaut\ :
+.TP  22
+\fBLA_SYMB_NOPLTENTER\fP
+Ne pas appeler \fBla_pltenter\fP() pour ce symbole.
+.TP  22
+\fBLA_SYMB_NOPLTEXIT\fP
+Ne pas appeler \fBla_pltexit\fP() pour ce symbole.
+.PP
+La valeur de retour de \fBla_symbind32\fP() et \fBla_symbind64\fP() est l'adresse
+à laquelle le contrôle doit être donné après que la fonction se termine. Si
+la bibliothèque d'audit ne fait qu'observer les associations de symboles,
+elle devrait renvoyer \fIsym\->st_value\fP. Une valeur différente peut être
+renvoyée si la bibliothèque souhaite rediriger le contrôle à un autre
+endroit.
+.SS la_pltenter()
+Le nom et les types des paramètres de cette fonction dépendent de la
+plate\-forme matérielle. (la définition appropriée est fournie par
+\fI<link.h>\fP.) Voici la définition pour la plate\-forme x86\-32\ :
+.nf
+
+\fBElf32_Addr la_i86_gnu_pltenter(Elf32_Sym *\fP\fIsym\fP\fB, unsigned int \fP\fIndx\fP\fB,\fP
+\fB                 uintptr_t *\fP\fIrefcook\fP\fB, uintptr_t *\fP\fIdefcook\fP\fB,\fP
+\fB                 La_i86_regs *\fP\fIregs\fP\fB, unsigned int *\fP\fIflags\fP\fB,\fP
+\fB                 const char *\fP\fIsymname\fP\fB, long int *\fP\fIframesizep\fP\fB);\fP
+.fi
+
+Cette fonction est appelée juste avant l'appel d'une entrée de la PLT, entre
+deux objets partagés ayant été marqués pour la notification des
+associations.
+
+Les paramètres \fIsym\fP, \fIndx\fP, \fIrefcook\fP, \fIdefcook\fP et \fIsymname\fP sont
+comme pour \fBla_symbind*\fP().
+
+Le paramètre \fIregs\fP pointe vers une structure (définie dans
+\fI<link.h>\fP) qui contient les valeurs des registres à utiliser pour
+l'appel à cette entrée de la PLT.
+
+Le paramètre \fIflags\fP pointe vers une masque de bits qui, comme pour
+\fBla_symbind*\fP(), fournit des informations pour cette entrée de la PLT et
+peut être utilisé pour modifier la façon dont elle sera surveillée
+ultérieurement.
+
+.\" FIXME is the following correct?
+Le paramètre \fIframesizep\fP pointe vers un \fIlong\ int\fP qui peut être utilisé
+pour définir explicitement la taille de la trame utilisée pour l'appel à
+cette entrée de la PLT. Si différents appels à \fBla_pltenter\fP() pour ce
+symbole renvoient différentes valeurs, alors la valeur maximale renvoyée est
+utilisée. La fonction \fBla_pltenter\fP() n'est appelée que si ce pointeur est
+explicitement définit avec une valeur convenable.
+
+La valeur de retour de \fBla_pltenter\fP() est comme pour \fBla_symbind*\fP().
+.SS la_pltexit()
+Le nom et les types des paramètres de cette fonction dépendent de la
+plate\-forme matérielle. (la définition appropriée est fournie par
+\fI<link.h>\fP.) Voici la définition pour la plate\-forme x86\-32\ :
+.nf
+
+\fBunsigned int la_i86_gnu_pltexit(Elf32_Sym *\fP\fIsym\fP\fB, unsigned int \fP\fIndx\fP\fB,\fP
+\fB                 uintptr_t *\fP\fIrefcook\fP\fB, uintptr_t *\fP\fIdefcook\fP\fB,\fP
+\fB                 const La_i86_regs *\fP\fIinregs\fP\fB, La_i86_retval *\fP\fIoutregs\fP\fB,\fP
+\fB                 const char *\fP\fIsymname\fP\fB);\fP
+.fi
+.PP
+Cette fonction est appelée quand une entrée de la PLT, créée entre deux
+objets partagés ayant été marqués pour la notification des associations, se
+termine. La fonction est appelée juste avant que le contrôle soit rendu à
+l'appelant de l'entrée de la PLT.
+.PP
+Les paramètres \fIsym\fP, \fIndx\fP, \fIrefcook\fP, \fIdefcook\fP et \fIsymname\fP sont
+comme pour \fBla_symbind*\fP().
+
+Le paramètre \fIinregs\fP pointe vers une structure (définie dans
+\fI<link.h>\fP) qui contient les valeurs des registres utilisés pour
+l'appel à cette entrée de la PLT. Le paramètre \fIoutregs\fP pointe vers une
+structure (définie dans \fI<link.h>\fP) qui contient les valeurs de
+retour de l'appel à cette entrée de la PLT. Ces valeurs peuvent être
+modifiées par l'appelant et les modifications seront visibles pour
+l'appelant de l'entrée de la PLT.
+
+.\" This differs from Solaris, where an audit library that monitors
+.\" symbol binding should return the value of the 'retval' argument
+.\" (not provided by GNU, but equivalent to returning outregs->lrv_eax
+.\" on (say) x86-32).
+Dans l'implémentation GNU actuelle, la valeur de retour de \fBla_pltexit\fP()
+est ignorée.
+.SH CONFORMITÉ
+Cette API n'est pas standard, mais est très proche de l'API Solaris, décrite
+dans le guide Solaris \fILinker and Libraries Guide\fP, au chapitre \fIRuntime
+Linker Auditing Interface\fP.
+.SH NOTES
+Notez les différences suivantes avec l'API d'audit de l'éditeur de liens
+Solaris\ :
+.IP * 3
+L'interface Solaris \fBla_objfilter\fP() n'est pas prise en charge par
+l'implémentation GNU.
+.IP *
+Les fonctions Solaris \fBla_symbind32\fP() et \fBla_pltexit\fP() ne fournissent
+pas de paramètre \fIsymname\fP.
+.IP *
+La fonction Solaris \fBla_pltexit\fP() ne fournit pas de paramètre \fIinregs\fP ou
+\fIoutregs\fP (mais fournit une paramètre \fIretval\fP avec la valeur de retour de
+la fonction).
+.SH BOGUES
+.\" FIXME Specifying multiple audit libraries doesn't work on GNU.
+.\" My simple tests on Solaris work okay, but not on Linux -- mtk, Jan 2009
+.\" glibc bug filed: http://sourceware.org/bugzilla/show_bug.cgi?id=9733
+.\" Reportedly, this is fixed on 16 Mar 2009 (i.e., for glibc 2.10)
+Dans les versions de la glibc jusqu'à la version\ 2.9 (inclue), fournit plus
+d'une bibliothèque d'audit dans \fBLD_AUDIT\fP provoquait un crash à
+l'exécution. Cela a été corrigé dans la version\ 2.10.
+.SH EXEMPLE
+.nf
+#include <link.h>
+#include <stdio.h>
+
+unsigned int
+la_version(unsigned int version)
+{
+    printf("la_version(): %d\en", version);
+
+    return version;
+}
+
+char *
+la_objsearch(const char *name, uintptr_t *cookie, unsigned int flag)
+{
+    printf("la_objsearch(): name = %s; cookie = %x", name, cookie);
+    printf("; flag = %s\en",
+            (flag == LA_SER_ORIG) ?    "LA_SER_ORIG" :
+            (flag == LA_SER_LIBPATH) ? "LA_SER_LIBPATH" :
+            (flag == LA_SER_RUNPATH) ? "LA_SER_RUNPATH" :
+            (flag == LA_SER_DEFAULT) ? "LA_SER_DEFAULT" :
+            (flag == LA_SER_CONFIG) ?  "LA_SER_CONFIG" :
+            (flag == LA_SER_SECURE) ?  "LA_SER_SECURE" :
+            "???");
+
+    return name;
+}
+
+void
+la_activity (uintptr_t *cookie, unsigned int flag)
+{
+    printf("la_activity(): cookie = %x; flag = %s\en", cookie,
+            (flag == LA_ACT_CONSISTENT) ? "LA_ACT_CONSISTENT" :
+            (flag == LA_ACT_ADD) ?        "LA_ACT_ADD" :
+            (flag == LA_ACT_DELETE) ?     "LA_ACT_DELETE" :
+            "???");
+}
+
+unsigned int
+la_objopen(struct link_map *map, Lmid_t lmid, uintptr_t *cookie)
+{
+    printf("la_objopen(): loading \e"%s\e"; lmid = %s; cookie=%x\en",
+            map\->l_name,
+            (lmid == LM_ID_BASE) ?  "LM_ID_BASE" :
+            (lmid == LM_ID_NEWLM) ? "LM_ID_NEWLM" :
+            "???",
+            cookie);
+
+    return LA_FLG_BINDTO | LA_FLG_BINDFROM;
+}
+
+unsigned int
+la_objclose (uintptr_t *cookie)
+{
+    printf("la_objclose(): %x\en", cookie);
+
+    return 0;
+}
+
+void
+la_preinit(uintptr_t *cookie)
+{
+    printf("la_preinit(): %x\en", cookie);
+}
+
+uintptr_t
+la_symbind32(Elf32_Sym *sym, unsigned int ndx, uintptr_t *refcook,
+        uintptr_t *defcook, unsigned int *flags, const char *symname)
+{
+    printf("la_symbind32(): symname = %s; sym\->st_value = %p\en",
+            symname, sym\->st_value);
+    printf("        ndx = %d; flags = 0x%x", ndx, *flags);
+    printf("; refcook = %x; defcook = %x\en", refcook, defcook);
+
+    return sym\->st_value;
+}
+
+uintptr_t
+la_symbind64(Elf64_Sym *sym, unsigned int ndx, uintptr_t *refcook,
+        uintptr_t *defcook, unsigned int *flags, const char *symname)
+{
+    printf("la_symbind64(): symname = %s; sym\->st_value = %p\en",
+            symname, sym\->st_value);
+    printf("        ndx = %d; flags = 0x%x", ndx, *flags);
+    printf("; refcook = %x; defcook = %x\en", refcook, defcook);
+
+    return sym\->st_value;
+}
+
+Elf32_Addr
+la_i86_gnu_pltenter(Elf32_Sym *sym, unsigned int ndx,
+        uintptr_t *refcook, uintptr_t *defcook, La_i86_regs *regs,
+        unsigned int *flags, const char *symname, long int *framesizep)
+{
+    printf("la_i86_gnu_pltenter(): %s (%p)\en", symname, sym\->st_value);
+
+    return sym\->st_value;
+}
+.fi
+.SH "VOIR AUSSI"
+\fBldd\fP(1), \fBdlopen\fP(3), \fBld.so\fP(8), \fBldconfig\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

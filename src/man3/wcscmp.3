@@ -1,0 +1,64 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH WCSCMP 3 "25 juillet 1999" GNU "Manuel du programmeur Linux"
+.SH NOM
+wcscmp \- Comparer deux chaînes de caractères larges
+.SH SYNOPSIS
+.nf
+\fB#include <wchar.h>\fP
+.sp
+\fBint wcscmp(const wchar_t *\fP\fIs1\fP\fB, const wchar_t *\fP\fIs2\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBwcscmp\fP() est l'équivalent pour les caractères larges de la
+fonction \fBstrcmp\fP(3). Elle compare la chaîne de caractères larges pointée
+par \fIs1\fP avec celle pointée par \fIs2\fP.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBwcscmp\fP() renvoie zéro si les chaînes de caractères larges
+\fIs1\fP et \fIs2\fP sont égales. Elle renvoie un entier positif si à
+l'emplacement \fIi\fP de la première différence, le caractère large
+correspondant \fIs1[i]\fP est supérieur à \fIs2[i]\fP. Elle renvoie un entier
+négatif si \fIs1[i]\fP est inférieur à \fIs2[i]\fP.
+.SH CONFORMITÉ
+C99.
+.SH "VOIR AUSSI"
+\fBstrcmp\fP(3), \fBwcscasecmp\fP(3), \fBwmemcmp\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

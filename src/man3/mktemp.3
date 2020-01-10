@@ -1,0 +1,122 @@
+.\" Copyright (C) 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 18:48:06 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Fri Jun 23 01:26:34 1995 by Andries Brouwer (aeb@cwi.nl)
+.\" (prompted by Scott Burkett <scottb@IntNet.net>)
+.\" Modified Sun Mar 28 23:44:38 1999 by Andries Brouwer (aeb@cwi.nl)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MKTEMP 3 "19 avril 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+mktemp \- Créer un nom de fichier temporaire unique
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBchar *mktemp(char *\fP\fItemplate\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBmktemp\fP()\ :
+.ad l
+.PD 0
+.RS 4
+.TP  4
+Depuis la glibc 2.12\ :
+_BSD_SOURCE || _SVID_SOURCE ||
+    (_XOPEN_SOURCE\ >=\ 500 ||
+         _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED) &&
+    !(_POSIX_C_SOURCE\ >=\ 200112L || _XOPEN_SOURCE\ >=\ 600)
+.TP 
+Avant la glibc 2.12\ :
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.RE
+.PD
+.ad b
+.SH DESCRIPTION
+La fonction \fBmktemp\fP() crée un nom de fichier temporaire unique, en
+utilisant le motif \fItemplate\fP. Les 6 derniers caractères de \fItemplate\fP
+doivent être XXXXXX, et ils seront remplacés par une chaîne rendant le nom
+de fichier unique. Comme il sera modifié, \fItemplate\fP ne doit pas être une
+chaîne constante, mais un tableau de caractères.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBmktemp\fP() renvoie toujours \fItemplate\fP. Si un nom unique est
+crée, les six derniers octets de \fItemplate\fP seront modifiés afin que le nom
+résultant soit unique. Si un nom unique ne peut être créé, \fItemplate\fP est
+une chaîne vide et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+Les 6 derniers caractères de \fItemplate\fP ne sont pas XXXXXX.
+.SH CONFORMITÉ
+BSD\ 4.3, POSIX.1\-2001. POSIX.1\-2008 supprime la spécification de
+\fBmktemp\fP().
+.SH NOTES
+Le prototype se trouve dans \fI<unistd.h>\fP pour libc4, libc5,
+glibc1. glibc2 suit les spécifications Single UNIX et place le prototype
+dans \fI<stdlib.h>\fP.
+.SH BOGUES
+Évitez d'utiliser \fBmktemp\fP(). Certaines implémentations suivent BSD\ 4.3,
+et remplacent XXXXXX par le numéro du processus et une lettre, ce qui donne
+26 noms différents possibles. Comme d'une part ces noms sont faciles à
+deviner, et d'autre part il existe une condition de concurrence entre le
+test d'existence du nom et l'ouverture du fichier, chaque invocation de
+\fBmktemp\fP() est un trou de sécurité. Les conditions de concurrences sont
+évitées par \fBmkstemp\fP(3).
+.SH "VOIR AUSSI"
+\fBmkstemp\fP(3), \fBtempnam\fP(3), \fBtmpfile\fP(3). \fBtmpnam\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

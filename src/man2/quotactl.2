@@ -1,0 +1,361 @@
+.\" Copyright (c) 2010, Jan Kara
+.\" A few pieces copyright (c) 1996 Andries Brouwer (aeb@cwi.nl)
+.\" and copyright 2010 (c) Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of
+.\" this manual under the conditions for verbatim copying, provided that
+.\" the entire resulting derived work is distributed under the terms of
+.\" a permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume
+.\" no responsibility for errors or omissions, or for damages resulting
+.\" from the use of the information contained herein.  The author(s) may
+.\" not have taken the same level of care in the production of this
+.\" manual, which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH QUOTACTL 2 "16 juin 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+quotactl \- Manipuler les quotas de disque
+.SH SYNOPSIS
+.nf
+\fB#include <sys/quota.h>\fP
+\fB#include <xfs/xqm.h>\fP
+.LP
+\fBint quotactl(int \fP\fIcmd\fP\fB, const char *\fP\fIspecial\fP\fB, int \fP\fIid\fP\fB, caddr_t \fP\fIaddr\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+.LP
+Le système de quotas permet de définir une limite sur la quantité d'espace
+disque utilisé sur un système de fichiers, qui peut être mise par
+utilisateur ou par groupe. Pour chaque utilisateur ou groupe, une limite
+souple et une limite impérative peuvent être définies sur chaque système de
+fichiers. La limite impérative ne peut pas être dépassée. La limite souple
+peut être dépassée, mais des avertissements s'en suivront. De plus,
+l'utilisateur ne peut pas dépasser une limite souple pendant plus d'une
+semaine (par défaut) d'affilée. Une fois la semaine écoulée, la limite
+souple devient une limite impérative.
+
+L'appel \fBquotactl\fP() manipule ces quotas. L'argument \fIcmd\fP indique une
+commande à appliquer à l'identifiant d'utilisateur ou de groupe spécifié
+dans \fIid\fP. Pour initialiser l'argument \fIcmd\fP, utilisez la macro
+\fBQCMD(\fP\fIsubcmd\fP\fB,\fP\fItype\fP\fB)\fP. La valeur \fItype\fP vaut soit \fBUSRQUOTA\fP
+(pour les quotas d'utilisateur), soit \fBGRPQUOTA\fP (pour les quotas de
+groupe). La valeur de \fIsubcmd\fP est décrite plus bas.
+
+L'argument \fIspecial\fP est un pointeur vers une chaîne de caractères
+(terminée par le caractère nul) contenant le chemin du périphérique spécial
+en mode bloc pour le système de fichiers à manipuler.
+
+L'argument \fIaddr\fP est l'adresse d'une structure de données optionnelle,
+spécifique à la commande, qui est copiée sur ou depuis le
+système. L'interprétation d'\fIaddr\fP est donnée avec chaque commande
+ci\-dessous.
+
+La valeur de \fIsubcmd\fP prend une de ces valeurs\ :
+.TP  8
+\fBQ_QUOTAON\fP
+Activer les quotas pour un système de fichiers. L'argument \fIid\fP est le
+numéro d'identification du format de quotas à utiliser. Il existe
+actuellement trois formats possibles de quotas\ :
+.RS
+.TP  13
+\fBQFMT_VFS_OLD\fP
+Le format original de quotas.
+.TP 
+\fBQFMT_VFS_V0\fP
+Le standard VFS v0 format de quotas, qui peut manipuler des identifiants
+d'utilisateur et de groupe sur 32\ bits, et des limites de quotas jusqu'à
+2^42\ octets et 2^32\ inœuds.
+.TP 
+\fBQFMT_VFS_V1\fP
+Un format de quotas qui peut manipuler des identifiants d'utilisateur et de
+groupe sur 32\ bits, et des limites de quotas jusqu'à 2^64\ octets et
+2^64\ inœuds.
+.RE
+.IP
+L'argument \fIaddr\fP pointe sur le chemin d'un fichier contenant les quotas du
+système de fichiers. Le fichier de quotas doit exister\ ; il est
+habituellement créé par la commande \fBquotacheck\fP(8). Cette opération
+nécessite le privilège \fBCAP_SYS_ADMIN\fP.
+.TP  8
+\fBQ_QUOTAOFF\fP
+Désactiver les quotas pour un système de fichiers. Les arguments \fIaddr\fP et
+\fIid\fP sont ignorés. Cette opération nécessite le privilège \fBCAP_SYS_ADMIN\fP.
+.TP 
+\fBQ_GETQUOTA\fP
+Obtenir les limites actuelles et l'utilisation courante de l'espace disque
+pour l'utilisateur ou le groupe \fIid\fP. L'argument \fIaddr\fP est un pointeur
+sur une structure \fIdqblk\fP définie dans \fI<sys/quota.h>\fP comme
+ceci\ :
+.in +4n
+.nf
+
+/* uint64_t est un entier non signé 64 bits
+   uint32_t est un entier non signé 32 bits */
+
+struct dqblk {          /* Definition depuis Linux 2.4.22 */
+    uint64_t dqb_bhardlimit;   /* limite impérative sur le
+                                  nombre de blocs disques */
+    uint64_t dqb_bsoftlimit;   /* limite douce sur le nombre
+                                  de blocs disques */
+    uint64_t dqb_curspace;     /* nombre de blocs actuel dans
+                                  le quota */
+    uint64_t dqb_ihardlimit;   /* nombre maximal d'inœuds
+                                  alloués */
+    uint64_t dqb_isoftlimit;   /* limite douce d'inœuds */
+    uint64_t dqb_curinodes;    /* nombre d'inœuds actuellement
+                                  alloués */
+    uint64_t dqb_btime;        /* limite de temps pour utilisation
+                                  abusive du disque */
+    uint64_t dqb_itime;        /* limite de temps pour utilisation
+                                  des fichiers */
+    uint32_t dqb_valid;        /* masque de bit des constantes
+                                  QIF_* */
+};
+
+/* Attributs de dqb_valid qui indiquent quels champs
+   de la structure dqblk sont valables. */
+
+#define QIF_BLIMITS   1
+#define QIF_SPACE     2
+#define QIF_ILIMITS   4
+#define QIF_INODES    8
+#define QIF_BTIME     16
+#define QIF_ITIME     32
+#define QIF_LIMITS    (QIF_BLIMITS | QIF_ILIMITS)
+#define QIF_USAGE     (QIF_SPACE | QIF_INODES)
+#define QIF_TIMES     (QIF_BTIME | QIF_ITIME)
+#define QIF_ALL       (QIF_LIMITS | QIF_USAGE | QIF_TIMES)
+
+.fi
+.in
+Le champ \fIdqb_valid\fP est un masque de bit qui permet d'indiquer quelles
+entrées de la structure sont valables. Actuellement, le noyau remplit toutes
+les entrées de la structure \fIdqblk\fP et les marque comme valables dans le
+champ \fIdqb_valid\fP. Les utilisateurs non privilégiés ne peuvent connaitre
+que leurs propres quotas\ ; un utilisateur avec le privilège \fBCAP_SYS_ADMIN\fP
+peut connaitre les quotas de tous les utilisateurs.
+.TP 
+\fBQ_SETQUOTA\fP
+Définir les informations de quotas pour l'utilisateur ou le groupe \fIid\fP, en
+utilisant les informations fournies par la structure \fIdqblk\fP dont l'adresse
+est contenue dans \fIaddr\fP. Le champ \fIdqb_valid\fP de la structure \fIdqblk\fP
+indique quelles entrées de la structure ont été définies par
+l'appelant. Cette opération remplace les opérations \fBQ_SETQLIM\fP et
+\fBQ_SETUSE\fP de l'interface antérieure de quotas. Cette opération nécessite
+le privilège \fBCAP_SYS_ADMIN\fP.
+.TP 
+\fBQ_GETINFO\fP
+Obtenir les limites actuelles et l'utilisation courante de l'espace
+disque. L'argument \fIaddr\fP est un pointeur sur une structure dqblk (définie
+dans \fI<sys/quota.h>\fP).
+.in +4n
+.nf
+
+/* uint64_t est un entier non signé 64 bits
+   uint32_t est un entier non signé 32 bits */
+
+struct dqinfo {          /* Définie depuis le noyau 2.4.22 */
+    uint64_t dqi_bgrace; /* Temps avant qu'une limite douce sur
+                            les blocs ne devienne impérative */
+
+    uint64_t dqi_igrace;    /* Temps avant qu'une limite douce sur
+                               les inœuds ne devienne impérative */
+    uint32_t dqi_flags;     /* Attributs pour le fichier de quotas
+                               (DQF_*) */
+    uint32_t dqi_valid;
+};
+
+/* Bits pour dqi_flags */
+
+/* Format de quota QFMT_VFS_OLD */
+
+#define V1_DQF_RSQUASH	1   /* Activer « root squash » */
+
+/* Les autres formats de quotas n'ont pas de bits dqi_flags définis */
+
+/* Attributs de dqi_valid qui indiquent quels champs
+   de la structure dqinfo sont valables. */
+
+# define IIF_BGRACE	1
+# define IIF_IGRACE	2
+# define IIF_FLAGS	4
+# define IIF_ALL	(IIF_BGRACE | IIF_IGRACE | IIF_FLAGS)
+
+.fi
+.in
+Le champ \fIdqi_valid\fP de la structure \fIdqinfo\fP indique les entrées de la
+structure qui sont valables. Le noyau remplit actuellement toutes les
+entrées de la structure \fIdqinfo\fP et les marque comme étant valables dans le
+champ \fIdqi_valid\fP. L'argument \fIid\fP est ignoré.
+.TP 
+\fBQ_SETINFO\fP
+Définir les informations au sujet du fichier de quotas. L'argument \fIaddr\fP
+devrait être un pointeur vers une structure \fIdqinfo\fP. Le champ \fIdqi_valid\fP
+de la structure \fIdqinfo\fP indique quelles entrées de la structure ont été
+définies par l'appelant. Cette opération remplace les opérations
+\fBQ_SETGRACE\fP et \fBQ_SETFLAGS\fP de l'interface antérieure de
+quotas. L'argument \fIid\fP est ignoré. Cette opération nécessite le privilège
+\fBCAP_SYS_ADMIN\fP.
+.TP 
+\fBQ_GETFMT\fP
+Obtenir le format de quotas utilisé sur le système de fichiers
+spécifié. L'argument \fIaddr\fP est un pointeur sur un tampon de 4 octets qui
+contient le numéro du format.
+.TP 
+\fBQ_SYNC\fP
+Met à jour la copie sur disque de l'utilisation des quotas sur un système de
+fichiers. Si \fIspecial\fP vaut NULL, alors tous les systèmes de fichiers avec
+des quotas activés sont synchronisés. Les arguments \fIaddr\fP et \fIid\fP sont
+ignorés.
+.TP 
+\fBQ_GETSTATS\fP
+.\" Q_GETSTATS was removed in kernel 2.4.22.
+Récupère des statistiques et d'autres informations génériques sur le
+sous\-système de quotas. L'argument \fIaddr\fP doit être un pointeur sur une
+structure \fIdqstats\fP dans laquelle les données seront stockées. Cette
+structure est définie dans \fI<sys/quota.h>\fP. Les arguments
+\fIspecial\fP et \fIid\fP sont ignorés. Cette opération est obsolète et n'est plus
+acceptée par les noyaux récents\ ; elle est remplacée par les fichiers dans
+\fI/proc/sys/fs/quota/\fP, qui contiennent les informations.
+.PP
+Pour des systèmes de fichiers XFS qui utilisent le gestionnaire de quotas
+XFS (\fIXFS Quota Manager\fP, ou XQM), les commandes ci\-dessus doivent être
+remplacées par les commandes suivantes\ :
+.TP  8
+\fBQ_XQUOTAON\fP
+Activer les quotas sur un système de fichiers XFS. XFS permet d'activer et
+désactiver le renforcement des limites avec la gestion des quotas. Par
+conséquent, XFS attend qu'\fIaddr\fP soit un pointeur sur un \fIunsigned int\fP
+qui contient soit les attributs \fBXFS_QUOTA_UDQ_ACCT\fP et/ou
+\fBXFS_QUOTA_UDQ_ENFD\fP (pour les quotas d'utilisateur), ou
+\fBXFS_QUOTA_GDQ_ACCT\fP et/ou \fBXFS_QUOTA_GDQ_ENFD\fP (pour les quotas de
+groupe), comme défini dans \fI<xfs/xqm.h>\fP. Cette opération nécessite
+le privilège \fBCAP_SYS_ADMIN\fP.
+.TP 
+\fBQ_XQUOTAOFF\fP
+Désactiver les quotas pour un système de fichiers XFS. Comme pour
+\fBQ_QUOTAON\fP, le système de fichier XFS attend un pointeur vers un
+\fIunsigned int\fP qui spécifie si le décompte des quotas et/ou le renforcement
+des limites doit être désactivé. Cette opération nécessite le privilège
+\fBCAP_SYS_ADMIN\fP.
+.TP 
+\fBQ_XGETQUOTA\fP
+Obtenir les limites actuelles et l'utilisation courante de l'espace disque
+pour l'utilisateur \fIid\fP. L'argument \fIaddr\fP est un pointeur sur une
+structure \fIfs_disk_quota\fP (définie dans \fI<xfs/xqm.h>\fP). Les
+utilisateurs non privilégiés ne peuvent connaitre que leurs propres quotas\ ;
+un utilisateur avec le privilège \fBCAP_SYS_ADMIN\fP peut connaitre les quotas
+de tous les utilisateurs.
+.TP 
+\fBQ_XSETQLIM\fP
+Définir les informations de quotas pour l'utilisateur \fIid\fP. L'argument
+\fIaddr\fP contient un pointeur vers une structure \fIfs_disk_quota\fP (définie
+dans \fI<xfs/xqm.h>\fP). Cette opération nécessite le privilège
+\fBCAP_SYS_ADMIN\fP.
+.TP 
+\fBQ_XGETQSTAT\fP
+Renvoie une structure \fIfs_quota_stat\fP contenant des informations de quotas
+spécifiques au système de fichiers XFS. Ceci est utile pour savoir combien
+d'espace est utilisé pour stocker les informations sur les quotas, ainsi que
+pour connaitre l'état activé ou non des quotas d'un système de fichiers
+local XFS spécifique.
+.TP 
+\fBQ_XQUOTARM\fP
+Libère l'espace disque pris par les quotas sur le disque. Les quotas doivent
+avoir été désactivés au préalable.
+.PP
+Il n'existe pas de commande équivalente à \fBQ_SYNC\fP pour XFS puisque
+\fBsync\fP(1)  écrit les informations de quotas sur le disque (en plus des
+autres méta\-données du système de fichiers qui sont écrits sur le disque).
+.SH "VALEUR RENVOYÉE"
+.LP
+L'appel renvoie zéro s'il réussit, ou \-1 s'il échoue auquel cas \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fIaddr\fP ou \fIspecial\fP n'est pas valable.
+.TP 
+\fBEINVAL\fP
+\fIcmd\fP ou \fItype\fP n'est pas valable.
+.TP 
+\fBENOENT\fP
+Le fichier spécifié par \fIspecial\fP ou \fIaddr\fP n'existe pas.
+.TP 
+\fBENOSYS\fP
+Le noyau a été compilé sans l'option \fBCONFIG_QUOTA\fP.
+.TP 
+\fBENOTBLK\fP
+\fIspecial\fP n'est pas un périphérique bloc.
+.TP 
+\fBEPERM\fP
+L'appelant ne possède pas le privilège nécessaire (\fBCAP_SYS_ADMIN\fP)  pour
+l'opération demandée.
+.TP 
+\fBESRCH\fP
+Aucun quota de disque n'est imposé pour l'utilisateur spécifié. Les quotas
+n'ont pas été activés sur ce système de fichiers.
+.LP
+Si \fIcmd\fP vaut \fBQ_SETQUOTA\fP, \fBquotactl\fP() peut aussi définir \fIerrno\fP
+ainsi\ :
+.TP 
+\fBERANGE\fP
+Les limites spécifiées sont en dehors de l'intervalle autorisé for le format
+de quotas.
+.LP
+Si \fIcmd\fP vaut \fBQ_QUOTAON\fP, \fBquotactl\fP() peut aussi définir \fIerrno\fP
+ainsi\ :
+.TP 
+\fBEACCES\fP
+Le fichier de quotas pointé par \fIaddr\fP existe, mais n'est pas un fichier
+normal\ ; ou alors, le fichier de quotas pointé par \fIaddr\fP existe, mais
+n'est pas dans le système de fichiers pointé par \fIspecial\fP.
+.TP 
+\fBEBUSY\fP
+Tentative de \fBQ_QUOTAON\fP, mais un autre \fBQ_QUOTAON\fP a déjà été réalisé.
+.TP 
+\fBEINVAL\fP
+Le fichier de quotas est corrompu.
+.TP 
+\fBESRCH\fP
+Le format de quotas spécifié n'a pas été trouvé.
+.SH "VOIR AUSSI"
+\fBquota\fP(1), \fBgetrlimit\fP(2), \fBquotacheck\fP(8), \fBquotaon\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

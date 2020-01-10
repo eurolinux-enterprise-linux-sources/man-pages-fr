@@ -1,0 +1,123 @@
+.\" Copyright 2009 Intel Corporation
+.\"                Author: Andi Kleen
+.\" Based on the move_pages manpage which was
+.\" This manpage is Copyright (C) 2006 Silicon Graphics, Inc.
+.\"                               Christoph Lameter
+.\"
+.\" %%%LICENSE_START(VERBATIM_TWO_PARA)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MIGRATE_PAGES 2 "1er août 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+migrate_pages \- Déplacer toutes les pages d'un processus sur un autre
+ensemble de nœuds
+.SH SYNOPSIS
+.nf
+\fB#include <numaif.h>\fP
+.sp
+\fBlong migrate_pages(int \fP\fIpid\fP\fB, unsigned long \fP\fImaxnode,\fP
+\fB                   const unsigned long *\fP\fIold_nodes,\fP
+\fB                   const unsigned long *\fP\fInew_nodes\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lnuma\fP.
+.SH DESCRIPTION
+\fBmigrate_pages\fP() essaye de déplacer toutes les pages du processus \fIpid\fP
+qui sont sur les nœuds de mémoire \fIold_nodes\fP vers les nœuds de mémoire
+\fInew_nodes\fP. Les pages qui ne sont dans aucun nœud de \fIold_nodes\fP ne
+seront pas déplacées. Le noyau maintient autant que possible les relations
+topologiques relatives à l'intérieur de \fIold_nodes\fP durant le déplacement
+vers \fInew_nodes\fP.
+
+Les arguments \fIold_nodes\fP et \fInew_nodes\fP sont des pointeurs vers des
+masques de bits de numéros de nœuds, avec jusqu'à \fImaxnode\fP bits dans
+chaque masque. Ces masques sont maintenus comme des tableaux d'entiers longs
+non signés (\fIunsigned long\fP)\ ; dans le dernier entier long, les bits après
+ceux spécifiés par \fImaxnode\fP sont ignorés. L'argument \fImaxnode\fP vaut un
+plus le numéro maximal de nœud dans le masque de bit (qui a donc la même
+signification que dans \fBmbind\fP(2), mais est différent de \fBselect\fP(2)).
+
+L'argument \fIpid\fP est l'identifiant du processus dont les pages doivent être
+déplacées. Pour déplacer les pages dans un autres processus, l'appelant doit
+être privilégié (\fBCAP_SYS_NICE\fP) ou l'identifiant utilisateur réel ou
+effectif du processus appelant doit correspondre à l'identifiant utilisateur
+réel ou sauvé du processus cible. Si \fIpid\fP vaut 0, alors \fBmigrate_pages\fP()
+déplace les pages du processus appelant.
+
+Les pages partagées avec un autre processus ne seront déplacées que si le
+processus appelant possède le privilège \fBCAP_SYS_NICE\fP.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBmigrate_pages\fP() renvoie le nombre de pages qui n'ont pas pu
+être déplacées (c'est\-à\-dire qu'un code de retour de zéro signifie que
+toutes les pages ont été déplacés correctement). En cas d'erreur, il renvoie
+\-1 et remplit \fIerrno\fP avec la valeur d'erreur.
+.SH ERREURS
+.TP 
+\fBEPERM\fP
+Un privilège insuffisant (\fBCAP_SYS_NICE\fP)  pour déplacer les pages du
+processus spécifié par \fIpid\fP ou pour accéder aux nœuds de destination.
+.TP 
+\fBESRCH\fP
+.\" FIXME There are other errors
+Il n'y a pas de processus correspondant à \fIpid\fP.
+.SH VERSIONS
+L'appel système \fBmigrate_pages\fP() est apparu pour la première fois sous
+Linux avec le noyau 2.6.16.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux.
+.SH NOTES
+Pour des informations sur la prise en charge par des bibliothèques,
+consultez \fBnuma\fP(7).
+
+Utilisez \fBget_mempolicy\fP(2) avec le drapeau \fBMPOL_F_MEMS_ALLOWED\fP pour
+obtenir l'ensemble des nœuds autorisés par l'ensemble de processeurs du
+processus appelant. Notez que cette information peut changer à tout instant
+d'une fait d'une reconfiguration manuelle ou automatique de l'ensemble de
+processeurs.
+
+L'utilisation de \fBmigrate_pages\fP() peut causer des pages dont l'emplacement
+(le nœud) viole la politique mémoire établie pour les adresses indiquées
+(consultez \fBmbind\fP(2)) ou pour le processus indiqué (consultez
+\fBset_mempolicy\fP(2)). En d'autres termes, la politique mémoire ne restreint
+pas les nœuds de destination utilisés par \fBmigrate_pages\fP().
+
+L'en\-tête \fI<numaif.h>\fP n'est pas inclus dans la glibc, mais
+nécessite l'installation de \fIlibnuma\-devel\fP (ce nom peut varier suivant les
+distributions).
+.SH "VOIR AUSSI"
+\fBget_mempolicy\fP(2), \fBmbind\fP(2), \fBset_mempolicy\fP(2), \fBnuma\fP(3),
+\fBnuma_maps\fP(5), \fBcpuset\fP(7), \fBnuma\fP(7), \fBmigratepages\fP(8),
+\fBnumastat\fP(8)
+
+\fIDocumentation/vm/page_migration\fP dans les sources du noyau Linux
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,80 @@
+.\" Copyright (c) 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETUTMP 3 "10 septembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+getutmp, getutmpx \- Copier une structure utmp vers une structure utmpx, et
+vice versa
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP             /* Consultez feature_test_macros(7) */
+\fB#include <utmpx.h>\fP
+
+\fB void getutmp(const struct utmpx *\fP\fIux\fP\fB, struct utmp *\fP\fIu\fP\fB);\fP
+\fB void getutmpx(const struct utmp *\fP\fIu\fP\fB, struct utmpx *\fP\fIux\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBgetutmp\fP() copie les champs de la structure \fIutmpx\fP pointée
+par \fIux\fP dans les champs de la structure \fIutmp\fP pointée par \fIu\fP. La
+fonction \fBgetutmpx\fP() effectue l'opération inverse.
+.SH "VALEUR RENVOYÉE"
+Ces fonctions ne renvoient pas de valeur.
+.SH VERSIONS
+Ces fonctions ont été introduites dans la glibc dans sa version\ 2.1.1.
+.SH CONFORMITÉ
+Ces fonctions ne sont pas standard mais existent sur quelques autres
+systèmes tels que Solaris et NetBSD.
+.SH NOTES
+.\" e.g., on Solaris, the utmpx structure is rather larger than utmp.
+Ces fonctions existent avant tout pour compatibilité avec d'autres systèmes
+où les structures \fIutmp\fP et \fIutmpx\fP contiennent des champs
+différents. Sous Linux, les deux structures ont des champs identiques et ces
+champs ont la même taille.
+.SH "VOIR AUSSI"
+\fBgetutent\fP(3), \fButmp\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

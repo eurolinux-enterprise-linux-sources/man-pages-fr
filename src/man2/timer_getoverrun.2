@@ -1,0 +1,135 @@
+.\" Copyright (c) 2009 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TIMER_GETOVERRUN 2 "20 février 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+timer_getoverrun \- Obtenir le nombre de dépassements d'une minuterie POSIX
+d'un processus
+.SH SYNOPSIS
+.nf
+\fB#include <time.h>\fP
+
+\fBint timer_getoverrun(timer_t \fP\fItimerid\fP\fB);\fP
+.fi
+
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBtimer_getoverrun\fP()\ : _POSIX_C_SOURCE\ >=\ 199309L
+.SH DESCRIPTION
+\fBtimer_getoverrun\fP() renvoie le compteur de dépassements pour la minuterie
+indiquée par \fItimerid\fP. Une application peut utiliser le compteur de
+dépassements pour calculer avec précision le nombre d'expiration qui se
+seraient écoulée dans un intervalle de temps donné. Les dépassements de
+minuterie peuvent survenir lors de la réception d'une notification par un
+signal (\fBSIGEV_SIGNAL\fP) ou par un thread (\fBSIGEV_THREAD\fP).
+
+Quand les notifications d'expiration sont fournies par un signal, les
+dépassements peuvent survenir de cette façon. Qu'un signal temps réel soit
+utilisé ou non pour les notifications de la minuterie, le système empile au
+plus un signal par minuterie. (Il s'agit du comportement spécifié par
+POSIX.1\-2001. L'alternative, empiler un signal pour chaque expiration de
+minuterie, pourrait facilement dépasser les limites permises pour
+l'empilement de signaux sur le système.) Pour des raisons de délais
+d'ordonnancement, ou parce que le signal peut avoir été bloqué pendant un
+moment, il peut y avoir un délai entre le moment ou le signal de
+notification est produit et le moment ou il est reçu (par le gestionnaire de
+signal) ou accepté (par exemple en utilisant \fBsigwaitinfo\fP(2)). Dans cet
+intervalle, d'autres expirations de minuterie peuvent survenir. Le compteur
+de dépassements de la minuterie correspond au nombre d'expirations
+supplémentaires qui se sont produites entre le moment où le signal a été
+produit et le moment ou il a été reçu ou accepté.
+
+Les dépassements de minuterie peuvent aussi se produire lorsque les
+notifications d'expirations sont fournies par un appel à un thread puisqu'il
+peut y avoir un délai arbitraire entre l'expiration de la minuterie et
+l'exécution du thread de notification et que dans l'intervalle de ce délai,
+d'autres expirations de minuterie peuvent se produire.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBtimer_getoverrun\fP() renvoie le compteur d'expirations de la
+minuterie indiquée\ ; ce compteur peut valoir 0 si aucune expiration n'a eu
+lieu. S'il échoue, il renvoie \-1 et écrit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+\fItimerid\fP n'est pas un identifiant de minuterie valable.
+.SH VERSIONS
+Cet appel système est disponible depuis Linux 2.6.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Lorsque les notifications de minuterie sont fournies par des signaux
+(\fBSIGEV_SIGNAL\fP), il est possible sous Linux d'obtenir le compteur de
+dépassements par le champ \fIsi_overrun\fP de la structure \fIsiginfo_t\fP
+(consultez \fBsigaction\fP(2)). Ce permet à une application d'éviter le surcoût
+d'un appel système pour obtenir le compteur de dépassements, mais est une
+extension à POSIX.1\-2001 non portable.
+
+.\" FIXME . Austin bug filed, 11 Feb 09
+POSIX.1\-2001 ne mentionne les dépassements de minuteries que dans le
+contexte de notifications de minuteries par des signaux.
+.SH BOGUES
+.\" Bug filed: http://bugzilla.kernel.org/show_bug.cgi?id=12665
+.\" http://thread.gmane.org/gmane.linux.kernel/113276/
+POSIX.1\-2001 spécifie que si le compteur de dépassements de la minuterie est
+supérieur ou égal au maximum défini par l'implémentation
+(\fBDELAYTIMER_MAX\fP), alors \fBtimer_getoverrun\fP() devrait renvoyer
+\fBDELAYTIMER_MAX\fP. Cependant Linux n'implémente pas cette fonctionnalité\ : à
+la place, si le nombre de dépassements dépasse l'entier le plus grand
+représentable, le compteur redémarre à partir des petites valeurs.
+.SH EXEMPLE
+Consultez \fBtimer_create\fP(2).
+.SH "VOIR AUSSI"
+\fBclock_gettime\fP(2), \fBsigaction\fP(2), \fBsignalfd\fP(2), \fBsigwaitinfo\fP(2),
+\fBtimer_create\fP(2), \fBtimer_delete\fP(2), \fBtimer_settime\fP(2), \fBsignal\fP(7),
+\fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

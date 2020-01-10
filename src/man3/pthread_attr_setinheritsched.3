@@ -1,0 +1,135 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_ATTR_SETINHERITSCHED 3 "19 avril 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_attr_setinheritsched, pthread_attr_getinheritsched \- Définir ou
+obtenir l'attribut d'héritage d'ordonnancement d'un objet d'attributs de
+thread
+.SH SYNOPSIS
+.nf
+\fB#include <pthread.h>\fP
+
+\fBint pthread_attr_setinheritsched(pthread_attr_t *\fP\fIattr\fP\fB,\fP
+\fB                                 int \fP\fIinheritsched\fP\fB);\fP
+\fBint pthread_attr_getinheritsched(pthread_attr_t *\fP\fIattr\fP\fB,\fP
+\fB                                 int *\fP\fIinheritsched\fP\fB);\fP
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+La fonction \fBpthread_attr_setinheritsched\fP() définit l'attribut d'héritage
+d'ordonnancement de l'objet d'attributs de thread auquel \fIattr\fP fait
+référence à la valeur indiquée par \fIinheritsched\fP. Cet attribut détermine
+si un thread créé en utilisant l'objet d'attributs de thread \fIattr\fP
+héritera les paramètres d'ordonnancement du thread appelant, ou prendra la
+valeur fournie par \fIattr\fP.
+
+Les attributs d'ordonnancement suivants dépendent de l'attribut
+d'ordonnancement hérité\ : la politique d'ordonnancement
+(\fBpthread_attr_setschedpolicy\fP(3)), la priorité d'ordonnancement
+(\fBpthread_attr_setschedparam\fP(3)), et l'arbitrage de compétitions
+(\fBpthread_attr_setscope\fP(3)).
+
+Les valeurs suivantes peuvent être spécifiées dans \fIinheritsched\fP\ :
+.TP 
+\fBPTHREAD_INHERIT_SCHED\fP
+Les threads qui sont créés en utilisant \fIattr\fP héritent des attributs
+d'ordonnancement du thread appelant. Les attributs d'ordonnancement dans
+\fIattr\fP sont ignorés.
+.TP 
+\fBPTHREAD_EXPLICIT_SCHED\fP
+.\" FIXME what are the defaults for scheduler settings?
+Les threads qui sont créés en utilisant \fIattr\fP prennent comme attributs
+d'ordonnancement les valeurs spécifiées dans l'objet d'attributs de thread.
+.PP
+La valeur par défaut de l'attribut d'ordonnancement pour un nouvel objet
+d'attributs de thread est \fBPTHREAD_INHERIT_SCHED\fP.
+
+La fonction \fBpthread_attr_getinheritsched\fP() renvoie, dans le tampon pointé
+par \fIinheritsched\fP, l'attribut contenant l'ordonnancement de l'objet
+d'attributs de thread auquel \fIattr\fP fait référence.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient 0\ ; en cas d'erreur elles
+renvoient un numéro d'erreur non nul.
+.SH ERREURS
+\fBpthread_attr_setinheritsched\fP() peut échouer avec les erreurs suivantes\ :
+.TP 
+\fBEINVAL\fP
+Valeur invalide pour \fIinheritsched\fP.
+.PP
+.\" .SH VERSIONS
+.\" Available since glibc 2.0.
+POSIX.1\-2001 documente également une erreur \fBENOTSUP\fP (tentative de
+définition de la priorité à une valeur non prise en charge) pour
+\fBpthread_attr_setinheritsched\fP().
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH BOGUES
+.\" FIXME . Track status of the following bug:
+.\" http://sourceware.org/bugzilla/show_bug.cgi?id=7007
+Dans glibc 2.8, si un objet d'attributs de thread est initialisé avec
+\fBpthread_attr_init\fP(3), alors la politique d'ordonnancement de l'objet des
+attributs est mis à \fBSCHED_OTHER\fP et la priorité d'ordonnancement à
+0. Cependant, si l'attribut d'héritage d'ordonnancement est mis à
+\fBPTHREAD_EXPLICIT_SCHED\fP,un thread créé avec l'objet d'attributs de thread
+va hériter de manière erronée des attributs d'ordonnancement du thread
+appelant. Pour éviter cette erreur, il faut positionner soit la politique
+d'ordonnancement, soit l'attribut de priorité d'ordonnancement, de manière
+explicite dans l'objet d'attributs de thread avant d'appeler
+\fBpthread_create\fP(3).
+.SH EXEMPLE
+Consultez \fBpthread_setschedparam\fP(3).
+.SH "VOIR AUSSI"
+.ad l
+.nh
+\fBsched_setscheduler\fP(2), \fBpthread_attr_init\fP(3),
+\fBpthread_attr_setschedparam\fP(3), \fBpthread_attr_setschedpolicy\fP(3),
+\fBpthread_attr_setscope\fP(3), \fBpthread_create\fP(3),
+\fBpthread_setschedparam\fP(3), \fBpthread_setschedprio\fP(3), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Denis Barbier (2010).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

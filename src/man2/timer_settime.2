@@ -1,0 +1,172 @@
+.\" Copyright (c) 2009 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TIMER_SETTIME 2 "15 octobre 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+timer_settime, timer_gettime \- Armer, désarmer et récupérer l'état d'une
+minuterie POSIX d'un processus
+.SH SYNOPSIS
+.nf
+\fB#include <time.h>\fP
+
+\fBint timer_settime(timer_t \fP\fItimerid\fP\fB, int \fP\fIflags\fP\fB,\fP
+\fB                  const struct itimerspec *\fP\fInew_value\fP\fB,\fP
+\fB                  struct itimerspec * \fP\fIold_value\fP\fB);\fP
+\fBint timer_gettime(timer_t \fP\fItimerid\fP\fB, struct itimerspec *\fP\fIcurr_value\fP\fB);\fP
+.fi
+
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBtimer_settime\fP(), \fBtimer_gettime\fP(): _POSIX_C_SOURCE\ >=\ 199309L
+.SH DESCRIPTION
+\fBtimer_settime\fP() arme et désarme la minuterie indiquée par \fItimerid\fP. Le
+paramètre \fInew_value\fP est un pointeur vers une structure \fIitimerspec\fP qui
+indique la nouvelle valeur initiale et le nouvel intervalle pour la
+minuterie. La structure \fIitimerspec\fP est définie comme ceci\ :
+
+.in +4n
+.nf
+struct timespec {
+    time_t tv_sec;                /* Secondes */
+    long   tv_nsec;               /* Nanosecondes */
+};
+
+struct itimerspec {
+    struct timespec it_interval;  /* Intervalle pour les
+                                     minuteries périodiques */
+    struct timespec it_value;     /* Expiration initiale */
+};
+.fi
+.in
+
+Chacune des sous\-structures de la structure \fIitimerspec\fP est une structure
+\fItimespec\fP qui permet d'indiquer une valeur en secondes et en
+nanosecondes. Ces valeurs sont mesurée en fonction de l'horloge qui a été
+indiquée lorsque la minuterie a été créée avec \fBtimer_create\fP(2).
+
+Si \fInew_value\->it_value\fP indique une valeur non nulle (c'est\-à\-dire
+qu'un de ses champs n'est pas nul), alors \fBtimer_settime\fP() arme (démarre)
+la minuterie, en la configurant pour qu'elle expire au moment donnée (si la
+minuterie était déjà armée, sa configuration précédente est remplacée). Si
+\fInew_value\->it_value\fP a une valeur nulle (c'est\-à\-dire si ses deux
+champs sont nuls), alors la minuterie est désarmée.
+
+Le champ \fInew_value\->it_interval\fP indique la période de la minuterie,
+en secondes et nanosecondes. Si ce champ n'est pas nul alors à chaque fois
+qu'une minuterie armée expire, la minuterie est rechargée avec la valeur
+indiquée dans \fInew_value\->it_interval\fP. Si
+\fInew_value\->it_interval\fP est nul, alors la minuterie n'expire qu'une
+fois, une fois que le temps défini par \fIit_value\fP est écoulé.
+
+.\" By experiment: the overrun count is set correctly, for CLOCK_REALTIME.
+Par défaut, le temps d'expiration initial indiqué par
+\fInew_value\->it_value\fP est interprété par rapport à l'instant actuel sur
+l'horloge de la minuterie au moment de l'appel. Ceci peut être modifié en
+indiquant \fBTIMER_ABSTIME\fP dans \fIflags\fP, \fInew_value\->it_value\fP étant
+alors interprété comme une valeur absolue mesurée sur l'horloge de la
+minuterie\ ; c'est\-à\-dire que la minuterie expirera quand la valeur de
+l'horloge atteint la valeur indiquée par \fInew_value\->it_value\fP. Si le
+temps absolu indiqué est déjà passé, alors la minuterie expire immédiatement
+et le compteur de dépassement (consultez \fBtimer_getoverrun\fP(2)) est
+positionné en conséquence.
+
+.\" Similar remarks might apply with respect to process and thread CPU time
+.\" clocks, but these clocks are not currently (2.6.28) settable on Linux.
+Si la valeur de l'horloge \fBCLOCK_REALTIME\fP est ajustée et qu'une minuterie
+absolue basée sur cette horloge est armée, alors l'expiration de cette
+minuterie sera ajustée en conséquence. Les ajustements de l'horloge
+\fBCLOCK_REALTIME\fP n'ont aucun effet sur les minuteries relatives basées sur
+cette horloge.
+
+Si \fIold_value\fP n'est pas NULL, alors il pointe vers un tampon qui est
+utilisé pour renvoyer l'intervalle précédent de la minuterie (dans
+\fIold_value\->it_interval\fP) et la durée qu'il restait avant l'expiration
+suivante de la minuterie (dans \fIold_value\->it_value\fP).
+
+\fBtimer_gettime\fP() renvoie dans le tampon pointé par \fIcurr_value\fP le temps
+restant avant l'expiration suivante et l'intervalle de la minuterie indiquée
+par \fItimerid\fP. Le temps restant avant l'expiration suivante est renvoyé
+dans \fIcurr_value\->it_value\fP\ ; il s'agit toujours d'une valeur relative,
+que le drapeau \fBTIMER_ABSTIME\fP soit utilisé ou non lorsque la minuterie est
+armée. Si la valeur renvoyée dans \fIcurr_value\->it_value\fP est nulle,
+alors la minuterie était désarmée au moment de l'appel. L'intervalle de la
+minuterie est renvoyée dans \fIcurr_value\->it_interval\fP. Si la valeur
+renvoyée dans \fIcurr_value\->it_interval\fP est nulle, alors il s'agit
+d'une minuterie à un coup.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, \fBtimer_settime\fP() et \fBtimer_gettime\fP() renvoient
+zéro. En cas d'erreur, \-1 est renvoyé et \fIerrno\fP indique le code d'erreur.
+.SH ERREURS
+Ces fonctions peuvent échouer avec les erreurs suivantes\ :
+.TP 
+\fBEFAULT\fP
+\fInew_value\fP, \fIold_value\fP ou \fIcurr_value\fP n'est pas un pointeur valable.
+.TP 
+\fBEINVAL\fP
+.\" FIXME . eventually: invalid value in flags
+\fItimerid\fP n'est pas valable
+.PP
+\fBtimer_settime\fP() peut échouer avec les erreurs suivantes\ :
+.TP 
+\fBEINVAL\fP
+\fInew_value.it_value\fP est négatif\ ; ou \fInew_value.it_value.tv_nsec\fP est
+négatif ou supérieur à 999,999,999.
+.SH VERSIONS
+Ces appels systèmes sont disponibles depuis Linux\ 2.6.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH EXEMPLE
+Consultez \fBtimer_create\fP(2).
+.SH "VOIR AUSSI"
+\fBtimer_create\fP(2), \fBtimer_getoverrun\fP(2), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,355 @@
+.\" %%%LICENSE_START(PUBLIC_DOMAIN)
+.\" This is in the public domain
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LD.SO 8 "10 février 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+ld.so, ld\-linux.so* \- Chargeur et éditeur de liens dynamique
+.SH SYNOPSIS
+L'éditeur de liens dynamique peut être lancé indirectement en démarrant un
+programme lié dynamiquement ou une bibliothèque (dans ce cas, aucune option
+en ligne de commande ne peut être transmise, et avec ELF, l'éditeur indiqué
+dans la section \fB.interp\fP du programme est exécuté), ou directement en
+lançant\ :
+.P
+\fB/lib/ld\-linux.so.*\fP [OPTIONS] [PROGRAMME [ARGUMENTS]]
+.SH DESCRIPTION
+Les programmes \fBld.so\fP et \fBld\-linux.so*\fP trouvent et chargent les
+bibliothèques partagées nécessaires pour un programme, préparent son
+démarrage, et le lancent.
+.LP
+Les binaires Linux nécessitent une édition de liens dynamique (au démarrage)
+sauf si l'option \fB\-static\fP a été indiquée sur la ligne de commande de \fBld\fP
+durant la compilation.
+.LP
+Le programme \fBld.so\fP traite les binaires a.out, un format utilisé il y a
+bien longtemps\ ; \fBld\-linux.so*\fP traitent les fichiers ELF
+(\fI/lib/ld\-linux.so.1\fP pour libc5, \fI/lib/ld\-linux.so.2\fP pour glibc2), que
+tout le monde utilise depuis des années. Autrement, les deux programmes ont
+le même comportement et utilisent les fichiers et programmes \fBldd\fP(1),
+\fBldconfig\fP(8)  et \fI/etc/ld.so.conf\fP.
+.LP
+Lors de la résolution des dépendances de bibliothèques, l'éditeur de liens
+dynamique inspecte d'abord chaque chaîne de dépendance à la recherche d'une
+barre oblique (cela peut arriver si un chemin de bibliothèque contenant des
+barres obliques a été indiqué au moment du lien). Si une barre oblique est
+trouvée, alors la chaîne de dépendance est interprétée comme un chemin
+(relatif ou absolu) et la bibliothèque est chargée en utilisant ce chemin.
+.LP
+Si une dépendance de bibliothèque de contient pas de barre oblique, alors
+elle est recherchée dans l'ordre suivant\ :
+.IP o 3
+(ELF seulement) En utilisant les répertoires indiqués dans l'attribut de
+section dynamique DT_RPATH du fichier binaire s'il est présent, et
+l'attribut DT_RUNPATH sinon. L'utilisation de DT_RPATH est déconseillée.
+.IP o
+En utilisant la variable d'environnement \fBLD_LIBRARY_PATH\fP, sauf si les
+bits d'emprunt des identifiants d'utilisateur (\fIsetuid\fP) ou de groupe
+(\fIsetgid\fP) de l'exécutable sont non nuls (par souci de simplification, on
+parlera ci\-dessous d'exécutable \fIsetuid\fP ou \fIsetgid\fP), auquel cas elle est
+ignorée.
+.IP o
+(ELF seulement) En utilisant les répertoires indiqués dans l'attribut de
+section dynamique DT_RUNPATH du fichier binaire s'il est présent.
+.IP o
+Depuis le fichier cache \fI/etc/ld.so.cache\fP, qui contient une liste compilée
+de bibliothèques précédemment trouvées dans des chemins par défaut. Si
+toutefois le fichier binaire a été lié avec l'option \fB\-z nodeflib\fP de
+l'éditeur de liens, les chemins par défaut sont ignorés. Les bibliothèques
+installées dans les répertoires de capacité matérielle (voir ci\-dessous)
+sont préférées aux autres bibliothèques.
+.IP o
+Dans le répertoire par défaut \fI/lib\fP, puis \fI/usr/lib\fP. Si le binaire a été
+lié avec l'option \fB\-z nodeflib\fP de l'éditeur de lien, cette étape est
+sautée.
+.SS "$ORIGIN et rpath"
+.PP
+.\" ld.so also understands $LIB, with the same meaning as $ORIGIN/lib,
+.\" it appears.
+.\"
+.\" There is also $PLATFORM.  This is a kind of wildcard
+.\" of directories related to AT_PLATFORM.  To get an idea of the
+.\" places that $PLATFORM would match, look at the output of the
+.\" following:
+.\"
+.\" mkdir /tmp/d
+.\" LD_LIBRARY_PATH=/tmp/d strace -e open /bin/date 2>&1 | grep /tmp/d
+.\"
+.\" ld.so lets names be abbreviated, so $O will work for $ORIGIN;
+.\" Don't do this!!
+\fBld.so\fP comprend la chaîne \fI$ORIGIN\fP (ou de manière équivalente
+\fI${ORIGIN}\fP) dans une spécification rpath (DT_RPATH ou DT_RUNPATH) comme
+indiquant le répertoire contenant l'exécutable de l'application. Ainsi, une
+application située dans \fIun_répertoire/app\fP peut être compilée avec \fIgcc
+\-Wl,\-rpath,\(aq$ORIGIN/../lib\(aq\fP de sorte qu'elle trouvera une
+bibliothèque partagée associée dans \fIun_répertoire/lib\fP où que soit situé
+\fIun_répertoire\fP dans la hiérarchie du répertoire. Cela facilite la création
+d'applications «\ prêtes à l'emploi\ » qui n'ont pas besoin d'être
+installées dans un répertoire particulier mais peuvent au contraire être
+installées dans n'importe quel répertoire et toujours trouver leurs propres
+bibliothèques partagées.
+.SH OPTIONS
+.TP 
+\fB\-\-list\fP
+Liste les dépendances et leurs résolutions.
+.TP 
+\fB\-\-verify\fP
+Vérifie que le programme est lié dynamiquement et que l'éditeur de liens
+peut le traiter.
+.TP 
+\fB\-\-library\-path CHEMIN\fP
+Utiliser CHEMIN à la place de la variable d'environnement \fBLD_LIBRARY_PATH\fP
+(voir plus bas).
+.TP 
+\fB\-\-inhibit\-rpath LISTE\fP
+Ignorer les informations RPATH et RUNPATH dans les objets de la LISTE. Cette
+option est ignorée si \fBld.so\fP est \fIsetuid\fP ou \fIsetgid\fP.
+.TP 
+\fB\-\-audit LISTE\fP
+Utilisez les objets nommés dans LISTE comme auditeurs.
+.SH "CAPACITÉS MATÉRIELLES"
+Certaines bibliothèques sont compilées en utilisant des instructions
+spécifiques au matériel qui n'existent pas sur tous les processeurs. Ces
+bibliothèques devraient être installées dans des répertoires dont les noms
+définissent les capacités matérielles nécessaires, comme
+\fI/usr/lib/sse2/\fP. L'éditeur de liens dynamique compare ces répertoires au
+matériel de la machine et sélectionne la version la mieux adaptée pour une
+bibliothèque donnée. Les répertoires de capacité matérielle peuvent être
+imbriqués pour combiner les caractéristiques du microprocesseur. La liste
+des noms de capacité matérielle pris en charge dépend du
+microprocesseur. Les noms suivants sont reconnus pour le moment.
+.TP 
+\fBAlpha\fP
+ev4, ev5, ev56, ev6, ev67
+.TP 
+\fBMIPS\fP
+loongson2e, loongson2f, octeon, octeon2
+.TP 
+\fBPowerPC\fP
+4xxmac, altivec, arch_2_05, arch_2_06, booke, cellbe, dfp, efpdouble,
+efpsingle, fpu, ic_snoop, mmu, notb, pa6t, power4, power5, power5+, power6x,
+ppc32, ppc601, ppc64, smt, spe, ucache, vsx
+.TP 
+\fBSPARC\fP
+flush, muldiv, stbar, swap, ultra3, v9, v9v, v9v2
+.TP 
+\fBs390\fP
+dfp, eimm, esan3, etf3enh, g5, highgprs, hpage, ldisp, msa, stfle, z900,
+z990, z9\-109, z10, zarch
+.TP 
+\fBx86 (32\ bits seulement)\fP
+acpi, apic, clflush, cmov, cx8, dts, fxsr, ht, i386, i486, i586, i686, mca,
+mmx, mtrr, pat, pbe, pge, pn, pse36, sep, ss, sse, sse2, tm
+.SH ENVIRONNEMENT
+Il y a quatre variables d'environnement importantes.
+.TP 
+\fBLD_BIND_NOW\fP
+(libc5\ ; glibc depuis 2.1.1) Si la chaîne est non vide, l'éditeur de liens
+résoudra tous les symboles au démarrage du programme plutôt que repousser la
+résolution des noms de fonctions au moment où elles sont référencées en
+premier. Ceci est utile dans un débogueur.
+.TP 
+\fBLD_LIBRARY_PATH\fP
+Comme la variable d'environnement \fBPATH\fP, cette variable contient une liste
+de répertoires séparés par des deux\-points. Les bibliothèques au format ELF
+sont recherchées à l'exécution dans ces répertoires. Ignorée dans les
+programmes \fIsetuid\fP ou \fIsetgid\fP.
+.TP 
+\fBLD_PRELOAD\fP
+Une liste de bibliothèques ELF spécifiques à l'utilisateur, à charger avant
+les autres bibliothèques. Les éléments de la liste peuvent être séparés par
+des espaces ou des deux points. Cela permet de surcharger sélectivement les
+fonctions des autres bibliothèques partagées. Les bibliothèques sont
+recherchées pour une utilisation des règles données en \fBDESCRIPTION\fP. Pour
+les binaires ELF \fIsetuid\fP ou \fIsetgid\fP, les chemins de préchargement
+contenant des barres obliques sont ignorés, et les bibliothèques des
+répertoires standard ne sont chargées que si le bit de droit \fIsetuid\fP est
+activé sur le fichier de bibliothèque.
+.TP 
+\fBLD_TRACE_LOADED_OBJECTS\fP
+(ELF seulement) Si la chaîne est non vide, le programme liste ses
+dépendances dynamiques comme s'il était lancé par \fBldd\fP(1), au lieu du
+lancement normal.
+.LP
+Il existe de nombreuses autres variables plus ou moins obscures, certaines
+obsolètes, ou réservées pour un usage interne.
+.TP 
+\fBLD_AOUT_LIBRARY_PATH\fP
+(libc5) Version de \fBLD_LIBRARY_PATH\fP pour les binaires a.out seulement. Les
+anciennes versions de ld\-linux.so.1 supportent \fBLD_ELF_LIBRARY_PATH\fP.
+.TP 
+\fBLD_AOUT_PRELOAD\fP
+(libc5) Version de \fBLD_PRELOAD\fP pour les binaires a.out seulement. Les
+anciennes versions de ld\-linux.so.1 supportent \fBLD_ELF_PRELOAD\fP.
+.TP 
+\fBLD_AUDIT\fP
+(glibc depuis 2.4) Une liste d'objets partagés ELF spécifiés par
+l'utilisateur à charger avant tous les autres à l'intérieur d'un espace de
+nommage de l'éditeur de liens séparé (c'est\-à\-dire qu'il n'y aura pas
+d'interférence avec les liaisons sur les symboles normaux qui auront lieu
+pendant le processus). Ces bibliothèques peuvent être utilisées pour auditer
+les opérations effectuées par l'éditeur de liens dynamique. \fBLD_AUDIT\fP est
+ignorée pour les exécutables \fIsetuid\fP ou \fIsetgid\fP.
+
+L'éditeur de liens dynamique notifiera les bibliothèques d'audit à des
+endroits précis d'audit (appelés \fIauditing checkpoints\fP)\ \(em\ par exemple
+au chargement d'une nouvelle bibliothèque, à la résolution d'un symbole, à
+l'appel d'un symbole depuis un autre objet partagé \ \(em\ en appelant la
+fonction adéquate de la bibliothèque d'audit. Pour des informations plus
+détaillées, consultez \fBrtld\-audit\fP(7). L'interface d'audit est largement
+compatible avec celle disponible sur Solaris, décrite dans le \fILinker and
+Libraries Guide\fP, au chapitre \fIRuntime Linker Auditing Interface\fP.
+.TP 
+\fBLD_BIND_NOT\fP
+(glibc depuis 2.1.95) Ne pas mettre à jour les tables GOT (\fIglobal offset
+table\fP) et PLT (\fIprocedure linkage table\fP) après résolution d'un symbole.
+.TP 
+\fBLD_DEBUG\fP
+(glibc depuis 2.1) Afficher de nombreuses informations de débogage de
+l'éditeur dynamique. Si elle contient \fBall\fP, afficher tous les messages
+d'information, si elle contient \fBhelp\fP, afficher un message d'aide à propos
+des catégories de messages pour cette variable d'environnement. Depuis glibc
+2.3.4, \fBLD_DEBUG\fP n'est pas pris en compte pour les exécutables \fIsetuid\fP
+ou \fIsetgid\fP.
+.TP 
+\fBLD_DEBUG_OUTPUT\fP
+(glibc depuis 2.1) Fichier où la sortie de \fBLD_DEBUG\fP devrait être
+envoyée. Par défaut, c'est la sortie standard. \fBLD_DEBUG_OUTPUT\fP est
+ignorée pour les exécutables \fIsetuid\fP ou \fIsetgid\fP.
+.TP 
+\fBLD_DYNAMIC_WEAK\fP
+(glibc depuis 2.1.91) Autorise la surcharge des symboles faibles (retour à
+l'ancien comportement). Pour des raisons de sécurité, depuis glibc 2.3.4,
+\fBLD_DYNAMIC_WEAK\fP est ignorée pour les exécutables \fIsetuid\fP ou \fIsetgid\fP.
+.TP 
+\fBLD_HWCAP_MASK\fP
+(glibc depuis 2.1)  Masque des capacités matérielles.
+.TP 
+\fBLD_KEEPDIR\fP
+(a.out seulement)(libc5) Ne pas ignorer le répertoire dans les noms de
+bibliothèques a.out. Cette option est très déconseillée.
+.TP 
+\fBLD_NOWARN\fP
+(a.out seulement)(libc5) Supprimer les avertissements à propos des
+bibliothèques a.out incompatibles avec les versions antérieures.
+.TP 
+\fBLD_ORIGIN_PATH\fP
+.\" Only used if $ORIGIN can't be determined by normal means
+.\" (from the origin path saved at load time, or from /proc/self/exe)?
+(glibc depuis 2.1) Chemin où se trouve l'exécutable (pour des programmes non
+\fIsetuid\fP). Pour des raisons de sécurité, depuis glibc 2.4,
+\fBLD_ORIGIN_PATH\fP est ignorée pour les exécutables \fIsetuid\fP ou \fIsetgid\fP.
+.TP 
+\fBLD_POINTER_GUARD\fP
+(glibc depuis 2.4) Mettre à 0 pour supprimer la protection sur les
+pointeurs. Toute autre valeur active cette protection, ce qui est le
+comportement par défaut. La protection sur les pointeurs est un mécanisme de
+sécurité où certains pointeurs vers du code stocké dans la zone mémoire
+accessible en écriture (comme les adresses de retour conservées par
+\fBsetjmp\fP(3), ou des pointeurs de fonctions utilisés par diverses fonctions
+internes de glibc) sont modifiés semi\-aléatoirement pour rendre plus
+difficile une utilisation malveillante par un intrus, qui utiliserait par
+exemple un dépassement de tampon ou de la pile.
+.TP 
+\fBLD_PROFILE\fP
+(glibc depuis 2.1) Objet partagé à profiler, spécifié par un chemin ou par
+un nom d'objet partagé (\fIsoname\fP). Le résultat du profilage est écrit dans
+un fichier dont le nom est «\ \fI$LD_PROFILE_OUTPUT\fP/\fI$LD_PROFILE\fP.profile\ ».
+.TP 
+\fBLD_PROFILE_OUTPUT\fP
+(glibc depuis 2.1) Répertoire où sera écrit le résultat de \fBLD_PROFILE\fP. Si
+cette variable n'est pas définie, ou si elle est définie à une valeur vide,
+le défaut est \fI/var/tmp\fP. \fBLD_PROFILE_OUTPUT\fP est ignorée pour les
+exécutables \fIsetuid\fP ou \fIsetgid\fP, auquel cas le répertoire utilisé sera
+toujours \fI/var/profile\fP.
+.TP 
+\fBLD_SHOW_AUXV\fP
+.\" FIXME
+.\" Document LD_TRACE_PRELINKING (e.g.: LD_TRACE_PRELINKING=libx1.so ./prog)
+.\" Since glibc 2.3
+.\" Also enables DL_DEBUG_PRELINK
+(glibc depuis 2.1) Affiche les tableaux auxiliaires passés depuis le
+kernel. Pour des raisons de sécurité, depuis glibc 2.3.5, \fBLD_SHOW_AUXV\fP
+est ignorée pour les exécutables \fIsetuid\fP ou \fIsetgid\fP.
+.TP 
+\fBLD_USE_LOAD_BIAS\fP
+.\" http://sources.redhat.com/ml/libc-hacker/2003-11/msg00127.html
+.\" Subject: [PATCH] Support LD_USE_LOAD_BIAS
+.\" Jakub Jelinek
+Par défaut, c'est\-à\-dire si cette variable n'est pas définie, les
+exécutables et les objets partagés préchargés (\fIprelink\fP) respectent
+l'adresse de base des bibliothèques dont ils dépendent, alors que les
+exécutables PIE (\fIposition\-independent executables\fP) non préchargés et les
+autres objets partagés ne les respectent pas. Si \fBLD_USE_LOAD_BIAS\fP est
+définie à une valeur non nulle, les exécutables et les PIE vont respecter
+les adresses de base. Si \fBLD_USE_LOAD_BIAS\fP est définie à 0, ni les
+exécutables, ni les PIE ne respecteront les adresses de base. Cette variable
+est ignorée pour les exécutables \fIsetuid\fP ou \fIsetgid\fP.
+.TP 
+\fBLD_VERBOSE\fP
+(glibc depuis 2.1) S'il s'agit d'une chaîne non vide, afficher les
+informations sur la version des objets sur le programme si la variable
+\fBLD_TRACE_LOADED_OBJECTS\fP a été définie.
+.TP 
+\fBLD_WARN\fP
+(ELF seulement)(glibc depuis 2.1.3) Si la chaîne est non vide, avertir si un
+symbole n'est pas résolu.
+.TP 
+\fBLDD_ARGV0\fP
+(libc5) \fIargv\fP[0] à utiliser par \fBldd\fP(1) si aucun n'est présent.
+.SH FICHIERS
+.PD 0
+.TP 
+\fI/lib/ld.so\fP
+Le chargeur et éditeur de liens dynamique a.out.
+.TP 
+\fI/lib/ld\-linux.so.\fP{\fI1\fP,\fI2\fP}
+Le chargeur et éditeur de liens dynamique ELF.
+.TP 
+\fI/etc/ld.so.cache\fP
+Fichier contenant la liste compilée des répertoires où se trouvent des
+bibliothèques, ainsi qu'une liste ordonnée de bibliothèques candidates.
+.TP 
+\fI/etc/ld.so.preload\fP
+Fichier contenant une liste de bibliothèques ELF, séparées par des espaces,
+à charger avant de démarrer le programme.
+.TP 
+\fIlib*.so*\fP
+Bibliothèques partagées.
+.PD
+.SH NOTES
+Les fonctionnalités \fBld.so\fP sont disponibles pour les exécutables compilés
+à partir de la libc version 4.4.3 et ultérieures. Les fonctionnalités ELF
+sont disponibles depuis 1.1.52 et la libc5.
+.SH "VOIR AUSSI"
+.\" .SH AUTHORS
+.\" ld.so: David Engel, Eric Youngdale, Peter MacDonald, Hongjiu Lu, Linus
+.\"  Torvalds, Lars Wirzenius and Mitch D'Souza
+.\" ld-linux.so: Roland McGrath, Ulrich Drepper and others.
+.\"
+.\" In the above, (libc5) stands for David Engel's ld.so/ld-linux.so.
+\fBldd\fP(1), \fBsln\fP(1), \fBgetauxval\fP(3), \fBrtld\-audit\fP(7), \fBldconfig\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (2003-2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

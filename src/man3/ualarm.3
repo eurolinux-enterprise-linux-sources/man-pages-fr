@@ -1,0 +1,130 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UALARM 3 "18 avril 2013" "" "Manuel du programmeur Linux"
+.SH NOM
+ualarm \- Programmer un signal après un nombre donné de microsecondes
+.SH SYNOPSIS
+.nf
+\fB#include <unistd.h>\fP
+.sp
+\fBuseconds_t ualarm(useconds_t \fP\fIusecs\fP\fB, useconds_t \fP\fIintervalle\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBualarm\fP()\ :
+.ad l
+.RS 4
+.PD 0
+.TP  4
+Depuis la glibc 2.12\ :
+.nf
+_BSD_SOURCE ||
+    (_XOPEN_SOURCE\ >=\ 500 ||
+        _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED) &&
+    !(_POSIX_C_SOURCE\ >=\ 200809L || _XOPEN_SOURCE\ >=\ 700)
+.TP  4
+.fi
+Avant la glibc 2.12\ : _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+_XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.PD
+.RE
+.ad b
+.SH DESCRIPTION
+La fonction \fBualarm\fP() programme le signal \fBSIGALRM\fP pour qu'il soit
+envoyé au processus appelant après (au moins) \fIusecs\fP microsecondes. Le
+délai peut être légèrement allongé par la charge système, par le temps passé
+à traiter l'appel système, ou par la granularité des timers système.
+.LP
+À moins d'être capturé ou ignoré, le signal \fBSIGALRM\fP terminera le
+processus.
+.LP
+Si l'argument \fIintervalle\fP est non nul, d'autres signaux \fBSIGALRM\fP seront
+envoyés toutes les \fIintervalle\fP microsecondes après le premier.
+.SH "VALEUR RENVOYÉE"
+Cette fonction renvoie le nombre de microsecondes restant pour toute alarme
+définie précédemment, ou zéro si aucune alarme n'est en attente.
+.SH ERREURS
+.TP 
+\fBEINTR\fP
+Interruption par un signal.
+.TP 
+\fBEINVAL\fP
+\fIusecs\fP ou \fIintervalle\fP est plus grand que 1\ 000\ 000 (1 seconde) (sur
+les systèmes qui considèrent qu'il s'agit d'une erreur).
+.SH CONFORMITÉ
+BSD\ 4.3, POSIX.1\-2001. POSIX.1\-2001 marque \fBualarm\fP() comme
+obsolète. POSIX.1\-2008 supprime la spécification de \fBualarm\fP(). BSD\ 4.3,
+SUSv2 et POSIX ne définissent pas d'erreurs.
+.SH NOTES
+.\" This case is not documented in HP-US, Solar, FreeBSD, NetBSD, or OpenBSD!
+POSIX.1\-2001 ne spécifie pas ce qui se passe si le paramètre \fIusecs\fP
+vaut\ 0. Sur Linux (et probablement la plupart des autres systèmes), l'effet
+est d'annuler toute alarme en attente.
+
+Le type \fIuseconds_t\fP est un entier non signé capable de contenir des
+entiers dans l'intervalle [0,1000000]. Dans l'implémentation BSD d'origine
+et dans la glibc avant la version 2.1, les paramètres de \fBualarm\fP() étaient
+des \fIunsigned int\fP. Les programmes gagneront en portabilité en évitant de
+mentionner le type \fIuseconds_t\fP explicitement.
+.LP
+L'interaction entre cette fonction et les autres fonctions de temporisations
+comme \fBalarm\fP(2), \fBsleep\fP(3), \fBnanosleep\fP(2), \fBsetitimer\fP(2),
+\fBtimer_create\fP(2), \fBtimer_delete\fP(2), \fBtimer_getoverrun\fP(2),
+\fBtimer_gettime\fP(2), \fBtimer_settime\fP(2), \fBusleep\fP(3) n'est pas spécifiée.
+.LP
+Cette fonction est obsolète. Utilisez \fBsetitimer\fP(2) ou des temporisations
+POSIX (\fBtimer_create\fP(2), etc.) à la place.
+.SH "VOIR AUSSI"
+\fBalarm\fP(2), \fBgetitimer\fP(2), \fBnanosleep\fP(2), \fBselect\fP(2),
+\fBsetitimer\fP(2), \fBusleep\fP(3), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

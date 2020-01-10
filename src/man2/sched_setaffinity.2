@@ -1,0 +1,181 @@
+.\" Copyright (C) 2002 Robert Love
+.\" and Copyright (C) 2006 Michael Kerrisk
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 2002-11-19 Robert Love <rml@tech9.net> - initial version
+.\" 2004-04-20 mtk - fixed description of return value
+.\" 2004-04-22 aeb - added glibc prototype history
+.\" 2005-05-03 mtk - noted that sched_setaffinity may cause thread
+.\"	migration and that CPU affinity is a per-thread attribute.
+.\" 2006-02-03 mtk -- Major rewrite
+.\" 2008-11-12, mtk, removed CPU_*() macro descriptions to a
+.\" separate CPU_SET(3) page.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SCHED_SETAFFINITY 2 "11 février 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+sched_setaffinity, sched_getaffinity \- Définir et récupérer le masque
+d'affinité CPU d'un processus
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP             /* Consultez feature_test_macros(7) */
+\fB#include <sched.h>\fP
+.sp
+\fBint sched_setaffinity(pid_t \fP\fIpid\fP\fB, size_t \fP\fIcpusetsize\fP\fB,\fP
+\fB                      cpu_set_t *\fP\fImask\fP\fB);\fP
+.sp
+\fBint sched_getaffinity(pid_t \fP\fIpid\fP\fB, size_t \fP\fIcpusetsize\fP\fB,\fP
+\fB                      cpu_set_t *\fP\fImask\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Le masque d'affinité CPU d'un processus détermine l'ensemble de processeurs
+sur lesquels il est susceptible de s'exécuter. Sur un système
+multiprocesseur, définir le masque d'affinité CPU permet d'obtenir une
+meilleure performance. Par exemple, en dédiant un CPU à un processus
+particulier (c'est\-à\-dire définir le masque d'affinité de ce processus pour
+indiquer un seul CPU, et définir le masque d'affinité de tous les autres
+processus pour exclure ce CPU), il est possible d'assurer une vitesse
+d'exécution maximale pour ce processus. Restreindre un processus pour qu'il
+ne s'exécute que sur un seul CPU réduit le coût lié à l'invalidation du
+cache qui se produit lorsqu'un processus cesse de s'exécuter sur un CPU puis
+est relancé sur un autre CPU.
+
+Un masque d'affinité CPU est représenté par la structure \fIcpu_set_t\fP, un
+ensemble de CPU («\ CPU set\ »), pointé par \fImask\fP. Des macros pour manipuler
+des ensembles de CPU sont décrites dans \fBCPU_SET\fP(3).
+
+\fBsched_setaffinity\fP() définit le masque d'affinité CPU du processus dont
+l'identifiant est \fIpid\fP à la valeur donnée par \fImask\fP. Si \fIpid\fP est 0, le
+processus appelant est utilisé. L'argument \fIcpusetsize\fP est la taille (en
+octets) de la structure pointée par \fImask\fP. Normalement, cet argument doit
+être spécifié comme \fIsizeof(cpu_set_t)\fP.
+
+Si le processus indiqué par \fIpid\fP n'est pas actuellement en cours
+d'exécution sur l'un des CPU spécifiés dans \fImask\fP, alors ce processus est
+migré vers l'un des CPU spécifiés dans \fImask\fP.
+
+La fonction \fBsched_getaffinity\fP() écrit dans la structure \fIcpu_set_t\fP
+pointée par \fImask\fP le masque de préférences du processus \fIpid\fP. L'argument
+\fIcpusetsize\fP indique la taille (en octets) de \fImask\fP. Si \fIpid\fP vaut zéro,
+le masque du processus en cours est renvoyé.
+.SH "VALEUR RENVOYÉE"
+\fBsched_setaffinity\fP() et \fBsched_getaffinity\fP() renvoient 0 s'ils
+réussissent. En cas d'échec, \-1 est renvoyé, et \fIerrno\fP contient le code
+d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+Une adresse mémoire fournie n'est pas correcte.
+.TP 
+\fBEINVAL\fP
+Le masque de bits d'affinité \fImask\fP ne contient pas de processeurs qui soit
+actuellement physiquement sur le système et autorisé pour le processus
+d'après les restrictions imposées par le mécanisme d'ensembles de CPU décrit
+dans \fBcpuset\fP(7).
+.TP 
+\fBEINVAL\fP
+(\fBsched_getaffinity\fP() et, pour les noyaux antérieurs à 2.6.9,
+\fBsched_setaffinity\fP()) \fIcpusetsize\fP est plus petit que la taille du masque
+d'affinité utilisé par le noyau.
+.TP 
+\fBEPERM\fP
+(\fBsched_setaffinity\fP()) Le processus appelant n'a pas les privilèges
+appropriés. L'appelant doit avoir un UID effectif égal à l'UID effectif ou
+réel du processus identifié par \fIpid\fP, ou avoir la capacité
+\fBCAP_SYS_NICE\fP.
+.TP 
+\fBESRCH\fP
+Le processus numéro \fIpid\fP n'existe pas.
+.SH VERSIONS
+Les appels système d'affinité ont été introduits dans Linux 2.5.8. Les
+fonctions enveloppes pour ces appels système ont été introduites dans la
+glibc 2.3. Au départ, les interfaces de la glibc avaient un paramètre
+\fIcpusetsize\fP de type \fIunsigned int\fP. Dans glibc 2.3.3, ce paramètre a été
+supprimé, mais il a été réintroduit dans glibc 2.3.4, avec pour type
+\fIsize_t\fP.
+.SH CONFORMITÉ
+Ces appels système sont spécifiques à Linux.
+.SH NOTES
+Après un appel à \fBsched_setaffinity\fP(), l'ensemble de CPU sur lesquels le
+processus s'exécutera est l'intersection de l'ensemble spécifié dans le
+paramètre \fImask\fP et l'ensemble des CPU actuellement présents sur le
+système. Le système peut restreindre encore plus l'ensemble des CPU sur
+lesquels le processus peut tourner si le mécanisme «\ cpuset\ », décrit dans
+\fBcpuset\fP(7), est utilisé. Ces restrictions sur le véritable ensemble de CPU
+sur lesquels le processus peut tourner sont imposées sans avertissement par
+le noyau.
+
+\fBsched_setscheduler\fP(2) décrit les politiques d'ordonnancement sous Linux.
+.PP
+Le masque d'affinité est en réalité un attribut de thread, qui peut être
+modifié indépendamment pour chacun des threads d'un groupe de threads. La
+valeur renvoyée par \fBgettid\fP(2) peut être passée dans l'argument
+\fIpid\fP. Spécifier un \fIpid\fP de 0 définira l'attribut pour le thread
+appelant, et une valeur égale à celle renvoyée par \fBgetpid\fP(2) définira
+l'attribut pour le thread principal du groupe de thread. (Si vous utilisez
+l'API POSIX des threads, alors utilisez \fBpthread_setaffinity_np\fP(3) au lieu
+de \fBsched_setaffinity\fP().)
+
+Un processus fils créé par \fBfork\fP(2) hérite du masque d'affinité CPU de son
+père. Le masque d'affinité est conservé au travers d'un \fBexecve\fP(2).
+
+Cette page de manuel décrit l'interface de la glibc pour les appels liés à
+l'affinité CPU. L'interface des appels système est légèrement différente,
+\fImask\fP ayant le type \fIunsigned long\ *\fP, montrant le fait que
+l'implémentation des ensembles de CPU est en réalité un simple masque de
+bits. En cas de succès, l'appel système \fBsched_getaffinity\fP() brut renvoie
+la taille (en octets) du type \fIcpumask_t\fP utilisé en interne par le noyau
+pour représenter le masque d'ensemble de CPU.
+.SH "VOIR AUSSI"
+.ad l
+.nh
+\fBtaskset\fP(1), \fBclone\fP(2), \fBgetcpu\fP(2), \fBgetpriority\fP(2), \fBgettid\fP(2),
+\fBnice\fP(2), \fBsched_get_priority_max\fP(2), \fBsched_get_priority_min\fP(2),
+\fBsched_getscheduler\fP(2), \fBsched_setscheduler\fP(2), \fBsetpriority\fP(2),
+\fBCPU_SET\fP(3), \fBpthread_setaffinity_np\fP(3), \fBsched_getcpu\fP(3),
+\fBcapabilities\fP(7), \fBcpuset\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

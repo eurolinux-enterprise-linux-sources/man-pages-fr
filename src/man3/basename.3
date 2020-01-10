@@ -1,0 +1,151 @@
+.\" Copyright (c) 2000 by Michael Kerrisk (mtk.manpages@gmail.com)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Created, 14 Dec 2000 by Michael Kerrisk
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH BASENAME 3 "30 mars 2009" GNU "Manuel du programmeur Linux"
+.SH NOM
+basename, dirname \- Analyse des composants d'un chemin d'accès
+.SH SYNOPSIS
+.nf
+\fB#include <libgen.h>\fP
+.sp
+\fBchar *dirname(char *\fP\fIpath\fP\fB);\fP
+
+\fBchar *basename(char *\fP\fIpath\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Attention\ : il y a deux fonctions \fBbasename\fP différentes;\ consultez
+ci\-dessous.
+.LP
+Les fonctions \fBbasename\fP() et \fBdirname\fP() décomposent une chaîne terminée
+par un caractère nul, représentant un chemin d'accès en ses composants
+répertoire et nom de fichier. En général, \fBdirname\fP() renvoie la chaîne
+s'étendant jusqu'au dernier «\ /\ », sans l'inclure, et \fBbasename\fP()
+renvoie la partie se trouvant après le dernier «\ /\ ». Les caractères «\ /\ » en fin de chaîne ne font pas partie du chemin.
+.PP
+Si \fIpath\fP ne contient pas de barre oblique, \fBdirname\fP() renvoie la chaîne
+«\ .\ » et \fBbasename\fP() renvoie une copie de la chaîne \fIpath\fP. Si \fIpath\fP
+est représenté par la chaîne «\ /\ », alors \fBdirname\fP() et \fBbasename\fP()
+renvoient tout deux la chaîne «\ /\ ». Si \fIpath\fP est un pointeur NULL, ou
+pointe vers une chaîne vide, alors \fBdirname\fP() et \fBbasename\fP() renvoient
+tout deux la chaîne «\ .\ ».
+.PP
+En mettant bout à bout la chaîne renvoyée par \fBdirname\fP(), un «\ /\ », et
+la chaîne renvoyée par \fBbasename\fP(), on obtient un chemin d'accès complet.
+.PP
+\fBdirname\fP() et \fBbasename\fP() peuvent tous deux modifier le contenu de
+\fIpath\fP, il est donc préférable de passer une copie de celui\-ci lors d'un
+appel à l'une de ces fonctions.
+.PP
+Ces fonctions devraient renvoyer des pointeurs vers de la mémoire allouée
+statiquement qui peut être réécrite par des appels ultérieurs. Cependant, il
+pourraient renvoyer un pointeur vers une partie de \fIpath\fP, ainsi la chaîne
+référencée par \fIpath\fP ne doit pas être modifiée ou libérée tant que le
+pointeur renvoyé par la fonction ne possède pas la bonne longueur.
+.PP
+La liste suivante d'exemple (prise dans SUSv2) montre les chaînes renvoyées
+par \fBdirname\fP() et \fBbasename\fP() pour différents chemins d'accès\ :
+.sp
+.TS
+lb lb lb
+l l l l.
+chemin  	dirname	basename
+/usr/lib	/usr	lib
+/usr/   	/	usr
+usr     	.	usr
+/       	/	/
+.       	.	.
+..      	.	..
+.TE
+.SH "VALEUR RENVOYÉE"
+Les fonctions \fBdirname\fP() et \fBbasename\fP() renvoient des pointeurs sur des
+chaînes terminées par un caractère nul. (Ne pas passer ces pointeurs à
+\fBfree\fP(3).)
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Il y a deux versions différentes de \fBbasename\fP()\ ; la version POSIX
+décrite précédemment, et la version GNU que l'on utilise avec
+.br
+.nf
+
+\fB    #define _GNU_SOURCE\fP         /* Consultez feature_test_macros(7) */
+.br
+\fB#include <string.h>\fP
+
+.fi
+La version GNU ne modifie jamais son argument et renvoie une chaîne vide
+lorsque \fIpath\fP finit par une barre oblique «\ /\ » et en particulier aussi
+lorsqu'il vaut «\ /\ ». Il n'y a pas de version GNU de \fBdirname\fP().
+.LP
+Avec la glibc, on utilise la version POSIX de \fBbasename\fP() lorsque
+\fI<libgen.h>\fP est inclus, et la version GNU sinon.
+.SH BOGUES
+Dans l'implémentation de la glibc des versions POSIX de ces fonctions,
+celles\-ci modifient leur argument et provoquent une erreur de segmentation
+lorsqu'elles sont invoquées avec une chaîne statique comme «\ /usr/\ ». Avant la glibc\ 2.2.1, la fonction \fBdirname\fP() ne géraient pas
+correctement les chemins se terminant par un caractère «\ /\ » et
+déclenchaient une erreur de segmentation en recevant un pointeur NULL.
+.SH EXEMPLE
+.in +4n
+.nf
+char *dirc, *basec, *bname, *dname;
+char *path = "/etc/passwd";
+
+dirc = strdup(path);
+basec = strdup(path);
+dname = dirname(dirc);
+bname = basename(basec);
+printf("dirname=%s, basename=%s\en", dname, bname);
+.fi
+.in
+.SH "VOIR AUSSI"
+\fBbasename\fP(1), \fBdirname\fP(1)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

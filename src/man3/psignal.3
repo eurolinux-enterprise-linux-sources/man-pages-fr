@@ -1,0 +1,117 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 18:45:17 1993 by Rik Faith (faith@cs.unc.edu)
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PSIGNAL 3 "6 octobre 2010" GNU "Manuel du programmeur Linux"
+.SH NOM
+psignal, psiginfo \- Afficher le libellé d'un signal
+.SH SYNOPSIS
+.nf
+\fB#include <signal.h>\fP
+.sp
+\fBvoid psignal(int \fP\fIsig\fP\fB, const char *\fP\fIs\fP\fB);\fP
+\fBvoid psiginfo(const siginfo_t *\fP\fIpinfo\fP\fB, const char *\fP\fIs\fP\fB);\fP
+.sp
+\fBextern const char *const \fP\fIsys_siglist\fP\fB[];\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBpsignal\fP()\ : _SVID_SOURCE || _BSD_SOURCE
+.br
+\fBpsiginfo\fP()\ : _XOPEN_SOURCE\ >=\ 700 || _POSIX_C_SOURCE\ >=\ 200809L
+.br
+\fIsys_siglist\fP\ : _BSD_SOURCE
+.SH DESCRIPTION
+La fonction \fBpsignal\fP() affiche un message sur \fIstderr\fP constitué de la
+chaîne \fIs\fP, d'un deux\-points, d'un espace, et d'un libellé décrivant le
+signal numéro \fIsig\fP. Si la chaîne \fIs\fP vaut NULL ou est vide, le
+deux\-points et l'espace ne sont pas affichés. Si \fIsig\fP est invalide, le
+message affiché indiquera un signal inconnu.
+
+La fonction \fBpsiginfo\fP() agit comme \fBpsignal\fP(), sauf qu'elle affiche les
+informations sur le signal décrit par \fIpinfo\fP, qui devrait pointer vers une
+structure \fIsiginfo_t\fP valide. En plus de la description du signal,
+\fBpsiginfo\fP() affiche des informations sur l'origine du signal, et toute
+autre information relative au signal (comme par exemple, l'adresse mémoire
+pertinente pour les signaux générés par le matériel, l'identifiant du
+processus fils pour \fBSIGCHLD\fP, et, pour les signaux activés par \fBkill\fP(2)
+ou \fBsigqueue\fP(3), l'identifiant du processus et de l'utilisateur émetteur
+du signal).
+
+La table \fIsys_siglist\fP contient les libellés des messages, indexés par le
+numéro de signal.
+.SH "VALEUR RENVOYÉE"
+Les fonctions \fBpsignal\fP() et \fBpsiginfo\fP() ne renvoient aucune valeur.
+.SH VERSIONS
+La fonction \fBpsiginfo\fP() a été ajoutée à la glibc dans la version 2.10.
+.SH CONFORMITÉ
+POSIX.1\-2008, BSD\ 4.3.
+.SH BOGUES
+Dans les versions de la glibc antérieures à 2.12, \fBpsiginfo\fP() avait les
+bogues suivants :
+.IP * 3
+.\" FIXME http://sourceware.org/bugzilla/show_bug.cgi?id=12107
+.\" Reportedly now fixed; check glibc 2.13
+Dans certaines circonstances, un saut de ligne terminal n'est pas affiché.
+.IP *
+.\" FIXME http://sourceware.org/bugzilla/show_bug.cgi?id=12108
+.\" Reportedly now fixed; check glibc 2.13
+Les détails supplémentaires ne sont pas affichés pour les signaux
+temps\-réel.
+.SH "VOIR AUSSI"
+\fBsigaction\fP(2), \fBperror\fP(3), \fBstrsignal\fP(3), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

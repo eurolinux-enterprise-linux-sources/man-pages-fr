@@ -1,0 +1,179 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 19:00:59 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Clarification concerning realloc, iwj10@cus.cam.ac.uk (Ian Jackson), 950701
+.\" Documented MALLOC_CHECK_, Wolfram Gloger (wmglo@dent.med.uni-muenchen.de)
+.\" 2007-09-15 mtk: added notes on malloc()'s use of sbrk() and mmap().
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MALLOC 3 "10 mai 2012" GNU "Manuel du programmeur Linux"
+.SH NOM
+malloc, free, calloc, realloc \- Allocation et libération dynamiques de
+mémoire
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBvoid *malloc(size_t \fP\fIsize\fP\fB);\fP
+\fBvoid free(void \fP\fI*ptr\fP\fB);\fP
+\fBvoid *calloc(size_t \fP\fInmemb\fP\fB, size_t \fP\fIsize\fP\fB);\fP
+\fBvoid *realloc(void \fP\fI*ptr\fP\fB, size_t \fP\fIsize\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+.PP
+.\" glibc does this:
+La fonction \fBmalloc\fP() alloue \fIsize\fP octets, et renvoie un pointeur sur la
+mémoire allouée. \fILe contenu de la zone de mémoire n'est pas
+initialisé\fP. Si \fIsize\fP est nulle, \fBmalloc\fP renvoie soit NULL ou un unique
+pointeur qui pourra être passé ultérieurement à \fBfree\fP() avec succès.
+.PP
+La fonction \fBfree\fP() libère l'espace mémoire pointé par \fIptr\fP, qui a été
+obtenu lors d'un appel antérieur à \fBmalloc\fP(), \fBcalloc\fP() ou
+\fBrealloc\fP(). Si le pointeur \fIptr\fP n'a pas été obtenu par l'un de ces
+appels, ou s'il a déjà été libéré avec \fIfree(ptr)\fP, le comportement est
+indéterminé. Si \fIptr\fP est NULL, aucune opération n'est effectuée.
+.PP
+.\" glibc does this:
+La fonction \fBcalloc\fP() alloue la mémoire nécessaire pour un tableau de
+\fInmemb\fP éléments de \fIsize\fP octets, et renvoie un pointeur vers la mémoire
+allouée. Cette zone est remplie avec des zéros. Si \fInmemb\fP ou si \fIsize\fP
+est nulle, \fBcalloc\fP renvoie soit NULL ou un unique pointeur qui pourra être
+passé ultérieurement à \fBfree\fP() avec succès.
+.PP
+La fonction \fBrealloc\fP() modifie la taille du bloc de mémoire pointé par
+\fIptr\fP à la taille de \fIsize\fP octets. Le contenu de la mémoire entre la zone
+de départ et la plus petite taille entre la nouvelle et l'ancienne taille
+n'est pas modifié. Si la nouvelle taille est plus grande que l'ancienne
+taille, le contenu de la zone de mémoire nouvellement allouée n'est pas
+initialisé. Si \fIptr\fP est NULL, l'appel est équivalent à \fImalloc(size)\fP,
+pour toute valeur de \fIsize\fP\ ; si \fIsize\fP vaut zéro et \fIptr\fP est non NULL,
+l'appel est équivalent à \fIfree(ptr)\fP. Si \fIptr\fP est NULL, il doit avoir été
+obtenu par un appel antérieur à \fBmalloc\fP(), \fBcalloc\fP() ou \fBrealloc\fP(). Si
+la zone pointée était déplacée, un \fIfree(ptr)\fP est effectué.
+.SH "VALEUR RENVOYÉE"
+Les fonctions \fBmalloc\fP() et \fBcalloc\fP() renvoient un pointeur vers la
+mémoire allouée, qui est correctement alignée pour n'importe quel type de
+variable. Si elles échouent, elles renvoient NULL. NULL peut également être
+renvoyé par un appel réussi à \fBmalloc\fP() avec un paramètre \fIsize\fP égal à
+zéro, ou par un appel réussi de \fBcalloc\fP() avec \fInmemb\fP ou \fIsize\fP égal à
+zéro.
+.PP
+La fonction \fBfree\fP() ne renvoie pas de valeur.
+.PP
+La fonction \fBrealloc\fP() renvoie un pointeur sur la mémoire nouvellement
+allouée, qui est correctement alignée pour n'importe quel type de variable,
+et qui peut être différent de \fIptr\fP, ou \fBNULL\fP si la demande échoue. Si
+\fIsize\fP vaut zéro, realloc renvoie NULL ou un pointeur acceptable pour
+\fBfree\fP(). Si \fBrealloc\fP() échoue, le bloc mémoire original reste intact, il
+n'est ni libéré ni déplacé.
+.SH CONFORMITÉ
+C89, C99.
+.SH NOTES
+Par défaut, Linux suit une stratégie d'allocation optimiste. Ceci signifie
+que lorsque \fBmalloc\fP() renvoie une valeur non NULL, il n'y a aucune
+garantie que la mémoire soit véritablement disponible. Dans le cas où le
+système manque de mémoire, un ou plusieurs processus seront tués par
+l'infâme «\ OOM killer\ » (gestionnaire de mémoire). Pour plus
+d'informations, consultez la description de
+\fI/proc/sys/vm/overcommit_memory\fP et \fI/proc/sys/vm/oom_adj\fP dans
+\fBproc\fP(5), ainsi que le fichier \fIDocumentation/vm/overcommit\-accounting\fP
+des sources du noyau Linux.
+
+En général, \fBmalloc\fP() alloue la mémoire depuis le tas, et ajuste la taille
+du tas en conséquence avec \fBsbrk\fP(2). Lorsque les bloques de mémoire
+alloués sont plus larges que \fBMMAP_THRESHOLD\fP octets, l'implémentation de
+la glibc de \fBmalloc\fP alloue la mémoire selon un projection anonyme privée
+avec \fBmmap\fP(2). \fBMMAP_THRESHOLD\fP vaut 128\ Ko par défaut et il est
+ajustable avec \fBmallopt\fP(3). Les allocations réalisées avec \fBmmap\fP(2) ne
+sont pas affectées par la limitation de ressource \fBRLIMIT_DATA\fP (consultez
+\fBgetrlimit\fP(2)).
+
+Pour éviter les corruptions d'applications multithreadées, les mutex sont
+utilisés en interne pour protéger les structures de données de gestion de
+mémoire utilisées dans ces fonctions. Dans une application multithreadée où
+les threads allouent et libèrent la mémoire en même temps, ces mutex
+risquent d'entrer en conflit. Pour gérer l'allocation de mémoire de façon
+évolutive dans les applications multithreadées, la glibc crée des \fIdomaines
+d'allocation mémoire\fP si un conflit de mutex est détecté. Chaque domaine est
+un grand espace de mémoire qui est alloué en interne par le système (en
+utilisant \fBbrk\fP(2) ou \fBmmap\fP(2)), et géré avec ses propres mutex.
+
+Le standard UNIX 98 nécessite que \fBmalloc\fP(), \fBcalloc\fP() et \fBrealloc\fP()
+positionnent \fIerrno\fP à \fBENOMEM\fP en cas d'échec. La glibc suppose qu'il en
+est ainsi (et les versions glibc de ces routines le font). Si vous utilisez
+une implémentation personnelle de malloc qui ne positionne pas \fIerrno\fP,
+certaines routines de bibliothèques peuvent échouer sans donner de raison
+dans \fIerrno\fP.
+.LP
+Lorsqu'un programme échoue durant un appel à \fBmalloc\fP(), \fBcalloc\fP(),
+\fBrealloc\fP() ou \fBfree\fP(), ceci est presque toujours le signe d'une
+corruption du tas. Ceci survient généralement en cas de débordement d'un
+bloc mémoire alloué, ou en libérant deux fois le même pointeur.
+.PP
+Les dernières versions de libc Linux (depuis 5.4.23) et de glibc (2.x)
+contiennent une implémentation de \fBmalloc\fP() qui est personnalisable à
+l'aide des variables d'environnement. Pour plus de précisions, consultez
+\fBmallopt\fP(3).
+.SH "VOIR AUSSI"
+.\" http://g.oswego.edu/dl/html/malloc.html
+.\" A Memory Allocator - by Doug Lea
+.\"
+.\" http://www.bozemanpass.com/info/linux/malloc/Linux_Heap_Contention.html
+.\" Linux Heap, Contention in free() - David Boreham
+.\"
+.\" http://www.citi.umich.edu/projects/linux-scalability/reports/malloc.html
+.\" malloc() Performance in a Multithreaded Linux Environment -
+.\"     Check Lever, David Boreham
+.\"
+.ad l
+.nh
+\fBbrk\fP(2), \fBmmap\fP(2), \fBalloca\fP(3), \fBmalloc_get_state\fP(3),
+\fBmalloc_info\fP(3), \fBmalloc_trim\fP(3), \fBmalloc_usable_size\fP(3),
+\fBmallopt\fP(3), \fBmcheck\fP(3), \fBmtrace\fP(3), \fBposix_memalign\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

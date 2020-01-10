@@ -1,0 +1,92 @@
+.\" Copyright (C) 1996 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Moved to man3, aeb, 980612
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ULIMIT 3 "6 août 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+ulimit \- Lire ou écrire les limites d'utilisation
+.SH SYNOPSIS
+\fB#include <ulimit.h>\fP
+.sp
+\fBlong ulimit(int \fP\fIcmd\fP\fB, long \fP\fInewlimit\fP\fB);\fP
+.SH DESCRIPTION
+Attention\ : Cette routine est obsolète. Utilisez \fBgetrlimit\fP(2),
+\fBsetrlimit\fP(2) et \fBsysconf\fP(3) à la place. Pour avoir des informations sur
+la commande shell \fBulimit\fP(), reportez\-vous à \fBbash\fP(1).
+
+L'appel \fBulimit\fP() permet de lire ou d'écrire certaines limitations pour le
+processus appelant. L'argument \fIcmd\fP peut prendre l'une des valeurs
+suivantes\ :
+.TP 
+\fBUL_GETFSIZE\fP
+Lire la limitation de taille d'un fichier en unités de 512 octets.
+.TP 
+\fBUL_SETFSIZE\fP
+Écrire la limitation de taille d'un fichier.
+.TP 
+\fB3\fP
+(Non implémenté sous Linux) Renvoyer l'adresse maximale du segment de
+données.
+.TP 
+\fB4\fP
+(Implémenté, mais sans nom symbolique) Lire le nombre maximal de fichiers
+que l'appelant peut ouvrir.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBulimit\fP() renvoie une valeur positive ou nulle. En cas
+d'erreur, il renvoie \-1 et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEPERM\fP
+Un processus non privilégié essaye d'augmenter une de ses limitations.
+.SH CONFORMITÉ
+SVr4, POSIX.1\-2001. POSIX.1\-2008 marque \fBulimit\fP() comme obsolète.
+.SH "VOIR AUSSI"
+\fBbash\fP(1), \fBgetrlimit\fP(2), \fBsetrlimit\fP(2), \fBsysconf\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,117 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_ATTR_SETAFFINITY_NP 3 "10 septembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_attr_setaffinity_np, pthread_attr_getaffinity_np \- Définir ou
+obtenir l'attribut d'affinité CPU d'un objet d'attributs de thread
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP             /* Consultez feature_test_macros(7) */
+\fB#include <pthread.h>\fP
+
+\fBint pthread_attr_setaffinity_np(pthread_attr_t *\fP\fIattr\fP\fB,\fP
+\fB                   size_t \fP\fIcpusetsize\fP\fB, const cpu_set_t *\fP\fIcpuset\fP\fB);\fP
+\fBint pthread_attr_getaffinity_np(pthread_attr_t *\fP\fIattr\fP\fB,\fP
+\fB                   size_t \fP\fIcpusetsize\fP\fB, cpu_set_t *\fP\fIcpuset\fP\fB);\fP
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+La fonction \fBpthread_attr_setaffinity_np\fP() définit l'attribut du masque
+d'affinité CPU de l'objet d'attributs de thread auquel \fIattr\fP fait
+référence à la valeur indiquée par \fIcpuset\fP. Cet attribut détermine le
+masque d'affinité CPU d'un thread créé en utilisant l'objet d'attributs de
+thread \fIattr\fP.
+
+La fonction \fBpthread_attr_getaffinity_np\fP() renvoie, dans le tampon pointé
+par \fIcpuset\fP, l'attribut du masque d'affinité CPU de l'objet d'attributs de
+thread auquel \fIattr\fP fait référence.
+
+Le paramètre \fIcpusetsize\fP est la longueur (en octets) du tampon pointé par
+\fIcpuset\fP. Typiquement, ce paramètre sera \fIsizeof (cpu_set_t)\fP.
+
+Pour plus de détails sur les masques d'affinité CPU, consultez
+\fBsched_setaffinity\fP(2). Pour une description d'un jeu de macros qui peuvent
+être utilisées pour manipuler et inspecter des ensembles de CPU, consultez
+\fBCPU_SET\fP(3).
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient 0\ ; en cas d'erreur elles
+renvoient un numéro d'erreur non nul.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+.\" cpumask_t
+.\" The raw sched_getaffinity() system call returns the size (in bytes)
+.\" of the cpumask_t type.
+(\fBpthread_attr_setaffinity_np\fP()) Le \fIcpuset\fP indiquait un CPU en dehors
+de l'ensemble pris en charge par le noyau (l'option de configuration
+\fBCONFIG_NR_CPUS\fP du noyau définit l'intervalle de l'ensemble pris en charge
+par le type de données du noyau pour représenter les ensembles de CPU).
+.TP 
+\fBEINVAL\fP
+(\fBpthread_attr_getaffinity_np\fP()) Un CPU du masque d'affinité de l'objet
+d'attributs de thread auquel \fIattr\fP fait référence réside en dehors de
+l'intervalle indiqué par \fIcpusetsize\fP (c'est\-à\-dire,
+\fIcpuset\fP/\fIcpusetsize\fP est trop petit).
+.TP 
+\fBENOMEM\fP
+(\fBpthread_attr_setaffinity_np\fP()) Impossible d'allouer de la mémoire.
+.SH VERSIONS
+Ces fonctions sont fournies par la glibc depuis la version\ 2.3.4.
+.SH CONFORMITÉ
+Ces fonctions sont des extensions non standard GNU\ ; c'est la raison du
+suffixe «\ _np\ » (non portable) dans leur nom.
+.SH NOTES
+Dans la glibc 2.3.3, uniquement, les versions de ces fonctions n'avaient pas
+de paramètre \fIcpusetsize\fP. À la place, la taille de l'ensemble de CPU
+fourni à l'appel système sous\-jacent était toujours \fIsizeof(cpu_set_t)\fP.
+.SH "VOIR AUSSI"
+\fBsched_setaffinity\fP(2), \fBpthread_attr_init\fP(3),
+\fBpthread_setaffinity_np\fP(3), \fBcpuset\fP(7), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

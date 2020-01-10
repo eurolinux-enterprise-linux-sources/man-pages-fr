@@ -1,0 +1,65 @@
+.\" Copyright 2003 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PUTGRENT 3 "9 septembre 2003" GNU "Manuel du programmeur Linux"
+.SH NOM
+putgrent \- Écrire un enregistrement base de données group dans un fichier
+.SH SYNOPSIS
+\fB#define _GNU_SOURCE\fP /* Consultez feature_test_macros(7) */
+.br
+\fB#include <grp.h>\fP
+.sp
+\fBint putgrent(const struct group *\fP\fIgrp\fP\fB, FILE *\fP\fIfp\fP\fB);\fP
+.SH DESCRIPTION
+La fonction \fBputgrent\fP() est la fonction complémentaire de
+\fBfgetgrent\fP(3). La fonction écrit le contenu de la structure \fIstruct
+group\fP fournie dans le fichier pointé par \fIfp\fP. La liste des membres doit
+se terminer par le caractère NUL ou bien être initialisée à NULL.
+.sp
+La structure \fIstruct group\fP est définie comme suit\ :
+.sp
+.in +4n
+.nf
+struct group {
+    char   *gr_name;      /* nom du groupe */
+    char   *gr_passwd;    /* mot de passe du groupe */
+    gid_t   gr_gid;       /* ID du groupe */
+    char  **gr_mem;       /* membres du groupe */
+};
+.fi
+.in
+.SH "VALEUR RENVOYÉE"
+La fonction renvoie zéro si elle réussit et une valeur non nulle s'il y a
+une erreur.
+.SH CONFORMITÉ
+Cette fonction est une extension GNU.
+.SH "VOIR AUSSI"
+\fBfgetgrent\fP(3), \fBgetgrent\fP(3), \fBgroup\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2004-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,103 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\" Modified 2003-11-18, aeb: historical remarks
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GAMMA 3 "5 août 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+gamma, gammaf, gammal \- Logarithme de la fonction Gamma
+.SH SYNOPSIS
+\fB#include <math.h>\fP
+.sp
+\fBdouble gamma(double \fP\fIx\fP\fB);\fP
+.br
+\fBfloat gammaf(float \fP\fIx\fP\fB);\fP
+.br
+\fBlong double gammal(long double \fP\fIx\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBgamma\fP()\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE
+.RE
+\fBgammaf\fP(), \fBgammal\fP()\ :
+.RS 4
+.\" Also seems to work: -std=c99 -D_XOPEN_SOURCE
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600
+.RE
+.ad b
+.SH DESCRIPTION
+Ces fonctions sont obsolètes\ : à la place, utilisez \fBtgamma\fP(3) ou
+\fBlgamma\fP(3), suivant le cas.
+
+Pour la définition de la fonction Gamma, consultez \fBtgamma\fP(3).
+.SS "Versions BSD*"
+La libm de BSD\ 4.4 et de certaines versions de FreeBSD avait une fonction
+\fBgamma\fP() qui calculait la fonction Gamma, comme on s'y attend.
+.SS "Version glibc"
+La glibc a une fonction \fBgamma\fP() qui est équivalente à \fBlgamma\fP(3) et qui
+calcule le logarithme népérien (ou naturel) de la fonction Gamma.
+.SH "VALEUR RENVOYÉE"
+Consultez \fBlgamma\fP(3).
+.SH ERREURS
+Consultez \fBlgamma\fP(3).
+.SH CONFORMITÉ
+Du fait de variations dans le comportement de cette fonction sur les
+différents systèmes, cette fonction n'est spécifiée dans aucune norme.
+.SH NOTES
+.SS Historique
+BSD\ 4.2 avait une fonction \fBgamma\fP() qui calculait ln(|Gamma(|\fIx\fP|)|),
+laissant le signe de Gamma(|\fIx\fP|)  dans l'entier externe \fIsigngam\fP. Dans
+BSD\ 4.3, le nom a été modifié en \fBlgamma\fP(3), et la page de manuel
+promettait\ :
+.sp
+.in +4n
+"Un jour où l'autre, le nom gamma sera réhabilité et utilisé pour la fonction
+Gamma."
+.in
+.sp
+.\" The FreeBSD man page says about gamma() that it is like lgamma()
+.\" except that is does not set signgam.
+.\" Also, that 4.4BSD has a gamma() that computes the true gamma function.
+Cela est vraiment arrivé dans BSD 4.4 où \fBgamma\fP() calcule la fonction
+Gamma (sans effet sur \fIsigngam\fP). Toutefois, cela est venu trop tard, et
+maintenant nous avons \fBtgamma\fP(3), la vraie fonction gamma (Ndt\ : «\ true
+gamma\ »).
+.SH "VOIR AUSSI"
+\fBlgamma\fP(3), \fBsigngam\fP(3), \fBtgamma\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

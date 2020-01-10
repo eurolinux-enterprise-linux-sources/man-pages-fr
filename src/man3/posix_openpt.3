@@ -1,0 +1,118 @@
+.\" Copyright (C) 2004 Michael Kerrisk
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH POSIX_OPENPT 3 "20 avril 2012" "" "Manuel du programmeur Linux"
+.SH NOM
+posix_openpt \- Ouvrir un périphérique pseudoterminal
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+\fB#include <fcntl.h>\fP
+.sp
+\fBint posix_openpt(int \fP\fIflags\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBposix_openpt\fP()\ : _XOPEN_SOURCE\ >=\ 600
+.ad b
+.SH DESCRIPTION
+La fonction \fBposix_openpt\fP() ouvre un périphérique pseudoterminal maître et
+renvoie un descripteur de fichier qui pourra être utilisé pour se référer à
+ce périphérique.
+
+L'argument \fIflags\fP est un masque OU bit à bit de zéro ou plusieurs des
+attributs suivants\ :
+.TP 
+\fBO_RDWR\fP
+ouvrir le périphérique en lecture et en écriture. En général, cet attribut
+est utilisé.
+.TP 
+\fBO_NOCTTY\fP
+Ne pas faire de ce périphérique le terminal de contrôle du processus.
+.SH "VALEUR RENVOYÉE"
+Si elle réussit, \fBposix_openpt\fP() renvoie un descripteur de fichier non
+négatif qui est le plus petit des descripteurs inutilisés. Si elle échoue,
+elle renvoie \-1 et \fIerrno\fP indique l'erreur.
+.SH ERREURS
+Consultez \fBopen\fP(2).
+.SH VERSIONS
+La gestion de \fBposix_openpt\fP() existe dans la glibc à partir de la version
+2.2.1.
+.SH CONFORMITÉ
+\fBposix_openpt\fP() est une partie de la gestion des pseudoterminaux d'UNIX 98
+(consultez \fBpts\fP(4)). Cette fonction est spécifiée par POSIX.1\-2001.
+.SH NOTES
+La fonction \fBposix_openpt\fP() est une création récente dans POSIX. Certaines
+implémentations UNIX qui prennent en charge les pseudoterminaux System\ V
+(aussi appelés UNIX 98) n'ont pas cette fonction, mais il est facile de
+l'implémenter\ :
+.in +4n
+.nf
+
+int
+posix_openpt(int flags)
+{
+    return open("/dev/ptmx", flags);
+}
+.fi
+.in
+.PP
+Appeler \fBposix_openpt\fP() crée un chemin d'accès pour le périphérique
+esclave de pseudoterminal correspondant. Le chemin d'accès du périphérique
+esclave peut être obtenu avec \fBptsname\fP(3). Le chemin d'accès du
+périphérique esclave n'existe que tant que le périphérique maître est
+ouvert.
+.SH "VOIR AUSSI"
+\fBopen\fP(2), \fBgetpt\fP(3), \fBgrantpt\fP(3), \fBptsname\fP(3), \fBunlockpt\fP(3),
+\fBpts\fP(4), \fBpty\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

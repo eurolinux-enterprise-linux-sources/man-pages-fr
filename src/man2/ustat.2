@@ -1,0 +1,119 @@
+.\" Copyright (C) 1995, Thomas K. Dyas <tdyas@eden.rutgers.edu>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Created  1995-08-09 Thomas K. Dyas <tdyas@eden.rutgers.edu>
+.\" Modified 1997-01-31 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 2001-03-22 by aeb
+.\" Modified 2003-08-04 by aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH USTAT 2 "4 août 2003" Linux "Manuel du programmeur Linux"
+.SH NOM
+ustat \- Obtenir les statistiques sur le système de fichiers
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+.br
+\fB#include <unistd.h>\fP    /* libc[45] */
+.br
+\fB#include <ustat.h>\fP     /* glibc2 */
+.sp
+\fBint ustat(dev_t \fP\fIdev\fP\fB, struct ustat *\fP\fIubuf\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBustat\fP() renvoie des informations sur un système de fichiers monté. \fIdev\fP
+est le numéro de périphérique contenant le système de fichiers
+monté. \fIubuf\fP est un pointeur sur une structure \fIustat\fP contenant les
+champs suivants\ :
+.in +4n
+.nf
+
+daddr_t f_tfree;      /* Nombre total de blocs libres */
+ino_t   f_tinode;     /* Nombre d'inœuds libres */
+char    f_fname[6];   /* Nom du système de fichiers */
+char    f_fpack[6];   /* Filsys pack name */
+.fi
+.in
+.PP
+Les deux derniers champs, \fIf_fname\fP et \fIf_fpack\fP, ne sont pas implémentés
+actuellement et sont remplis avec des caractères nuls (\(aq\e0\(aq).
+.SH "VALEUR RENVOYÉE"
+\fBustat\fP() renvoie zéro s'il réussit, et la structure \fIustat\fP pointée par
+\fIubuf\fP sera remplie. S'il échoue, l'appel système renvoie \-1 et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fIubuf\fP pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEINVAL\fP
+\fIdev\fP n'est pas un périphérique contenant un système de fichiers monté.
+.TP 
+\fBENOSYS\fP
+Le système de fichiers monté indiqué par \fIdev\fP ne permet pas cette
+opération. (Cette erreur est aussi produite par tous les noyaux Linux
+antérieurs au 1.3.16)
+.SH CONFORMITÉ
+.\" SVr4 documents additional error conditions ENOLINK, ECOMM, and EINTR
+.\" but has no ENOSYS condition.
+SVr4.
+.SH NOTES
+\fBustat\fP() est fourni à titre de compatibilité, les nouveaux programmes
+devraient utiliser \fBstatfs\fP(2) à la place.
+.SS "Notes sur HP\-UX"
+.\" Some software tries to use this in order to test whether the
+.\" underlying file system is NFS.
+La version HP\-UX de la structure \fIustat\fP a un champ supplémentaire,
+\fIf_blksize\fP, qui n'existe nulle part ailleurs. HP\-UX avertit que pour
+certains systèmes de fichiers, le nombre d'inœuds libres ne change pas. Ces
+systèmes de fichiers renvoient \-1 dans le champ \fIf_tinode\fP. Pour certains
+systèmes de fichiers, les inœuds sont alloués dynamiquement. Ces systèmes de
+fichiers renverront le nombre actuel d'inœuds libres.
+.SH "VOIR AUSSI"
+\fBstat\fP(2), \fBstatfs\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

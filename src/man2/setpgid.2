@@ -1,0 +1,236 @@
+.\" Copyright (c) 1983, 1991 Regents of the University of California.
+.\" and Copyright (C) 2007, Michael Kerrisk <mtk.manpages@gmail.com>
+.\" All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     @(#)getpgrp.2	6.4 (Berkeley) 3/10/91
+.\"
+.\" Modified 1993-07-24 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1995-04-15 by Michael Chastain <mec@shell.portal.com>:
+.\"   Added 'getpgid'.
+.\" Modified 1996-07-21 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 1996-11-06 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1999-09-02 by Michael Haardt <michael@moria.de>
+.\" Modified 2002-01-18 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2003-01-20 by Andries Brouwer <aeb@cwi.nl>
+.\" 2007-07-25, mtk, fairly substantial rewrites and rearrangements
+.\" of text.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SETPGID 2 "26 septembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+setpgid, getpgid, setpgrp, getpgrp \- Définir ou lire le groupe du processus
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBint setpgid(pid_t \fP\fIpid\fP\fB, pid_t \fP\fIpgid\fP\fB);\fP
+.br
+\fBpid_t getpgid(pid_t \fP\fIpid\fP\fB);\fP
+.sp
+\fBpid_t getpgrp(void);\fP /* version POSIX.1 */
+.br
+\fBpid_t getpgrp(pid_t \fP\fIpid\fP\fB);\ \ \ \ \ \ \ \ \ \ \ \fP /* version BSD */
+.sp
+\fBint setpgrp(void);\fP /* version System\ V */
+.br
+\fBint setpgrp(pid_t \fP\fIpid\fP\fB, pid_t \fP\fIpgid\fP\fB);\fP  /* version BSD */
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+.PD 0
+\fBgetpgid\fP()\ :
+.RS 4
+_XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.br
+|| /* Depuis la glibc 2.12\ : */ _POSIX_C_SOURCE\ >=\ 200809L
+.RE
+.sp
+\fBsetpgrp\fP() (POSIX.1)\ :
+.nf
+    _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500 ||
+    _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.fi
+.sp
+\fBsetpgrp\fP()\ (BSD), \fBgetpgrp\fP()\ (BSD)\ :
+.nf
+    _BSD_SOURCE &&
+        !\ (_POSIX_SOURCE || _POSIX_C_SOURCE || _XOPEN_SOURCE ||
+           _XOPEN_SOURCE_EXTENDED || _GNU_SOURCE || _SVID_SOURCE)
+.fi
+.PD
+.ad
+.SH DESCRIPTION
+Toutes ces interfaces sont disponibles sous Linux et sont utilisées pour
+récupérer et définir l'identifiant du groupe de processus (PGID\ : «\ Process
+Group ID\ ») d'un processus. La façon préférée, celle spécifiée par POSIX.1
+est\ : \fBgetpgrp\fP(void) pour récupérer le PGID du processus appelant et
+\fBsetpgid\fP() pour définir le PGID d'un processus.
+
+\fBsetpgid\fP() définit à \fIpgid\fP le PGID du processus mentionné par \fIpid\fP. Si
+\fIpid\fP vaut zéro, alors le PID du processus appelant est utilisé. Si \fIpgid\fP
+vaut zéro, alors le PGID du processus indiqué par \fIpid\fP est positionné à la
+même valeur que l'identifiant du processus. Si \fBsetpgid\fP est utilisé pour
+déplacer un processus d'un groupe dans un autre (comme cela peut être fait
+par certains shell pour les pipelines), les deux groupes de processus
+doivent appartenir à la même session (consultez \fBsetsid\fP(2) et
+\fBcredentials\fP(7)). Dans ce cas, \fIpgid\fP indique un groupe de processus
+existant à rejoindre et l'ID de session de ce groupe doit être celui du
+processus concerné.
+
+La version POSIX.1 de \fBgetpgrp\fP(), qui ne prend pas de paramètre, renvoie
+le PGID du processus appelant.
+
+\fBgetpgid\fP() renvoie le PGID du processus indiqué par \fIpid\fP. Si \fIpid\fP vaut
+zéro, le PID du processus appelant est utilisé. La récupération du PGID d'un
+processus autre que l'appelant est rarement utilisée et \fBgetpgrp\fP() est
+préférée pour cette tâche.
+
+L'appel \fBsetpgrp\fP() de System\ V, qui ne prend pas de paramètre, est
+équivalent à \fIsetpgid(0,\ 0)\fP.
+
+.\" The true BSD setpgrp() system call differs in allowing the PGID
+.\" to be set to arbitrary values, rather than being restricted to
+.\" PGIDs in the same session.
+L'appel \fBsetpgrp\fP() spécifique à BSD qui prend des paramètres \fIpid\fP et
+\fIpgid\fP est équivalent à \fIsetpgid(pid, pgid)\fP.
+
+L'appel \fBgetpgrp\fP() spécifique à BSD qui prend un unique paramètre \fIpid\fP
+est équivalent à \fIgetpgid(pid)\fP.
+.SH "VALEUR RENVOYÉE"
+\fBsetpgid\fP() et \fBsetpgrp\fP() renvoient zéro s'ils réussissent, ou \-1 s'ils
+échouent, auquel cas \fIerrno\fP contient le code d'erreur.
+
+L'appel \fBgetpgrp\fP() de POSIX.1 renvoie le PGID du processus appelant.
+
+\fBgetpgid\fP() et l'appel spécifique à BSD \fBgetpgrp\fP() renvoient le groupe du
+processus s'il réussit. En cas d'erreur \-1 est renvoyé et \fIerrno\fP contient
+le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+On a essayé de changer le groupe de processus d'un enfant du processus
+appelant, et ce fils a déjà effectué un \fBexecve\fP(2) (\fBsetpgid\fP(),
+\fBsetpgrp\fP()).
+.TP 
+\fBEINVAL\fP
+\fIpgid\fP est inférieur à 0 (\fBsetpgid\fP(), \fBsetpgrp\fP()).
+.TP 
+\fBEPERM\fP
+On a essayé de déplacer un processus dans un groupe d'une session
+différente, ou de changer le groupe d'un fils du processus appelant qui se
+trouve dans une autre session, ou de modifier le groupe d'un leader de
+session (\fBsetpgid\fP(), \fBsetpgrp\fP()).
+.TP 
+\fBESRCH\fP
+Pour \fBgetpgid\fP()\ : \fIpid\fP ne correspond à aucun processus. Pour
+\fBsetpgid\fP()\ : \fIpid\fP n'est ni le processus appelant, ni l'un de ses
+enfants.
+.SH CONFORMITÉ
+\fBsetpgid\fP() et la version de \fBgetpgrp\fP() sans paramètre sont conformes à
+POSIX.1\-2001.
+
+POSIX.1\-2001 spécifie également \fBgetpgid\fP() et la version de \fBsetpgrp\fP()
+qui ne prend pas de paramètre. (POSIX.1\-2008 marque cette spécification de
+\fBsetpgrp\fP() comme obsolète)
+
+La version de \fBgetpgrp\fP() avec un paramètre et la version de \fBsetpgrp\fP()
+qui prend deux paramètres provient de BSD\ 4.2 et ne sont pas spécifiées par
+POSIX.1.
+.SH NOTES
+Un processus fils créé par \fBfork\fP(2) hérite du PGID de son père. Le PGID
+est conservé au travers d'un \fBexecve\fP(2).
+
+Chaque groupe de processus est membre d'une session et chaque processus est
+membre de cette session.
+
+Une session peut avoir un terminal de contrôle. À tout moment, un (et un
+seul) des groupes de processus de cette session peut être le groupe de
+premier plan du terminal\ ; les autre groupes de processus sont en arrière
+plan. Si un signal est généré depuis le terminal (par exemple une touche
+d'interruption pour générer un \fBSIGINT\fP), ce signal est envoyé au groupe de
+processus au premier plan. Consultez \fBtermios\fP(3) pour la liste des
+caractères qui génèrent des signaux. Seul le groupe de processus au premier
+plan peut lire avec \fBread\fP(2) sur le terminal\ ; si un groupe de processus
+essaie de lire avec \fBread\fP(2) sur le terminal, alors le groupe reçoit un
+signal \fBSIGTSTP\fP, qui le suspend. Les fonctions \fBtcgetpgrp\fP(3) et
+\fBtcsetpgrp\fP(3) sont utilisées pour récupérer ou positionner le groupe de
+processus au premier plan du terminal de contrôle.
+
+Les appels \fBsetpgid\fP() et \fBgetpgrp\fP() sont utilisés par des programmes
+comme \fBbash\fP(1) pour créer des groupes de processus pour l'implémentation
+du contrôle des travaux depuis l'interpréteur de commande.
+
+Si une session a un terminal de contrôle et le drapeau \fBCLOCAL\fP de ce
+terminal n'est pas actif, et une déconnexion se produit, alors le leader de
+la session recevra un signal \fBSIGHUP\fP. Si le leader se termine, le signal
+\fBSIGHUP\fP sera envoyé à tous les processus du groupe au premier plan sur le
+terminal de contrôle.
+
+.\" exit.3 refers to the following text:
+Si la fin du processus rend un groupe de processus orphelin, et si l'un des
+membres de ce groupe est arrêté, alors un signal \fBSIGHUP\fP suivi d'un signal
+\fBSIGCONT\fP sera envoyé à tous les processus du groupe orphelin. Un groupe de
+processus est orphelin si le parent de chaque processus du groupe est soit
+membre de ce groupe ou soit membre d'un groupe de processus dans une session
+différente (voyez \fBcredentials\fP(7)).
+.SH "VOIR AUSSI"
+\fBgetuid\fP(2), \fBsetsid\fP(2), \fBtcgetpgrp\fP(3), \fBtcsetpgrp\fP(3), \fBtermios\fP(3),
+\fBcredentials\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

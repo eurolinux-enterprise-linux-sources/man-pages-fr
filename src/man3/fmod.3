@@ -1,0 +1,133 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified 1993-07-24 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 2002-07-27 by Walter Harms
+.\" 	(walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FMOD 3 "15 mars 2012" "" "Manuel du programmeur Linux"
+.SH NOM
+fmod, fmodf, fmodl \- Fonction modulo réel
+.SH SYNOPSIS
+.nf
+\fB#include <math.h>\fP
+.sp
+\fBdouble fmod(double \fP\fIx\fP\fB, double \fP\fIy\fP\fB);\fP
+.br
+\fBfloat fmodf(float \fP\fIx\fP\fB, float \fP\fIy\fP\fB);\fP
+.br
+\fBlong double fmodl(long double \fP\fIx\fP\fB, long double \fP\fIy\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBfmodf\fP(), \fBfmodl\fP()\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE
+|| _POSIX_C_SOURCE\ >=\ 200112L
+.br
+ou \fIcc\ \-std=c99\fP
+.RE
+.ad
+.SH DESCRIPTION
+La fonction \fBfmod\fP() calcule le reste, en virgule flottante, de la division
+de \fIx\fP par \fIy\fP. La valeur renvoyée est \fIx\fP \- \fIn\fP * \fIy\fP, où \fIn\fP est le
+quotient \fIx\fP / \fIy\fP, arrondi à l'entier inférieur en valeur absolue.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient la valeur \fIx\fP\ \-\ \fIn\fP*\fIy\fP,
+pour un entier \fIn\fP tel que la valeur de retour a le même signe que \fIx\fP et
+une norme inférieure à la norme de \fIy\fP.
+
+Si \fIx\fP ou \fIy\fP est un NaN, un NaN est renvoyé.
+
+Si \fIx\fP est une valeur infinie, une erreur de domaine est produite et un NaN
+est renvoyé.
+
+Si \fIy\fP vaut zéro, une erreur de domaine est produite et un NaN est renvoyé.
+
+Si \fIx\fP vaut +0 (resp. \-0), et \fIy\fP n'est pas nul, +0 (resp. \-0) est
+renvoyé.
+.SH ERREURS
+Consultez \fBmath_error\fP(7) pour savoir comment déterminer qu'une erreur est
+survenue lors de l'appel de ces fonctions.
+.PP
+Les erreurs suivantes peuvent se produire\ :
+.TP 
+Erreur de domaine\ : \fIx\fP est une valeur infinie
+\fIerrno\fP prend la valeur \fBEDOM\fP (mais consultez la section des BOGUES). Une
+exception indiquant une virgule flottante incorrecte (\fBFE_INVALID\fP) est
+levée.
+.TP 
+Erreur de domaine\ : \fIy\fP est nul.
+.\" POSIX.1 documents an optional underflow error, but AFAICT it doesn't
+.\" (can't?) occur -- mtk, Jul 2008
+\fIerrno\fP prend la valeur \fBEDOM\fP. Une exception indiquant une virgule
+flottante incorrecte (\fBFE_INVALID\fP) est levée.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001. La variante renvoyant un \fIdouble\fP est également conforme
+à SVr4, BSD\ 4.3 et C89.
+.SH BOGUES
+.\" http://sources.redhat.com/bugzilla/show_bug.cgi?id=6784
+Avant la version 2.10, l'implémentation de la glibc ne définissait pas
+\fIerrno\fP à \fBEDOM\fP lorsqu'une erreur de domaine pour un \fIx\fP infini.
+.SH "VOIR AUSSI"
+\fBremainder\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

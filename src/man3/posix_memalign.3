@@ -1,0 +1,211 @@
+.\" Copyright (c) 2001 by John Levon <moz@compsoc.man.ac.uk>
+.\" Based in part on GNU libc documentation.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 2001-10-11, 2003-08-22, aeb, added some details
+.\" 2012-03-23, Michael Kerrisk <mtk.manpages@mail.com>
+.\"     Document pvalloc() and aligned_alloc()
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH POSIX_MEMALIGN 3 "23 mars 2012" GNU "Manuel du programmeur Linux"
+.SH NOM
+posix_memalign, aligned_alloc, memalign, valloc, pvalloc \- Allocation de
+mémoire alignée
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBint posix_memalign(void **\fP\fImemptr\fP\fB, size_t \fP\fIalignment\fP\fB, size_t \fP\fIsize\fP\fB);\fP
+\fBvoid *aligned_alloc(size_t \fP\fIalignment\fP\fB, size_t \fP\fIsize\fP\fB);\fP
+\fBvoid *valloc(size_t \fP\fIsize\fP\fB);\fP
+.sp
+\fB#include <malloc.h>\fP
+.sp
+\fBvoid *memalign(size_t \fP\fIalignment\fP\fB, size_t \fP\fIsize\fP\fB);\fP
+\fBvoid *pvalloc(size_t \fP\fIsize\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBposix_memalign\fP()\ : _POSIX_C_SOURCE\ >=\ 200112L || _XOPEN_SOURCE\ >=\ 600
+.sp
+\fBaligned_alloc\fP(): _ISOC11_SOURCE
+.sp
+\fBvalloc\fP()\ :
+.br
+.PD 0
+.RS 4
+.TP  4
+Depuis la glibc 2.12\ :
+.nf
+_BSD_SOURCE ||
+    (_XOPEN_SOURCE\ >=\ 500 ||
+        _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED) &&
+    !(_POSIX_C_SOURCE\ >=\ 200112L || _XOPEN_SOURCE\ >=\ 600)
+.br
+.fi
+.TP 
+Avant la glibc 2.12\ :
+_BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.ad b
+.br
+Le fichier d'en\-tête (non standard) \fI<malloc.h>\fP déclare également
+\fBvalloc\fP()\ ; aucune macro de test de fonctionnalité n'est nécessaire.
+.RE
+.PD
+.SH DESCRIPTION
+.\" glibc does this:
+La fonction \fBposix_memalign\fP() alloue \fIsize\fP octets et place l'adresse de
+la mémoire allouée dans \fI*memptr\fP. L'adresse de la mémoire allouée est un
+multiple de \fIalignment\fP, qui doit lui\-même être une puissance de deux et un
+multiple de \fIsizeof(void\ *)\fP. Si \fIsize\fP vaut 0, alors \fBposix_memalign\fP()
+renvoie soit NULL, soit une valeur de pointeur unique qui peut ensuite être
+fournie à \fBfree\fP(3).
+
+.\" The behavior of memalign() for size==0 is as for posix_memalign()
+.\" but no standards govern this.
+La fonction obsolète \fBmemalign\fP() alloue \fIsize\fP octets et renvoie un
+pointeur vers la mémoire allouée. L'adresse mémoire est alors un multiple de
+\fIalignment\fP, qui doit être une puissance de deux.
+
+La fonction \fBaligned_alloc\fP() est identique à \fBmemalign\fP(), excepté que
+\fIsize\fP doit être un multiple de \fIalignment\fP.
+
+La fonction obsolète \fBvalloc\fP() alloue \fIsize\fP octets et renvoie un
+pointeur vers la mémoire allouée. L'adresse mémoire est alors un multiple de
+la taille de page. Cette fonction est équivalente à
+\fImemalign(sysconf(_SC_PAGESIZE),size)\fP.
+
+La fonction obsolète \fBpvalloc\fP() est similaire à \fBvalloc\fP(), mais arrondit
+la taille de l'allocation au multiple supérieur de la taille de page
+système.
+
+Pour toutes ces fonctions, la mémoire n'est pas initialisée à zéro.
+.SH "VALEUR RENVOYÉE"
+\fBaligned_alloc\fP(), \fBmemalign\fP(), \fBvalloc\fP() et \fBpvalloc\fP() renvoient un
+pointeur sur la mémoire allouée, ou bien NULL si la requête échoue.
+
+\fBposix_memalign\fP() renvoie zéro en cas de succès, ou l'une des valeurs
+d'erreurs répertoriées dans la section suivante en cas d'échec. Notez que
+\fIerrno\fP n'est pas affectée par cette fonction.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+Le paramètre \fIalignment\fP n'est pas une puissance de deux, ou n'est pas un
+multiple de \fIsizeof(void\ *)\fP.
+.TP 
+\fBENOMEM\fP
+Mémoire insuffisante pour réaliser la demande d'allocation.
+.SH VERSIONS
+Les fonctions \fBmemalign\fP(), \fBvalloc\fP() et \fBpvalloc\fP() sont disponibles
+dans toutes les bibliothèques libc de Linux.
+
+La fonction \fBaligned_alloc\fP() est disponible depuis la glibc 2.16.
+
+La fonction \fBposix_memalign\fP() est disponible depuis la glibc 2.1.94.
+.SH CONFORMITÉ
+La fonction \fBvalloc\fP() est apparue dans BSD\ 3.0. Elle est qualifiée
+d'obsolète dans BSD\ 4.3, et d'historique dans SUSv2. Elle n'apparaît pas
+dans POSIX.1\-2001.
+
+La fonction \fBpvalloc\fP() est une extension GNU.
+
+La fonction \fBmemalign\fP() est apparue dans SunOS 4.1.3 mais pas dans
+BSD\ 4.4.
+
+La fonction \fBposix_memalign\fP() provient de POSIX.1d.
+
+.\"
+La fonction \fBaligned_alloc\fP() est spécifiée dans le standard C11.
+.SS En\-têtes
+Tout le monde est d'accord sur le fait que \fBposix_memalign\fP() est déclarée
+dans \fI<stdlib.h>\fP.
+
+Sur certains systèmes, \fBmemalign\fP() est déclaré dans \fI<stdlib.h>\fP
+au lieu de \fI<malloc.h>\fP.
+
+Conformément à SUSv2, \fBvalloc\fP() est déclaré dans
+\fI<stdlib.h>\fP. Libc4,5 et glibc le déclarent dans
+\fI<malloc.h>\fP et également dans \fI<stdlib.h>\fP si les macros
+de test adéquates sont définies (voir au\-dessus).
+.SH NOTES
+Il y a des restrictions d'alignement sur beaucoup de systèmes, par exemple
+sur les tampons utilisés pour les entrées\-sorties directes des périphériques
+blocs. POSIX spécifie que l'appel \fIpathconf(path,_PC_REC_XFER_ALIGN)\fP
+indique quel alignement est nécessaire. On peut à présent utiliser
+\fBposix_memalign\fP() pour satisfaire cette condition.
+
+\fBposix_memalign\fP() vérifie qu'\fIalignment\fP répond bien aux exigences
+détaillées ci\-dessus. \fBmemalign\fP() est susceptible de ne pas contrôler que
+le paramètre \fIalignment\fP est correct.
+
+.\" Other systems allow passing the result of
+.\" .IR valloc ()
+.\" to
+.\" .IR free (3),
+.\" but not to
+.\" .IR realloc (3).
+La norme POSIX impose que la mémoire obtenue par un appel à
+\fBposix_memalign\fP() puisse être libérée en utilisant \fBfree\fP(3). Certains
+systèmes ne fournissent aucun moyen de libérer la mémoire allouée par
+\fBmemalign\fP() ou \fBvalloc\fP() (parce que l'on peut seulement passer comme
+paramètre à \fBfree\fP(3) un pointeur obtenu via \fBmalloc\fP(3), alors que, par
+exemple, \fBmemalign\fP() pourrait appeler \fBmalloc\fP(3) et aligner par la suite
+la valeur obtenue). L'implémentation de la glibc permet de libérer la
+mémoire obtenue par n'importe laquelle de ces fonctions par appel à
+\fBfree\fP(3).
+
+L'implépmentation de la glibc de \fBmalloc\fP(3) renvoie toujours des adresses
+mémoire alignées sur 8\ octets, ainsi ces fonctions ne sont nécessaires
+qu'en cas de besoin de valeurs d'alignement plus grandes.
+.SH "VOIR AUSSI"
+\fBbrk\fP(2), \fBgetpagesize\fP(2), \fBfree\fP(3), \fBmalloc\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

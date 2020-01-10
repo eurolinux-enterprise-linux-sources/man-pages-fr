@@ -1,0 +1,249 @@
+.\" Copyright (c) 1990, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" This code is derived from software contributed to Berkeley by
+.\" the American National Standards Committee X3, on Information
+.\" Processing Systems.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"	@(#)stdarg.3	6.8 (Berkeley) 6/29/91
+.\"
+.\" Converted for Linux, Mon Nov 29 15:11:11 1993, faith@cs.unc.edu
+.\" Additions, 2001-10-14, aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STDARG 3 "15 mars 2013" "" "Manuel du programmeur Linux"
+.SH NOM
+stdarg, va_start, va_arg, va_end, va_copy \- Liste variable d'arguments
+.SH SYNOPSIS
+\fB#include <stdarg.h>\fP
+.sp
+\fBvoid va_start(va_list \fP\fIap\fP\fB, \fP\fIlast\fP\fB);\fP
+.br
+\fItype\fP\fB va_arg(va_list \fP\fIap\fP\fB, \fP\fItype\fP\fB);\fP
+.br
+\fBvoid va_end(va_list \fP\fIap\fP\fB);\fP
+.br
+\fBvoid va_copy(va_list \fP\fIdest\fP\fB, va_list \fP\fIsrc\fP\fB);\fP
+.SH DESCRIPTION
+Une fonction peut être appelée avec un nombre variable d'arguments,
+eux\-mêmes de types variables. Une telle fonction est dite «\ variadique\ ». Le fichier d'en\-tête \fI<stdarg.h>\fP déclare un type \fIva_list\fP et
+définit trois macros permettant de parcourir la liste d'arguments dont le
+nombre et les types ne sont pas connus par la fonction appelée.
+.PP
+La fonction appelée doit déclarer un objet de type \fIva_list\fP utilisé par
+les macros \fBva_start\fP(), \fBva_arg\fP() et \fBva_end\fP().
+.SS va_start()
+La macro \fBva_start\fP() initialise \fIap\fP pour les utilisations ultérieures de
+\fBva_arg\fP() et \fBva_end\fP(), et doit donc être appelée en premier.
+.PP
+Le paramètre \fIlast\fP est le nom du dernier paramètre avant la liste variable
+de paramètres, c'est\-à\-dire le dernier paramètre dont la fonction connaisse
+le type.
+.PP
+Comme l'adresse de ce paramètre est utilisée dans la macro \fBva_start\fP(), il
+ne doit pas être déclaré comme une variable en registre, ni comme un type
+fonction ou tableau.
+.SS va_arg()
+La macro \fBva_arg\fP() se développe en une expression qui a le type et la
+valeur de l'argument suivant de l'appel. Le paramètre \fIap\fP est la
+\fIva_list\fP \fIap\fP initialisée par \fBva_start\fP(). Chaque appel de \fBva_arg\fP()
+modifie \fIap\fP pour que l'appel suivant renvoie le paramètre suivant. Le
+paramètre \fItype\fP est le nom du type, indiqué de telle manière qu'un
+pointeur sur un objet de ce type puisse être déclaré simplement en ajoutant
+un astérisque à \fItype\fP.
+.PP
+La première utilisation de la macro \fBva_arg\fP() après celle de \fBva_start\fP()
+renvoie l'argument suivant \fIlast\fP. Les invocations successives renvoient
+les valeurs des arguments restants.
+.PP
+S'il n'y a pas d'argument suivant, ou si \fItype\fP n'est pas compatible avec
+le type réel du prochain argument, des erreurs imprévisibles se produiront.
+.PP
+Si \fIap\fP est passé à une fonction qui utilise \fBva_arg(\fP\fIap\fP\fB,\fP\fItype\fP\fB)\fP
+alors la valeur de \fIap\fP est indéfinie après le retour de cette fonction.
+.SS va_end()
+À chaque invocation de \fBva_start\fP() doit correspondre une invocation de
+\fBva_end\fP() dans la même fonction. Après l'appel \fBva_end(\fP\fIap\fP\fB)\fP la
+variable \fIap\fP est indéfinie. Plusieurs traversées de la liste sont
+possibles, à condition que chacune soit encadrée par \fBva_start\fP() et
+\fBva_end\fP(). \fBva_end\fP() peut être une macro ou une fonction.
+.SS va_copy()
+La macro \fBva_copy\fP() copie la liste d'arguments variables (précédemment
+initialisés) \fIsrc\fP vers \fIdest\fP. Le comportement serait similaire si
+\fBva_start\fP() était appliqué à \fIdest\fP avec le même argument \fIlast\fP, suivi
+du même nombre d'invocations de \fBva_arg\fP() qui ont été utilisées pour
+atteindre l'état actuel de \fIsrc\fP.
+
+.\" Proposal from clive@demon.net, 1997-02-28
+Une implémentation évidente est de représenter \fIva_list\fP par un pointeur
+dans la pile de la fonction variadique. Dans une telle situation (de loin la
+plus courante), rien ne semble s'opposer à une affectation
+.in +4n
+.nf
+
+va_list aq = ap;
+
+.fi
+.in
+Malheureusement, il y a aussi des systèmes qui créent une table de pointeurs
+(de longueur 1), et on devrait écrire
+.in +4n
+.nf
+
+va_list aq;
+*aq = *ap;
+
+.fi
+.in
+De plus, sur les systèmes où les paramètres sont passés dans des registres,
+il peut être nécessaire pour \fBva_start\fP() d'allouer de la mémoire, d'y
+enregistrer les paramètres ainsi que l'indication du paramètre suivant, afin
+que \fBva_arg\fP() puisse balayer la liste. Ainsi \fBva_end\fP() pourra libérer la
+mémoire allouée. Pour gérer ces situations, C99 ajoute une macro
+\fBva_copy\fP(), afin que les affectations ci\-dessus soient remplacées par
+.in +4n
+.nf
+
+va_list aq;
+va_copy(aq, ap);
+\&...
+va_end(aq);
+
+.fi
+.in
+À chaque invocation de \fBva_copy\fP() doit correspondre une invocation de
+\fBva_end\fP() dans la même fonction. Certains systèmes qui ne disposent pas de
+\fBva_copy\fP() ont une macro \fB__va_copy\fP() à la place, puisque c'était le nom
+proposé auparavant.
+.SH CONFORMITÉ
+Les macros \fBva_start\fP(), \fBva_arg\fP() et \fBva_end\fP() sont conformes à
+C89. C99 définit la macro \fBva_copy\fP().
+.SH NOTES
+Ces macros \fIne\fP sont \fIpas\fP compatibles avec les anciennes macros qu'elles
+remplacent. Une compatibilité de version peut être obtenue en incluant le
+fichier d'en\-tête \fI<varargs.h>\fP.
+.PP
+La mise en œuvre historique est\ :
+.in +4n
+.nf
+
+#include <varargs.h>
+
+void
+foo(va_alist)
+    va_dcl
+{
+    va_list ap;
+
+    va_start(ap);
+    while (...) {
+        ...
+        x = va_arg(ap, type);
+        ...
+    }
+    va_end(ap);
+}
+
+.fi
+.in
+Sur certains systèmes, \fIva_end\fP() contient une accolade fermante «\ }\ »
+correspondant à l'accolade ouvrante «\ {\ » dans \fIva_start\fP(), ainsi les
+deux macros doivent se trouver dans la même fonction, placées d'une manière
+qui permette ceci.
+.SH BOGUES
+Contrairement aux macros \fBvarargs\fP(), les macros \fBstdarg\fP() ne permettent
+pas aux programmeurs de coder une fonction sans aucun argument fixe. Ce
+problème se pose principalement en convertissant directement du code
+utilisant \fBvarargs\fP() en code utilisant \fBstdarg\fP(), mais il se pose
+également pour les fonctions qui désirent passer tous leurs arguments à une
+fonction utilisant un argument \fIva_list\fP comme \fBvfprintf\fP(3).
+.SH EXEMPLE
+La fonction \fIfoo\fP() prend une chaîne de caractères de mise en forme, et
+affiche les arguments associés avec chaque format correspondant au type
+indiqué.
+.nf
+
+#include <stdio.h>
+#include <stdarg.h>
+
+void
+foo(char *fmt, ...)
+{
+    va_list ap;
+    int d;
+    char c, *s;
+
+    va_start(ap, fmt);
+    while (*fmt)
+        switch (*fmt ++) {
+        case \(aqs\(aq: /* chaîne */
+            s = va_arg (ap, char *);
+            printf("chaîne %s\en", s);
+            break;
+        case \(aqd\(aq:  /* entier */
+            d = va_arg (ap, int);
+            printf("int %d\en", d);
+            break;
+        case \(aqc\(aq:	/* caractère */
+            c = va_arg (ap, char);
+            printf("char %c\en", c);
+            break;
+        }
+    va_end(ap);
+}
+.fi
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

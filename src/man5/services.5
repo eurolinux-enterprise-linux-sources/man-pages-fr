@@ -1,0 +1,198 @@
+.\" This manpage is Copyright (C) 1996 Austin Donnelly <and1000@cam.ac.uk>,
+.\" with additional material Copyright (c) 1995 Martin Schulze
+.\"     <joey@infodrom.north.de>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"   This manpage was made by merging two independently written manpages,
+.\"   one written by Martin Schulze (18 Oct 95), the other written by
+.\"   Austin Donnelly, (9 Jan 96).
+.\"
+.\" Thu Jan 11 12:14:41 1996 Austin Donnelly  <and1000@cam.ac.uk>
+.\"   * Merged two services(5) manpages
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SERVICES 5 "22 mai 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+services \- Liste des services réseau internet
+.SH DESCRIPTION
+\fBservices\fP est un fichier texte ASCII fournissant une correspondance entre
+des noms textuels faciles à mémoriser pour les services et les numéros de
+ports qui leur sont assignés, ainsi que les types de protocoles. Chaque
+programme en relation avec le réseau peut consulter ce fichier pour obtenir
+le numéro de port (et le protocole) pour ses services. Les programmes de la
+bibliothèque\ C \fBgetservent\fP(3), \fBgetservbyname\fP(3), \fBgetservbyport\fP(3),
+\fBsetservent\fP(3) et \fBendservent\fP(3) permettent d'effectuer des requêtes
+dans ce fichier à partir de programmes.
+
+Les numéros de ports sont assignés par l'IANA (Internet Assigned Numbers
+Authority), et la politique actuelle est, lors de l'assignation d'un numéro
+de port, d'assigner à la fois les protocoles TCP et UDP. En conséquence, la
+plupart des entrées sont en double, même pour les services qui n'existent
+qu'en TCP.
+
+Les numéros de ports inférieurs à 1024 (encore appelés ports «\ bas\ » (low
+numbered)) ne peuvent être liés que par root (consultez \fBbind\fP(2),
+\fBtcp\fP(7) et \fBudp\fP(7)). De cette manière, les clients qui se connectent à
+ces ports peuvent être certains que le service qui tourne sur le port est
+conforme à son implémentation standard et non pas un service pirate lancé
+par un utilisateur de la machine. Les numéros de ports habituels, spécifiés
+par l'IANA, sont normalement placés dans cet endroit réservé à root.
+
+La présence dans le fichier \fBservices\fP d'une entrée pour un service ne
+signifie pas forcément que ce service est actuellement actif sur la
+machine. Consultez \fBinetd.conf\fP(5) pour la configuration des services
+Internet offerts. Notez que tous les services réseau ne sont pas démarrés
+par \fBinetd\fP(8), et qu'ils n'apparaîtront donc pas dans \fBinetd.conf\fP(5). En
+particulier, les serveurs de nouvelles (NNTP) et de courrier électronique
+(SMTP) sont souvent initialisés depuis les scripts d'initialisation du
+système.
+
+L'emplacement du fichier \fBservices\fP est défini par \fB_PATH_SERVICES\fP dans
+\fI<netdb.h>\fP. Il est habituellement défini à \fI/etc/services\fP
+
+Chaque ligne décrit un service, elle est de la forme\ :
+.IP
+\fInom_de_service\ \ \ port\fP\fB/\fP\fIprotocole\ \ \ \fP[\fIalias ...\fP]
+.TP 
+où\ :
+.TP  10
+\fInom_de_service\fP
+est le nom facilement compréhensible par lequel ce service est connu et
+recherché. Il est sensible à la casse. Souvent, le programme client est
+appelé du même nom que \fInom_de_service\fP
+.TP 
+\fIport\fP
+est le numéro de port (en décimal) à utiliser pour ce service.
+.TP 
+\fIprotocole\fP
+est le type de protocole utilisé. Ce champ doit correspondre à une entrée du
+fichier \fBprotocols\fP(5). Des valeurs typiques sont \fBtcp\fP et \fBudp\fP.
+.TP 
+\fIalias\fP
+est une liste optionnelle des autres noms pour ce service, séparés par un
+espace ou un caractère de tabulation. Là encore, les noms sont sensibles à
+la casse.
+.PP
+Les champs sont séparés soit par des espaces soit par des tabulations.
+
+Les commentaires débutent par un signe «\ #\ » et se poursuivent jusqu'à la
+fin de la ligne. Les lignes vierges sont ignorées.
+
+Comme les espaces de tête ne sont pas éliminés, le \fInom_de_service\fP doit
+commencer à la première colonne du fichier. \fInom_de_service\fP peut comporter
+n'importe quel caractère imprimable à l'exclusion des caractères
+d'espacement et de tabulation. Cependant, un nombre restreint de caractères
+devrait être utilisé afin de minimiser les problèmes de compatibilité. Par
+ex., a\-z, 0\-9 et le tiret (\-) semble être un choix raisonnable.
+
+Les lignes qui ne correspondent pas à ce format ne devraient pas se trouver
+dans ce fichier. (Actuellement, elle sont ignorées silencieusement par
+\fBgetservent\fP(3), \fBgetservbyname\fP(3) et \fBgetservbyport\fP(3). Ce
+comportement n'est cependant pas garanti).
+
+.\" The following is not true as at glibc 2.8 (a line with a comma is
+.\" ignored by getservent()); it's not clear if/when it was ever true.
+.\"   As a backward compatibility feature, the slash (/) between the
+.\"   .I port
+.\"   number and
+.\"   .I protocol
+.\"   name can in fact be either a slash or a comma (,).
+.\"   Use of the comma in
+.\"   modern installations is deprecated.
+.\"
+Ce fichier peut être diffusé sur le réseau, en utilisant un service de noms
+valable pour l'ensemble du réseau tel que «\ Yellow Pages/NIS\ » ou
+«\ BIND/Hesiod\ ».
+
+Un exemple de fichier \fBservices\fP pourrait ressembler à ceci\ :
+.RS
+.nf
+.sp
+\f(CWnetstat         15/tcp
+qotd            17/tcp          quote
+msp             18/tcp          # protocole d'envoi de message
+msp             18/udp          # protocole d'envoi de message
+chargen         19/tcp          source ttytst
+chargen         19/udp          source ttytst
+ftp             21/tcp
+# 22 \- non assigné
+telnet          23/tcp\fP
+.fi
+.RE
+.SH FICHIERS
+.TP 
+\fI/etc/services\fP
+Liste des services réseau Internet
+.TP 
+\fI<netdb.h>\fP
+.\" .SH BUGS
+.\" It's not clear when/if the following was ever true;
+.\" it isn't true for glibc 2.8:
+.\"    There is a maximum of 35 aliases, due to the way the
+.\"    .BR getservent (3)
+.\"    code is written.
+.\"
+.\" It's not clear when/if the following was ever true;
+.\" it isn't true for glibc 2.8:
+.\"    Lines longer than
+.\"    .B BUFSIZ
+.\"    (currently 1024) characters will be ignored by
+.\"    .BR getservent (3),
+.\"    .BR getservbyname (3),
+.\"    and
+.\"    .BR getservbyport (3).
+.\"    However, this will also cause the next line to be mis-parsed.
+Définition de \fB_PATH_SERVICES\fP
+.SH "VOIR AUSSI"
+\fBlisten\fP(2), \fBendservent\fP(3), \fBgetservbyname\fP(3), \fBgetservbyport\fP(3),
+\fBgetservent\fP(3), \fBsetservent\fP(3), \fBinetd.conf\fP(5), \fBprotocols\fP(5),
+\fBinetd\fP(8)
+
+Numéros de RFC assignés, la plus récente est la RFC\ 1700 (STD0002).
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

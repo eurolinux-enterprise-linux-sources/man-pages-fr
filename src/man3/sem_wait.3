@@ -1,0 +1,250 @@
+.\" t
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SEM_WAIT 3 "13 mai 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+sem_wait, sem_timedwait, sem_trywait \- Verrouiller un sémaphore
+.SH SYNOPSIS
+.nf
+\fB#include <semaphore.h>\fP
+.sp
+\fBint sem_wait(sem_t *\fP\fIsem\fP\fB);\fP
+.sp
+\fBint sem_trywait(sem_t *\fP\fIsem\fP\fB);\fP
+.sp
+\fBint sem_timedwait(sem_t *\fP\fIsem\fP\fB, const struct timespec *\fP\fIabs_timeout\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBsem_timedwait\fP()\ : _POSIX_C_SOURCE\ >=\ 200112L || _XOPEN_SOURCE\ >=\ 600
+.SH DESCRIPTION
+\fBsem_wait\fP() décrémente (verrouille) le sémaphore pointé par \fIsem\fP. Si la
+valeur du sémaphore est plus grande que 0, la décrémentation s'effectue et
+la fonction revient immédiatement. Si le sémaphore vaut zéro, l'appel
+bloquera jusqu'à ce que soit il devienne disponible d'effectuer la
+décrémentation (c'est\-à\-dire la valeur du sémaphore n'est plus nulle), soit
+un gestionnaire de signaux interrompe l'appel.
+
+\fBsem_trywait\fP() est pareil que \fBsem_wait\fP(), excepté que si la
+décrémentation ne peut pas être effectuée immédiatement, l'appel renvoie une
+erreur (\fIerrno\fP vaut \fBEAGAIN\fP) plutôt que bloquer.
+
+\fBsem_timedwait\fP() est pareil que \fBsem_wait\fP(), excepté que \fIabs_timeout\fP
+spécifie une limite sur le temps pendant lequel l'appel bloquera si la
+décrémentation ne peut pas être effectuée immédiatement. L'argument
+\fIabs_timeout\fP pointe sur une structure qui spécifie un temps absolu en
+secondes et nanosecondes depuis l'époque, 1er\ janvier 1970 à\ 00:00:00
+(UTC). Cette structure est définie de la manière suivante\ :
+
+.nf
+.in +4n
+struct timespec {
+    time_t tv_sec;      /* Secondes */
+    long   tv_nsec;     /* Nanosecondes [0 .. 999999999] */
+};
+.in
+.fi
+.PP
+Si le délai est déjà expiré à l'heure de l'appel et si le sémaphore ne peut
+pas être verrouillé immédiatement, \fBsem_timedwait\fP() échoue avec l'erreur
+d'expiration de délai (\fIerrno\fP vaut \fBETIMEDOUT\fP).
+
+Si l'opération peut être effectuée immédiatement, \fBsem_timedwait\fP()
+n'échoue jamais avec une valeur d'expiration de délai, quelque soit la
+valeur de \fIabs_timeout\fP. De plus, la validité de \fIabs_timeout\fP n'est pas
+vérifiée dans ce cas.
+.SH "VALEUR RENVOYÉE"
+Toutes ces fonctions renvoient 0 si elles réussissent. Si elles échouent, la
+valeur du sémaphore n'est pas modifiée, elles renvoient \-1 et écrivent
+\fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEINTR\fP
+L'appel a été interrompu par un gestionnaire de signal\ ; consultez
+\fBsignal\fP(7).
+.TP 
+\fBEINVAL\fP
+\fIsem\fP n'est pas un sémaphore valide.
+.PP
+L'erreur supplémentaire suivante peut survenir pour \fBsem_trywait\fP()\ :
+.TP 
+\fBEAGAIN\fP
+L'opération ne peut pas être effectuée sans bloquer (c'est\-à\-dire, le
+sémaphore a une valeur nulle).
+.PP
+Les erreurs supplémentaires suivantes peuvent survenir pour
+\fBsem_timedwait\fP()\ :
+.TP 
+\fBEINVAL\fP
+La valeur de \fIabs_timeout.tv_nsecs\fP est plus petite que 0 ou supérieure ou
+égale à 1 milliard.
+.TP 
+\fBETIMEDOUT\fP
+.\" POSIX.1-2001 also allows EDEADLK -- "A deadlock condition
+.\" was detected", but this does not occur on Linux(?).
+Le délai a expiré avant que le sémaphore ait pu être verrouillé.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+.\" sem_wait() is always interrupted on most other implementations,
+.\" but on FreeBSD 5.4 SA_RESTART does cause restarting.
+Un gestionnaire de signaux interrompra toujours un appel bloqué à l'une de
+ces fonctions, quelque soit l'utilisation de l'attribut \fBSA_RESTART\fP de
+\fBsigaction\fP(2).
+.SH EXEMPLE
+.PP
+Le (quelque peu trivial) programme suivant opère sur un sémaphore non
+nommé. Il attend deux arguments sur la ligne de commande. Le premier
+argument spécifie une valeur en secondes qui est utilisée pour configurer
+une alarme pour générer un signal \fBSIGALRM\fP. Ce gestionnaire effectue un
+\fBsem_post\fP(3) pour incrémenter le sémaphore qui est attendu dans le
+\fImain()\fP en utilisant \fBsem_timedwait\fP(). Le second argument de la ligne de
+commande spécifie la durée, en secondes, du délai d'attente pour
+\fBsem_timedwait\fP(). Ci\-dessous, le résultat de deux exécutions différentes
+du programme\ :
+
+.in +4n
+.nf
+$\fB ./a.out 2 3\fP
+About to call sem_timedwait()
+sem_post() from handler
+sem_timedwait() succeeded
+$\fB ./a.out 2 1\fP
+About to call sem_timedwait()
+sem_timedwait() timed out
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <semaphore.h>
+#include <time.h>
+#include <assert.h>
+#include <errno.h>
+#include <signal.h>
+
+sem_t sem;
+
+#define handle_error(msg) \e
+    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+static void
+handler(int sig)
+{
+    write(STDOUT_FILENO, "sem_post() from handler\en", 24);
+    if (sem_post(&sem) == \-1) {
+        write(STDERR_FILENO, "sem_post() failed\en", 18);
+        _exit(EXIT_FAILURE);
+    }
+}
+
+int
+main(int argc, char *argv[])
+{
+    struct sigaction sa;
+    struct timespec ts;
+    int s;
+
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <alarm\-secs> <wait\-secs>\en",
+                argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    if (sem_init(&sem, 0, 0) == \-1)
+        handle_error("sem_init");
+
+    /* Establish SIGALRM handler; set alarm timer using argv[1] */
+
+    sa.sa_handler = handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    if (sigaction(SIGALRM, &sa, NULL) == \-1)
+        handle_error("sigaction");
+
+    alarm(atoi(argv[1]));
+
+    /* Calculate relative interval as current time plus
+       number of seconds given argv[2] */
+
+    if (clock_gettime(CLOCK_REALTIME, &ts) == \-1)
+        handle_error("clock_gettime");
+
+    ts.tv_sec += atoi(argv[2]);
+
+    printf("main() about to call sem_timedwait()\en");
+    while ((s = sem_timedwait(&sem, &ts)) == \-1 && errno == EINTR)
+        continue;       /* Restart if interrupted by handler */
+
+    /* Check what happened */
+
+    if (s == \-1) {
+        if (errno == ETIMEDOUT)
+            printf("sem_timedwait() timed out\en");
+        else
+            perror("sem_timedwait");
+    } else
+        printf("sem_timedwait() succeeded\en");
+
+    exit((s == 0) ? EXIT_SUCCESS : EXIT_FAILURE);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBclock_gettime\fP(2), \fBsem_getvalue\fP(3), \fBsem_post\fP(3), \fBsem_overview\fP(7),
+\fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

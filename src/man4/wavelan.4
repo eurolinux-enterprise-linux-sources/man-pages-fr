@@ -1,0 +1,132 @@
+.\" From jt@hplb.hpl.hp.com Thu Dec 19 18:31:49 1996
+.\" From: Jean Tourrilhes <jt@hplb.hpl.hp.com>
+.\" Address: HP Labs, Filton Road, Stoke Gifford, Bristol BS12 6QZ, U.K.
+.\" Jean II - HPLB - '96
+.\" wavelan.c.4
+.\"
+.\" Provenance of this page is unclear.
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Licensed under the GPL,
+.\" after inquiries with Jean Tourrilhes and Bruce Janson
+.\" (mtk, July 2006)
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH WAVELAN 4 "22 octobre 1996" Linux "Manuel du programmeur Linux"
+.SH NOM
+wavelan \- Gestionnaire de périphériques AT&T GIS WaveLAN ISA
+.SH SYNOPSIS
+\fBinsmod wavelan_cs.o [io=\fP\fIB,B..\fP\fB] [ irq=\fP\fII,I..\fP\fB]
+[name=\fP\fIN,N..\fP\fB]\fP
+.SH DESCRIPTION
+\fIwavelan\fP est un pilote de périphérique bas niveau pour les adaptateurs
+Ethernet sans fil \fBWaveLAN ISA\fP de NCR/AT&T/Lucent et \fBRoamAbout DS\fP de
+Digital (DEC). Ce pilote est disponible sous forme de module ou peut être
+compilé directement dans le noyau. Il gère des cartes multiples (jusqu'à 4),
+sous ses deux formes, et associe à chaque carte trouvée le périphérique
+Ethernet suivant (eth0 ... eth#), sauf si l'on réclame explicitement un nom
+de périphérique précis (voir plus bas). Le nom du périphérique sera
+mentionné dans le fichier de journalisation du noyau, avec son adresse MAC,
+son NWID, et la fréquence utilisée par la carte.
+.SS Paramètres
+Cette section correspond à la forme module du pilote. Les paramètres sont
+transmis sur la ligne de commande de \fBinsmod\fP(8). Si le pilote est inclus
+dans le noyau, utilisez la syntaxe \fIether=IRQ,IO,NOM\fP sur la ligne de
+commande du noyau.
+.TP 
+\fBio\fP
+Indique la liste des adresses de base où rechercher les cartes wavelan
+(cette adresse est sélectionnée par des interrupteurs sur la carte). Si
+aucune adresse d'entrées\-sorties n'est mentionnée, le pilote examinera les
+adresses 0x390 et 0x3E0, ce qui peut engendrer un conflit avec d'autres
+périphériques.
+.TP 
+\fBirq\fP
+Indique la liste des interruptions (IRQ) que chaque carte doit utiliser (la
+valeur est stockée en mémoire permanente sur la carte pour tout usage
+ultérieur).
+.TP 
+\fBnom\fP
+Indique la liste des noms de périphériques à utiliser pour chaque carte (le
+nom correspond à celui utilisé par \fBifconfig\fP(8)).
+.SS "Extensions «\ sans fil\ »"
+Utilisez \fBiwconfig\fP(8) pour manipuler les extensions spécifiques à l'aspect
+«\ sans fil\ » de ces cartes.
+.SS "NWID (ou domaine)"
+Indique l'ID réseau [\fI0\fP à \fIFFFF\fP] ou le désactive [\fIoff\fP]. Comme le NWID
+est stocké dans une zone de mémoire permanente de la carte, il sera
+réutilisé à chaque appel ultérieur du pilote.
+.SS "Fréquence et canal"
+Pour les cartes 2.4\ GHz 2.00, vous pouvez définir la fréquence en utilisant
+l'un des 10 canaux prédéfinis (\fI2.412,\fP \fI2.422, 2.425, 2.4305, 2.432,
+2.442, 2.452, 2.460, 2.462\fP ou \fI2.484\fP) ou en indiquant directement sa
+valeur. La fréquence est changée immédiatement et de façon permanente. La
+disponibilité des fréquences varie en fonction des réglementations en
+vigueur.
+.SS Statistiques
+On peut fournir une liste d'adresses MAC (jusqu'à 8) au pilote, et obtenir
+la dernière valeur de qualité de liaison pour chacune d'entre elles
+(Consultez \fBiwspy\fP(8)).
+.SS /proc/net/wireless
+\fIstatus\fP est la valeur d'état renvoyée par le modem. \fILink quality\fP
+correspond à la qualité de la modulation (direct sequence spread spectrum)
+[max = 16]. \fILevel\fP et \fINoise\fP correspondent aux niveaux de signal et de
+bruit [max\ =\ 64]. Les compteurs \fIcrypt discarded packet\fP et \fImisc
+discarded packet\fP ne sont pas encore implémentés.
+.SS "Ioctls privées"
+Vous pouvez utiliser \fBiwpriv\fP(8) pour manipuler les requêtes d'ioctls
+privées.
+.SS "Seuils de qualité et de niveau"
+Ils vous permettent de définir les seuils de qualité et de niveau utilisés
+par le modem (les paquets en dessous de ces seuils seront rejetés).
+.SS Histogramme
+Cette fonctionnalité permet d'indiquer un nombre d'intervalle dans les
+signaux de niveaux, et de compter le nombre de paquets reçus dans chacun des
+ces intervalles. Cette distribution permet de calculer une moyenne et un
+écart type pour le niveau de signal.
+.SS "Remarques spécifiques"
+Le pilote échouera en tentant de détecter certaines cartes Wavelan \fBnon
+NCR/ATT&T/Lucent\fP. Si cela vous arrive, vous devrez regarder le code source
+pour trouver le moyen d'ajouter une routine de détection de votre carte.
+.PP
+.\" .SH AUTHOR
+.\" Bruce Janson \(em bruce@cs.usyd.edu.au
+.\" .br
+.\" Jean Tourrilhes \(em jt@hplb.hpl.hp.com
+.\" .br
+.\" (and others; see source code for details)
+.\"
+.\" SEE ALSO part
+.\"
+Certaines fonctionnalités mentionnées ici sont optionnelles, vous pouvez les
+désactiver en modifiant des drapeaux dans l'en\-tête du pilote et en le
+recompilant.
+.SH "VOIR AUSSI"
+\fBwavelan_cs\fP(4), \fBifconfig\fP(8), \fBinsmod\fP(8), \fBiwconfig\fP(8),
+\fBiwpriv\fP(8), \fBiwspy\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Simon Paillard et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

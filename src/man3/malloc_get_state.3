@@ -1,0 +1,107 @@
+.\" Copyright (c) 2012 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MALLOC_GET_STATE 3 "4 mai 2012" GNU "Manuel du programmeur Linux"
+.SH NOM
+malloc_get_state, malloc_set_state \- Sauvegarder et restaurer l'état de
+l'implémentation de malloc
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBvoid* malloc_get_state(void);\fP
+
+\fBint malloc_set_state(void *\fP\fIstate\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBmalloc_get_state\fP() sauvegarde l'état actuel de toutes les
+variables servant à la gestion interne de \fBmalloc\fP(3) (mais pas le contenu
+du tas ou l'état des pointeurs de fonctions \fBmalloc_hook\fP(3)). L'état est
+enregistré dans une structure de données opaque dépendant du système,
+allouée dynamiquement par \fBmalloc\fP(3), et un pointeur vers cette structure
+de données est renvoyé comme valeur de résultat de la fonction (il est de la
+responsabilité de celui qui appelle cette fonction de libérer avec
+\fBfree\fP(3) cette zone mémoire).
+
+La fonction \fBmalloc_set_state\fP() restaure l'état de toutes les variables
+servant à la gestion interne de \fBmalloc\fP(3) en recopiant celles se trouvant
+dans la structure de données opaque pointée par \fIstate\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBmalloc_get_state\fP() renvoie un pointeur vers une
+structure de données opaque nouvellement créée. En cas d'erreur (par exemple
+quand la zone mémoire pour la structure de données n'a pu être allouée), il
+renvoie NULL.
+
+.\" if(ms->magic != MALLOC_STATE_MAGIC) return -1;
+.\" /* Must fail if the major version is too high. */
+.\" if((ms->version & ~0xffl) > (MALLOC_STATE_VERSION & ~0xffl)) return -2;
+En cas de succès, \fBmalloc_set_state\fP() renvoie 0. Si l'implémentation
+détecte que \fIstate\fP ne pointe pas vers une structure de données ayant une
+forme valide, \fBmalloc_set_state\fP() renvoie \-1. Si l'implémentation détecte
+que la version de la structure de données référencée par \fIstate\fP est une
+version plus récente que celle connue par l'implémentation,
+\fBmalloc_set_state\fP() renvoie \-2.
+.SH CONFORMITÉ
+Ces fonctions sont des extensions GNU.
+.SH NOTES
+Ces fonctions sont particulièrement utiles lorsque cette implémentation de
+\fBmalloc\fP(3) fait partie d'une bibliothèque dynamique, et quand le contenu
+du tas est sauvegardé et restauré par un autre mécanisme. Cette technique
+est utilisée par GNU Emacs pour implémenter sa fonction «\ dumping\ ».
+
+.\" i.e., calls __malloc_check_init()
+.\" i.e., malloc checking is not already in use
+.\" and the caller requested malloc checking
+Les pointeurs de fonction crochet ne sont jamais sauvegardés ou restaurés
+par ces fonctions, avec deux exceptions\ : si la vérification de malloc
+(voir \fBmallopt\fP(3)) était active lorsque \fBmalloc_get_state\fP() a été
+appelée, alors \fBmalloc_set_state\fP() réinitialise si possible les fonctions
+crochets de on de malloc\ ; si la vérification de malloc n'était pas
+utilisée dans l'état sauvegardé, mais que l'appelant a demandé la
+vérification de malloc, alors les fonctions crochets sont mises à 0.
+.SH "VOIR AUSSI"
+\fBmalloc\fP(3), \fBmallopt\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,108 @@
+.\" Derived from text written by Martin Schulze (or taken from glibc.info)
+.\" and text written by Paul Thompson - both copyright 2002.
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LOGIN 3 "6 mai 2004" GNU "Manuel du programmeur Linux"
+.SH NOM
+login, logout \- Écrire les entrées utmp et wtmp
+.SH SYNOPSIS
+\fB#include <utmp.h>\fP
+.sp
+\fBvoid login(const struct utmp *\fP\fIut\fP\fB);\fP
+.sp
+\fBint logout(const char *\fP\fIut_line\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lutil\fP.
+.SH DESCRIPTION
+Le fichier utmp enregistre qui utilise actuellement le système. Le fichier
+wtmp enregistre toutes les connexions (Ndt\ : login) et déconnexions (Ndt\ :
+logout). Consultez \fButmp\fP(5).
+.LP
+La fonction \fBlogin\fP() prend la structure \fIutmp\fP fournie (\fIut\fP) et l'écrit
+dans les fichiers utmp et wtmp.
+.LP
+La fonction \fBlogout\fP() efface l'entrée du fichier utmp.
+.SS "Détails à propos des spécificités GNU"
+Plus précisément, \fBlogin\fP() prend l'argument structure \fIut\fP, remplit le
+champ \fIut\->ut_type\fP (s'il existe) avec la valeur \fBUSER_PROCESS\fP, et
+remplit le champ \fIut\->ut_pid\fP (s'il existe) avec le PID du processus
+appelant. Elle tente ensuite de remplir le champ \fIut\->ut_line\fP. Elle
+prend le premier parmi l'entrée standard (\fIstdin\fP), la sortie standard
+(\fIstdout\fP) et la sortie d'erreur (\fIstderr\fP) qui soit un terminal (tty) et
+enregistre dans ce champ le chemin correspondant, amputé d'un possible
+\fI/dev/\fP. Elle écrit ensuite la structure dans le fichier utmp. Si aucun
+terminal (tty) n'est trouvé, le champ est renseigné avec «\ ???\ » et la
+structure n'est pas écrite dans le fichier utmp. Après cela, la structure
+est écrite dans le fichier wtmp.
+.LP
+La fonction \fBlogout\fP() cherche dans le fichier utmp une entrée
+correspondant à l'argument \fIut_line\fP. Si un enregistrement est trouvé, il
+est mis à jour par une mise à zéro des champs \fIut_name\fP et \fIut_host\fP, une
+mise à jour du champ d'horodatage \fIut_tv\fP et un renseignement du champ
+\fIut_type\fP (s'il existe) à la valeur \fBDEAD_PROCESS\fP.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBlogout\fP() renvoie 1 si l'entrée a été correctement écrite dans
+la base de données, ou zéro en cas d'erreur.
+.SH FICHIERS
+.TP 
+\fI/var/run/utmp\fP
+base de données de comptabilité utilisateur, configurée par \fB_PATH_UTMP\fP
+dans \fI<paths.h>\fP
+.TP 
+\fI/var/log/wtmp\fP
+fichier de journalisation de comptabilité utilisateur, configuré par
+\fB_PATH_WTMP\fP dans \fI<paths.h>\fP
+.SH CONFORMITÉ
+Absent de POSIX.1\-2001. Présent sur les systèmes BSD.
+.SH NOTES
+Notez que le membre \fIut_user\fP de la structure \fIutmp\fP est appelé \fIut_name\fP
+dans BSD. C'est pourquoi \fIut_name\fP est défini comme un alias de \fIut_user\fP
+dans \fI<utmp.h>\fP.
+.SH "VOIR AUSSI"
+\fBgetutent\fP(3), \fButmp\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

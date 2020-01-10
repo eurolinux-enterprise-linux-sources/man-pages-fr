@@ -1,0 +1,106 @@
+.\" Copyright (C) 2001 Andries Brouwer <aeb@cwi.nl>.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TRUNC 3 "21 juin 2013" "" "Manuel du programmeur Linux"
+.SH NOM
+trunc, truncf, truncl \- Arrondir à l'entier le plus proche vers zéro
+.SH SYNOPSIS
+.nf
+\fB#include <math.h>\fP
+.sp
+\fBdouble trunc(double \fP\fIx\fP\fB);\fP
+.br
+\fBfloat truncf(float \fP\fIx\fP\fB);\fP
+.br
+\fBlong double truncl(long double \fP\fIx\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBtrunc\fP(), \fBtruncf\fP(), \fBtruncl\fP()\ :
+.RS 4
+_XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE || _POSIX_C_SOURCE\ >=\ 200112L
+.br
+ou \fIcc\ \-std=c99\fP
+.RE
+.ad
+.SH DESCRIPTION
+Ces fonctions arrondissent leur argument à l'entier le plus proche dont la
+valeur absolue est inférieure ou égale à la valeur absolue de l'argument.
+.SH "VALEUR RENVOYÉE"
+Ces fonctions renvoient la valeur entière arrondie.
+
+Si \fIx\fP est un nombre entier, infini ou NaN, la valeur renvoyée est \fIx\fP
+lui\-même.
+.SH ERREURS
+Aucune erreur ne se produit.
+.SH VERSIONS
+Ces fonctions ont été introduites dans la glibc dans sa version\ 2.1.
+.SH ATTRIBUTS
+.SS "Multithreading (voir pthreads(7))"
+Les fonctions \fBtrunc\fP(), \fBtruncf\fP() et \fBtruncl\fP() sont sûres dans un
+contexte multithread.
+.SH CONFORMITÉ
+C99, POSIX.1\-2001.
+.SH NOTES
+La partie entière renvoyée par ces fonctions peut être trop grande pour être
+stockée dans un type entier (\fIint\fP, \fIlong\fP, etc.). Pour éviter les
+dépassements, qui produiront des résultats indéfinis, une application
+devrait vérifier la validité de la valeur renvoyée avec l'intervalle accepté
+avant de l'affecter à un type entier.
+.SH "VOIR AUSSI"
+\fBceil\fP(3), \fBfloor\fP(3), \fBlrint\fP(3), \fBnearbyint\fP(3), \fBrint\fP(3),
+\fBround\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

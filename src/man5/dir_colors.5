@@ -1,0 +1,299 @@
+.\" manpage for /etc/dir_colors, config file for dircolors(1)
+.\" extracted from color-ls 3.12.0.3 dircolors(1) manpage
+.\"
+.\" %%%LICENSE_START(LDPv1)
+.\" This file may be copied under the conditions described
+.\" in the LDP GENERAL PUBLIC LICENSE, Version 1, September 1998
+.\" that should have been distributed together with this file.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Dec 22 22:25:33 2001 by Martin Schulze <joey@infodrom.org>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH DIR_COLORS 5 "26 décembre 2001" GNU "Manuel de l'utilisateur Linux"
+.SH NOM
+dir_colors \- Fichier de configuration pour dircolors(1)
+.SH DESCRIPTION
+Le programme \fBls\fP(1) utilise la variable d'environnement \fBLS_COLORS\fP pour
+définir les couleurs avec lesquelles les noms de fichiers seront
+affichés. Cette variable d'environnement est habituellement définie par une
+commande telle que\ :
+
+.RS
+eval \`dircolors chemin/dir_colors\`
+.RE
+
+qui se trouve dans un fichier d'initialisation par défaut de l'interpréteur
+de commandes, valable pour l'ensemble du système, comme \fI/etc/profile\fP ou
+\fI/etc/csh.cshrc\fP. (Consultez également \fBdircolors\fP(1)). Habituellement, le
+fichier utilisé ici est \fI/etc/DIR_COLORS\fP et peut être surchargé par un
+fichier \fI.dir_colors\fP se trouvant dans le répertoire personnel de
+l'utilisateur.
+.PP
+Ce fichier de configuration consiste en plusieurs lignes de
+déclarations. Tout ce qui se trouve à droite d'un dièse «\ #\ » est considéré
+comme commentaire, si ce dièse se trouve en début de ligne ou se trouve
+précédé par au moins un espace. Les lignes vides sont ignorées.
+.PP
+La section \fIglobal\fP du fichier est constituée de toutes les déclarations
+précédant la première ligne \fBTERM\fP. Toute déclaration dans la section
+globale du fichier est considérée comme valable pour tous les types de
+terminaux. Après la section globale on trouve une ou plusieurs sections
+\fIspécifiques au terminal\fP, précédées par une ou plusieurs lignes \fBTERM\fP
+qui indiquent à quel type de terminal (au sens de la variable
+d'environnement \fBTERM\fP), les déclarations s'appliquent. Il est toujours
+possible de surcharger une déclaration globale par une déclaration
+ultérieure spécifique à un terminal.
+.PP
+Les déclarations suivantes sont reconnues\ ; la casse n'est pas
+significative\ :
+.TP 
+\fBTERM \fP\fItype\-terminal\fP
+Débute une section spécifique à un terminal et indique celui auquel elle
+s'applique. Plusieurs déclarations \fBTERM\fP successives peuvent être
+utilisées pour créer une section qui s'applique à plusieurs types de
+terminaux.
+.TP 
+\fBCOLOR yes|all|no|none|tty\fP
+(Slackware seulement, ignorée par la version GNU de
+\fBdircolors\fP(1)). Précise si la colorisation doit toujours être activée
+(\fIyes\fP ou \fIall\fP), jamais utilisée (\fIno\fP ou \fInone\fP), ou n'être employée
+que si la sortie est un terminal (\fItty\fP). La valeur par défaut est \fIno\fP.
+.TP 
+\fBEIGHTBIT yes|no\fP
+(Slackware seulement, ignorée par la version GNU de
+\fBdircolors\fP(1)). Précise que les caractères à huit bits ISO 8859 doivent
+être activés par défaut. Pour des raisons de compatibilité, on peut aussi
+écrire 1 pour \fIyes\fP et 0 pour \fIno\fP. La valeur par défaut est \fIno\fP.
+.TP 
+\fBOPTIONS \fP\fIoptions\fP
+(Slackware seulement, ignorée par la version GNU de \fBdircolors\fP(1)). Ajoute
+les options de la ligne de commande à la ligne de commande par défaut de
+\fBls\fP. Il peut s'agir de n'importe quelle option valable de \fBls\fP, et doit
+inclure le signe moins de tête. Notez bien que \fBdircolors\fP ne vérifie pas
+la validité de ces options.
+.TP 
+\fBNORMAL \fP\fIséquence\-couleur\fP
+Définit la couleur à employer pour le texte normal (hormis les noms de
+fichiers).
+.TP 
+\fBFILE \fP\fIséquence\-couleur\fP
+Définit la couleur à utiliser pour les fichiers normaux.
+.TP 
+\fBDIR \fP\fIséquence\-couleur\fP
+Définit la couleur à utiliser pour les répertoires.
+.TP 
+\fBLINK \fP\fIséquence\-couleur\fP
+Définit la couleur à utiliser pour les liens symboliques.
+.TP 
+\fBORPHAN \fP\fIséquence\-couleur\fP
+Définit la couleur à utiliser pour les liens symboliques orphelins (ceux qui
+pointent vers un fichier inexistant). Si rien n'est indiqué, \fBls\fP utilisera
+la couleur \fBLINK\fP par défaut.
+.TP 
+\fBMISSING \fP\fIséquence\-couleur\fP
+Définit la couleur à utiliser pour un fichier manquant (fichier inexistant
+bien qu'un lien symbolique pointe vers lui). Si rien n'est indiqué, \fBls\fP
+utilisera la couleur \fBFILE\fP par défaut.
+.TP 
+\fBFIFO \fP\fIséquence\-couleur\fP
+Définit la couleur pour afficher une FIFO (tube nommé).
+.TP 
+\fBSOCK \fP\fIséquence\-couleur\fP
+Définit la couleur pour afficher une socket.
+.TP 
+\fBDOOR \fP\fIséquence\-couleur\fP
+(Géré depuis fileutils 4.1) Définit la couleur pour afficher une «\ porte\ »
+(«\ door\ ») (Solaris 2.5 et ultérieur).
+.TP 
+\fBBLK \fP\fIséquence\-couleur\fP
+Définit la couleur pour afficher un fichier spécial de périphérique bloc.
+.TP 
+\fBCHR \fP\fIséquence\-couleur\fP
+Définit la couleur pour afficher un fichier spécial de périphérique
+caractère.
+.TP 
+\fBEXEC \fP\fIséquence\-couleur\fP
+Définit la couleur pour afficher un fichier dont l'attribut exécutable est
+positionné.
+.TP 
+\fBLEFTCODE \fP\fIséquence\-couleur\fP
+Définit le \fIcode gauche\fP pour les terminaux non\-ISO\ 6429 (voir plus bas).
+.TP 
+\fBRIGHTCODE \fP\fIséquence\-couleur\fP
+Définit le \fIcode droit\fP pour les terminaux non\-ISO\ 6429 (voir plus bas).
+.TP 
+\fBENDCODE \fP\fIséquence\-couleur\fP
+Définit le \fIcode final\fP pour les terminaux non\-ISO\ 6429 (voir plus bas).
+.TP 
+\fB*\fP\fIextension\fP \fIséquence\-couleur\fP
+Définit la couleur pour tous les fichiers se terminant par l'\fIextension\fP.
+.TP 
+ \fB.\fP\fIextension\fP \fIséquence\-couleur\fP
+Identique à \fB*\fP.\fIextension\fP. Définit la couleur pour tous les fichiers se
+terminant par .\fIextension\fP. Notez que le point est inclus dans l'extension,
+ce qui rend impossible de préciser une extension ne commençant pas par un
+point, comme \fB~\fP pour les fichiers de sauvegarde \fBemacs\fP. Cette forme doit
+être considérée comme obsolète.
+.SS "Séquences de couleur ISO 6429 (ANSI)"
+La plupart des terminaux ASCII actuels utilisent les séquences ISO\ 6429
+(ANSI), et de nombreux terminaux ne gérant pas la couleur, comme l'émulateur
+\fBxterm\fP et le très utilisé et très cloné DEC VT100, reconnaissent les codes
+de couleur ISO\ 6429 et les éliminent sans problème de la sortie ou les
+émulent. Par défaut, \fBls\fP utilise les codes ISO 6429 si la couleur est
+activée.
+
+Les séquences de couleurs ISO 6429 sont composées de suites de nombres
+séparés par des points\-virgules. Les codes les plus courants sont\ :
+.sp
+.RS
+.TS
+l l.
+ 0	restaurer la couleur par défaut
+ 1	couleurs en surbrillance
+ 4	texte souligné
+ 5	texte clignotant
+30	écriture noire
+31	écriture rouge
+32	écriture verte
+33	écriture jaune (ou marron)
+34	écriture bleue
+35	écriture violette
+36	écriture cyan
+37	écriture blanche (ou grise)
+40	fond noir
+41	fond rouge
+42	fond vert
+43	fond jaune (ou marron)
+44	fond bleu
+45	fond violet
+46	fond cyan
+47	fond blanc (ou gris)
+.TE
+.RE
+.sp
+Les commandes ne fonctionnent pas toutes sur tous les systèmes ou sur tous
+les périphériques d'affichage.
+.PP
+\fBls\fP utilise les valeurs par défaut suivantes\ :
+.sp
+.TS
+lb l l.
+NORMAL	0          Texte normal (hormis les noms de fichiers)
+FILE	0          	Fichier normal
+DIR	32         	Répertoire
+LINK	36         	Lien symbolique
+ORPHAN	non défini	Lien symbolique orphelin
+MISSING	non défini	Fichier manquant
+FIFO	31         	Tube nommé (FIFO)
+SOCK	33         	Socket
+BLK	44;37      	Périphérique bloc
+CHR	44;37      	Périphérique caractère
+EXEC	35         	Fichier exécutable
+.TE
+.sp
+Quelques programmes de terminaux ne reconnaissent pas correctement les
+valeurs par défaut. Si tout le texte se trouve colorisé après avoir affiché
+le contenu d'un répertoire, changez les codes \fBNORMAL\fP et \fBFILE\fP pour les
+codes numériques de vos écriture et fond habituels.
+.SS "Autres types de terminal (configuration avancée)"
+Si vous avez un terminal couleur (ou gérant la surbrillance), voire une
+imprimante, qui utilise un jeu de codes différent, vous pouvez toujours
+créer une configuration adaptée. Il vous faudra utiliser les définitions de
+\fBLEFTCODE\fP, \fBRIGHTCODE\fP, et \fBENDCODE\fP.
+.PP
+Lorsqu'il affiche un nom de fichier, \fBls\fP produit la séquence de sortie
+suivante\ : \fBLEFTCODE\fP \fIcode\-type\fP \fBRIGHTCODE\fP \fInom\-fichier\fP \fBENDCODE\fP,
+où \fIcode\-type\fP est la séquence de couleur qui dépend du type ou nom de
+fichier. Si \fBENDCODE\fP n'est pas défini, la séquence \fBLEFTCODE NORMAL
+RIGHTCODE\fP sera utilisée à la place. Le but des codes gauche et droit est
+simplement de réduire la saisie au clavier nécessaire (et de cacher à
+l'utilisateur les horribles codes de déspécification). S'ils ne sont pas
+adaptés à votre terminal, vous pouvez les supprimer en indiquant le mot clé
+correspondant sur une ligne isolée.
+.PP
+\fBNOTE\ :\fP si \fBENDCODE\fP est défini dans la section globale du fichier de
+configuration, il ne peut \fIpas\fP être non défini dans une section spécifique
+ultérieure. Ceci signifie que toute définition \fBNORMAL\fP n'aura aucun
+effet. Un autre \fBENDCODE\fP peut toutefois être indiqué, avec l'effet désiré.
+.SS "Séquence de déspécification"
+Pour spécifier des caractères de contrôle ou des blancs dans les séquences
+de couleur ou les extensions des noms de fichier, on peut employer la
+notation C préfixée par un \e, ou la notation ^ de style \fBstty\fP. La
+notation C comporte les caractères suivants\ :
+.sp
+.RS
+.TS
+lb l.
+\ea	Sonnerie (ASCII 7)
+\eb	Retour arrière (ASCII 8)
+\ee	Échappement (ASCII 27)
+\ef	Saut de page (ASCII 12)
+\en	Saut de ligne (ASCII 10)
+\er	Retour chariot (ASCII 13)
+\et	Tabulation (ASCII 9)
+\ev	Tabulation verticale (ASCII 11)
+\e?	Suppression (ASCII 127)
+\e\fInnn\fP	Tout caractère (notation octale)
+\ex\fInnn\fP	Tout caractère (notation hexadécimale)
+\e_	Espace
+\e\e	Antislash (\e)
+\e^	Accent circonflexe (^)
+\e#	Dièse (#)
+.TE
+.RE
+.sp
+Veuillez noter que les caractères de protection sont nécessaires pour
+l'espace, la barre oblique inverse, l'accent circonflexe et tous les
+caractères de contrôle, y compris le dièse en première position.
+.SH FICHIERS
+.TP 
+\fI/etc/DIR_COLORS\fP
+Fichier de configuration système.
+.TP 
+\fI~/.dir_colors\fP
+Fichier de configuration de l'utilisateur.
+.PP
+Cette page décrit le format du fichier \fBdir_colors\fP utilisé dans le paquet
+fileutils\-4.1\ ; d'autres versions peuvent être légèrement différentes.
+.SH NOTES
+Les définitions de \fBLEFTCODE\fP et de \fBRIGHTCODE\fP par défaut, pour les
+terminaux ISO 6429 sont\ :
+.sp
+.RS
+.TS
+lb l.
+LEFTCODE	\ee[
+RIGHTCODE	m
+.TE
+.RE
+.sp
+Par défaut, \fBENDCODE\fP est n'est pas défini.
+.SH "VOIR AUSSI"
+\fBdircolors\fP(1), \fBls\fP(1), \fBstty\fP(1), \fBxterm\fP(1)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,129 @@
+.\" sd.4
+.\" Copyright 1992 Rickard E. Faith (faith@cs.unc.edu)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SD 4 "3 mai 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+sd \- Contrôleur de disques SCSI
+.SH SYNOPSIS
+.nf
+\fB#include <linux/hdreg.h>        \fP/* pour HDIO_GETGEO */
+\fB#include <linux/fs.h>           \fP/* pour BLKGETSIZE et BLKRRPART */
+.fi
+.SH CONFIGURATION
+Les noms de ces périphériques blocs suivent la convention suivante\ :
+\fBsd\fP\fIlp,\fP ou \fIl\fP est une lettre indiquant le lecteur physique, et \fIp\fP
+est un nombre caractérisant la partition sur ce disque physique. Souvent le
+numéro de partition \fIp\fP, sera absent si le périphérique correspond à
+l'ensemble du disque.
+
+Les disques SCSI ont un numéro majeur valant 8, et un numéro mineur de la
+forme (16 * \fInuméro_disque\fP) + \fInuméro_partition\fP, où \fInuméro_disque\fP est
+le numéro du disque physique dans l'ordre de détection, et
+\fInuméro_partition\fP est le suivant\ :
+.sp
+partition 0 = disque entier
+.br
+partitions 1\-4 = partitions primaires DOS.
+.br
+partitions 5\-8 = partitions étendues (logiques) DOS.
+
+Par exemple, \fI/dev/sda\fP aura un majeur 8, mineur 0, et se référera à
+l'ensemble du premier disque SCSI. \fI/dev/sdb3\fP aura un majeur 8 mineur 19,
+et indiquera la troisième partition primaire DOS sur le second disque SCSI
+du système.
+
+Actuellement, seuls les périphériques blocs sont disponibles, les interfaces
+«\ raw\ » ne sont pas encore implémentées.
+.SH DESCRIPTION
+Les \fIioctl\fPs suivants sont disponibles\ :
+.TP 
+\fBHDIO_GETGEO\fP
+.RS
+Renvoie les paramètres disques du BIOS dans la structure suivante\ :
+.in +4n
+.nf
+
+struct hd_geometry {
+    unsigned char  heads;
+    unsigned char  sectors;
+    unsigned short cylinders;
+    unsigned long  start;
+};
+.fi
+.in
+
+Un pointeur sur cette structure est passé en paramètre de \fBioctl\fP(2).
+
+En retour, on obtient les informations sur la géométrie du disque \fItelle
+qu'elle est comprise par le DOS\ !\fP Cette géométrie \fIn\fP'est \fIpas\fP la
+géométrie physique du disque. Elle est utilisée lors de la construction de
+la table des partitions du disque, néanmoins, elle est quand même nécessaire
+pour \fBfdisk\fP(1), \fBefdisk\fP(1), et \fBlilo\fP(1). Si les informations de
+géométrie ne sont pas valables, zéro sera renvoyé pour tous les paramètres.
+.RE
+.TP 
+\fBBLKGETSIZE\fP
+Renvoie la taille du périphérique en secteurs. Le paramètre \fBioctl\fP(2) doit
+être un pointeur sur un \fIlong\fP.
+.TP 
+\fBBLKRRPART\fP
+Force la relecture de la table des partitions du disque SCSI. Aucun
+paramètre n'est nécessaire.
+
+Les opérations \fBioctl\fP(2) sont également gérées. Si le paramètre
+d'\fBioctl\fP(2) est nécessaire, et est NULL, alors \fBioctl\fP(2) produira
+l'erreur \fBEINVAL\fP.
+.SH FICHIERS
+/dev/sd[a\-h]\ : Les disques entiers.
+.br
+.\".SH "SEE ALSO"
+.\".BR scsi (4)
+/dev/sd[a\-h][0\-8]\ : Les partitions individuelles.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Simon Paillard et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

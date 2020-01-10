@@ -1,0 +1,360 @@
+.\" Copyright 1993 Giorgio Ciucci (giorgio@crcc.it)
+.\" and Copyright 2004, 2005 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Tue Oct 22 17:53:56 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Fri Jun 19 10:59:15 1998 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified Sun Feb 18 01:59:29 2001 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 20 Dec 2001, Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 21 Dec 2001, aeb
+.\" Modified 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on CAP_IPC_OWNER requirement
+.\" Modified 17 Jun 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on CAP_SYS_ADMIN requirement for IPC_SET and IPC_RMID
+.\" Modified, 11 Nov 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Language and formatting clean-ups
+.\"	Rewrote semun text
+.\"	Added semid_ds and ipc_perm structure definitions
+.\" 2005-08-02, mtk: Added IPC_INFO, SEM_INFO, SEM_STAT descriptions.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SEMCTL 2 "3 juin 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+semctl \- Opérations de contrôle sur les sémaphores System V
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <sys/ipc.h>\fP
+\fB#include <sys/sem.h>\fP
+.sp
+\fBint semctl(int \fP\fIsemid\fP\fB, int \fP\fIsemnum\fP\fB, int \fP\fIcmd\fP\fB, ...);\fP
+.fi
+.SH DESCRIPTION
+Cette fonction effectue l'opération de contrôle indiquée par \fIcmd\fP sur
+l'ensemble de sémaphores System V (ou sur le \fIsemnum\fP\-ième sémaphore de
+l'ensemble) identifié par \fIsemid\fP. (Les sémaphores sont numérotés à partir
+de zéro.)
+.PP
+La fonction a trois ou quatre arguments, selon la valeur de \fIcmd\fP. Quand il
+y en a quatre, le quatrième est de type \fIunion semun\fP. Le \fIprogramme
+appelant\fP doit définir cette union de la façon suivante\ :
+
+.nf
+.in +4n
+union semun {
+    int              val;    /* Valeur pour SETVAL */
+    struct semid_ds *buf;    /* Tampon pour IPC_STAT, IPC_SET */
+    unsigned short  *array;  /* Tableau pour GETALL, SETALL */
+    struct seminfo  *__buf;  /* Tampon pour IPC_INFO
+                                (spécifique à Linux) */
+};
+.in
+.fi
+.PP
+La structure \fIsemid_ds\fP est définie dans \fI<sys/sem.h>\fP comme
+suit\ :
+.nf
+.in +4n
+
+struct semid_ds {
+    struct ipc_perm sem_perm;   /* Permissions d'accès */
+    time_t          sem_otime;  /* Heure dernier semop() */
+    time_t          sem_ctime;  /* Heure dernier changement */
+    unsigned long   sem_nsems;  /* Nombre de sémaphores dans l'ensemble */
+};
+.in
+.fi
+.PP
+La structure \fIipc_perm\fP est définie de la façon suivante (les champs en
+gras peuvent être modifiés en utilisant \fBIPC_SET\fP)\ :
+.PP
+.nf
+.in +4n
+struct ipc_perm {
+    key_t          __key; /* Clé fournie à semget(2) */
+    uid_t          \fBuid\fP;   /* UID effectif du propriétaire */
+    gid_t          \fBgid\fP;   /* GID effectif du propriétaire */
+    uid_t          cuid;  /* UID effectif du créateur */
+    gid_t          cgid;  /* GID effectif du créateur */
+    unsigned short \fBmode\fP;  /* Permissions */
+    unsigned short __seq; /* Numéro de séquence */
+};
+.in
+.fi
+.PP
+Les valeurs autorisées pour \fIcmd\fP sont\ :
+.TP  10
+\fBIPC_STAT\fP
+Copier dans la structure \fIsemid_ds\fP pointée par \fIarg.buf\fP la structure de
+données du noyau concernant l'ensemble de sémaphores. L'argument \fIsemnum\fP
+est alors ignoré. Le processus appelant doit avoir des privilèges de lecture
+sur le jeu de sémaphores.
+.TP 
+\fBIPC_SET\fP
+Écrire les valeurs de certains des membres de la structure \fIsemid_ds\fP
+pointée par \fIarg.buf\fP dans la structure de données du noyau associée à cet
+ensemble de sémaphores, en mettant à jour son champ \fIsem_ctime\fP. Les
+membres suivants de la structure sont mis à jour\ : \fIsem_perm.uid\fP,
+\fIsem_perm.gid\fP, et les neuf bits de poids faibles de
+\fIsem_perm.mode\fP. L'UID effectif du processus appelant doit être celle du
+propriétaire (\fIsem_perm.uid\fP) ou du créateur (\fIsem_perm.cuid\fP) de
+l'ensemble de sémaphores, ou l'appelant doit être privilégié. L'argument
+\fIsemnum\fP est ignoré.
+.TP 
+\fBIPC_RMID\fP
+Supprimer immédiatement l'ensemble de sémaphores en réveillant tous les
+processus en attente dans \fBsemop\fP(2). Ils obtiendront un code d'erreur, et
+\fIerrno\fP aura la valeur \fBEIDRM\fP. L'UID effectif du processus appelant doit
+être soit celui du créateur ou du propriétaire du jeu de sémaphores, ou
+l'appelant doit être privilégié. L'argument \fIsemnum\fP est ignoré.
+.TP 
+\fBIPC_INFO\fP (spécifique à Linux)
+Renvoyer des informations sur les limites et paramètres du système
+concernant les sémaphores dans la structure pointée par \fIarg.__buf\fP. Cette
+structure est de type \fIseminfo\fP, défini dans \fI<sys/sem.h>\fP si la
+macro \fB_GNU_SOURCE\fP est définie\ :
+.nf
+.in +4n
+
+struct  seminfo {
+    int semmap;  /* Nombre d'entrées dans la table de sémaphores\ ;
+                    pas utilisé par le noyau */
+    int semmni;  /* Nombre maximal d'ensembles de sémaphores */
+    int semmns;  /* Nombre maximal de sémaphores dans tous les
+                    ensembles de sémaphores */
+    int semmnu;  /* Nombre maximal de structures «\ undo\ »
+                    sur le système\ ; pas utilisé par le noyau */
+    int semmsl;  /* Nombre maximal de sémaphores dans un ensemble */
+    int semopm;  /* Nombre maximal d'opérations pour semop(2) */
+    int semume;  /* Nombre maximal d'entrées «\ undo\ » par
+                    processus\ ; pas utilisé par le noyau */
+    int semusz;  /* Taille de struct sem_undo */
+    int semvmx;  /* Valeur maximale d'un sémaphore */
+    int semaem;  /* Valeur maximale pouvant être enregistrée pour
+                    la mise à jour d'un sémaphore (SEM_UNDO) */
+};
+
+.in
+.fi
+Les paramètres \fIsemmsl\fP, \fIsemmns\fP, \fIsemopm\fP et \fIsemmni\fP peuvent être
+modifiés via \fI/proc/sys/kernel/sem\fP\ ; consultez \fBproc\fP(5) pour plus de
+détails.
+.TP 
+\fBSEM_INFO\fP (spécifique à Linux)
+Renvoyer une structure \fIseminfo\fP contenant les mêmes informations que pour
+\fBIPC_INFO\fP, sauf les champs suivants qui sont remplis avec des informations
+sur les ressources système actuellement utilisées par les sémaphores\ : le
+champ \fIsemusz\fP renvoie le nombre d'ensemble de sémaphores existant sur le
+système, et le champ \fIsemaem\fP renvoie le nombre total de sémaphores dans
+tous les ensembles de sémaphores du système.
+.TP 
+\fBSEM_STAT\fP (spécifique à Linux)
+Renvoyer une structure \fIsemid_ds\fP comme pour \fBIPC_STAT\fP. Cependant,
+l'argument \fIsemid\fP n'est pas un identifiant de sémaphore, mais un index
+dans la table interne du noyau qui contient des informations sur tous les
+ensembles de sémaphores du système.
+.TP 
+\fBGETALL\fP
+Renvoyer la valeur \fBsemval\fP de chaque sémaphore de l'ensemble dans le
+tableau \fIarg.array\fP. L'argument \fIsemnum\fP est ignoré. Le processus appelant
+doit avoir des privilèges de lecture sur le jeu de sémaphores.
+.TP 
+\fBGETNCNT\fP
+L'appel système renvoie la valeur de \fBsemncnt\fP pour le \fIsemnum\fP\-ième
+sémaphore de l'ensemble (c'est\-à\-dire le nombre de processus attendant pour
+une augmentation de \fBsemval\fP du  \fIsemnum\fP\-ième sémaphore de
+l'ensemble). Le processus appelant doit avoir des privilèges de lecture sur
+le jeu de sémaphores.
+.TP 
+\fBGETPID\fP
+Renvoyer la valeur de \fBsempid\fP pour le \fIsemnum\fP\-ième sémaphore de
+l'ensemble (c'est\-à\-dire le PID du processus ayant exécuté le dernier appel
+système \fBsemop\fP(2) sur le \fIsemnum\fP\-ième sémaphore). Le processus appelant
+doit avoir des privilèges de lecture sur le jeu de sémaphores.
+.TP 
+\fBGETVAL\fP
+Renvoyer la valeur du champ \fBsemval\fP du \fIsemnum\fP\-ième sémaphore de
+l'ensemble. Le processus appelant doit avoir des privilèges de lecture sur
+le jeu de sémaphores.
+.TP 
+\fBGETZCNT\fP
+Renvoyer la valeur du champ \fBsemzcnt\fP du \fIsemnum\fP\-ième sémaphore de
+l'ensemble (c'est\-à\-dire le nombre de processus attendant que le champ
+\fBsemval\fP du \fIsemnum\fP\-ième sémaphore revienne à 0). Le processus appelant
+doit avoir des privilèges de lecture sur le jeu de sémaphores.
+.TP 
+\fBSETALL\fP
+Positionner le champ \fBsemval\fP de tous les sémaphores de l'ensemble en
+utilisant le tableau \fIarg.array\fP et en mettant à jour le champ \fIsem_ctime\fP
+de la structure \fIsemid_ds\fP de contrôle du jeu de sémaphores. Les entrées «\ undo\ » (consultez \fBsemop\fP(2)) sont effacées de tous les processus pour les
+sémaphores modifiés. Si la nouvelle valeur du sémaphore permet à des appels
+\fBsemop\fP(2) bloqués dans d'autres processus de se poursuivre, ces processus
+sont réveillés. L'argument \fIsemnum\fP est ignoré. Le processus appelant doit
+avoir des privilèges d'écriture sur le jeu de sémaphores.
+.TP 
+\fBSETVAL\fP
+Placer la valeur \fIarg.val\fP dans le champ \fBsemval\fP du \fIsemnum\fP\-ième
+sémaphore de l'ensemble en mettant à jour le champ \fIsem_ctime\fP dans la
+structure \fIsemid_ds\fP associée au jeu de sémaphores. Les entrées «\ undo\ »
+sont effacées de tous les processus pour les sémaphores modifiés. Si la
+nouvelle valeur du sémaphore permet à des appels \fBsemop\fP(2) bloqués dans
+d'autres processus de se poursuivre, ces processus sont réveillés. Le
+processus appelant doit avoir des privilèges d'écriture sur le jeu de
+sémaphores.
+.SH "VALEUR RENVOYÉE"
+\fBsemctl\fP() renvoie \-1 s'il échoue auquel cas \fIerrno\fP contient le code
+d'erreur.
+
+Autrement, l'appel système renvoie une valeur non négative dépendant de
+l'argument \fIcmd\fP\ :
+.TP  12
+\fBGETNCNT\fP
+la valeur de \fBsemncnt\fP.
+.TP 
+\fBGETPID\fP
+La valeur \fBsempid\fP.
+.TP 
+\fBGETVAL\fP
+La valeur \fBsemval\fP.
+.TP 
+\fBGETZCNT\fP
+La valeur \fBsemzcnt\fP.
+.TP 
+\fBIPC_INFO\fP
+Le plus grand indice d'une entrée utilisée dans la table interne du noyau
+contenant des informations sur tous les ensembles de sémaphores. Cette
+information peut ensuite être utilisée pour des opérations \fBSEM_STAT\fP
+répétées afin d'obtenir des informations sur tous les ensembles de
+sémaphores du système.
+.TP 
+\fBSEM_INFO\fP
+Comme pour \fBIPC_INFO\fP.
+.TP 
+\fBSEM_STAT\fP
+L'identifiant de l'ensemble de sémaphores dont l'indice était donné dans
+\fIsemid\fP.
+.LP
+Toutes les autres commandes \fIcmd\fP renvoient zéro en cas de réussite.
+.SH ERREURS
+En cas d'échec, \fIerrno\fP prend l'une des valeurs suivantes\ :
+.TP 
+\fBEACCES\fP
+L'argument \fIcmd\fP a l'une des valeurs suivantes \fBGETALL\fP, \fBGETPID\fP,
+\fBGETVAL\fP, \fBGETNCNT\fP, \fBGETZCNT\fP, \fBIPC_STAT\fP, \fBSEM_STAT\fP, \fBSETALL\fP, ou
+\fBSETVAL\fP et le processus appelant n'a pas les permissions nécessaires sur
+le jeu de sémaphore et n'a pas la capacité \fBCAP_IPC_OWNER\fP.
+.TP 
+\fBEFAULT\fP
+\fIarg.buf\fP ou \fIarg.array\fP pointent en dehors de l'espace d'adressage
+accessible.
+.TP 
+\fBEIDRM\fP
+Le jeu de sémaphores a été supprimé.
+.TP 
+\fBEINVAL\fP
+Valeur de \fIcmd\fP ou \fIsemid\fP invalide. Ou bien, pour une opération
+\fBSEM_STAT\fP, l'indice indiqué dans \fIsemid\fP référence une entrée
+actuellement inutilisée de la table.
+.TP 
+\fBEPERM\fP
+L'argument \fIcmd\fP réclame les commandes \fBIPC_SET\fP ou \fBIPC_RMID\fP mais l'UID
+effectif du processus appelant n'est pas le créateur (comme dans
+\fIsem_perm.cuid\fP) ou le propriétaire (comme dans \fIsem_perm.uid\fP) du jeu de
+sémaphores, et le processus n'a pas la capacité \fBCAP_SYS_ADMIN\fP.
+.TP 
+\fBERANGE\fP
+L'argument \fIcmd\fP réclame les commandes \fBSETALL\fP ou \fBSETVAL\fP et la valeur
+de \fBsemval\fP (pour l'ensemble ou pour certains sémaphores) est inférieure à
+0 ou supérieur à la valeur \fBSEMVMX\fP.
+.SH CONFORMITÉ
+.\" SVr4 documents more error conditions EINVAL and EOVERFLOW.
+SVr4, POSIX.1\-2001.
+
+POSIX.1\-2001 spécifie le champ \fIsem_nsems\fP de la structure \fIsemid_ds\fP
+comme de type \fIunsigned\ short\fP, ce qui est suivi par de nombreux
+systèmes. Ce champ était défini ainsi dans Linux\ 2.2 et dans les versions
+précédentes. Depuis Linux\ 2.4, ce champ et de type \fIunsigned\ long\fP.
+.SH NOTES
+.\" Like Linux, the FreeBSD man pages still document
+.\" the inclusion of these header files.
+L'inclusion de \fI<sys/types.h>\fP et \fI<sys/ipc.h>\fP n'est pas
+nécessaire sous Linux et n'est exigée par aucune version de
+POSIX. Cependant, certaines implémentations anciennes nécessitent
+l'inclusion de ces fichiers d'en\-tête, et le SVID documente aussi leur
+inclusion. Les applications ayant pour but d'être portables pourraient
+inclure ces fichiers d'en\-tête.
+
+Les appels système \fBIPC_INFO\fP, \fBSEM_STAT\fP et \fBSEM_INFO\fP sont utilisés par
+le programme \fBipcs\fP(1) pour fournir des informations sur les ressources
+allouées. Ceci peut changer dans le futur, en utilisant l'interface d'un
+système de fichiers proc.
+.LP
+Divers champs de la \fIstruct semid_ds\fP étaient de type \fIshort\fP sous Linux
+2.2 et sont devenus des \fIlong\fP sous Linux 2.4. Pour en tirer parti, une
+recompilation sous glibc 2.1.91 ou ultérieure doit suffire. (Le noyau
+distingue les anciens et nouveaux appels par un drapeau \fBIPC_64\fP dans
+\fIcmd\fP.)
+.PP
+Dans certaines versions antérieures de glibc, l'union \fIsemun\fP était définie
+dans \fI<sys/sem.h>\fP, mais POSIX.1\-2001 documente que l'appelant doit
+définir cette union. Dans les versions de glibc où cette union n'est \fIpas\fP
+définie, la macro \fB_SEM_SEMUN_UNDEFINED\fP est définie dans
+\fI<sys/sem.h>\fP.
+.PP
+La limite suivante influe sur l'appel système \fBsemctl\fP()\ :
+.TP 
+\fBSEMVMX\fP
+Valeur maximale pour \fBsemval\fP dépendant de l'implémentation (généralement
+32767).
+.LP
+Pour améliorer la portabilité, il vaut mieux invoquer toujours \fBsemctl\fP()
+avec quatre arguments.
+.SH "VOIR AUSSI"
+\fBipc\fP(2), \fBsemget\fP(2), \fBsemop\fP(2), \fBcapabilities\fP(7),
+\fBsem_overview\fP(7), \fBsvipc\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

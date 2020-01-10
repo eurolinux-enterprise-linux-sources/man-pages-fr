@@ -1,0 +1,162 @@
+.\" Copyright (c) 1983, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     $Id: getsockopt.2,v 1.1 1999/05/24 14:57:04 freitag Exp $
+.\"
+.\" Modified Sat Jul 24 16:19:32 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Mon Apr 22 02:29:06 1996 by Martin Schulze (joey@infodrom.north.de)
+.\" Modified Tue Aug 27 10:52:51 1996 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified Thu Jan 23 13:29:34 1997 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified Sun Mar 28 21:26:46 1999 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified 1999 by Andi Kleen <ak@muc.de>.
+.\"     Removed most stuff because it is in socket.7 now.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETSOCKOPT 2 "3 décembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+getsockopt, setsockopt \- Lire et écrire les options d'une socket
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP          /* Consultez NOTES */
+.br
+\fB#include <sys/socket.h>\fP
+.sp
+\fBint getsockopt(int \fP\fIsockfd\fP\fB, int \fP\fIlevel\fP\fB, int \fP\fIoptname\fP\fB,\fP
+\fB               void *\fP\fIoptval\fP\fB, socklen_t *\fP\fIoptlen\fP\fB);\fP
+\fBint setsockopt(int \fP\fIsockfd\fP\fB, int \fP\fIlevel\fP\fB, int \fP\fIoptname\fP\fB,\fP
+\fB               const void *\fP\fIoptval\fP\fB, socklen_t \fP\fIoptlen\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBgetsockopt\fP() et \fBsetsockopt\fP() manipulent les options associées à la
+socket à laquelle fait référence le descripteur de fichier \fIsockfd\fP. Ces
+options peuvent exister aux divers niveaux de protocole, et sont toujours
+présentes au niveau socket le plus élevé.
+
+Quand on manipule une option d'une socket, il faut préciser le niveau où
+elle s'applique, et le nom de l'option. Au niveau de l'API des sockets,
+\fIlevel\fP prend la valeur \fBSOL_SOCKET\fP. Pour tous les autres niveaux, il
+faut fournir le numéro de protocole approprié. Par exemple, pour une option
+interprétée par le protocole \fBTCP\fP, \fIlevel\fP prendra le numéro du protocole
+\fBTCP\fP. Consultez \fBgetprotoent\fP(3).
+
+Les paramètres \fIoptval\fP et \fIoptlen\fP sont utilisés pour déterminer les
+options pour \fBsetsockopt\fP(). Pour \fBgetsockopt\fP ils identifient un tampon
+dans lequel la valeur de l'option désirée doit être renvoyée. Pour
+\fBgetsockopt\fP, \fIoptlen\fP est un paramètre résultat, contenant initialement
+la taille du tampon pointé par \fIoptval\fP, et rempli en retour pour indiquer
+la taille effective des valeurs renvoyées. Si aucune option n'est fournie ou
+renvoyée, \fIoptval\fP peut être NULL.
+
+\fIoptname\fP et toute autre option sont passés sans interprétation au
+protocole approprié, pour qu'il l'interprète lui\(hymême. Le fichier
+d'en\(hytête \fI<sys/socket.h>\fP contient les définitions pour le
+niveau socket. Les options pour les autres niveaux de protocole peuvent
+varier tant en format qu'en nom, consultez les pages de manuel de la section
+7 pour plus d'informations.
+
+La plupart des options au niveau socket utilisent un paramètre de type
+\fIint\fP pour \fIoptval\fP. Pour \fBsetsockopt\fP(), un paramètre non nul valide une
+option booléenne, et zéro l'invalide.
+.PP
+Pour une description des options disponibles consultez \fBsocket\fP(7) et les
+pages correspondant au protocole concerné.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP  10
+\fBEBADF\fP
+\fIsockfd\fP n'est pas un descripteur valable.
+.TP 
+\fBEFAULT\fP
+\fIoptval\fP pointe en dehors de l'espace d'adressage accessible. Avec
+\fBgetsockopt\fP(), ceci peut s'appliquer également à \fIoptlen\fP.
+.TP 
+\fBEINVAL\fP
+\fIoptlen\fP non valable pour \fBsetsockopt\fP(). Dans certains cas cette erreur
+peut aussi se produire pour une valeur non valable de \fIoptval\fP (par
+exemple, pour l'option \fBIP_ADD_MEMBERSHIP\fP décrite dans \fBip\fP(7)).
+.TP 
+\fBENOPROTOOPT\fP
+L'option est inconnue pour ce protocole.
+.TP 
+\fBENOTSOCK\fP
+Le paramètre \fIsockfd\fP est un fichier, pas une socket.
+.SH CONFORMITÉ
+.\" SVr4 documents additional ENOMEM and ENOSR error codes, but does
+.\" not document the
+.\" .BR SO_SNDLOWAT ", " SO_RCVLOWAT ", " SO_SNDTIMEO ", " SO_RCVTIMEO
+.\" options
+SVr4, BSD\ 4.4 (ces appels système sont apparus dans BSD\ 4.2),
+POSIX.1\-2001.
+.SH NOTES
+POSIX.1\-2001 ne requiert pas l'inclusion de \fI<sys/types.h>\fP, et cet
+en\(hytête n'est pas nécessaire sous Linux. Cependant, il doit être inclus
+sous certaines implémentations historiques (BSD), et les applications
+portables devraient probablement l'utiliser.
+
+Le paramètre \fIoptlen\fP de \fBgetsockopt\fP() et \fBsetsockopt\fP() est en fait un
+\fIint [*]\fP (et c'est ce qu'utilisent BSD\ 4.x, libc4 et libc5). Une certaine
+confusion POSIX a donné le \fIsocklen_t\fP actuel, également utilisé par
+glibc. Pour plus de détails consultez \fBaccept\fP(2).
+.SH BOGUES
+Plusieurs options sur les sockets devraient être gérées à un niveau plus bas
+par le système.
+.SH "VOIR AUSSI"
+\fBioctl\fP(2), \fBsocket\fP(2), \fBgetprotoent\fP(3), \fBprotocols\fP(5), \fBsocket\fP(7),
+\fBtcp\fP(7), \fBunix\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

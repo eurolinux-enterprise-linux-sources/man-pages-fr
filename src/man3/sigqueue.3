@@ -1,0 +1,138 @@
+.\" Copyright (c) 2002 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" added note on self-signaling, aeb, 2002-06-07
+.\" added note on CAP_KILL, mtk, 2004-06-16
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SIGQUEUE 3 "25 mars 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+sigqueue \- Enregistrer un signal et des données pour un processus
+.SH SYNOPSIS
+\fB#include <signal.h>\fP
+.sp
+\fBint sigqueue(pid_t \fP\fIpid\fP\fB, int \fP\fIsig\fP\fB, const union sigval
+\fP\fIvaleur\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBsigqueue\fP()\ : _POSIX_C_SOURCE\ >=\ 199309L
+.SH DESCRIPTION
+\fBsigqueue\fP() envoie le signal \fIsig\fP au processus indiqué par \fIpid\fP. Les
+permissions requises pour l'émission du signal sont les mêmes que pour
+\fBkill\fP(2). Comme avec \fBkill\fP(2), le signal nul (0) peut servir à vérifier
+si un processus existe avec un PID donné.
+.PP
+L'argument \fIvaleur\fP sert à indiquer une donnée (soit un entier, soit un
+pointeur) qui accompagnera le signal et se présente avec le type suivant\ :
+.sp
+.in +4n
+.nf
+union sigval {
+    int   sival_int;
+    void *sival_ptr;
+};
+.fi
+.in
+
+Si le processus récepteur a installé un gestionnaire pour le signal avec
+l'option \fBSA_SIGINFO\fP lors du \fBsigaction\fP(2), il pourra obtenir la donnée
+dans le champ \fIsi_value\fP de la structure \fIsiginfo_t\fP passée en second
+argument au gestionnaire. De plus, le champ \fIsi_code\fP de la structure
+contiendra \fBSI_QUEUE\fP.
+.SH "VALEUR RENVOYÉE"
+L'appel \fBsigqueue\fP() renvoie 0 s'il réussit, indiquant que le signal a bien
+été mis dans la file du processus récepteur. Sinon il renvoie \-1 et \fIerrno\fP
+contient le code de l'erreur.
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+La limite du nombre de signaux en file a été atteinte (consultez
+\fBsignal\fP(7) pour plus d'informations).
+.TP 
+\fBEINVAL\fP
+\fIsig\fP est invalide.
+.TP 
+\fBEPERM\fP
+Le processus n'a pas la permission d'envoyer un signal au processus
+visé. Pour les permissions nécessaires, consultez \fBkill\fP(2).
+.TP 
+\fBESRCH\fP
+Il n'y a pas de processus correspondant au \fIpid\fP.
+.SH VERSIONS
+Cet appel système est apparu dans Linux 2.2.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Si l'appel consiste à envoyer un signal au processus qui l'a invoqué, et si
+le signal n'est pas bloqué par le thread appelant, et si aucun autre thread
+ne peut traiter le signal (soit en l'ayant débloqué, ou en faisant une
+attente avec \fBsigwait\fP(3)), alors au moins quelques signaux seront délivrés
+au thread appelant avant que la fonction ne revienne.
+
+Sous Linux, l'implémentation de la fonction utilise l'appel système
+\fBrt_sigqueueinfo\fP(2).Le troisième paramètre de l'appel système diffère,
+puisqu'il correspond à la structure \fIsiginfo_t\fP qui sera fournie au
+gestionnaire de signal du processus recevant le signal ou qui sera renvoyée
+par l'appel \fBsigtimedwait\fP(2) du processus recevant le signal. Dans la
+fonction \fBsigqueue\fP() de la glibc, ce paramètre \fIuinfo\fP est initialisé de
+cette façon\ :
+.in +4n
+.nf
+
+uinfo.si_signo = sig;      /* paramètre fourni à sigqueue() */
+uinfo.si_code = SI_QUEUE;
+uinfo.si_pid = getpid();   /* identifiant du processus émetteur */
+uinfo.si_uid = getuid();   /* UID réel de l'émetteur */
+uinfo.si_value = val;      /* paramètre fourni à sigqueue() */
+.fi
+.in
+.SH "VOIR AUSSI"
+\fBkill\fP(2), \fBrt_sigqueueinfo\fP(2), \fBsigaction\fP(2), \fBsignal\fP(2),
+\fBpthread_sigqueue\fP(3), \fBsigwait\fP(3), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,92 @@
+.\" Copyright (C) 1996 Free Software Foundation, Inc.
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" This file is distributed according to the GNU General Public License.
+.\" %%%LICENSE_END
+.\"
+.\" 2006-02-09, some reformatting by Luc Van Oostenryck; some
+.\" reformatting and rewordings by mtk
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GET_KERNEL_SYMS 2 "18 octobre 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+get_kernel_syms \- Obtenir les symboles exportés du noyau et des modules
+.SH SYNOPSIS
+.nf
+\fB#include <linux/module.h>\fP
+.sp
+\fBint get_kernel_syms(struct kernel_sym *\fP\fItable\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBRemarque\fP\ : cet appel système n'est présent dans Linux qu'avant le
+noyau\ 2.6.
+
+Si \fItable\fP est NULL, \fBget_kernel_syms\fP()  renvoie le nombre de symboles
+disponibles. Autrement, il remplit une table de structures\ :
+.PP
+.in +4n
+.nf
+struct kernel_sym {
+    unsigned long value;
+    char          name[60];
+};
+.fi
+.in
+.PP
+Les symboles sont dispersés avec des symboles magiques de la forme
+\fB#\fP\fImodule\-name\fP\fB,\fP le noyau ayant un nom vide. La valeur associée à un
+symbole de cette forme est l'adresse à laquelle le module a été chargé.
+.PP
+Les symboles exportés par chaque module suivent leur étiquette module
+magique et les modules sont renvoyés dans l'ordre inverse duquel ils ont été
+chargés.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, renvoie le nombre de symboles copiés dans \fItable\fP. En
+cas d'échec, \-1 est renvoyé et \fIerrno\fP est rempli en conséquence.
+.SH ERREURS
+Il n'y a qu'une seule erreur de retour possible\ :
+.TP 
+\fBENOSYS\fP
+\fBget_kernel_syms\fP()  n'est pas pris en charge par cette version du noyau.
+.SH VERSIONS
+.\" Removed in Linux 2.5.48
+Cet appel système n'est présent dans Linux que jusqu'au noyau\ 2.4\ ; il a
+été supprimé dans Linux\ 2.6.
+.SH CONFORMITÉ
+\fBget_kernel_syms\fP()  est spécifique à Linux.
+.SH BOGUES
+Il n'y a pas moyen d'indiquer la taille du tampon alloué à \fItable\fP. Si des
+symboles ont été ajoutés au noyau depuis que le programme s'est enquis de la
+taille de la table des symboles, la mémoire sera corrompue.
+.PP
+La longueur des noms de symboles exportés est limitée à 59 caractères.
+.PP
+À cause de ces limitations, cet appel système est déprécié au profit de
+\fBquery_module\fP(2)  (qui est lui\-même aujourd'hui déprécié au profit
+d'autres interfaces qui sont décrites dans leurs pages de manuel).
+.SH "VOIR AUSSI"
+\fBcreate_module\fP(2), \fBdelete_module\fP(2), \fBinit_module\fP(2),
+\fBquery_module\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2006-2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

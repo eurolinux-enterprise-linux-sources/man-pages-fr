@@ -1,0 +1,66 @@
+.\" Copyright (c) 2000 Christoph J. Thompson <obituary@linuxbe.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_MISC)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FTPUSERS 5 "27 août 2000" Linux "Manuel du programmeur Linux"
+.SH NOM
+ftpusers \- Liste des utilisateurs interdits de connexion par FTP
+.SH DESCRIPTION
+Le fichier de texte \fIftpusers\fP contient une liste des utilisateurs qui ne
+doivent pas se connecter via le démon serveur FTP (File Transfer
+Protocol). Ce fichier est utilisé non seulement pour l'administration
+système mais également pour augmenter la sécurité du réseau. Il contient
+typiquement la liste des utilisateurs qui soit n'ont rien à faire avec le
+transfert ftp, soit ont trop de privilèges pour être autorisés à se
+connecter par ce démon serveur. De tels utilisateurs sont en général root,
+daemon, bin, uucp et news. Si votre serveur FTP n'utilise pas \fIftpusers\fP,
+il est alors conseillé de lire sa documentation pour savoir comment bloquer
+l'accès à certains utilisateurs. Le démon serveur FTP Washington University
+(wuftpd) et le démon Professional FTP (proftpd) utilisent notoirement
+\fIftpusers\fP.
+.SS Format
+Le format du fichier \fIftpusers\fP est très simple. Il y a un nom de compte
+(nom d'utilisateur) par ligne. Les lignes commençant par un «\ #\ » sont
+ignorées.
+.SH FICHIERS
+\fI/etc/ftpusers\fP
+.SH "VOIR AUSSI"
+\fBpasswd\fP(5), \fBproftpd\fP(8), \fBwuftpd\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (2001-2007).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

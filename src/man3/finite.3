@@ -1,0 +1,133 @@
+.\" Copyright 2004 Andries Brouwer <aeb@cwi.nl>.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FINITE 3 "5 août 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+finite, finitef, finitel, isinf, isinff, isinfl, isnan, isnanf, isnanl \-
+Fonctions BSD de classification en virgule flottante
+.SH SYNOPSIS
+.nf
+\fB#include <math.h>\fP
+.sp
+\fBint finite(double \fP\fIx\fP\fB);\fP
+.br
+\fBint finitef(float \fP\fIx\fP\fB);\fP
+.br
+\fBint finitel(long double \fP\fIx\fP\fB);\fP
+.sp
+\fBint isinf(double \fP\fIx\fP\fB);\fP
+.br
+\fBint isinff(float \fP\fIx\fP\fB);\fP
+.br
+\fBint isinfl(long double \fP\fIx\fP\fB);\fP
+.sp
+\fBint isnan(double \fP\fIx\fP\fB);\fP
+.br
+\fBint isnanf(float \fP\fIx\fP\fB);\fP
+.br
+\fBint isnanl(long double \fP\fIx\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBfinite\fP(), \fBfinitef\fP(), \fBfinitel\fP()\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE
+.RE
+\fBisinf\fP()\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE
+.br
+ou \fIcc\ \-std=c99\fP
+.RE
+.br
+\fBisinff\fP(), \fBisinfl\fP()\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE
+.RE
+\fBisnan\fP()\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE || _ISOC99_SOURCE
+.br
+ou \fIcc\ \-std=c99\fP
+.RE
+\fBisnanf\fP(), \fBisnanl\fP()\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600
+.RE
+.ad b
+.SH DESCRIPTION
+Les fonctions \fBfinite\fP() renvoient une valeur non nulle si \fIx\fP n'est ni
+infini, ni une valeur NaN («\ Not a Number\ », ce qui signifie «\ pas un
+nombre\ »), et 0 autrement.
+
+Les fonctions \fBisnan\fP() renvoient une valeur non nulle si \fIx\fP est un NaN
+et 0 autrement.
+
+Les fonctions \fBisinf\fP() renvoient 1 si \fIx\fP est un valeur infinie positive,
+\-1 si \fIx\fP est une valeur infinie négative, 0 sinon.
+.SH NOTES
+.\"
+.\" finite* not on HP-UX; they exist on Tru64.
+.\" .SH HISTORY
+.\" The
+.\" .BR finite ()
+.\" function occurs in 4.3BSD.
+.\" see IEEE.3 in the 4.3BSD manual
+Notez que ces fonctions sont obsolètes, C99 définit les macros
+\fBisfinite\fP(), \fBisinf\fP() et \fBisnan\fP() (pour tous les types) les
+remplaçant. Notez de plus que la macro C99 \fBisinf\fP() a moins de garanties
+sur sa valeur de retour. Consultez \fBfpclassify\fP(3).
+.SH "VOIR AUSSI"
+\fBfpclassify\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

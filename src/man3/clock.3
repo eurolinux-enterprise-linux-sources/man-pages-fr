@@ -1,0 +1,96 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 21:27:01 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 14 Jun 2002, Michael Kerrisk <mtk.manpages@gmail.com>
+.\" 	Added notes on differences from other UNIX systems with respect to
+.\"	waited-for children.
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CLOCK 3 "28 août 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+clock \- Déterminer la durée d'utilisation du processeur
+.SH SYNOPSIS
+.nf
+\fB#include <time.h>\fP
+.sp
+\fBclock_t clock(void);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBclock\fP() renvoie une durée approximative d'utilisation du
+processeur par le programme.
+.SH "VALEUR RENVOYÉE"
+La valeur renvoyée est le temps CPU écoulé, en unités d'horloge \fIclock_t\fP,
+pour obtenir une durée en secondes, divisez\-la par \fBCLOCKS_PER_SEC\fP. Si
+l'heure processeur n'est pas disponible, ou si sa valeur ne peut pas être
+représentée correctement, la valeur renvoyée est \fI(clock_t)\ \-1\fP.
+.SH CONFORMITÉ
+C89, C99, POSIX.1\-2001. POSIX demande que \fBCLOCKS_PER_SEC\fP soit égal à 1\ 000\ 000 indépendamment de la résolution réelle.
+.SH NOTES
+Le standard C autorise une valeur quelconque d'horloge au début du
+programme\ ; il faut donc utiliser la différence entre la valeur actuelle et
+celle de \fBclock\fP() au lancement du programme pour obtenir une portabilité
+maximale.
+.PP
+Notez que la valeur peut revenir à zéro. Sur un système 32\ bits, lorsque
+\fBCLOCKS_PER_SEC\fP vaut 1\ 000\ 000, cette fonction redonnera les mêmes
+valeurs toutes les 72 minutes environ.
+.PP
+.\" I have seen this behavior on Irix 6.3, and the OSF/1, HP/UX, and
+.\" Solaris manual pages say that clock() also does this on those systems.
+.\" POSIX.1-2001 doesn't explicitly allow this, nor is there an
+.\" explicit prohibition. -- MTK
+Sur plusieurs autres implémentations, la valeur renvoyée par \fBclock\fP()
+inclut aussi le temps écoulé par l'exécution des processus fils dont les
+statistiques ont été collectées par \fBwait\fP(2) (ou une fonction
+équivalente). Linux n'inclut pas le temps des enfants attendus dans la
+valeur renvoyée par \fBclock\fP(). La fonction \fBtimes\fP(2), qui renvoie de
+manière explicite et distinctes les informations sur l'appelant et ses
+enfants, peut être préférable.
+.SH "VOIR AUSSI"
+\fBclock_gettime\fP(2), \fBgetrusage\fP(2), \fBtimes\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

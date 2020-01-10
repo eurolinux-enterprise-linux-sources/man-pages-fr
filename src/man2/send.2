@@ -1,0 +1,314 @@
+.\" Copyright (c) 1983, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 1993-07-24 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1996-10-22 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Oct 1998 by Andi Kleen
+.\" Modified Oct 2003 by aeb
+.\" Modified 2004-07-01 by mtk
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SEND 2 "23 avril 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+send, sendto, sendmsg \- Envoyer un message sur une socket
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <sys/socket.h>\fP
+.sp
+\fBssize_t send(int \fP\fIsockfd\fP\fB, const void *\fP\fIbuf\fP\fB, size_t \fP\fIlen\fP\fB, int \fP\fIflags\fP\fB);\fP
+
+\fBssize_t sendto(int \fP\fIsockfd\fP\fB, const void *\fP\fIbuf\fP\fB, size_t \fP\fIlen\fP\fB, int \fP\fIflags\fP\fB,\fP
+\fB               const struct sockaddr *\fP\fIdest_addr\fP\fB, socklen_t \fP\fIaddrlen\fP\fB);\fP
+
+\fBssize_t sendmsg(int \fP\fIsockfd\fP\fB, const struct msghdr *\fP\fImsg\fP\fB, int \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Les appels système \fBsend\fP(), \fBsendto\fP() et \fBsendmsg\fP() permettent de
+transmettre un message à destination d'une autre socket.
+.PP
+L'appel \fBsend\fP() ne peut être utilisé qu'avec les sockets \fIconnectées\fP
+(ainsi, le destinataire visé est connu). La seule différence entre \fBsend\fP()
+et \fBwrite\fP(2) est la présence de \fIflags\fP. Si \fIflags\fP est nul, \fBsend\fP()
+est équivalent à \fBwrite\fP(2). De plus l'appel suivant\ :
+
+    send(sockfd, buf, len, flags);
+
+est équivalent à\ :
+
+    sendto(sockfd, buf, len, flags, NULL, 0);
+.PP
+Le paramètre \fIsockfd\fP est le descripteur de fichier de la socket émettrice.
+.PP
+Si \fBsendto\fP() est utilisée sur une socket en mode connexion
+(\fBSOCK_STREAM\fP, \fBSOCK_SEQPACKET\fP), les paramètres \fIdest_addr\fP et
+\fIaddrlen\fP sont ignorés (et l'erreur \fBEISCONN\fP peut être retournée s'il n'y
+pas NULL ou 0), et l'erreur \fBENOTCONN\fP est retournée lorsque la socket
+n'est pas vraiment connectée. Autrement, l'adresse de la cible est fournie
+par \fIdest_addr\fP, \fIaddrlen\fP spécifiant sa taille. Pour \fBsendmsg\fP(),
+l'adresse de la cible est fournie par \fImsg.msg_name\fP, \fImsg.msg_namelen\fP
+spécifiant sa taille.
+.PP
+Pour \fBsend\fP() et \fBsendto\fP(), le message se trouve dans \fIbuf\fP et a pour
+longueur \fIlen\fP. Pour \fBsendmsg\fP(), le message est pointé par les éléments
+du tableau \fImsg.msg_iov\fP. L'appel \fBsendmsg\fP() permet également l'envoi de
+métadonnées (également appelées données de contrôle).
+.PP
+Si le message est trop long pour être transmis intégralement par le
+protocole sous\(hyjacent, l'erreur \fBEMSGSIZE\fP sera déclenchée et rien ne
+sera émis.
+.PP
+Aucune indication d'échec de distribution n'est fournie par
+\fBsend\fP(). Seules les erreurs locales sont détectées, et indiquées par une
+valeur de retour \-1.
+.PP
+Si la socket ne dispose pas de la place suffisante pour le message, alors
+\fBsend\fP() va bloquer, à moins que la socket ait été configurée en mode
+d'entrées\-sorties non bloquantes auquel cas elle échouera avec l'erreur
+\fBEAGAIN\fP ou \fBEWOULDBLOCK\fP. On peut utiliser l'appel système \fBselect\fP(2)
+pour vérifier s'il est possible d'émettre des données.
+.PP
+.\" FIXME ? document MSG_PROXY (which went away in 2.3.15)
+Le paramètre \fIflags\fP est un OU bit à bit de zéro ou plusieurs des options
+suivantes\ :
+.TP 
+\fBMSG_CONFIRM\fP (Depuis Linux 2.3.15)
+Indiquer à la couche liaison qu'une réponse correcte a été reçue du
+correspondant. Si la couche de liaison n'a pas cette confirmation, elle va
+réinterroger régulièrement le voisinage (par exemple avec un ARP
+unicast). Seulement valide pour les sockets \fBSOCK_DGRAM\fP et \fBSOCK_RAW\fP et
+uniquement implémenté pour IPv4 et IPv6. Consultez \fBarp\fP(7) pour plus de
+détails.
+.TP 
+\fBMSG_DONTROUTE\fP
+Ne pas utiliser de passerelle pour transmettre le paquet, n'envoyer de
+données que vers les hôtes sur des réseaux directement connectés. Ceci n'est
+normalement employé que par les programmes de diagnostic ou de
+routage. Cette option n'est définie que pour les familles de protocoles
+employant le routage, pas les sockets par paquets.
+.TP 
+\fBMSG_DONTWAIT\fP (depuis Linux 2.2)
+Activer les opérations non bloquantes. Si l'opération devait bloquer,
+\fBEAGAIN\fP ou \fBEWOULDBLOCK\fP sera renvoyé (on peut aussi activer ce
+comportement avec l'option \fBO_NONBLOCK\fP de la fonction \fBF_SETFL\fP de
+\fBfcntl\fP(2)).
+.TP 
+\fBMSG_EOR\fP (depuis Linux 2.2)
+Termine un enregistrement (lorsque cette notion est supportée, comme pour
+les sockets de type \fBSOCK_SEQPACKET\fP).
+.TP 
+\fBMSG_MORE\fP (Depuis Linux 2.4.4)
+L'appelant a d'autres données à envoyer. Cet attribut est utilisé avec les
+sockets TCP pour obtenir le même comportement qu'avec l'option socket
+\fBTCP_CORK\fP (consultez \fBtcp\fP(7)), à la différence que cet attribut peut
+être positionné par appel.
+
+Depuis Linux 2.6, cet attribut est également géré pour les sockets UDP et
+demande au noyau d'empaqueter toutes les données envoyées dans des appels
+avec cet attribut positionné dans un seul datagramme qui ne sera transmis
+que quand un appel sera effectué sans cet attribut. Consultez aussi la
+description de l'option de socket \fBUDP_CORK\fP dans \fBudp\fP(7).
+.TP 
+\fBMSG_NOSIGNAL\fP (depuis Linux 2.2)
+Demande de ne pas envoyer de signal \fBSIGPIPE\fP d'erreur sur les sockets
+connectées lorsque le correspondant coupe la connexion. L'erreur \fBEPIPE\fP
+est toutefois renvoyée.
+.TP 
+\fBMSG_OOB\fP
+est utilisée pour émettre des données \fIhors\(hybande\fP sur une socket qui
+l'autorise (par exemple de type \fBSOCK_STREAM\fP). Le protocole sous\(hyjacent
+doit également autoriser l'émission de données \fIhors\(hybande\fP.
+.PP
+La définition de la structure \fImsghdr\fP se trouve ci\-dessous. Consultez
+\fBrecv\fP(2) pour une description exacte de ses champs.
+.in +4n
+.nf
+
+struct msghdr {
+    void         *msg_name;       /* adresse optionnelle */
+    socklen_t     msg_namelen;    /* taille de l'adresse */
+    struct iovec *msg_iov;        /* tableau scatter/gather */
+    size_t        msg_iovlen;     /* # éléments dans msg_iov */
+    void         *msg_control;    /* métadonnées, voir ci\(hydessous */
+    size_t        msg_controllen; /* taille du tampon de métadonnées */
+    int           msg_flags;      /* attributs du message reçu */
+};
+.fi
+.in
+.PP
+.\" Still to be documented:
+.\"  Send file descriptors and user credentials using the
+.\"  msg_control* fields.
+.\"  The flags returned in msg_flags.
+On peut transmettre des informations de service en employant les membres
+\fImsg_control\fP et \fImsg_controllen\fP. La longueur maximale du tampon de
+service que le noyau peut gérer est limité par socket par la valeur de
+\fI/proc/sys/net/core/optmem_max\fP. Consultez \fBsocket\fP(7).
+.SH "VALEUR RENVOYÉE"
+En cas d'envoi réussi, ces fonctions renvoient le nombre de caractères
+envoyés. En cas d'erreur, \-1 est renvoyé, et \fIerrno\fP contient le code
+d'erreur.
+.SH ERREURS
+Voici les erreurs standards engendrées par la couche socket. Des erreurs
+supplémentaires peuvent être déclenchées par les protocoles
+sous\-jacents. Consultez leurs pages de manuel respectives.
+.TP 
+\fBEACCES\fP
+(Pour les sockets de domaine UNIX qui sont identifiées par un nom de chemin)
+La permission d'écriture est refusée sur le fichier socket de destination ou
+la permission de parcours est refusée pour un des répertoires du chemin
+(consultez \fBpath_resolution\fP(7)).
+.sp
+(Pour les sockets UDP) L'envoi à une adresse réseau ou de diffusion a été
+tenté, alors qu'il s'agissait d'une adresse unicast.
+.TP 
+\fBEAGAIN\fP ou \fBEWOULDBLOCK\fP
+.\" Actually EAGAIN on Linux
+La socket est non bloquante et l'opération demandée devrait être
+bloquante. POSIX.1\-2001 permet de renvoyer l'une ou l'autre des erreurs dans
+ce cas et n'exige pas que ces constantes aient la même valeur. Une
+application portable devrait donc tester les deux possibilités.
+.TP 
+\fBEBADF\fP
+Descripteur de socket invalide.
+.TP 
+\fBECONNRESET\fP
+Connexion réinitialisée par le correspondant.
+.TP 
+\fBEDESTADDRREQ\fP
+La socket n'est pas en mode connexion et aucune adresse de correspondant n'a
+été positionnée.
+.TP 
+\fBEFAULT\fP
+Un paramètre pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEINTR\fP
+Un signal a été reçu avant que la moindre donnée n'ait été transmise\ ; voir
+\fBsignal\fP(7).
+.TP 
+\fBEINVAL\fP
+Un paramètre non valable a été fourni.
+.TP 
+\fBEISCONN\fP
+La socket en mode connexion est déjà connectée mais un destinataire a été
+spécifié. (Maintenant, soit cette erreur est retournée, soit la
+spécification du destinataire est ignorée.)
+.TP 
+\fBEMSGSIZE\fP
+.\" (e.g., SOCK_DGRAM )
+Le type de socket nécessite une émission intégrale du message mais la taille
+de celui\-ci ne le permet pas.
+.TP 
+\fBENOBUFS\fP
+La file d'émission de l'interface réseau est pleine. Ceci indique
+généralement une panne de l'interface réseau, mais peut également être dû à
+un engorgement passager. Ceci ne doit pas se produire sous Linux, les
+paquets sont silencieusement éliminés.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.TP 
+\fBENOTCONN\fP
+La socket n'est pas connectée et aucune cible n'a été fournie.
+.TP 
+\fBENOTSOCK\fP
+Le paramètre \fIsockfd\fP n'est pas une socket.
+.TP 
+\fBEOPNOTSUPP\fP
+Au moins un bit de l'argument \fIflags\fP n'est pas approprié pour le type de
+socket.
+.TP 
+\fBEPIPE\fP
+L'écriture a été terminée du côté local sur une socket orientée
+connexion. Dans ce cas, le processus recevra également un signal \fBSIGPIPE\fP
+sauf s'il a activé l'option \fBMSG_NOSIGNAL\fP.
+.SH CONFORMITÉ
+BSD\ 4.4, SVr4, POSIX.1\-2001. Ces appels système sont apparus dans BSD\ 4.2.
+.LP
+POSIX.1\-2001 décrit seulement les drapeaux \fBMSG_OOB\fP et
+\fBMSG_EOR\fP. POSIX.1\-2008 ajoute la spécification de \fBMSG_NOSIGNAL\fP. Le
+drapeau \fBMSG_CONFIRM\fP est une extension Linux.
+.SH NOTES
+Les prototypes fournis plus haut suivent les Spécifications Single UNIX,
+tout comme glibc2. L'argument \fIflags\fP était un \fIint\fP dans BSD\ 4.x, mais
+\fIunsigned int\fP dans libc4 et libc5. L'argument \fIlen\fP était un \fIint\fP dans
+BSD\ 4.x et libc4, mais un \fIsize_t\fP dans libc5; Le paramètre \fIaddrlen\fP
+était un \fIint\fP dans BSD\ 4.x, libc4 et libc5. Consultez aussi les notes
+accompagnant la page \fBaccept\fP(2).
+
+.\" glibc bug raised 12 Mar 2006
+.\" http://sourceware.org/bugzilla/show_bug.cgi?id=2448
+.\" The problem is an underlying kernel issue: the size of the
+.\" __kernel_size_t type used to type this field varies
+.\" across architectures, but socklen_t is always 32 bits.
+Selon POSIX.1\-2001, le champ \fImsg_controllen\fP de la structure \fImsghdr\fP
+devrait être de type \fIsocklen_t\fP, mais il a actuellement le type \fIsize_t\fP
+dans la glibc.
+
+Consultez \fBsendmmsg(2)\fP pour plus d'nformations au sujet d'un appel système
+propre à Linux, utilisé pour transmettre des datagrammes multiples avec un
+unique appel.
+.SH BOGUES
+Linux peut retourner \fBEPIPE\fP au lieu de \fBENOTCONN\fP.
+.SH EXEMPLE
+Un exemple d'utilisation de \fBsendto\fP() se trouve dans la page de manuel de
+\fBgetaddrinfo\fP(3).
+.SH "VOIR AUSSI"
+\fBfcntl\fP(2), \fBgetsockopt\fP(2), \fBrecv\fP(2), \fBselect\fP(2), \fBsendfile\fP(2),
+\fBsendmmsg\fP(2), \fBshutdown\fP(2), \fBsocket\fP(2), \fBwrite\fP(2), \fBcmsg\fP(3),
+\fBip\fP(7), \fBsocket\fP(7), \fBtcp\fP(7), \fBudp\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

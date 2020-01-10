@@ -1,0 +1,156 @@
+.\" Copyright 2003 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\" Polished a bit, added a little, aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SETALIASENT 3 "9 septembre 2003" GNU "Manuel du programmeur Linux"
+.SH NOM
+setaliasent, endaliasent, getaliasent, getaliasent_r, getaliasbyname,
+getaliasbyname_r \- Lire une entrée alias
+.SH SYNOPSIS
+\fB#include <aliases.h>\fP
+.sp
+\fBvoid setaliasent(void);\fP
+.sp
+\fBvoid endaliasent(void);\fP
+.sp
+\fBstruct aliasent *getaliasent(void);\fP
+.sp
+\fBint getaliasent_r(struct aliasent *\fP\fIresult\fP\fB,\fP
+.br
+\fB char *\fP\fIbuffer\fP\fB, size_t \fP\fIbuflen\fP\fB, struct aliasent **\fP\fIres\fP\fB);\fP
+.sp
+\fBstruct aliasent *getaliasbyname(const char *\fP\fIname\fP\fB);\fP
+.sp
+\fBint getaliasbyname_r(const char *\fP\fIname\fP\fB, struct aliasent
+*\fP\fIresult\fP\fB,\fP
+.br
+\fB char *\fP\fIbuffer\fP\fB, size_t \fP\fIbuflen\fP\fB, struct aliasent **\fP\fIres\fP\fB);\fP
+.SH DESCRIPTION
+Une des bases de données disponibles avec le «\ Name Service Switch\ » (NSS)
+est la base de données des alias qui contient les alias de mail (pour savoir
+quelles bases de données sont supportées, taper la commande «\ \fIgetent
+\-\-help\fP\ »). Six fonctions sont fournies pour accéder à la base de données
+des alias.
+.PP
+La fonction \fBgetaliasent\fP() renvoie un pointeur sur une structure contenant
+l'information de groupe dans la base de données des alias. Le premier appel
+de cette fonction permet de retourner la première entrée\ ; les appels
+suivants retourneront les entrées successives.
+.PP
+La fonction \fBsetaliasent\fP() positionne le pointeur de fichier au début de
+la base de données des alias.
+.PP
+La fonction \fBendaliasent\fP() ferme la base de données des alias.
+.PP
+\fBgetaliasent_r\fP() est la version réentrante de la fonction
+\fBgetaliasent\fP(). La structure recherchée est enregistrée via le premier
+argument mais le programmeur doit également renseigner les autres
+arguments. Ne pas fournir suffisamment d'espace provoquera l'échec de la
+fonction.
+.PP
+La fonction \fBgetaliasbyname\fP() prend en argument «\ name\ » et cherche dans
+la base de données des alias. L'entrée est retournée sous forme de pointeur
+vers une structure \fIaliasent\fP.
+.PP
+La fonction \fBgetaliasbyname_r\fP() est la version réentrante de la fonction
+précédente. La structure recherchée est enregistrée via le deuxième argument
+mais le programmeur doit également renseigner les autres arguments. Ne pas
+fournir suffisamment d'espace provoquera l'échec de la fonction.
+.PP
+La structure \fIaliasent\fP est définie dans \fI<aliases.h>\fP\ :
+.in +4n
+.nf
+
+struct aliasent {
+    char    *alias_name;              /* nom de alias */
+    size_t   alias_members_len;
+    char   **alias_members;           /* liste de noms d'alias */
+    int      alias_local;
+};
+.fi
+.in
+.SH "VALEUR RENVOYÉE"
+Les fonctions \fBgetaliasent_r\fP() et \fBgetaliasbyname_r\fP() renvoient une
+valeur non nulle en cas d'erreur.
+.SH FICHIERS
+La base de données des alias par défaut est le fichier \fI/etc/aliases\fP. Elle
+peut être modifiée dans le fichier \fI/etc/nsswitch.conf\fP.
+.SH CONFORMITÉ
+Ces routines sont spécifiques à la glibc. Le système NeXT a des routines
+similaires\ :
+.in +4n
+.nf
+
+#include <aliasdb.h>
+
+void alias_setent(void);
+void alias_endent(void);
+alias_ent *alias_getent(void);
+alias_ent *alias_getbyname(char *name);
+.fi
+.in
+.SH EXEMPLE
+L'exemple suivant se compile avec la commande \fIgcc example.c \-o
+example\fP. Il affichera tous les noms trouvés dans la base de données des
+alias.
+.sp
+.nf
+#include <aliases.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+
+int
+main(void)
+{
+    struct aliasent *al;
+    setaliasent();
+    for (;;) {
+        al = getaliasent();
+        if (al == NULL)
+            break;
+        printf("Name: %s\en", al\->alias_name);
+    }
+    if (errno) {
+        perror("reading alias");
+        exit(EXIT_FAILURE);
+    }
+    endaliasent();
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+.\"
+.\" /etc/sendmail/aliases
+.\" Yellow Pages
+.\" newaliases, postalias
+\fBgetgrent\fP(3), \fBgetpwent\fP(3), \fBgetspent\fP(3), \fBaliases\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2004-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

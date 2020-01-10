@@ -1,0 +1,112 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH AIO_CANCEL 3 "8 mai 2012" "" "Manuel du programmeur Linux"
+.SH NOM
+aio_cancel \- Annuler une requête d'E/S asynchrone en cours
+.SH SYNOPSIS
+\fB#include <aio.h>\fP
+.sp
+\fBint aio_cancel(int \fP\fIfd\fP\fB, struct aiocb *\fP\fIaiocbp\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP.
+.SH DESCRIPTION
+La fonction \fBaio_cancel\fP() tente d'annuler les requêtes d'E/S asynchrones
+en cours du descripteur de fichier \fIfd\fP. Si \fIaiocbp\fP est NULL, toutes ces
+requêtes sont annulées. Sinon, seule la requête décrite par le bloc de
+contrôle pointé par \fIaiocbp\fP est annulée. Consultez \fBaio\fP(7) pour une
+description de la structure \fIaiocb\fP.
+.LP
+Une notification asynchrone normale survient pour les requêtes annulées
+(consultez \fBaio\fP(7) et \fBsigevent\fP(7)). L'état de retour de la requête
+(\fBaio_return\fP(3)) est défini à \-1 et l'état de l'erreur de la requête
+(\fBaio_error\fP(3)) est défini à \fBECANCELED\fP. Le bloc de contrôle des
+requêtes qui n'ont pas été annulées n'est pas modifié.
+.LP
+Si la requête n'a pas pu être annulée, elle se terminera comme d'habitude
+après avoir réalisé l'opération d'E/S (dans ce cas, \fBaio_error\fP(3) renverra
+l'état \fBEINPROGRESSS\fP).
+.LP
+Si \fIaiocbp\fP n'est pas NULL et si \fIfd\fP diffère du descripteur de fichier
+pour lequel l'opération asynchrone a été initiée, les résultats sont
+imprévisibles.
+.LP
+.\" FreeBSD: not those on raw disk devices.
+Les opérations qui peuvent être annulées dépendent de l'implémentation.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBaio_cancel\fP() renvoie une des valeurs suivantes\ :
+.TP 
+\fBAIO_CANCELED\fP
+Toutes les requêtes ont été annulées avec succès.
+.TP 
+\fBAIO_NOTCANCELED\fP
+Au moins une des requêtes indiquées n'a pas été annulée parce qu'elle était
+en cours. Dans ce cas, l'état de chaque requête peut être vérifié en
+utilisant \fBaio_error\fP(3).
+.TP 
+\fBAIO_ALLDONE\fP
+Toutes les requêtes étaient déjà achevées avant l'appel.
+.TP 
+\-1
+Une erreur est survenue. La raison de l'erreur est définie dans \fIerrno\fP.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBENOSYS\fP
+\fBaio_cancel\fP() n'est pas implémenté.
+.SH VERSIONS
+La fonction \fBaio_cancel\fP() est disponible depuis la glibc\ 2.1.
+.SH CONFORMITÉ
+POSIX.1\-2001, POSIX.1\-2008.
+.SH EXEMPLE
+Consultez \fBaio\fP(7).
+.SH "VOIR AUSSI"
+\fBaio_error\fP(3), \fBaio_fsync\fP(3), \fBaio_read\fP(3), \fBaio_return\fP(3),
+\fBaio_suspend\fP(3), \fBaio_write\fP(3), \fBlio_listio\fP(3), \fBaio\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2004-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

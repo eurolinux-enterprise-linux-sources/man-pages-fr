@@ -1,0 +1,185 @@
+.\" Copyright (C) 2011, Eric Biederman <ebiederm@xmission.com>
+.\" and Copyright (C) 2011, 2012, Michael Kerrisk <mtk.manpages@gamil.com>
+.\"
+.\" %%%LICENSE_START(GPLv2_ONELINE)
+.\" Licensed under the GPLv2
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SETNS 2 "1er janvier 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+setns \- Réassocier un thread avec un espace de noms
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP             /* Consultez feature_test_macros(7) */
+\fB#include <sched.h>\fP
+.sp
+\fBint setns(int \fP\fIfd\fP\fB, int \fP\fInstype\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Étant donné un descripteur de fichiers faisant référence à un espace de
+noms, réassocier le thread appelant à cet espace de noms.
+
+L'argument \fIfd\fP est un descripteur de fichier faisant référence à un des
+espaces de noms présents sous la forme d'entrées dans un répertoire
+\fI/proc/[pid]/ns/\fP. Consultez \fBproc\fP(5) pour plus d'informations sur
+\fI/proc/[pid]/ns\fP. Le thread appelant sera réassocié avec l'espace de noms
+correspondant, si les contraintes imposées par l'argument \fInstype\fP sont
+satisfaites.
+
+L'argument \fInstype\fP indique les types d'espaces de noms auxquels le thread
+appelant peut être réassocié. Cet argument peut prendre une des valeurs
+suivantes\ :
+.TP 
+\fB0\fP
+\fIfd\fP peut faire référence à n'importe quel type d'espace de noms.
+.TP 
+\fBCLONE_NEWIPC\fP
+\fIfd\fP doit faire référence à un espace de noms IPC.
+.TP 
+\fBCLONE_NEWNET\fP
+\fIfd\fP doit faire référence à un espace de noms réseau.
+.TP 
+\fBCLONE_NEWUTS\fP
+\fIfd\fP doit faire référence à un espace de noms UTS.
+.PP
+Définir la valeur de \fInstype\fP à zéro est suffisant si le thread appelant
+connaît (ou n'a pas besoin de connaître) le type d'espace de noms auquel
+\fIfd\fP fait référence. Définir \fInstype\fP à une valeur non nulle est utile si
+l'appelant ne connaît pas le type de l'espace de noms référencé par \fIfd\fP et
+veut s'assurer que l'espace de noms est du type souhaité. (L'appelant
+pourrait ne pas connaître le type de l'espace de noms auquel \fIfd\fP fait
+référence si le descripteur de fichiers a été ouvert par un autre processus
+et qu'il a, par exemple, été passé à l'appelant par une socket UNIX.)
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fIsetns\fP() renvoie zéro, sinon il renvoie \-1 et remplit
+\fIerrno\fP avec le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBEINVAL\fP
+\fIfd\fP fait référence à un espace de noms dont le type ne correspond pas à
+celui indiqué dans \fInstype\fP, ou bien un problème s'est produit lors de la
+réassociation du thread avec l'espace de noms indiqué.
+.TP 
+\fBENOMEM\fP
+Impossible d'allouer suffisamment de mémoire pour changer l'espace de noms
+indiqué.
+.TP 
+\fBEPERM\fP
+Le processus appelant n'avait pas les privilèges (\fBCAP_SYS_ADMIN\fP) pour
+effectuer cette opération.
+.SH VERSIONS
+L'appel système \fBsetns\fP() est apparu dans Linux 3.0\ ; son support a été
+ajouté dans la version\ 2.14 de la glibc.
+.SH CONFORMITÉ
+L'appel système \fBsetns\fP() est spécifique à Linux.
+.SH NOTES
+Certains des attributs qui peuvent être partagés avec un nouveau thread créé
+avec \fBclone\fP(2) ne peuvent pas être modifiés en utilisant \fBsetns\fP().
+.SH EXEMPLE
+Le programme ci\-dessous attend au moins deux arguments. Le premier précise
+le chemin d'un fichier d'espace de noms dans un répertoire
+\fI/proc/[pid]/ns/\fP qui doit exister préalablement. Les arguments suivants
+précisent une commande et ses arguments. Le programme ouvre le fichier
+d'espace de noms, s'associe à l'espace de noms en utilisant \fBsetns\fP(), et
+exécute la commande indiquée dans cet espace de noms.
+
+La session d'invite de commandes suivante présente l'utilisation du
+programme (compilé dans un binaire appelé \fIns_exec\fP) en lien avec le
+programme \fBCLONE_NEWUTS\fP donné en example dans la page de manuel
+\fBclone\fP(2) (compilé dans un binaire appelé \fInewuts\fP).
+
+Nous commençons par exécuter le programme donné à titre d'exemple dans
+\fBclone\fP(2) en tâche de fond. Ce programme crée un processus fils dans un
+espace de noms UTS distinct. Le processus fils change le nom d'hôtes dans
+son espace de noms, puis les deux processus affichent leur noms d'hôtes dans
+leurs espaces de noms UTS respectifs, de façon à bien montrer leur
+différence.
+
+.nf
+.in +4n
+$ \fBsu\fP       # Privilèges nécessaires aux opérations sur l'espace de noms
+Mot de passe\ :
+# \fB./newuts bizarro &\fP
+[1] 3549
+clone() à renvoyé 3550
+uts.nodename dans le fils\ : bizarro
+uts.nodename dans le père\ : antero
+# \fBuname \-n\fP # Vérifier le nom d'hôte dans l'invite de commande
+antero
+.in
+.fi
+
+Nous appelons alors le programme présenté ci\-dessous afin de lancer une
+invite de commande. Dans cette invite, on vérifie que le nom d'hôte est bien
+celui défini par le processus fils créé dans le premier programme\ :
+
+.nf
+.in +4n
+# \fB./ns_exec /proc/3550/ns/uts /bin/bash\fP
+# \fBuname \-n\fP             # Exécuté dans l'invite lancée par ns_exec
+bizarro
+.in
+.fi
+.SS "Code du programme"
+.nf
+#define _GNU_SOURCE
+#include <fcntl.h>
+#include <sched.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#define errExit(msg)    do { perror(msg); exit(EXIT_FAILURE); \e
+                        } while (0)
+
+int
+main(int argc, char *argv[])
+{
+    int fd;
+
+    if (argc < 3) {
+        fprintf(stderr, "%s /proc/PID/ns/FILE cmd args...\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    fd = open(argv[1], O_RDONLY);   /* Récupérer le descripteur pour
+                                       l'espace de noms */
+    if (fd == \-1)
+        errExit("open");
+
+    if (setns(fd, 0) == \-1)         /* S'associer à l'espace de noms */
+        errExit("setns");
+
+    execvp(argv[2], &argv[2]);      /* Exécuter la commande dans
+                                       l'espace de noms */
+    errExit("execvp");
+}
+.fi
+.SH "VOIR AUSSI"
+\fBclone\fP(2), \fBfork\fP(2), \fBvfork\fP(2), \fBproc\fP(5), \fBunix\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

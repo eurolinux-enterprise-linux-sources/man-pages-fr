@@ -1,0 +1,91 @@
+.\" Copyright (c) 2007 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH BSD_SIGNAL 3 "15 mars 2009" "" "Manuel du programmeur Linux"
+.SH NOM
+bsd_signal \- Gestion des signaux avec la sémantique BSD
+.SH SYNOPSIS
+\fB#define _XOPEN_SOURCE\fP /* Consultez feature_test_macros(7) */
+.br
+\fB#include <signal.h>\fP
+.sp
+\fBtypedef void (*sighandler_t)(int);\fP
+.sp
+\fBsighandler_t bsd_signal(int \fP\fIsignum\fP\fB, sighandler_t \fP\fIhandler\fP\fB);\fP
+.SH DESCRIPTION
+La fonction \fBbsd_signal\fP() prend les mêmes paramètres et effectue la même
+tâche que \fBsignal\fP(2).
+
+La différence entre les deux est que \fBbsd_signal\fP() garantit de fournir une
+sémantique de signal fiable, qui est\ : a) le signal n'est pas remis à sa
+valeur par défaut lorsque le gestionnaire de signal est appelé\ ; b) les
+autres occurrences du signal sont bloquées pendant l'exécution du
+gestionnaire\ ; c) si le gestionnaire interrompt un appel système bloquant,
+alors l'appel système est automatiquement redémarré. Une application
+portable ne peut pas se baser sur \fBsignal\fP(2) pour fournir ces garanties.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBbsd_signal\fP renvoie la valeur précédente du gestionnaire de
+signal ou \fBSIG_ERR\fP lors d'une erreur.
+.SH ERREURS
+Comme pour \fBsignal\fP(2).
+.SH CONFORMITÉ
+BSD\ 4.2, POSIX.1\-2001. POSIX.1\-2008 supprime la spécification de
+\fBbsd_signal\fP() et recommande à la place l'utilisation de \fBsigaction\fP(2).
+.SH NOTES
+L'utilisation de \fBbsd_signal\fP() est à éviter, utilisez \fBsigaction\fP(2) à la
+place.
+
+Sur des systèmes Linux modernes, \fBbsd_signal\fP() et \fBsignal\fP(2) sont
+équivalents. Cependant, sur de vieux systèmes, \fBsignal\fP(2) fournit une
+sémantique de signal non fiable\ ; consultez \fBsignal\fP(2) pour plus de
+détails.
+
+Le type \fIsighandler_t\fP est une extension GNU\ ; ce type n'est défini que si
+la macro de test de fonctionnalités \fB_GNU_SOURCE\fP est définie.
+.SH "VOIR AUSSI"
+\fBsigaction\fP(2), \fBsignal\fP(2), \fBsysv_signal\fP(3), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

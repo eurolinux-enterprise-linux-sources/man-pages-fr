@@ -1,0 +1,173 @@
+.\" Copyright (c) 1995 James R. Van Zandt <jrv@vanzandt.mv.com>
+.\" Sat Feb 18 09:11:07 EST 1995
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified, Sun Feb 26 15:08:05 1995, faith@cs.unc.edu
+.\" 2007-12-17, Samuel Thibault <samuel.thibault@ens-lyon.org>:
+.\"     document the VT_GETHIFONTMASK ioctl
+.\" "
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH VCS 4 "17 décembre 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+vcs, vcsa \- Mémoires des consoles virtuelles
+.SH DESCRIPTION
+\fI/dev/vcs0\fP est un périphérique caractère de numéro majeur 7 et de numéro
+mineur 0, avec les permissions 0644 et un propriétaire root.tty. Il
+correspond à la mémoire d'affichage de la console virtuelle en cours
+d'utilisation.
+.LP
+\fI/dev/vcs[1\-63]\fP sont des périphériques caractères représentant la mémoire
+d'affichage des consoles virtuelles. Ils ont un numéro majeur 7 et des
+numéros mineurs 1 à 63. Ils ont généralement un mode d'accès 0644 et un
+propriétaire root.tty. Les \fI/dev/vcsa[0\-63]\fP sont équivalents mais
+utilisents des \fIunsigned short\fP (dans l'ordre des octets de l'hôte) qui
+incluent les attributs, et sont préfixés avec 4 octets indiquant les
+dimensions de l'écran et la position du curseur\ : \fIlines\fP, \fIcolumns\fP,
+\fIx\fP, \fIy\fP. (\fIx\fP = \fIy\fP = 0 en haut à gauche de l'écran.)
+
+Lorsque qu'une police à 512\ caractères est chargée, la position du 9e bit
+peut être extraite en appliquant l'opération \fBioctl\fP(2) \fBVT_GETHIFONTMASK\fP
+(disponible dans les noyaux Linux\ 2.6.18 et suivants) sur
+\fI/dev/tty[1\-63]\fP\ ; la valeur est renvoyée dans l'entier de type \fIunsigned
+short\fP pointé par le troisième paramètre de \fBioctl\fP(2).
+.PP
+Ces périphériques remplacent les opérations \fBioctl\fP(2)s «\ screendump\ » de
+\fBconsole\fP(4), ainsi l'administrateur peut contrôler les accès en utilisant
+les permissions du système de fichiers.
+.PP
+Les périphériques pour les 8 premières consoles virtuelles peuvent être
+créés ainsi\ :
+
+.nf
+    for x in 0 1 2 3 4 5 6 7 8; do
+        mknod \-m 644 /dev/vcs$x c 7 $x;
+        mknod \-m 644 /dev/vcsa$x c 7 $[$x+128];
+    done
+    chown root:tty /dev/vcs*
+.fi
+
+Aucune requête \fBioctl\fP(2) n'est supportée.
+.SH FICHIERS
+/dev/vcs[0\-63]
+.br
+.\" .SH AUTHOR
+.\" Andries Brouwer <aeb@cwi.nl>
+/dev/vcsa[0\-63]
+.SH VERSIONS
+Introduits dans la version 1.1.92 du noyau Linux.
+.SH EXEMPLE
+On peut faire un screendump de la console vt3 en basculant sur vt1 et en
+tapant\ :
+
+    cat /dev/vcs3 >foo
+
+Notez que la sortie ne contient pas de caractères de retour\-chariot, aussi
+quelques manipulations peuvent être nécessaires comme\ :
+
+    old \-w 81 /dev/vcs3 | lpr
+
+ou (horrible\ !)
+
+    xetterm \-dump 3 \-file /proc/self/fd/1
+
+.LP
+Le périphérique \fI/dev/vcsa0\fP est utilisé pour le support Braille.
+
+Ce programme affiche le caractère et l'attribut d'écran sous le curseur de
+la seconde console virtuelle, puis y change la couleur de fond\ :
+
+.nf
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/vt.h>
+
+int
+main(void)
+{
+    int fd;
+    char *device = "/dev/vcsa2";
+    char *console = "/dev/tty2";
+    struct {unsigned char lines, cols, x, y;} scrn;
+    unsigned short s;
+    unsigned short mask;
+    unsigned char ch, attrib;
+
+    fd = open(console, O_RDWR);
+    if (fd < 0) {
+        perror(console);
+        exit(EXIT_FAILURE);
+    }
+    if (ioctl(fd, VT_GETHIFONTMASK, &mask) < 0) {
+        perror("VT_GETHIFONTMASK");
+        exit(EXIT_FAILURE);
+    }
+    (void) close(fd);
+    fd = open(device, O_RDWR);
+    if (fd < 0) {
+        perror(device);
+        exit(EXIT_FAILURE);
+    }
+    (void) read(fd, &scrn, 4);
+    (void) lseek(fd, 4 + 2*(scrn.y*scrn.cols + scrn.x), 0);
+    (void) read(fd, &s, 2);
+    ch = s & 0xff;
+    if (attrib & mask)
+        ch |= 0x100;
+    attrib = ((s & ~mask) >> 8);
+    printf("ch=\(aq%c\(aq attrib=0x%02x\en", ch, attrib);
+    attrib ^= 0x10;
+    (void) lseek(fd, \-1, 1);
+    (void) write(fd, &attrib, 1);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBconsole\fP(4), \fBtty\fP(4), \fBttyS\fP(4), \fBgpm\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Simon Paillard et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

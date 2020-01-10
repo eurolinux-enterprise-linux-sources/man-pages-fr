@@ -1,0 +1,96 @@
+.\" %%%LICENSE_START(PUBLIC_DOMAIN)
+.\" This page is in the public domain. - aeb
+.\" %%%LICENSE_END
+.\"
+.\" 2004-12-17, mtk, added description of ptsname_r() + ERRORS
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTSNAME 3 "21 juin 2013" "" "Manuel du programmeur Linux"
+.SH NOM
+ptsname, ptsname_r \- Obtenir le nom d'un pseudoterminal esclave
+.SH SYNOPSIS
+.nf
+\fB#define _XOPEN_SOURCE\fP       /* Consultez feature_test_macros(7) */
+.br
+\fB#include <stdlib.h>\fP
+.sp
+\fBchar *ptsname(int \fP\fIfd\fP\fB);\fP
+.sp
+\fB#define _GNU_SOURCE\fP         /* Consultez feature_test_macros(7) */
+.br
+\fB#include <stdlib.h>\fP
+.sp
+\fBint ptsname_r(int \fP\fIfd\fP\fB, char *\fP\fIbuf\fP\fB, size_t \fP\fIbuflen\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBptsname\fP() renvoie le nom du périphérique pseudoterminal
+esclave associé au pseudoterminal maître indiqué par \fIfd\fP.
+
+La fonction \fBptsname_r\fP() est la version réentrante équivalente à
+\fBptsname\fP(). Elle renvoie le nom du périphérique pseudoterminal esclave,
+sous la forme d'une chaîne de caractère terminée par un octet nul, dans le
+tampon pointé par \fIbuf\fP. L'argument \fIbuflen\fP indique le nombre d'octets
+disponibles dans \fIbuf\fP.
+.SH "VALEUR RENVOYÉE"
+Lorsqu'elle réussit, la fonction \fBptsname\fP() renvoie un pointeur sur une
+chaîne de stockage statique qui sera écrasée par des appels successifs. Le
+pointeur ne doit PAS être libéré. Si elle échoue, \fBptsname\fP() renvoie un
+pointeur NULL.
+
+.\" In fact the errno value is also returned as the function
+.\" result -- MTK, Dec 04
+Lorsqu'elle réussit, la fonction \fBptsname_r\fP() renvoie 0. Si elle échoue,
+elle renvoie une valeur non nulle et \fIerrno\fP contient le code de l'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+(\fBptsname_r\fP() seulement) \fIbuf\fP est NULL.
+.TP 
+\fBENOTTY\fP
+\fIfd\fP ne fait pas référence à un périphérique pseudoterminal maître.
+.TP 
+\fBERANGE\fP
+(\fBptsname_r\fP() seulement) \fIbuf\fP est trop petit.
+.SH VERSIONS
+\fBptsname\fP() est fournie par la glibc depuis la version\ 2.1.
+.SH ATTRIBUTS
+.SS "Multithreading (voir pthreads(7))"
+La fonction \fBptsname\fP() n'est pas sûre dans un contexte multithread.
+.LP
+La fonction \fBptsname_r\fP() est sûre dans un contexte multithread.
+.SH CONFORMITÉ
+\fBptsname\fP() fait partie du support pty d'UNIX 98 (consultez
+\fBpts\fP(4)). Cette fonction est spécifiée dans POSIX.1\-2001.
+
+\fBptsname_r\fP() est une extension Linux. Une version de cette fonction est
+documentée dans Tru64 et HP\-UX, mais sur certaines implémentations, \-1 est
+renvoyé en cas d'erreur et \fIerrno\fP contient le code d'erreur. Évitez
+d'utiliser cette fonction dans des programmes destinés à être portables.
+.SH "VOIR AUSSI"
+\fBgrantpt\fP(3), \fBposix_openpt\fP(3), \fBttyname\fP(3), \fBunlockpt\fP(3), \fBpts\fP(4),
+\fBpty\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

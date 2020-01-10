@@ -1,0 +1,185 @@
+.\" Copyright (c) 2011, Mark R. Bannister <cambridge@users.sourceforge.net>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETENT 1 "15 mars 2013" Linux "Commandes de l'utilisateur"
+.SH NOM
+getent \- Récupérer des entrées depuis les bibliothèques NSS
+.SH SYNOPSIS
+\fBgetent\fP \fIbase_de_données\fP [\fIclé\fP ...]
+.SH DESCRIPTION
+La commande \fBgetent\fP affiche les entrées des bases de données prises en
+charge par les bibliothèques du Name Service Switch (NSS), qui sont
+configurées dans \fI/etc/nsswitch.conf\fP. Si un ou plusieurs arguments \fIclé\fP
+sont fournis, alors seules les entrées correspondantes aux clés fournies
+seront affichées. Sinon, si aucune \fIclé\fP n'est fournie, toutes les entrées
+seront affichées (sauf si la base de données ne permet pas l'énumération).
+.LP
+La \fIbase_de_données\fP peut être n'importe laquelle des suivantes, prises en
+charge par la bibliothèque\ C de GNU.
+.RS 3
+.TP  10
+\fBahosts\fP
+Si aucune \fIclé\fP n'est fournie, utiliser \fBsethostent\fP(3), \fBgethostent\fP(3)
+et \fBendhostent\fP(3) pour énumérer la base de données d'hôtes. C'est
+identique à l'utilisation de \fBhosts\fP. Si un ou plusieurs arguments \fIclé\fP
+sont fournis, passer toutes les \fIclé\fPs en enfilade à \fBgetaddrinfo\fP(3) avec
+la famille d'adresse \fBAF_UNSPEC\fP, en énumérant chaque structure d'adresse
+de socket renvoyée.
+.TP 
+\fBahostsv4\fP
+Comme \fBahosts\fP, mais en utilisant la famille d'adresse \fBAF_INET\fP.
+.TP 
+\fBahostsv6\fP
+Comme \fBahosts\fP, mais en utilisant la famille d'adresse \fBAF_INET6\fP. L'appel
+à \fBgetaddrinfo\fP(3) contient dans ce cas l'attribut \fBAI_V4MAPPED\fP.
+.TP 
+\fBaliases\fP
+Si aucune \fIclé\fP n'est fournie, utiliser \fBsetaliasent\fP(3),
+\fBgetaliasent\fP(3) et \fBendaliasent\fP(3) pour énumérer la base de données
+d'alias. Si un ou plusieurs arguments \fIclé\fP sont fournis, passer toutes les
+\fIclé\fPs en enfilade à \fBgetaliasbyname\fP(3) et afficher le résultat.
+.TP 
+\fBethers\fP
+Si un ou plusieurs arguments \fIclé\fP sont fournis, passer toutes les clés en
+enfilade à \fBgetaliasbyname\fP(3) et \fBether_hostton\fP(3) jusqu'à obtention
+d'un résultat, et l'afficher. L'énumération n'est pas possible avec
+\fBethers\fP, donc une \fIclé\fP doit être fournie.
+.TP 
+\fBgroup\fP
+Si aucune \fIclé\fP n'est fournie, utiliser \fBsetgrent\fP(3), \fBgetgrent\fP(3) et
+\fBendgrent\fP(3) pour énumérer la base de données de groupe. Si un ou
+plusieurs arguments \fIclé\fP sont fournis, passer toutes les \fIclé\fPs
+numériques à \fBgetgrgid\fP(3) et toutes les \fIclé\fPs non numériques à
+\fBgetgrnam\fP(3), et afficher le résultat.
+.TP 
+\fBgshadow\fP
+Si aucune \fIclé\fP n'est fournie, utiliser \fBsetsgent\fP(3), \fBgetsgent\fP(3) et
+\fBendsgent\fP(3) pour énumérer la base de données gshadow. Si un ou plusieurs
+arguments \fIclé\fP sont fournis, passer toutes les \fIclé\fPs en enfilade à
+\fBgetsgnam\fP(3) et afficher le résultat.
+.TP 
+\fBhosts\fP
+Si aucune \fIclé\fP n'est fournie, utiliser \fBsethostent\fP(3), \fBgethostent\fP(3)
+et \fBendhostent\fP(3) pour énumérer la base de données d'hôtes. Si un ou
+plusieurs arguments \fIclé\fP sont fournis, passer toutes les \fIclé\fPs à
+\fBgethostbyaddr\fP(3) ou \fBgethostbyname2\fP(3), suivant si un appel à
+\fBinet_pton\fP(3) indique que la \fIclé\fP est une adresse IPv6, IPv4 ou pas, et
+afficher le résultat.
+.TP 
+\fBinitgroups\fP
+Si un ou plusieurs arguments \fIclé\fP sont fournis, passer toutes les \fIclé\fPs
+en enfilade à \fBgetgrouplist\fP(3) et afficher le résultat. L'énumération
+n'est pas possible avec \fBinitgroups\fP, donc une \fIclé\fP doit être fournie.
+.TP 
+\fBnetgroup\fP
+Si une \fIclé\fP est fournie, passer la \fIclé\fP à \fBsetnetgrent\fP(3) et, en
+utilisant \fBgetnetgrent\fP(3), afficher le triplet chaîne résultat
+(\fInom_d_hôte\fP, \fIidentifiant\fP, \fInom_de_domaine\fP). Sinon, trois \fIclé\fPs
+peuvent être fournies, interprétées comme \fInom_d_hôte\fP, \fIidentifiant\fP et
+\fInom_de_domaine\fP pour correspondre à un nom de groupe réseau à l'aide de
+\fBinnetgr\fP(3). L'énumération n'est pas possible avec \fBnetgroup\fP, donc soit
+une, soit trois \fIclé\fPs doivent être fournies.
+.TP 
+\fBnetworks\fP
+Si aucune \fIclé\fP n'est fournie, utiliser \fBsetnetent\fP(3), \fBgetnetent\fP(3) et
+\fBendnetent\fP(3) pour énumérer la base de données de réseaux. Si un ou
+plusieurs arguments \fIclé\fP sont fournis, passer toutes les \fIclé\fPs
+numériques à \fBgetnetbyaddr\fP(3) et toutes les \fIclé\fPs non numériques à
+\fBgetnetbyname\fP(3), et afficher le résultat.
+.TP 
+\fBpasswd\fP
+Si aucune \fIclé\fP n'est fournie, utiliser \fBsetpwent\fP(3), \fBgetpwent\fP(3) et
+\fBendpwent\fP(3) pour énumérer la base de données de mot de passe. Si un ou
+plusieurs arguments \fIclé\fP sont fournis, passer toutes les \fIclé\fPs
+numériques à \fBgetpwuid\fP(3) et toutes les \fIclé\fPs non numériques à
+\fBgetpwnam\fP(3), et afficher le résultat.
+.TP 
+\fBprotocols\fP
+Si aucune \fIclé\fP n'est fournie, utiliser \fBsetprotoent\fP(3),
+\fBgetprotoent\fP(3) et \fBendprotoent\fP(3) pour énumérer la base de données de
+protocoles. Si un ou plusieurs arguments \fIclé\fP sont fournis, passer toutes
+les \fIclé\fPs numériques à \fBgetprotobynumber\fP(3) et toutes les \fIclé\fPs non
+numériques à \fBgetprotobyname\fP(3), et afficher le résultat.
+.TP 
+\fBrpc\fP
+Si aucune \fIclé\fP n'est fournie, utiliser \fBsetrpcent\fP(3), \fBgetrpcent\fP(3) et
+\fBendrpcent\fP(3) pour énumérer la base de données RPC. Si un ou plusieurs
+arguments \fIclé\fP sont fournis, passer toutes les \fIclé\fPs numériques à
+\fBgetrpcbynumber\fP(3) et toutes les \fIclé\fPs non numériques à
+\fBgetrpcbyname\fP(3), et afficher le résultat.
+.TP 
+\fBservices\fP
+Si aucune \fIclé\fP n'est fournie, utiliser \fBsetservent\fP(3), \fBgetservent\fP(3)
+et \fBendservent\fP(3) pour énumérer la base de données de services. Si un ou
+plusieurs arguments \fIclé\fP sont fournis, passer toutes les \fIclé\fPs
+numériques à \fBgetservbynumber\fP(3) et toutes les \fIclé\fPs non numériques à
+\fBgetservbyname\fP(3), et afficher le résultat.
+.TP 
+\fBshadow\fP
+Si aucune \fIclé\fP n'est fournie, utiliser \fBsetspent\fP(3), \fBgetspent\fP(3) et
+\fBendspent\fP(3) pour énumérer la base de données de mots de passe cachés. Si
+un ou plusieurs arguments \fIclé\fP sont fournis, passer toutes les \fIclé\fPs en
+enfilade à \fBgetspnam\fP(3) et afficher le résultat.
+.RE
+.SH "CODE DE RETOUR"
+Un des codes de retour suivants peut être renvoyé par \fBgetent\fP.
+.RS 3
+.TP  10
+\fB0\fP
+Commande terminée avec succès.
+.TP 
+\fB1\fP
+Arguments manquants, ou \fIbase_de_données\fP inconnue.
+.TP 
+\fB2\fP
+Au moins une des \fIclé\fPs fournie n'a pas été trouvée dans la
+\fIbase_de_données\fP.
+.TP 
+\fB3\fP
+Énumération impossible avec cette \fIbase_de_données\fP.
+.RE
+.SH "VOIR AUSSI"
+\fBnsswitch.conf\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

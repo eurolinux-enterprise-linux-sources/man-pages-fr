@@ -1,0 +1,128 @@
+.\" Copyright (c) 2006 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ADJTIME 3 "22 juin 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+adjtime \- Ajuster le temps pour synchroniser l'horloge système
+.SH SYNOPSIS
+.nf
+\fBint adjtime(const struct timeval *\fP\fIdelta\fP\fB, struct timeval *\fP\fIolddelta\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBadjtime\fP()\ : _BSD_SOURCE
+.SH DESCRIPTION
+La fonction \fBadjtime\fP() ajuste graduellement l'horloge système (comme
+renvoyée par \fBgettimeofday\fP(2)). La quantité de temps avec laquelle
+l'horloge système doit être ajustée est spécifiée par la structure pointée
+par \fIdelta\fP. Cette structure a la forme suivante\ :
+.in +4n
+.nf
+
+struct timeval {
+    time_t      tv_sec;     /* secondes */
+    suseconds_t tv_usec;    /* microsecondes */
+};
+.fi
+.in
+.PP
+Si l'ajustement dans \fIdelta\fP est positif, alors l'horloge système est
+accélérée d'un faible pourcentage (par exemple, en ajoutant une petite
+quantité de temps à chaque seconde de l'horloge) jusqu'à ce que l'ajustement
+soit réalisé. Si l'ajustement dans \fIdelta\fP est négatif, l'horloge est
+ralentie selon le même procédé.
+
+Si un ajustement d'horloge d'un précédent appel à \fBadjtime\fP() est déjà en
+cours au moment du dernier appel à \fBadjtime\fP() et si \fIdelta\fP n'est pas
+NULL lors de ce dernier appel, alors le précédent ajustement est arrêté,
+mais aucune partie déjà complète de cet ajustement n'est défait.
+
+Si \fIolddelta\fP n'est pas NULL, alors le tampon pointé est utilisé pour
+renvoyer la quantité de temps restant depuis l'ajustement précédent qui n'a
+pas été complété.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, \fBadjtime\fP() renvoie 0. En cas d'erreur, \-1 est renvoyé
+et \fIerrno\fP est définie.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+L'ajustement \fIdelta\fP est hors de l'intervalle autorisé.
+.TP 
+\fBEPERM\fP
+L'appelant n'a pas les privilèges suffisants pour ajuster le temps. Sous
+Linux, la capacité \fBCAP_SYS_TIME\fP est nécessaire.
+.SH CONFORMITÉ
+BSD\ 4.3, System\ V.
+.SH NOTES
+L'ajustement réalisé par \fBadjtime\fP() sur l'horloge est exécuté afin que
+l'horloge soit toujours incrémentée de façon monotone. Utiliser \fBadjtime\fP()
+pour ajuster le temps prévient les problèmes qui peuvent se poser avec
+certaines applications (par exemple, \fBmake\fP(1)) lors de sauts temporels
+abrupts positifs ou négatifs de l'horloge système.
+
+\fBadjtime\fP() est prévue pour faire de petit ajustement de l'horloge
+système. La plupart des systèmes impose une limite à l'ajustement qui peut
+être spécifié dans \fIdelta\fP. Dans l'implémentation de la glibc, \fIdelta\fP
+doit être inférieur ou égal à (INT_MAX / 1000000 \- 2) et supérieur ou égal
+(INT_MIN / 1000000 + 2) (respectivement, 2145 et \-2145 secondes sur i386).
+.SH BOGUES
+.\" http://sourceware.org/bugzilla/show_bug?id=2449
+.\" http://bugzilla.kernel.org/show_bug.cgi?id=6761
+.\" Thanks to the new adjtimex() ADJ_OFFSET_SS_READ flag
+Un bogue de longue date faisait que si \fIdelta\fP valait NULL, aucune
+information valide sur l'ajustement en cours de l'horloge n'était renvoyé
+dans \fIolddelta\fP. (Dans cette circonstance, \fBadjtime\fP() devrait renvoyer
+l'ajustement en cours de l'horloge, sans la modifier.) Ce bogue a été
+corrigé sur les systèmes disposant de la glibc\ 2.8 ou suivantes et le noyau
+Linux\ 2.6.26 ou suivants.
+.SH "VOIR AUSSI"
+\fBadjtimex\fP(2), \fBgettimeofday\fP(2), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

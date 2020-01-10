@@ -1,0 +1,106 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Mon Apr 12 12:51:24 1993, David Metcalfe
+.\" 2006-05-19, Justin Pryzby <pryzbyj@justinpryzby.com>
+.\"	Document strchrnul(3).
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STRCHR 3 "24 avril 2012" GNU "Manuel du programmeur Linux"
+.SH NOM
+strchr, strrchr, strchrnul \- Rechercher un caractère dans une chaîne
+.SH SYNOPSIS
+.nf
+\fB#include <string.h>\fP
+.sp
+\fBchar *strchr(const char *\fP\fIs\fP\fB, int \fP\fIc\fP\fB);\fP
+.sp
+\fBchar *strrchr(const char *\fP\fIs\fP\fB, int \fP\fIc\fP\fB);\fP
+.sp
+\fB#define _GNU_SOURCE\fP         /* Consultez feature_test_macros(7) */
+\fB#include <string.h>\fP
+.sp
+\fBchar *strchrnul(const char *\fP\fIs\fP\fB, int \fP\fIc\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBstrchr\fP() renvoie un pointeur sur la première occurrence du
+caractère \fIc\fP dans la chaîne \fIs\fP.
+.PP
+La fonction \fBstrrchr\fP() renvoie un pointeur sur la dernière occurrence du
+caractère \fIc\fP dans la chaîne \fIs\fP.
+.PP
+La fonction \fBstrchrnul\fP() est comme \fBstrchr\fP(), sauf que si \fIc\fP n'est pas
+trouvé dans \fIs\fP, alors elle retourne un pointeur sur l'octet nul à la fin
+de \fIs\fP, au lieu de NULL.
+.PP
+Pour ces fonctions, «\ caractère\ » signifie «\ octet\ »\ ; elles ne
+marchent pas avec des caractères larges ou multioctets.
+.SH "VALEUR RENVOYÉE"
+Les fonctions \fBstrchr\fP() et \fBstrrchr\fP() renvoient un pointeur sur le
+caractère correspondant, ou NULL si le caractère n'a pas été trouvé. L'octet
+nul final est considéré comme faisant partie de la chaîne, de telle sorte
+que si «\ \e0\ » est indiqué pour \fIc\fP, ces fonctions renvoient un pointeur
+sur la fin de chaîne.
+
+La fonction \fBstrchrnul\fP() renvoie un pointeur sur le caractère
+correspondant, ou un pointeur sur le caractère nul terminant \fIs\fP
+(c'est\-à\-dire \fIs+strlen(s)\fP) si le caractère n'a pas été trouvé.
+.SH VERSIONS
+\fBstrchrnul\fP() a été introduite dans la glibc dans sa version\ 2.1.
+.SH CONFORMITÉ
+\fBstrchr\fP() et \fBstrrchr\fP() sont présents dans SVr4, BSD\ 4.3, C89 et
+C99. \fBstrchrnul\fP() est une extension GNU.
+.SH "VOIR AUSSI"
+\fBindex\fP(3), \fBmemchr\fP(3), \fBrindex\fP(3), \fBstring\fP(3), \fBstrlen\fP(3),
+\fBstrpbrk\fP(3), \fBstrsep\fP(3), \fBstrspn\fP(3), \fBstrstr\fP(3), \fBstrtok\fP(3),
+\fBwcschr\fP(3), \fBwcsrchr\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

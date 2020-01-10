@@ -1,0 +1,125 @@
+.\" Copyright (C) 2006 Red Hat, Inc. All Rights Reserved.
+.\" Written by Ivana Varekova <varekova@redhat.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" FIXME Something could be added to this page (or exit(2))
+.\"       about exit_robust_list processing
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GET_ROBUST_LIST 2 "13 juillet 2012" Linux "Appels système Linux"
+.SH NOM
+get_robust_list, set_robust_list \- Lire et écrire une liste de futex
+robustes
+.SH SYNOPSIS
+.nf
+\fB#include <linux/futex.h>\fP
+\fB#include <syscall.h>\fP
+.sp
+\fBlong get_robust_list(int \fP\fIpid\fP\fB, struct robust_list_head **\fP\fIhead_ptr\fP\fB,\fP
+\fB			  size_t *\fP\fIlen_ptr\fP\fB);\fP
+\fBlong set_robust_list(struct robust_list_head *\fP\fIhead\fP\fB, size_t \fP\fIlen\fP\fB);\fP
+.fi
+
+\fIRemarque\fP\ : il n'existe pas de fonctions glibc autour de ces appels
+système\ ; consultez \fBNOTES\fP.
+.SH DESCRIPTION
+L'implémentation de futex robuste doit maintenir les listes par thread de
+futex robustes qui sont déverrouillés quand le thread se termine. Ces listes
+sont gérées en espace utilisateur\ ; le noyau n'est notifié que de
+l'emplacement de la tête de la liste.
+
+L'appel système \fBget_robust_list\fP() renvoie la tête de la liste de futex
+robustes du thread dont l'identifiant de thread est indiqué par \fIpid\fP. Si
+\fIpid\fP est 0, la tête de liste pour le thread appelant est renvoyée. La tête
+de liste est conservée à l'emplacement pointé par \fIhead_ptr\fP. La taille de
+l'objet pointé par \fI**head_ptr\fP est conservée dans \fIlen_ptr\fP.
+
+L'appel système \fBset_robust_list\fP() demande au noyau d'enregistrer la tête
+de la liste de futex robustes appartenant au thread appelant. L'argument
+\fIhead\fP est la tête de liste à enregistrer. L'argument \fIlen\fP devrait être
+\fIsizeof(*head)\fP.
+.SH "VALEUR RENVOYÉE"
+Les appels systèmes \fBset_robust_list\fP() et \fBget_robust_list\fP() renvoient
+zéro quand l'opération a réussi, et un code d'erreur sinon.
+.SH ERREURS
+L'appel système \fBset_robust_list\fP() peut échouer avec l'erreur suivante.
+.TP 
+\fBEINVAL\fP
+\fIlen\fP ne correspond pas à la taille de structure \fBstruct robust_list_head\fP
+attendue par le noyau.
+.PP
+L'appel système \fBget_robust_list\fP() peut échouer avec les erreurs
+suivantes.
+.TP 
+\fBEPERM\fP
+Le processus appelant n'a pas le droit de voir la liste de futex robustes du
+thread avec l'identifiant de thread \fIpid\fP, et n'a pas la capacité
+\fBCAP_SYS_PTRACE\fP.
+.TP 
+\fBESRCH\fP
+Aucun thread avec pour identifiant de thread \fIpid\fP n'a pu être trouvé.
+.TP 
+\fBEFAULT\fP
+La tête de la liste de futex robustes ne peut pas être conservée à
+l'emplacement \fIhead\fP.
+.SH VERSIONS
+Ces appels système ont été ajoutés à Linux\ 2.6.17. Aucune bibliothèque
+n'existe pour les gérer, utilisez \fBsyscall\fP(2).
+.SH NOTES
+Ces appels système ne sont pas nécessaires aux applications normales. La
+glibc ne les gère pas. Au cas improbable où vous voudriez les appeler
+directement, utilisez \fBsyscall\fP(2).
+
+Un thread ne peut avoir qu'une seule liste de futex robustes. Par
+conséquent, les applications qui désirent utiliser cette fonctionnalité
+devraient utiliser les mutex robustes fournis par la glibc.
+.SH "VOIR AUSSI"
+.\" .BR pthread_mutexattr_setrobust_np (3)
+\fBfutex\fP(2)
+
+.\" http://lwn.net/Articles/172149/
+\fIDocumentation/robust\-futexes.txt\fP et \fIDocumentation/robust\-futex\-ABI.txt\fP
+dans l'arborescence des sources du noyau Linux
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

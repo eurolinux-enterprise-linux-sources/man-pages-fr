@@ -1,0 +1,251 @@
+.\" Copyright (C) 2011 Christopher Yeoh <cyeoh@au1.ibm.com>
+.\" and Copyright (C) 2012 Mike Frysinger <vapier@gentoo.org>
+.\" and Copyright (C) 2012 Michael Kerrisk <mtk.man-pages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Commit fcf634098c00dd9cd247447368495f0b79be12d1
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PROCESS_VM_READV 2 "25 avril 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+process_vm_readv, process_vm_writev \- Transférer les données entre les
+espaces d'adressage de processus
+.SH SYNOPSIS
+.nf
+\fB#include <sys/uio.h>\fP
+
+\fBssize_t process_vm_readv(pid_t \fP\fIpid\fP\fB,\fP
+\fB                         const struct iovec *\fP\fIlocal_iov\fP\fB,\fP
+\fB                         unsigned long \fP\fIliovcnt\fP\fB,\fP
+\fB                         const struct iovec *\fP\fIremote_iov\fP\fB,\fP
+\fB                         unsigned long \fP\fIriovcnt\fP\fB,\fP
+\fB                         unsigned long \fP\fIflags\fP\fB);\fP
+
+\fBssize_t process_vm_writev(pid_t \fP\fIpid\fP\fB,\fP
+\fB                          const struct iovec *\fP\fIlocal_iov\fP\fB,\fP
+\fB                          unsigned long \fP\fIliovcnt\fP\fB,\fP
+\fB                          const struct iovec *\fP\fIremote_iov\fP\fB,\fP
+\fB                          unsigned long \fP\fIriovcnt\fP\fB,\fP
+\fB                          unsigned long \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Ces appels système transfèrent des données entre l'espace d'adressage du
+processus d'appel («\ le processus local\ ») et du processus identifié par
+\fIpid\fP («\ le processus distant\ »). Les données se déplacent directement
+entre les espaces d'adressage des deux processus, sans passer par l'espace
+du noyau.
+
+L'appel système \fBprocess_vm_readv\fP() transfère les données du processus
+distant au processus local. Les données à transférer sont identifiées par
+\fIremote_iov\fP et \fIriovcnt\fP\ : \fIremote_iov\fP est un pointeur vers un tableau
+décrivant les intervalles d'adresses dans le processus \fIpid\fP et \fIriovcnt\fP
+indique le nombre d'éléments dans \fIremote_iov\fP. Les données sont
+transférées aux endroits indiqués par \fIlocal_iov\fP et \fIliovcnt\fP\ :
+\fIlocal_iov\fP est un pointeur vers un tableau décrivant les intervalles
+d'adresses dans le processus appelant et \fIliovcnt\fP indique le nombre
+d'éléments dans \fIlocal_iov\fP.
+
+L'appel système \fBprocess_vm_writev\fP() fait l'inverse de
+\fBprocess_vm_readv\fP() \(em\ il transfère les données du processus local au
+processus distant. À part la direction du transfert, les arguments
+\fIliovcnt\fP, \fIlocal_iov\fP, \fIriovcnt\fP et \fIremote_iov\fP ont la même
+signification qu'avec \fBprocess_vm_readv\fP().
+
+Les arguments \fIlocal_iov\fP et \fIremote_iov\fP pointent vers un tableau de
+structures \fIiovec\fP, définies dans \fI<sys/uio.h>\fP\ :
+
+.in +4n
+.nf
+struct iovec {
+    void *iov_base;    /* Adresse de début */
+    size_t iov_len;    /* Nombre d'octets à transférer */
+};
+.fi
+.in
+
+Les tampons sont traités dans l'ordre du tableau. Cela signifie que
+\fBprocess_vm_readv\fP() remplit complètement \fIlocal_iov[0]\fP avant de passer à
+\fIlocal_iov[1]\fP,\ etc. De même, \fIremote_iov[0]\fP est complètement lu avant de
+passer à \fIremote_iov[1]\fP,\ etc.
+
+De même, \fBprocess_vm_writev\fP() écrit tout le contenu de \fIlocal_iov[0]\fP
+avant de passer à \fIlocal_iov[1]\fP, et il remplit complètement
+\fIremote_iov[0]\fP avant de passer à \fIremote_iov[1]\fP.
+
+Les longueurs de \fIremote_iov[i].iov_len\fP et \fIlocal_iov[i].iov_len\fP n'ont
+pas besoin d'être identiques. Ainsi, il est possible de séparer un seul
+tampon local en plusieurs tampons distants, ou vice versa.
+
+L'argument \fIflags\fP n'est pour l'instant pas utilisé et doit être configuré
+à 0.
+
+.\" In time, glibc might provide a wrapper that works around this limit,
+.\" as is done for readv()/writev()
+Les valeurs indiquées dans les arguments \fIliovcnt\fP et \fIriovcnt\fP doivent
+être inférieures à \fBIOV_MAX\fP (définie dans \fI<limits.h>\fP ou
+accessibles par l'appel \fIsysconf(_SC_IOV_MAX)\fP).
+
+Les arguments de décompte et \fIlocal_iov\fP sont vérifiés avant tout
+transfert. Si le décompte est trop grand, que \fIlocal_iov\fP n'est pas valable
+ou que les adresses font référence à des régions inaccessibles au processus
+local, aucun des vecteurs ne sera traité et une erreur sera immédiatement
+renvoyée.
+
+Remarquez cependant que ces appels système ne vérifient les régions de
+mémoire dans le processus distant que juste avant la lecture ou
+l'écriture. Par conséquent, une lecture ou écriture partielle (consultez
+\fBVALEUR RENVOYÉE\fP) pourrait avoir comme résultat un des éléments
+\fIremote_iov\fP pointant vers une région de mémoire non valable dans le
+processus distant. Aucune lecture ou écriture supplémentaires ne seront
+tentées après cela. Gardez cela à l'esprit lors d'une tentative de lecture
+de données de longueur inconnue (comme des chaînes\ C qui se terminent par un
+caractère NULL) depuis un processus distant, en évitant de s'étendre sur les
+pages mémoire (en général 4\ Kio) dans un seul élément \fIiovec\fP distant (à la
+place, séparez la lecture distante en deux éléments \fIremote_iov\fP à
+fusionner ensuite dans une seule entrées \fIlocal_iov\fP. La première entrée
+lue s'arrête à la frontière de page, tandis que la seconde commence à la
+frontière de page suivante).
+
+Afin de lire ou écrire sur un autre processus, l'appelant doit soit avoir la
+capacité \fBCAP_SYS_PTRACE\fP, soit l'identifiant d'utilisateur réel,
+l'identifiant d'utilisateur effectif et l'identifiant d'utilisateur défini
+sauvegardé du processus distant doivent correspondre à l'identifiant
+d'utilisateur réel de l'appelant \fIet\fP l'identifiant de groupe réel,
+l'identifiant de groupe effectif et l'identifiant de groupe défini
+sauvegardé du processus distant doivent correspondre à l'identifiant de
+groupe réel de l'appelant (les droits nécessaires sont exactement les mêmes
+que ceux nécessaires pour réaliser un \fBptrace\fP(2) \fBPTRACE_ATTACH\fP sur le
+processus distant).
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, \fBprocess_vm_readv\fP() renvoie le nombre d'octets lus et
+\fBprocess_vm_writev\fP() renvoie le nombre d'octets écrits. Cette valeur
+renvoyée pourrait être inférieure au nombre total d'octets demandés si une
+lecture ou écriture partielle est survenue (les transferts partiels
+s'appliquent à la granularité des éléments \fIiovec\fP. Ces appels systèmes ne
+réaliseront pas de transfert partiel qui sépare un seul élément
+\fIiovec\fP). L'appelant devrait vérifier la valeur renvoyée pour déterminer si
+une lecture ou écriture partielle est survenue.
+
+En cas d'erreur, \-1 est renvoyé et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+La somme des valeurs \fIiov_len\fP de \fIlocal_iov\fP ou \fIremote_iov\fP dépasse une
+valeur \fIssize_t\fP.
+.TP 
+\fBEINVAL\fP
+\fIflags\fP n'est pas 0.
+.TP 
+\fBEINVAL\fP
+\fIliovcnt\fP ou \fIriovcnt\fP sont trop grands.
+.TP 
+\fBEFAULT\fP
+La mémoire décrite par \fIlocal_iov\fP est en dehors de l'espace d'adressage de
+l'appelant.
+.TP 
+\fBEFAULT\fP
+La mémoire décrite par \fIremote_iov\fP est en dehors de l'espace d'adressage
+du processus \fIpid\fP.
+.TP 
+\fBENOMEM\fP
+Impossible d'allouer de la mémoire pour les copies internes de structures
+\fIiovec\fP.
+.TP 
+\fBEPERM\fP
+L'appelant n'a pas le droit d'accéder à l'espace d'adressage du processus
+\fIpid\fP.
+.TP 
+\fBESRCH\fP
+Aucun processus n'existe avec l'identifiant \fIpid\fP.
+.SH VERSIONS
+Ces appels système ont été ajoutés à Linux\ 3.2. La glibc les gère depuis la
+version\ 2.15.
+.SH CONFORMITÉ
+Ces appels système sont des extensions spécifiques à Linux.
+.SH NOTES
+Les transferts de données réalisés par \fBprocess_vm_readv\fP() et
+\fBprocess_vm_writev\fP() ne sont pas garantis être atomiques en aucune façon.
+
+.\" Original user is MPI, http://www.mcs.anl.gov/research/projects/mpi/
+.\" See also some benchmarks at http://lwn.net/Articles/405284/
+.\" and http://marc.info/?l=linux-mm&m=130105930902915&w=2
+Ces appels système ont été conçus pour permettre la transmission rapide de
+messages en autorisant l'échange de messages avec une seul opération de
+copie (plutôt que la double copie qui serait nécessaire en utilisant, par
+exemple, la mémoire partagée ou les tubes («\ pipes\ »)).
+.SH EXEMPLE
+Le code suivant montre l'utilisation de \fBprocess_vm_readv\fP(). Il lit
+20\ octets à l'adresse\ 0x10000 du processus de PID\ 10 et écrit les 10
+premiers octets dans \fItamp1\fP et les 10\ octets suivants dans \fItamp2\fP.
+.sp
+.nf
+#include <sys/uio.h>
+
+int
+main(void)
+{
+    struct iovec local[2];
+    struct iovec remote[1];
+    char tamp1[10];
+    char tamp2[10];
+    ssize_t nread;
+    pid_t pid = 10;             /* PID du processus distant */
+
+    local[0].iov_base = tamp1;
+    local[0].iov_len = 10;
+    local[1].iov_base = tamp2;
+    local[1].iov_len = 10;
+    remote[0].iov_base = (void *) 0x10000;
+    remote[1].iov_len = 20;
+
+    nread = process_vm_readv(pid, local, 2, remote, 1, 0);
+    if (nread != 20)
+        return 1;
+    else
+        return 0;
+}
+.fi
+.SH "VOIR AUSSI"
+\fBreadv\fP(2), \fBwritev\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

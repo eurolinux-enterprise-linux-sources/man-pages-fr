@@ -1,0 +1,162 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\" and Copyright 1999 by Bruno Haible (haible@clisp.cons.org)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 18:20:12 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Tue Jul 15 16:49:10 1997 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified Sun Jul  4 14:52:16 1999 by Bruno Haible (haible@clisp.cons.org)
+.\" Modified Tue Aug 24 17:11:01 1999 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified Tue Feb  6 03:31:55 2001 by Andries Brouwer (aeb@cwi.nl)
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SETLOCALE 3 "5 décembre 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+setlocale \- Définir la localisation courante
+.SH SYNOPSIS
+.nf
+\fB#include <locale.h>\fP
+.sp
+\fBchar *setlocale(int \fP\fIcategorie\fP\fB, const char *\fP\fIlocale\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBsetlocale\fP() est utilisée pour indiquer ou demander la
+localisation courante du programme.
+.PP
+Si \fIlocale\fP n'est pas NULL, la localisation courante du programme est
+modifiée en fonction des arguments. L'argument \fIcategorie\fP détermine quelle
+partie de la localisation sera concernée par la modification.
+.TP 
+\fBLC_ALL\fP
+toute la localisation,
+.TP 
+\fBLC_COLLATE\fP
+la mise en correspondance des expressions rationnelles (classes
+d'équivalence et intervalles), et le classement des chaînes de caractères,
+.TP 
+\fBLC_CTYPE\fP
+la classification de caractère et les routines de conversions.la mise en
+correspondance des expressions rationnelles, la classification de
+caractères, les conversions, les comparaisons dépendant de la casse et les
+fonctions pour les caractères larges.
+.TP 
+\fBLC_MESSAGES\fP
+les messages en langue naturelle
+.TP 
+\fBLC_MONETARY\fP
+l'affichage des valeurs monétaires.
+.TP 
+\fBLC_NUMERIC\fP
+le symbole décimal (point, virgule, ...)
+.TP 
+\fBLC_TIME\fP
+la forme de la date et l'heure.
+.PP
+L'argument \fIlocale\fP est un pointeur sur une chaîne de caractères contenant
+la configuration de la \fIcategorie\fP. Une telle chaîne peut être une
+constante bien connue, comme «\ C\ » ou «\ fr_FR\ » (voir plus bas) ou une
+chaîne opaque renvoyée par un autre appel précédent à \fBsetlocale\fP().
+.PP
+Si \fIlocale\fP est \fB""\fP, chaque partie de la localisation doit être modifiée
+en fonction des variables d'environnement. Les détails d'implémentation
+varient. Pour la glibc, d'abord (quelle que soit la \fIcategorie\fP) la
+variable d'environnement \fBLC_ALL\fP est examinée, puis la variable
+d'environnement avec le même nom que la catégorie (\fBLC_COLLATE\fP,
+\fBLC_CTYPE\fP, \fBLC_MESSAGES\fP, \fBLC_MONETARY\fP, \fBLC_NUMERIC\fP, \fBLC_TIME\fP) et
+finalement la variable \fBLANG\fP. La première variable d'environnement
+existant est utilisée. Si sa valeur n'est pas une spécification de
+localisation valide, la localisation n'est pas modifiée, et \fBsetlocale\fP()
+renvoie NULL.
+.PP
+Les localisations \fB"C"\fP et \fB"POSIX"\fP sont portables, leur partie
+\fBLC_CTYPE\fP correspond au jeu de caractères ASCII 7 bits.
+.PP
+Un nom de localisation est typiquement de la forme
+\fIlangue\fP[_\fIterritoire\fP][.\fIcodeset\fP][@\fImodificateur\fP], où la \fIlangue\fP
+est un code linguistique ISO 639, le \fIterritoire\fP un code de pays ISO 3166,
+et \fIcodeset\fP un jeu de caractères ou un identifiant d'encodage, comme
+\fBISO\-8859\-1\fP ou \fBUTF\-8\fP. Pour voir une liste de toutes les localisations
+disponibles, essayez «\ locale \-a\ », cf. \fBlocale\fP(1).
+.PP
+Si \fIlocale\fP est NULL, la localisation courante est consultée, mais pas
+modifiée.
+.PP
+Au démarrage, la localisation portable \fB"C"\fP est sélectionnée par
+défaut. Un programme peut être rendu portable en appelant\ :
+.nf
+
+    setlocale(LC_ALL, "");
+
+.fi
+lors de son initialisation, en utilisant les valeurs renvoyées par
+\fBlocaleconv\fP(3) pour les valeurs dépendant de la localisation, en utilisant
+les fonctions multioctet et caractères larges pour traiter les chaînes si
+\fBMB_CUR_MAX > 1\fP, et en utilisant \fBstrcoll\fP(3), \fBwcscoll\fP(3) ou
+\fBstrxfrm\fP(3), \fBwcsxfrm\fP(3) pour comparer les chaînes de caractères.
+.SH "VALEUR RENVOYÉE"
+Un appel réussi à \fBsetlocale\fP() renvoie une chaîne correspondant à la
+localisation. Cette chaîne peut être allouée dans une zone statique. La
+chaîne est renvoyée de telle manière qu'un appel ultérieur avec cette chaîne
+et la catégorie associée restituera cette partie de la localisation du
+processus. La valeur renvoyée est NULL si la demande ne peut pas être
+honorée.
+.SH CONFORMITÉ
+C89, C99, POSIX.1\-2001.
+.SH NOTES
+Linux (c'est\-à\-dire la glibc) supporte les localisations portables \fB"C"\fP et
+\fB"POSIX"\fP. Il y avait auparavant un support pour le Latin\-1 européen
+\fB"ISO\-8859\-1"\fP (par exemple dans la libc\-4.5.21 et libc\-4.6.27), ainsi que
+et le \fB"KOI\-8"\fP russe (plus précisément "koi\-8r" dans la libc\-4.6.27). Il
+suffisait alors d'initialiser la variable d'environnement
+\fILC_CTYPE=ISO\-8859\-1\fP pour que \fBisprint\fP(3) fonctionne
+correctement. Désormais, les européens non anglophones doivent peiner un peu
+plus pour installer les véritables fichiers de localisation.
+.SH "VOIR AUSSI"
+\fBlocale\fP(1), \fBlocaledef\fP(1), \fBisalpha\fP(3), \fBlocaleconv\fP(3),
+\fBnl_langinfo\fP(3), \fBrpmatch\fP(3), \fBstrcoll\fP(3), \fBstrftime\fP(3),
+\fBcharsets\fP(7), \fBlocale\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

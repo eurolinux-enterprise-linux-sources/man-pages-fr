@@ -1,0 +1,97 @@
+.\" Copyright (c) 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SIGWAIT 3 "21 juillet 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+sigwait \- Attendre un signal
+.SH SYNOPSIS
+.nf
+\fB#include <signal.h>\fP
+
+\fB int sigwait(const sigset_t *\fP\fIset\fP\fB, int *\fP\fIsig\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBsigwait\fP(): _POSIX_C_SOURCE\ >=\ 1 || _XOPEN_SOURCE || _POSIX_SOURCE
+.ad b
+.SH DESCRIPTION
+La fonction \fBsigwait\fP()  suspend l'exécution du thread appelant jusqu'à ce
+que l'un des signaux indiqués dans l'ensemble de signaux \fIset\fP soit en
+attente. La fonction accepte le signal (le supprime de la liste des signaux
+en attente), et retourne le numéro du signal dans \fIsig\fP.
+
+L'action de \fBsigwait\fP()  est identique à celle de \fBsigwaitinfo\fP(2),
+excepté que\ :
+.IP * 2
+\fBsigwait\fP()  ne retourne que le numéro du signal et pas la structure
+\fIsiginfo_t\fP décrivant le signal.
+.IP *
+Les valeurs de retour des deux fonctions sont différentes.
+.SH "VALEUR RENVOYÉE"
+Si elle réussit, \fBsigwait\fP()  renvoie 0. Si elle échoue, elle renvoie un
+code d'erreur strictement positif (listé dans ERREURS).
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+.\" Does not occur for glibc.
+\fIset\fP ne contient pas de numéro de signal valide.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+\fBsigwait\fP()  est implémentée autour de \fBsigtimedwait\fP(2).
+.SH EXEMPLE
+Consultez \fBpthread_sigmask\fP(3).
+.SH "VOIR AUSSI"
+\fBsigaction\fP(2), \fBsignalfd\fP(2), \fBsigpending\fP(2), \fBsigsuspend\fP(2),
+\fBsigwaitinfo\fP(2), \fBsigsetops\fP(3), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

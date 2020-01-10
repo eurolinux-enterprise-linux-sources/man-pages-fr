@@ -1,0 +1,87 @@
+.\" t
+.\" Copyright (c) 2012 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MALLOC_TRIM 3 "29 mars 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+malloc_trim \- Rendre la mémoire disponible en haut du tas
+.SH SYNOPSIS
+\fB#include <malloc.h>\fP
+
+\fBvoid malloc_trim(size_t \fP\fIpad\fP\fB);\fP
+.SH DESCRIPTION
+La fonction \fBmalloc_trim\fP() essaie de rendre la mémoire disponible en haut
+du tas (en appelant \fBsbrk\fP(2) avec le paramètre adéquat).
+
+Le paramètre \fIpad\fP indique la quantité d'espace disponible à garder non
+désalloué en haut du tas. Si ce paramètre vaut\ 0, le strict minimum de
+mémoire est conservé an haut du tas (c'est\-à\-dire une page mémoire ou
+moins). Une valeur non nulle permet de conserver de l'espace disponible en
+haut du tas pour éviter que les futures allocations aient besoin d'agrandir
+le tas en appelant \fBsbrk\fP(2).
+.SH "VALEUR RENVOYÉE"
+La fonction \fBmalloc_trim\fP() renvoie 1 si la mémoire a été rendue
+effectivement au système, ou 0 s'il n'a pas été possible de rendre de la
+mémoire.
+.SH ERREURS
+.\" .SH VERSIONS
+.\" Available already in glibc 2.0, possibly earlier
+Aucune erreur n'est définie.
+.SH CONFORMITÉ
+Cette fonction est une extension GNU.
+.SH NOTES
+Cette fonction est automatiquement appelée par \fBfree\fP(3) dans certaines
+circonstances\ ; consultez \fBmallopt\fP(3) pour l'explication de \fBM_TOP_PAD\fP
+et \fBM_TRIM_THRESHOLD\fP.
+
+Cette fonction ne peut rendre de mémoire libérée située qu'en haut du tas.
+
+.\" malloc/malloc.c::mTRIm():
+.\"     return result | (av == &main_arena ? sYSTRIm (pad, av) : 0);
+Cette fonction rend uniquement la mémoire de l'enclos («\ arena\ ») principal.
+.SH "VOIR AUSSI"
+\fBsbrk\fP(2), \fBmalloc\fP(3), \fBmallopt\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

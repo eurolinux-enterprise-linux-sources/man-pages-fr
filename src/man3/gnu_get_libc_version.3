@@ -1,0 +1,99 @@
+.\" Copyright (c) 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GNU_GET_LIBC_VERSION 3 "26 août 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+gnu_get_libc_version, gnu_get_libc_release \- Obtenir les numéros de version
+et de publication de la glibc
+.SH SYNOPSIS
+.nf
+\fB#include <gnu/libc\-version.h>\fP
+
+\fBconst char *gnu_get_libc_version(void);\fP
+\fBconst char *gnu_get_libc_release(void);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBgnu_get_libc_version\fP() renvoie une chaîne qui identifie la
+version de la glibc disponible sur le système.
+
+La fonction \fBgnu_get_libc_release\fP() renvoie une chaîne qui indique l'état
+de publication de la version de la glibc disponible sur le système. Ce sera
+une chaîne du style \fIstable\fP.
+.SH VERSIONS
+Ces fonctions ont été introduites dans la glibc dans sa version\ 2.1.
+.SH CONFORMITÉ
+Ces fonctions sont spécifiques à la glibc.
+.SH EXEMPLE
+À l'exécution, le programme ci\-dessous produit une sortie comme la
+suivante\ :
+.in +4n
+.nf
+
+$\fB ./a.out\fP
+GNU libc version: 2.8
+GNU libc release: stable
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <gnu/libc\-version.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+int
+main(int argc, char *argv[])
+{
+    printf("GNU libc version: %s\en", gnu_get_libc_version());
+    printf("GNU libc release: %s\en", gnu_get_libc_release());
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBconfstr\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

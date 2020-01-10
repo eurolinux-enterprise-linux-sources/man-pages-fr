@@ -1,0 +1,92 @@
+.\" Copyright 2001 Andries Brouwer <aeb@cwi.nl>.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FSEEKO 3 "5 novembre 2001" "" "Manuel du programmeur Linux"
+.SH NOM
+fseeko, ftello \- Définir ou consulter la position d'un fichier
+.SH SYNOPSIS
+.nf
+\fB#include <stdio.h>\fP
+.sp
+\fBint fseeko(FILE *\fP\fIstream\fP\fB, off_t \fP\fIoffset\fP\fB, int \fP\fIwhence\fP\fB);\fP
+.sp
+\fBoff_t ftello(FILE *\fP\fIstream\fP\fB);\fP
+
+.fi
+.SH DESCRIPTION
+Les fonctions \fBfseeko\fP() et \fBftello\fP() sont respectivement identiques à
+\fBfseek\fP(3) et \fBftell\fP(3), (consultez \fBfseek\fP(3)), excepté que l'argument
+\fIoffset\fP de \fBfseeko\fP() et le code de retour de \fBftello\fP() sont du type
+\fIoff_t\fP et non \fIlong\fP.
+.LP
+Sur de nombreuses architectures, \fIoff_t\fP tout comme \fIlong\fP sont des types
+codés sur 32\ bits, mais une compilation avec la directive
+.RS
+.nf
+
+#define _FILE_OFFSET_BITS 64
+.fi
+.RE
+.PP
+modifiera \fIoff_t\fP en un type codé sur 64\ bits.
+.SH "VALEUR RENVOYÉE"
+Sans erreur, la fonction \fBfseeko\fP() renvoie 0, alors que la fonction
+\fBftello\fP() renvoie la valeur du décalage actuel. Sinon \-1 est renvoyé et
+\fIerrno\fP est défini pour indiquer l'erreur.
+.SH ERREURS
+Consultez la section ERREURS de \fBfseek\fP(3).
+.SH CONFORMITÉ
+SUSv2, POSIX.1\-2001.
+.SH NOTES
+Ces fonctions se trouve dans les systèmes System\ V et apparentés. Elles ne
+sont pas présentes dans la libc4, libc5 ou la glibc\ 2.0 mais sont
+disponibles depuis la glibc\ 2.1.
+.SH "VOIR AUSSI"
+\fBfseek\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

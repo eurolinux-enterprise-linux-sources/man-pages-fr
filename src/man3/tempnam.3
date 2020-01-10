@@ -1,0 +1,138 @@
+.\" Copyright (c) 1999 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TEMPNAM 3 "19 avril 2013" "" "Manuel du programmeur Linux"
+.SH NOM
+tempnam \- Créer un nom de fichier temporaire
+.SH SYNOPSIS
+.nf
+\fB#include <stdio.h>\fP
+.sp
+\fBchar *tempnam(const char *\fP\fIrep\fP\fB, const char *\fP\fIpréfixe\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBtempnam\fP()\ : _BSD_SOURCE || _SVID_SOURCE
+.SH DESCRIPTION
+La fonction \fBtempnam\fP() renvoie un pointeur sur un nom de fichier valide,
+en s'assurant qu'aucun fichier de ce nom n'existe au moment de son
+invocation. Le nom du fichier commence par le \fIpréfixe\fP si celui\-ci n'est
+pas NULL et contient jusqu'à cinq caractères. Le chemin d'accès devant le
+nom du fichier sera obligatoirement «\ approprié\ » (ce qui implique au
+minimum qu'on puisse y écrire).
+
+L'ordre de recherche du répertoire pour placer le fichier est le suivant\ :
+.TP  3
+a)
+Le répertoire indiqué par la variable d'environnement \fBTMPDIR\fP, si elle
+existe et contient le nom d'un répertoire «\ approprié\ ».
+.TP 
+b)
+Sinon, le répertoire indiqué par l'argument \fIrep\fP, s'il n'est pas NULL et
+est «\ approprié\ ».
+.TP 
+c)
+Sinon, le répertoire défini par \fIP_tmpdir\fP (dans \fI<stdio.h>\fP) s'il
+est «\ approprié\ ».
+.TP 
+d)
+Enfin, un répertoire dépendant de l'implémentation (\fI/tmp\fP par exemple).
+.PP
+La chaîne renvoyée par \fBtempnam\fP() est allouée avec \fBmalloc\fP(3) et doit
+donc être libérée avec \fBfree\fP(3).
+.SH "VALEUR RENVOYÉE"
+Si l'exécution réussit, la fonction \fBtempnam\fP() renvoie un pointeur sur un
+nom de fichier unique. Elle renvoie NULL si ce nom n'a pas pu être généré,
+et affecte à \fIerrno\fP le code de l'erreur.
+.SH ERREURS
+.TP 
+\fBENOMEM\fP
+Échec de l'allocation de mémoire.
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3, POSIX.1\-2001. POSIX.1\-2008 marque \fBtempnam\fP() comme étant
+obsolète.
+.SH NOTES
+Bien que \fBtempnam\fP() génère des noms difficiles à deviner, il est néanmoins
+possible qu'entre le moment où \fBtempnam\fP() a renvoyé un nom de fichier, et
+le moment où le programme crée effectivement ce fichier, un autre programme
+ait déjà créé ce fichier avec \fBopen\fP(2) ou comme un lien symbolique. Ceci
+peut occasionner des failles de sécurité. Pour éviter ces problèmes,
+utilisez l'option \fBO_EXCL\fP d'\fBopen\fP(2) lors de l'ouverture du fichier. Ou
+mieux encore, utilisez \fBmkstemp\fP(3) ou \fBtmpfile\fP(3).
+
+SUSv2 ne mentionne pas l'utilisation de \fBTMPDIR\fP, la glibc ne l'emploiera
+que si le programme n'est pas setuid. SVr4 indique que le répertoire pour
+\fBd)\fP est \fI/tmp\fP (ce qui correspond à ce que fait la glibc).
+.LP
+Comme la mémoire utilisée pour le nom du fichier est allouée dynamiquement,
+\fBtempnam\fP() est réentrante, et donc sûre dans un contexte multithread,
+contrairement à \fBtmpnam\fP(3).
+.LP
+La fonction \fBtempnam\fP() crée une chaîne différente à chaque fois qu'elle
+est appelée, jusqu'à \fBTMP_MAX\fP (définie dans \fI<stdio.h>\fP) fois. Si
+on l'appelle plus de \fBTMP_MAX\fP fois, le comportement dépend de
+l'implémentation.
+.LP
+\fBtempnam\fP() utilise au plus les cinq premiers octets de \fIpréfixe\fP.
+
+En cas d'échec pour créer un nom de fichier inexistant, l'implémentation de
+\fBtempnam\fP() de la glibc renverra l'erreur \fBEEXIST\fP.
+.SH BOGUES
+La signification précise d'«\ approprié\ » est indéfinie, la détermination
+des conditions d'accessibilité à un répertoire n'est pas spécifiée.
+
+N'utilisez jamais cette routine. Utilisez \fBmkstemp\fP(3) ou \fBtmpfile\fP(3) à
+la place.
+.SH "VOIR AUSSI"
+\fBmkstemp\fP(3), \fBmktemp\fP(3), \fBtmpfile\fP(3), \fBtmpnam\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

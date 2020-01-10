@@ -1,0 +1,156 @@
+.\" Copyright (c) 1983, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     @(#)setregid.2	6.4 (Berkeley) 3/10/91
+.\"
+.\" Modified Sat Jul 24 09:08:49 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Portions extracted from linux/kernel/sys.c:
+.\"             Copyright (C) 1991, 1992  Linus Torvalds
+.\"             May be distributed under the GNU General Public License
+.\" Changes: 1994-07-29 by Wilf <G.Wilford@ee.surrey.ac.uk>
+.\"          1994-08-02 by Wilf due to change in kernel.
+.\"          2004-07-04 by aeb
+.\"          2004-05-27 by Michael Kerrisk
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SETREUID 2 "22 novembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+setreuid, setregid \- Définir les UID et GID effectifs et/ou réels
+.SH SYNOPSIS
+\fB#include <sys/types.h>\fP
+.br
+\fB#include <unistd.h>\fP
+.sp
+\fBint setreuid(uid_t \fP\fIruid\fP\fB, uid_t \fP\fIeuid\fP\fB);\fP
+.br
+\fBint setregid(gid_t \fP\fIrgid\fP\fB, gid_t \fP\fIegid\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBsetreuid\fP(), \fBsetregid\fP()\ :
+.RS 4
+.ad l
+_BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.ad
+.RE
+.SH DESCRIPTION
+\fBsetreuid\fP() définit les ID d'utilisateur effectif et réel du processus
+appelant.
+
+Fournir une valeur \-1 pour l'un des arguments demande au système de ne pas
+modifier l'ID correspondant
+
+Les processus non privilégiés peuvent seulement définir leur UID effectif à
+la valeur de l'UID réel, de l'UID effectif ou de l'UID sauvé.
+
+Les utilisateurs non privilégiés peuvent seulement définir l'UID réel à la
+valeur de l'UID réel ou de l'UID effectif.
+
+Si l'UID réel est changé, ou si l'UID effectif est rempli avec une valeur
+différente de l'UID réel précédent, le set\-uid sauvé sera également rempli
+avec la valeur du nouvel UID effectif.
+
+De manière analogue, \fBsetregid\fP() définit les ID de groupe du processus
+appelant, et toutes les remarques précédentes s'appliquent, en remplaçant
+GID par UID.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEPERM\fP
+Le processus appelant n'est pas privilégié (sous Linux\ : n'a pas la
+capacité \fBCAP_SETUID\fP dans le cas de \fBsetreuid\fP(), ou la capacité
+\fBCAP_SETGID\fP dans le cas de \fBsetregid\fP()), des modifications ont été
+demandées autres que (i) l'échange de l'UID (resp. GID) effectif avec l'UID
+(GID) réel, (ii) la copie d'un UID (GID) dans un autre, ou (iii) le
+remplissage de l'UID (GID) effectif avec la valeur de l'UID (GID) sauvé.
+.SH CONFORMITÉ
+POSIX.1\-2001, BSD\ 4.3 (les fonctions \fBsetreuid\fP() et \fBsetregid\fP() sont
+apparues dans BSD\ 4.2).
+.SH NOTES
+Définir l'UID (GID) effectif avec la valeur de l'UID (GID) sauvé est
+possible depuis Linux 1.1.37 (1.1.38).
+
+POSIX.1 ne donne pas tous les changements d'identifiants qui sont autorisés
+sous Linux pour un processus non privilégié. Pour \fBsetreuid\fP(),
+l'identifiant d'utilisateur effectif peut être celui de l'identifiant
+d'utilisateur réel ou celui de l'identifiant d'utilisateur sauvé. Il n'est
+pas indiqué si des processus non privilégiés peuvent changer l'identifiant
+d'utilisateur réel en l'identifiant d'utilisateur effectif ou en celui
+sauvé. Pour \fBsetregid\fP(), l'identifiant de groupe réel peut être changé en
+la valeur de l'identifiant de groupe sauvé, et l'identifiant de groupe
+effectif peut être changé en la valeur de l'identifiant de groupe réel ou de
+celui sauvé. Les détails précis sur les changements d'identifiants autorisés
+varient en fonction de l'implémentation.
+
+POSIX.1 ne dit rien de l'effet de ces appels sur les set\-user\-ID et
+set\-group\-ID sauvés.
+
+Les appels système \fBsetreuid\fP() et \fBsetregid\fP() originaux de Linux ne
+géraient que des identifiants d'utilisateur et de groupe sur 16\ bits. En
+conséquence, Linux\ 2.4 a ajouté \fBsetreuid32\fP() et \fBsetregid32\fP() qui
+prennent en charge des identifiants 32\ bits. Les fonctions \fBsetreuid\fP() et
+\fBsetregid\fP() de la glibc qui les encapsulent gèrent de manière transparente
+ces différences entre noyaux.
+.SH "VOIR AUSSI"
+\fBgetgid\fP(2), \fBgetuid\fP(2), \fBseteuid\fP(2), \fBsetgid\fP(2), \fBsetresuid\fP(2),
+\fBsetuid\fP(2), \fBcapabilities\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

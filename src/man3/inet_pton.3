@@ -1,0 +1,184 @@
+.\" Copyright 2000 Sam Varshavchik <mrsam@courier-mta.com>
+.\" and Copyright (c) 2008 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References: RFC 2553
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH INET_PTON 3 "18 juin 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+inet_pton \- Convertir des adresses IPv4 et IPv6 sous forme texte en forme
+binaire
+.SH SYNOPSIS
+.nf
+\fB#include <arpa/inet.h>\fP
+
+\fBint inet_pton(int \fP\fIaf\fP\fB, const char *\fP\fIsrc\fP\fB, void *\fP\fIdst\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Cette fonction convertit la chaîne de caractères \fIsrc\fP en une structure
+d'adresse réseau de la famille \fIaf\fP, puis copie cette structure dans \fIdst\fP
+\&.L'argument \fIaf\fP doit être soit \fBAF_INET\fP soit \fBAF_INET6\fP.
+.PP
+Les familles d'adresses suivantes sont dès à présent supportées\ :
+.TP 
+\fBAF_INET\fP
+\fIsrc\fP pointe sur une chaîne de caractère contenant une adresse réseau IPv4
+au format décimal pointé \fIddd.ddd.ddd.ddd\fP, où \fIddd\fP est un nombre
+décimal, contenant jusqu'à trois chiffres, dans l'intervalle 0 à
+255. L'adresse est alors convertie en une structure \fIstruct in_addr\fP et
+copiée dans \fIdst\fP, qui doit donc contenir au minimum \fIsizeof(struct
+in_addr)\fP (4) octets (32\ bits).
+.TP 
+\fBAF_INET6\fP
+\fIsrc\fP pointe sur une chaîne de caractères contenant une adresse réseau
+IPv6. L'adresse est convertie en une structure \fIstruct in6_addr\fP et copiée
+dans \fIdst\fP, qui doit donc contenir au moins \fIsizeof(struct in6_addr)\fP (16)
+octets (128\ bits). Les formats d'adresse IPv6 autorisés suivent les règles
+suivantes\ :
+.RS
+.IP 1. 3
+Le format préféré est \fIx:x:x:x:x:x:x:x\fP. Cette forme consiste en 8 nombres
+hexadécimaux, chacun d'entre eux exprimant une valeur sur 16\ bits
+(c'est\-à\-dire que chaque \fIx\fP peut contenir jusqu'à 4 symboles
+hexadécimaux).
+.IP 2.
+Une série de zéros contigus dans la forme préférée peut être abrégée en
+\fI::\fP. Une seule instance de \fI::\fP peut apparaître dans une adresse. Par
+exemple, l'adresse de boucle \fI0:0:0:0:0:0:0:1\fP peut être abrégée en
+\fI::1\fP. L'adresse joker, constituée uniquement de zéros, peut être écrite
+comme \fI::\fP.
+.IP 3.
+Un autre format utile pour exprimer des adresses IPv4 projetées dans
+l'espace IPv6 est \fIx:x:x:x:x:x:d.d.d.d\fP, où les six \fIx\fP de tête sont des
+valeurs hexadécimales qui définissent les 6 mots 16\ bits de poids fort de
+l'adresse (c'est\-à\-dire 96\ bits), et les \fId\fP expriment une valeur en
+notation décimale pointée définissant les 32\ bits de poids faible de
+l'adresse. Un exemple d'une telle adresse est \fI::FFFF:204.152.189.116\fP.
+.RE
+.IP
+Consultez la RFC\ 2373 pour plus de détails sur la représentation des
+adresses IPv6.
+.SH "VALEUR RENVOYÉE"
+\fBinet_pton\fP() renvoie 1 si elle réussit (l'adresse réseau a été convertie
+avec succès). Elle renvoie une valeur nulle si \fIsrc\fP ne contient pas une
+adresse réseau valable pour la famille indiquée. Si \fIaf\fP ne contient pas de
+famille d'adresse valable, \-1 est renvoyé et \fIerrno\fP contient
+\fBEAFNOSUPPORT\fP.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Contrairement à \fBinet_aton\fP(3) et \fBinet_addr\fP(3), \fBinet_pton\fP() gère les
+adresses IPv6. D'un autre coté, \fBinet_pton\fP() n'accepte que les adresses
+IPv4 en notation décimale pointée alors que \fBinet_aton\fP(3) et
+\fBinet_addr\fP(3) autorisent la notation plus générale numérique pointée
+(formats à nombre hexadécimaux et octaux, de même que les formats n'exigeant
+pas que les 4 octets soient explicitement écrits). Pour une interface gérant
+les adresses IPv6 et IPv4 en notation numérique pointée, consultez
+\fBgetaddrinfo\fP(3).
+.SH BOGUES
+\fBAF_INET6\fP ne reconnaît pas les adresses IPv4. Il faut dans ce cas fournir
+dans \fIsrc\fP une adresse IPv4 projetée dans l'espace IPv6.
+.SH EXEMPLE
+Le programme suivant montre une utilisation de \fBinet_pton\fP() et
+\fBinet_ntop\fP(3). Voici quelques exemples d'exécution\ :
+.in +4n
+.nf
+
+$\fB ./a.out i6 0:0:0:0:0:0:0:0\fP
+::
+$\fB ./a.out i6 1:0:0:0:0:0:0:8\fP
+1::8
+$\fB ./a.out i6 0:0:0:0:0:FFFF:204.152.189.116\fP
+::ffff:204.152.189.116
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int
+main(int argc, char *argv[])
+{
+    unsigned char buf[sizeof(struct in6_addr)];
+    int domain, s;
+    char str[INET6_ADDRSTRLEN];
+
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s {i4|i6|<num>} string\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    domain = (strcmp(argv[1], "i4") == 0) ? AF_INET :
+             (strcmp(argv[1], "i6") == 0) ? AF_INET6 : atoi(argv[1]);
+
+    s = inet_pton(domain, argv[2], buf);
+    if (s <= 0) {
+        if (s == 0)
+            fprintf(stderr, "Not in presentation format");
+        else
+            perror("inet_pton");
+        exit(EXIT_FAILURE);
+    }
+
+    if (inet_ntop(domain, buf, str, INET6_ADDRSTRLEN) == NULL) {
+        perror("inet_ntop");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("%s\en", str);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBgetaddrinfo\fP(3), \fBinet\fP(3), \fBinet_ntop\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

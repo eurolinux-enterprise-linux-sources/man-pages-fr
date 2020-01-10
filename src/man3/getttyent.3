@@ -1,0 +1,100 @@
+.\"  Copyright 2002 walter harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETTTYENT 3 "21 juin 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+getttyent, getttynam, setttyent, endttyent \- Lire le fichier des terminaux
+.SH SYNOPSIS
+\fB#include <ttyent.h>\fP
+.sp
+\fBstruct ttyent *getttyent(void);\fP
+.sp
+\fBstruct ttyent *getttynam(const char *\fP\fInom\fP\fB);\fP
+.sp
+\fBint setttyent(void);\fP
+.sp
+\fBint endttyent(void);\fP
+.SH DESCRIPTION
+Ces fonctions fournissent une interface pour le fichier \fB_PATH_TTYS\fP (par
+exemple \fI/etc/ttys\fP).
+
+La fonction \fBsetttyent\fP() ouvre le fichier, ou reprend la lecture au début
+s'il était déjà ouvert.
+
+La fonction \fBendttyent\fP() ferme le fichier.
+
+La fonction \fBgetttynam\fP() recherche un nom de terminal dans le
+fichier. Elle renvoie un pointeur sur une structure \fIttyent\fP (voir
+ci\-dessous).
+
+La fonction \fBgetttyent\fP() ouvre le fichier \fB_PATH_TTYS\fP (si besoin) et
+renvoie la première entrée. Si le fichier est déjà ouvert, elle renvoie
+l'entrée suivante. La structure \fIttyent\fP est définie comme suit\ :
+.in +4n
+.nf
+
+struct ttyent {
+        char    *ty_name;       /* nom du terminal */
+        char    *ty_getty;      /* commande à exécuter (p.ex.\ : getty) */
+        char    *ty_type;       /* type termcap de terminal */
+        int     ty_status;      /* attributs d'état */
+        char    *ty_window;     /* commande gestionnaire de fenêtres */
+        char    *ty_comment;    /* commentaires */
+};
+.fi
+.in
+
+Le champ \fIty_status\fP peut valoir\ :
+.br
+.nf
+
+#define TTY_ON       0x01   /* autoriser les logins (avec ty_getty) */
+#define 	TTY_SECURE   0x02   /* autoriser le login de l'UID zéro */
+.fi
+.SH ATTRIBUTS
+.SS "Multithreading (voir pthreads(7))"
+La fonction \fBgetttyent\fP() n'est pas sûre dans un contexte multithread car
+elle renvoie un pointeur vers une variable statique.
+.LP
+Les fonctions \fBsetttyent\fP() et \fBendttyent\fP() ne sont pas sûres dans un
+contexte multithread car elles utilisent une variable statique.
+.LP
+La fonction \fBgetttynam\fP() n'est pas sûre dans un contexte multithread car
+elle appelle la fonction \fBgetttyent\fP() qui n'est pas sûre non plus.
+.SH CONFORMITÉ
+Absent de POSIX.1\-2001. Présent sur les systèmes BSD et peut\-être d'autres
+systèmes.
+.SH NOTES
+Sous Linux, le fichier \fI/etc/ttys\fP, et les fonctions décrites ci\-dessus ne
+sont pas utilisés.
+.SH "VOIR AUSSI"
+\fBttyname\fP(3), \fBttyslot\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

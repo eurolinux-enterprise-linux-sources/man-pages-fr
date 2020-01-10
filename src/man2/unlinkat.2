@@ -1,0 +1,130 @@
+.\" This manpage is Copyright (C) 2006, Michael Kerrisk
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UNLINKAT 2 "4 mai 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+unlinkat \- Supprimer une entrée de répertoire relative à un descripteur de
+fichier
+.SH SYNOPSIS
+.nf
+\fB#include <fcntl.h> /* Définition des constantes AT_* */\fP
+\fB#include <unistd.h>\fP
+.sp
+\fBint unlinkat(int \fP\fIdirfd\fP\fB, const char *\fP\fIpathname\fP\fB, int \fP\fIflags\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBunlinkat\fP():
+.PD 0
+.ad l
+.RS 4
+.TP  4
+Depuis la glibc 2.10\ :
+_XOPEN_SOURCE\ >=\ 700 || _POSIX_C_SOURCE\ >=\ 200809L
+.TP 
+Avant la glibc 2.10\ :
+_ATFILE_SOURCE
+.RE
+.ad
+.PD
+.SH DESCRIPTION
+L'appel système \fBunlinkat\fP() fonctionne exactement comme \fBunlink\fP(2) ou
+\fBrmdir\fP(2) (en fonction de la présence ou non du drapeau \fBAT_REMOVEDIR\fP
+dans \fIflags\fP), les seules différences étant décrites sur cette page.
+
+Si le chemin donné dans \fIpathname\fP est relatif, il est interprété par
+rapport au répertoire référencé par le descripteur de fichier \fIdirfd\fP
+(plutôt que par rapport au répertoire de travail, comme c'est le cas pour
+\fBunlink\fP(2) et \fBrmdir\fP(2)).
+
+Si le chemin donné dans \fIpathname\fP est relatif et si \fIdirfd\fP a la valeur
+spéciale \fBAT_FDCWD\fP, alors \fIpathname\fP est interprété par rapport au
+répertoire de travail du processus appelant (comme pour \fBunlink\fP(2) et
+\fBrmdir\fP(2)).
+
+Si le chemin donné dans \fIpathname\fP est absolu, \fIdirfd\fP est ignoré.
+
+\fIflags\fP est un masque qui peut être 0 ou construit par un OU binaire de
+drapeaux qui contrôlent le fonctionnement de \fBunlinkat\fP(). Actuellement, un
+seul drapeau est défini\ :
+.TP 
+\fBAT_REMOVEDIR\fP
+Par défaut, \fBunlinkat\fP() a un effet équivalent à celui de \fBunlink\fP(2) sur
+\fIpathname\fP. Si le drapeau \fBAT_REMOVEDIR\fP est indiqué, \fBunlinkat\fP()
+fonctionne comme \fBrmdir\fP(2) sur \fIpathname\fP.
+.SH "VALEUR RENVOYÉE"
+L'appel renvoie zéro s'il réussit, ou \-1 s'il échoue auquel cas \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+Les erreurs renvoyées par \fBunlink\fP(2) et \fBrmdir\fP(2) peuvent aussi l'être
+par \fBunlinkat\fP(). Les erreurs supplémentaires suivantes peuvent également
+se produire\ :
+.TP 
+\fBEBADF\fP
+\fIdirfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBEINVAL\fP
+\fIflags\fP contient un drapeau invalide.
+.TP 
+\fBENOTDIR\fP
+\fIpathname\fP est relatif, et le descripteur de fichier \fIdirfd\fP est associé à
+un fichier, pas à un répertoire.
+.SH VERSIONS
+\fBunlinkat\fP() a été ajouté au noyau Linux dans sa version 2.6.16\ ; la glibc
+le gère depuis la version\ 2.4.
+.SH CONFORMITÉ
+POSIX.1\-2008. Un appel système similaire existe sur Solaris.
+.SH NOTES
+Consultez \fBopenat\fP(2) pour une explication de la nécessité de
+\fBunlinkat\fP().
+.SH "VOIR AUSSI"
+\fBopenat\fP(2), \fBrmdir\fP(2), \fBunlink\fP(2), \fBpath_resolution\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,186 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH WORDEXP 3 "14 juillet 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+wordexp, wordfree \- Effectuer l'expansion de mots à la manière d'un shell
+POSIX
+.SH SYNOPSIS
+\fB#include <wordexp.h>\fP
+.sp
+\fBint wordexp(const char *\fP\fIs\fP\fB, wordexp_t *\fP\fIp\fP\fB, int \fP\fIflags\fP\fB);\fP
+.sp
+\fBvoid wordfree(wordexp_t *\fP\fIp\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBwordexp\fP(), \fBwordfree\fP()\ : _XOPEN_SOURCE
+.SH DESCRIPTION
+La fonction \fBwordexp\fP() effectue une expansion de type shell de la chaîne
+\fIs\fP et retourne le résultat dans la structure pointée par \fIp\fP. Le type de
+données \fIwordexp_t\fP est une structure qui possède au moins les membres
+\fIwe_wordc\fP, \fIwe_wordv\fP, et \fIwe_offs\fP. Le membre \fIwe_wordc\fP est de type
+\fIsize_t\fP et donne le nombre de mots dans l'expansion de \fIs\fP. Le membre
+\fIwe_wordv\fP est de type \fIchar\ **\fP et pointe sur le tableau des mots
+trouvés. Le membre \fIwe_offs\fP de type \fIsize_t\fP est quelquefois (suivant
+\fIflags\fP, voir plus loin) utilisé pour indiquer le nombre d'éléments du
+tableau \fIwe_wordv\fP qui devraient être remplis initialement avec le
+caractère NULL.
+.LP
+La fonction \fBwordfree\fP() libère la mémoire nouvellement allouée. Plus
+précisément, elle ne libère pas son argument mais libère le tableau
+\fIwe_wordv\fP ainsi que les chaînes vers lesquelles il pointe.
+.SS "L'argument chaîne"
+Puisque l'expansion est effectuée de la même manière que le shell (consultez
+\fBsh\fP(1)) sur les paramètres d'une commande, la chaîne \fIs\fP ne doit pas
+contenir de caractères qui seraient illégaux dans les paramètres d'une
+commande shell. En particulier, il ne doit pas y avoir de caractères
+nouvelle ligne ou |, &, ;, <, >, (, ), {, } non protégés en dehors
+d'un contexte de substitution de commande ou de paramètre.
+.LP
+Si l'argument \fIs\fP contient un mot qui débute par un caractère de
+commentaires «\ #\ » hors de tous guillemets, il n'est pas spécifié si ce
+mot et les suivants sont ignorés, ou si le # est considéré comme un
+caractère normal.
+.SS L'expansion
+L'expansion effectuée consiste en les étapes suivantes\ : expansion du
+caractère tilde (remplacement de ~utilisateur par le répertoire personnel de
+l'utilisateur), substitution de variable (remplacement de $FOO par la valeur
+de la variable d'environnement FOO), substitution de commande (remplacement
+de $(commande) ou \`commande\` par la sortie de la commande), expansion
+arithmétique, découpage de champs, expansion des caractères de remplacement
+(wildcard), suppression des caractères de citation (\fIquotes\fP).
+.LP
+Le résultat de l'expansion de caractères spéciaux ($@, $*, $#, $?, $\-, $$,
+$!, $0) n'est pas spécifié.
+.LP
+Le découpage des champs est effectué en utilisant la variable
+d'environnement $IFS. Si elle n'est pas positionnée, les séparateurs de
+champs sont l'espace, la tabulation et le caractère nouvelle ligne.
+.SS "Le tableau de sortie"
+Le tableau \fIwe_wordv\fP contient les mots trouvés, suivis par le caractère
+NULL.
+.SS "L'argument flags"
+L'argument \fIflag\fP est un OU inclusif bit à bit des valeurs suivantes\ :
+.TP 
+\fBWRDE_APPEND\fP
+Ajouter les mots trouvés au tableau résultant d'un précédent appel.
+.TP 
+\fBWRDE_DOOFFS\fP
+Insérer \fIwe_offs\fP caractères initiaux NULL dans le tableau \fIwe_wordv\fP (ils
+ne seront pas comptés dans le membre \fIwe_wordc\fP retourné).
+.TP 
+\fBWRDE_NOCMD\fP
+Ne pas effectuer la substitution de commande.
+.TP 
+\fBWRDE_REUSE\fP
+Le paramètre \fIp\fP résulte d'un précédent appel à \fBwordexp\fP(), et
+\fBwordfree\fP() n'a pas été appelé. Réutiliser l'espace de stockage alloué.
+.TP 
+\fBWRDE_SHOWERR\fP
+Normalement, lors d'une substitution de commande, \fIstderr\fP est redirigée
+vers \fI/dev/null\fP. Ce drapeau spécifie que \fIstderr\fP ne sera pas redirigé.
+.TP 
+\fBWRDE_UNDEF\fP
+Considérer comme une erreur le fait qu'une variable shell non définie soit
+développée.
+.SH "VALEUR RENVOYÉE"
+Si elle réussit, la fonction renvoie 0. Si elle échoue, elle renvoie l'une
+des cinq valeurs suivantes\ :
+.TP 
+\fBWRDE_BADCHAR\fP
+Occurrence illégale d'un caractère nouvelle ligne ou d'un caractère parmi |,
+&, ;, <, >, (, ), {, }.
+.TP 
+\fBWRDE_BADVAL\fP
+Il y a une référence à une variable shell non définie, et le drapeau
+\fBWRDE_UNDEF\fP nous demande de considérer que c'est une erreur.
+.TP 
+\fBWRDE_CMDSUB\fP
+Une substitution de commande est apparue, et le drapeau \fBWRDE_NOCMD\fP nous
+demande de considérer que c'est une erreur.
+.TP 
+\fBWRDE_NOSPACE\fP
+Plus de mémoire disponible.
+.TP 
+\fBWRDE_SYNTAX\fP
+Erreur de syntaxe shell, comme des parenthèses ou des guillemets non
+appariés.
+.SH VERSIONS
+\fBwordexp\fP() et \fBwordfree\fP() sont fournies par la glibc depuis la
+version\ 2.1.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH EXEMPLE
+La sortie du programme d'exemple suivant est approximativement celle de «\ ls [a\-c]*.c\ ».
+.LP
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+#include <wordexp.h>
+
+int
+main(int argc, char **argv)
+{
+    wordexp_t p;
+    char **w;
+    int i;
+
+    wordexp("[a\-c]*.c", &p, 0);
+    w = p.we_wordv;
+    for (i = 0; i < p.we_wordc; i++)
+        printf("%s\en", w[i]);
+    wordfree(&p);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBfnmatch\fP(3), \fBglob\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2004-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

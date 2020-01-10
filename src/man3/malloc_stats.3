@@ -1,0 +1,74 @@
+.\" t
+.\" Copyright (c) 2012 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MALLOC_STATS 3 "6 mai 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+malloc_stats \- Afficher les statistiques d'allocation de mémoire
+.SH SYNOPSIS
+\fB#include <malloc.h>\fP
+
+\fBvoid malloc_stats(void);\fP
+.SH DESCRIPTION
+.\" .SH VERSIONS
+.\" Available already in glibc 2.0, possibly earlier
+La fonction \fBmalloc_stats\fP() affiche (sur la sortie d'erreur standard) des
+statistiques à propos de la mémoire allouée par \fBmalloc\fP(3) et pour
+d'autres fonctions associées. Pour chaque enclos mémoire («\ arena\ » ou zone
+allouée), cette fonction affiche la quantité de mémoire allouée et le nombre
+total d'octets consommés par les allocations en cours d'utilisation (ces
+deux valeurs correspondent aux champs \fIarena\fP et \fIuordblks\fP récupérés par
+\fBmallinfo\fP(3)). De plus, la fonction affiche la somme de ces deux nombres
+pour tous les enclos mémoire, et le nombre maximal de blocs et octets qui
+ont déjà été alloués en utilisant \fBmmap\fP(2).
+.SH CONFORMITÉ
+Cette fonction est une extension GNU.
+.SH NOTES
+De plus amples renseignements sur les allocations de mémoire dans l'enclos
+principal sont disponibles en utilisant \fBmallinfo\fP(3).
+.SH "VOIR AUSSI"
+\fBmmap\fP(2), \fBmallinfo\fP(3), \fBmalloc\fP(3), \fBmalloc_info\fP(3), \fBmallopt\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

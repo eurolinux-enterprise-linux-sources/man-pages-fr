@@ -1,0 +1,142 @@
+.\" Copyright (c) 2012 YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+.\" and Copyright (c) 2012 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of
+.\" this manual under the conditions for verbatim copying, provided that
+.\" the entire resulting derived work is distributed under the terms of
+.\" a permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume
+.\" no responsibility for errors or omissions, or for damages resulting
+.\" from the use of the information contained herein.  The author(s) may
+.\" not have taken the same level of care in the production of this
+.\" manual, which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH IF_NAMEINDEX 3 "21 novembre 2012" GNU "Manuel du programmeur Linux"
+.SH NOM
+if_nameindex, if_freenameindex \- Obtenir le nom et l'indice des interfaces
+réseau
+.SH SYNOPSIS
+.nf
+\fB#include <net/if.h>\fP
+.sp
+\fBstruct if_nameindex *if_nameindex(void);\fP
+\fBvoid if_freenameindex(struct if_nameindex *\fP\fIptr\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBif_nameindex\fP() renvoie un tableau de structures
+\fIif_nameindex\fP, contenant chacune des informations au sujet d'une des
+interfaces réseau du système local. La structure \fIif_nameindex\fP contient au
+moins les champs suivants\ :
+.sp
+.in +4n
+.nf
+    unsigned int if_index; /* indice de l'interface (1, 2, etc.) */
+    char        *if_name;  /* nom terminé par un caractère nul ("eth0", etc.) */
+.fi
+.in
+.PP
+Le champ \fIif_index\fP contient l'indice de l'interface. Le champ \fIifa_name\fP
+pointe vers le nom de l'interface, donné par une chaîne terminée par un
+caractère nul. La fin du tableau est indiquée par une entrée dont les champs
+\fIif_index\fP et \fIifa_name\fP valent respectivement 0 et le pointeur NULL.
+.PP
+La donnée renvoyée par \fBif_nameindex\fP() est dynamiquement allouée et
+devrait être libérée avec \fBif_freenameindex\fP() lorsqu'elle n'est plus
+utilisée.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, \fBif_nameindex\fP() renvoie un pointeur vers le
+tableau. En cas d'erreur, elle renvoie un pointeur NULL et \fIerrno\fP est
+rempli avec le code d'erreur.
+.SH ERREURS
+\fBif_nameindex\fP() peut échouer et remplir \fIerrno\fP si\ :
+.TP 
+\fBENOBUFS\fP
+les ressources disponibles sont insuffisantes.
+.PP
+\fBgetifaddrs\fP()  peut aussi échouer  pour les erreurs précisées pour
+\fBsocket\fP(2), \fBbind\fP(2), \fBgetsockname\fP(2), \fBrecvmsg\fP(2), \fBsendto\fP(2) ou
+\fBmalloc\fP(3).
+.SH VERSIONS
+\fBgetifaddrs\fP() est apparue dans la glibc\ 2.1. Les versions antérieures à la
+glibc 2.3.4 ne géraient que les interfaces avec des adresses IPv4. La
+gestion des interfaces qui n'ont pas d'adresse IPv4 n'est disponible que si
+le noyau gère netlink.
+.SH CONFORMITÉ
+RFC\ 3493, POSIX.1\-2001.
+
+Cette fonction est d'abord apparue dans BSDi.
+.SH EXEMPLE
+Le programme ci\-dessous montre l'utilisation des fonctions décrites dans
+cette page. Voici un exemple de sortie que ce programme peut produire\ :
+.in +4n
+.nf
+$ \fB./a.out\fP\fI
+1: lo
+2: wlan0
+3: em1\fP
+.fi
+.in
+.SS "Source du programme"
+.nf
+#include <net/if.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int
+main(int argc, char *argv[])
+{
+    struct if_nameindex *if_ni, *i;
+
+    if_ni = if_nameindex();
+    if (if_ni == NULL) {
+        perror("if_nameindex");
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = if_ni; ! (i\->if_index == 0 && i\->if_name == NULL); i++)
+        printf("%u: %s\en", i\->if_index, i\->if_name);
+
+    if_freenameindex(if_ni);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBgetsockopt\fP(2), \fBsetsockopt\fP(2), \fBgetifaddrs\fP(3), \fBif_indextoname\fP(3),
+\fBif_nametoindex\fP(3), \fBifconfig\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,228 @@
+.\" Copyright (c) 2003 Nick Clifford (zaf@nrc.co.nz), Jan 25, 2003
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl), Aug 24, 2003
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 2003-08-23 Martin Schulze <joey@infodrom.org> improvements
+.\" 2003-08-24 aeb, large parts rewritten
+.\" 2004-08-06 Christoph Lameter <clameter@sgi.com>, SMP note
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CLOCK_GETRES 2 "25 février 2013" "" "Manuel du programmeur Linux"
+.SH NOM
+clock_getres, clock_gettime, clock_settime \- Fonctions d'horloge et de temps
+.SH SYNOPSIS
+\fB#include <time.h>\fP
+.sp
+\fBint clock_getres(clockid_t \fP\fIclk_id\fP\fB, struct timespec *\fP\fIres\fP\fB);\fP
+
+\fBint clock_gettime(clockid_t \fP\fIclk_id\fP\fB, struct timespec *\fP\fItp\fP\fB);\fP
+
+\fBint clock_settime(clockid_t \fP\fIclk_id\fP\fB, const struct timespec
+*\fP\fItp\fP\fB);\fP
+.sp
+Lier avec \fI\-lrt\fP (seulement pour les versions de glibc antérieures à 2.17).
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBclock_getres\fP(), \fBclock_gettime\fP(), \fBclock_settime\fP()\ :
+.RS
+_POSIX_C_SOURCE\ >=\ 199309L
+.RE
+.ad b
+.SH DESCRIPTION
+La fonction \fBclock_getres\fP() cherche la résolution (précision) de l'horloge
+\fIclk_id\fP spécifiée et si \fIres\fP est non NULL, elle l'enregistre dans la
+structure \fItimespec\fP pointée par \fIres\fP. La résolution des horloges dépend
+de l'implémentation et ne peut pas être configurée par un processus
+particulier. Si la valeur du temps pointé par l'argument \fItp\fP de
+\fBclock_settime\fP() n'est pas un multiple de \fIres\fP, cette valeur est
+tronquée à un multiple de \fIres\fP.
+.PP
+Les fonctions \fBclock_gettime\fP() et \fBclock_settime\fP() récupèrent et
+configurent le temps de l'horloge \fIclk_id\fP spécifiée.
+.PP
+Les arguments \fIres\fP et \fItp\fP sont des structures \fItimespec\fP définies dans
+\fI<time.h>\fP\ :
+.sp
+.in +4n
+.nf
+struct timespec {
+    time_t   tv_sec;        /* secondes */
+    long     tv_nsec;       /* nanosecondes */
+};
+.fi
+.in
+.PP
+L'argument \fIclk_id\fP est l'identifiant d'une horloge particulière sur
+laquelle agir. Une horloge peut être globale au système, et par conséquent
+visible de tous les processus, ou propre à un processus, si elle mesure le
+temps uniquement pour celui\-ci.
+.LP
+Toutes les implémentations supportent l'horloge temps réel globale, laquelle
+est identifiée par \fBCLOCK_REALTIME\fP. Son temps représente le nombre de
+secondes et nanosecondes écoulées depuis l'époque UNIX (1er\ janvier 1970 à\ 00:00:00 UTC). Lorsque son temps est modifié, les horloges mesurant un
+intervalle de temps ne sont pas affectées alors que celles indiquant une
+date (heure) absolue le sont.
+.LP
+Plusieurs horloges peuvent être implémentées. L'interprétation des valeurs
+de temps correspondantes et l'effet sur les temporisateurs ne sont pas
+spécifiés.
+.LP
+Les versions suffisamment récentes de la glibc et du noyau Linux gèrent les
+horloges suivantes\ :
+.TP 
+\fBCLOCK_REALTIME\fP
+Horloge système qui mesure le temps réel (c'est\-à\-dire comme une
+pendule). Modifier cette horloge nécessite des privilèges adéquats. Cette
+horloge est concernée par les sauts discontinus de l'heure système
+(c'est\-à\-dire si l'administrateur modifie l'heure lui\-même), et par les
+ajustements incrémentaux effectués par \fBadjtime\fP(3) et NTP.
+.TP 
+\fBCLOCK_REALTIME_COARSE\fP (depuis Linux 2.6.32\ ; spécifique à Linux)
+.\" Added in commit da15cfdae03351c689736f8d142618592e3cebc3
+Horloge plus rapide mais moins précise que \fBCLOCK_REALTIME\fP. À utiliser
+pour obtenir rapidement des données d'horodatage avec une résolution
+grossière.
+.TP 
+.TP 
+\fBCLOCK_MONOTONIC\fP
+Horloge non configurable qui représente un temps monotone depuis une date de
+début arbitraire. Cette horloge n'est pas concernée par les sauts
+discontinus de l'heure système (c'est\-à\-dire si l'administrateur modifie
+l'heure lui\-même), mais est affectée par les ajustements incrémentaux
+effectués par \fBadjtime\fP(3) et NTP.
+.TP 
+\fBCLOCK_MONOTONIC_COARSE\fP (depuis Linux 2.6.32\ ; spécifique à Linux)
+.\" Added in commit da15cfdae03351c689736f8d142618592e3cebc3
+Horloge plus rapide mais moins précise que \fBCLOCK_MONOTONIC\fP. À utiliser
+pour obtenir rapidement des données d'horodatage avec une résolution
+grossière.
+.TP 
+\fBCLOCK_MONOTONIC_RAW\fP (depuis Linux 2.6.28\ ; spécifique à Linux)
+.\" Added in commit 2d42244ae71d6c7b0884b5664cf2eda30fb2ae68, John Stultz
+Similaire à \fBCLOCK_MONOTONIC\fP, mais fournit un accès direct à un temps
+matériel qui n'est pas sujet ni aux ajustements NTP ni aux ajustements
+incrémentaux effectués par \fBadjtime\fP(3).
+.TP 
+\fBCLOCK_BOOTTIME\fP (depuis Linux 2.6.39\ ; spécifique à Linux)
+.\" commit 7fdd7f89006dd5a4c702fa0ce0c272345fa44ae0
+.\" commit 70a08cca1227dc31c784ec930099a4417a06e7d0
+Horloge identique à \fBCLOCK_MONOTONIC\fP, mais qui prend également en compte
+le temps écoulé pendant la veille du système. Cela offre aux applications
+une horloge monotone tenant compte des veilles, sans avoir à s'occuper des
+problèmes de discontinuités de \fBCLOCK_REALTIME\fP si l'horloge est mise à
+jour avec \fBsettimeofday\fP(2).
+.TP 
+\fBCLOCK_PROCESS_CPUTIME_ID\fP
+Horloge CPU haute résolution pour processus.
+.TP 
+\fBCLOCK_THREAD_CPUTIME_ID\fP
+Horloge CPU spécifique aux threads.
+.SH "VALEUR RENVOYÉE"
+\fBclock_gettime\fP(), \fBclock_settime\fP() et \fBclock_getres\fP() renvoient 0 si
+elles réussissent ou \-1 si elles échouent, auquel cas \fIerrno\fP contient le
+code d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fItp\fP pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEINVAL\fP
+.\" Linux also gives this error on attempts to set CLOCK_PROCESS_CPUTIME_ID
+.\" and CLOCK_THREAD_CPUTIME_ID, when probably the proper error should be
+.\" EPERM.
+L'horloge \fIclk_id\fP spécifiée n'est pas supportée sur ce système.
+.TP 
+\fBEPERM\fP
+\fBclock_settime\fP() n'a pas l'autorisation de configurer l'horloge spécifiée.
+.SH CONFORMITÉ
+SUSv2, POSIX.1\-2001.
+.SH DISPONIBILITÉ
+Sur les systèmes conformes à la spécification POSIX sur lesquels ces
+fonctions sont disponibles, la constante symbolique \fB_POSIX_TIMERS\fP est
+définie dans \fI<unistd.h>\fP comme étant une valeur supérieure à
+0. Les constantes symboliques \fB_POSIX_MONOTONIC_CLOCK\fP, \fB_POSIX_CPUTIME\fP,
+\fB_POSIX_THREAD_CPUTIME\fP indiquent que \fBCLOCK_MONOTONIC\fP,
+\fBCLOCK_PROCESS_CPUTIME_ID\fP, \fBCLOCK_THREAD_CPUTIME_ID\fP sont
+disponibles. (Consultez aussi \fBsysconf\fP(3).)
+.SH NOTES
+.SS "Note pour les systèmes multiprocesseur (SMP)"
+Les horloges \fBCLOCK_PROCESS_CPUTIME_ID\fP et \fBCLOCK_THREAD_CPUTIME_ID\fP sont
+réalisées sur bien des plate\-formes en utilisant les temporisateurs des CPU
+(TSC sur i386, AR.ITC sur Itanium). Les registres peuvent être différents
+entre CPU avec pour conséquence des \fBrésultats bidons\fP pour ces horloges si
+un processus a été transféré sur une autre CPU.
+.PP
+Si les CPU d'un système multiprocesseur ont différentes sources d'horloges,
+il n'y a aucun moyen de maintenir une corrélation entre les registres
+temporisateur puisque chaque CPU tournera à une fréquence légèrement
+différente. Si c'est le cas, \fIclock_getcpuclockid(0)\fP renverra \fBENOENT\fP
+pour signifier cette condition. Les deux horloges seront donc utiles si on
+peut être certain que le processus reste sur un CPU en particulier.
+.PP
+Les processeurs d'un système multiprocesseur ne démarrent pas exactement au
+même moment, ainsi les registres temporisateurs sont lancés avec un
+décalage. Certaines architectures incluent un code pour tenter de limiter ce
+décalage au démarrage. Toutefois, ce code ne garantit pas l'accord précis
+des décalages. La glibc ne contient rien pour gérer ces décalages (à la
+différence du noyau Linux). Typiquement, ces décalages sont petits et ainsi,
+leurs effets peuvent être négligeable dans la plupart des cas.
+.SH BOGUES
+.\" See http://bugzilla.kernel.org/show_bug.cgi?id=11972
+Selon POSIX.1\-2001, un processus avec des «\ privilèges adéquats\ » peut
+changer les horloges \fBCLOCK_PROCESS_CPUTIME_ID\fP et
+\fBCLOCK_THREAD_CPUTIME_ID\fP avec \fBclock_settime\fP(). Sous Linux, ces horloges
+ne peuvent pas être modifiées (c'est\-à\-dire qu'aucun processus n'a de «\ privilèges adéquats\ »).
+.SH "VOIR AUSSI"
+\fBdate\fP(1), \fBgettimeofday\fP(2), \fBsettimeofday\fP(2), \fBtime\fP(2),
+\fBadjtime\fP(3), \fBclock_getcpuclockid\fP(3), \fBctime\fP(3), \fBftime\fP(3),
+\fBpthread_getcpuclockid\fP(3), \fBsysconf\fP(3), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2004-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

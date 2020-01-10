@@ -1,0 +1,159 @@
+.\" Copyright 2004 Andries Brouwer <aeb@cwi.nl>.
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SCALB 3 "23 mars 2013" "" "Manuel du programmeur Linux"
+.SH NOM
+scalb, scalbf, scalbl \- Multiplier un nombre en virgule flottante par un
+entier puissance d'une base (OBSOLÈTE)
+.SH SYNOPSIS
+\fB#include <math.h>\fP
+.sp
+\fBdouble scalb(double \fP\fIx\fP\fB, double \fP\fIexp\fP\fB);\fP
+.br
+\fBfloat scalbf(float \fP\fIx\fP\fB, float \fP\fIexp\fP\fB);\fP
+.br
+\fBlong double scalbl(long double \fP\fIx\fP\fB, long double \fP\fIexp\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBscalb\fP()\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.RE
+.br
+\fBscalbf\fP(), \fBscalbl\fP()\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600
+.RE
+.ad b
+.SH DESCRIPTION
+Ces fonctions multiplient leur premier paramètre \fIx\fP par \fBFLT_RADIX\fP
+(probablement 2) à la puissance \fIexp\fP, c'est\-à\-dire\ :
+.nf
+
+    x * FLT_RADIX ** exp
+.fi
+
+.\" not in /usr/include but in a gcc lib
+La définition de \fBFLT_RADIX\fP peut être obtenue en incluant
+\fI<float.h>\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient \fIx\fP * \fBFLT_RADIX\fP ** \fIexp\fP.
+
+Si \fIx\fP ou \fIexp\fP est un NaN, un NaN est renvoyé.
+
+Si \fIx\fP est une valeur infinie positive (resp. négative) et \fIexp\fP n'est pas
+une valeur infinie négative, l'infini positif (resp. négatif) est renvoyé.
+
+Si \fIx\fP vaut +0 (resp. \-0) et \fIexp\fP n'est pas l'infini positif, +0
+(resp. \-0) est renvoyé.
+
+Si \fIx\fP est nul et \fIexp\fP est l'infini positif, une erreur de domaine se
+produit et un NaN est renvoyé.
+
+Si \fIx\fP est infini et \fIexp\fP est l'infini négatif, une erreur de domaine se
+produit et un NaN est renvoyé.
+
+En cas de dépassement pour le résultat, une erreur d'intervalle se produit
+et les fonctions renvoient \fBHUGE_VAL\fP, \fBHUGE_VALF\fP ou \fBHUGE_VALL\fP,
+resp. avec le même signe que \fIx\fP.
+
+En cas de soupassement («\ underflow\ »), une erreur d'intervalle se produit
+et les fonctions renvoient zéro avec le même signe que \fIx\fP.
+.SH ERREURS
+Consultez \fBmath_error\fP(7) pour savoir comment déterminer qu'une erreur est
+survenue lors de l'appel de ces fonctions.
+.PP
+Les erreurs suivantes peuvent se produire\ :
+.TP 
+Erreur de domaine\ : \fIx\fP est nul et \fIexp\fP est l'infini positif, ou \fIx\fP est l'infini positif et \fIexp\fP est l'infini négatif et l'autre paramètre n'est pas un NaN.
+.\" .I errno
+.\" is set to
+.\" .BR EDOM .
+Une exception indiquant une virgule flottante incorrecte (\fBFE_INVALID\fP) est
+levée.
+.TP 
+Erreur d'intervalle, dépassement
+.\" .I errno
+.\" is set to
+.\" .BR ERANGE .
+Une exception en virgule flottante de dépassement (\fBFE_OVERFLOW\fP) est
+levée.
+.TP 
+Erreur d'intervalle, soupassement («\ underflow\ »)
+.\" .I errno
+.\" is set to
+.\" .BR ERANGE .
+Une exception en virgule flottante de soupassement (\fBFE_UNDERFLOW\fP) est
+levée.
+.PP
+.\" FIXME . Is it intentional that these functions do not set errno?
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6803
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6804
+Ces fonctions ne positionnent pas \fIerrno\fP.
+.SH CONFORMITÉ
+\fBscalb\fP() est spécifiée dans POSIX.1\-2001, mais marquée comme étant
+obsolète. POSIX.1\-2008 supprime la spécification de \fBscalb\fP(), en
+recommendant d'utiliser \fBscalbln\fP(3), \fBscalblnf\fP(3) ou \fBscalblnl\fP(3) à la
+place. La fonction \fBscalb\fP() provient de BSD\ 4.3.
+
+.\" Looking at header files: scalbf() is present on the
+.\" BSDs, Tru64, HP-UX 11, Irix 6.5; scalbl() is on HP-UX 11 and Tru64.
+\fBscalbf\fP() et \fBscalbl\fP() ne sont pas standard\ ; \fBscalbf\fP() est cependant
+présent dans certains autres système.
+.SH "VOIR AUSSI"
+\fBldexp\fP(3), \fBscalbln\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

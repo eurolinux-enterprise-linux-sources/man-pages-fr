@@ -1,0 +1,112 @@
+.\" Copyright (C) 1997 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified, 2003-05-26, Michael Kerrisk, <mtk.manpages@gmail.com>
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SETRESUID 2 "22 novembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+setresuid, setresgid \- Définir les UID ou les GID réels, effectifs et sauvés
+.SH SYNOPSIS
+\fB#define _GNU_SOURCE\fP /* Consultez feature_test_macros(7) */
+.br
+\fB#include <unistd.h>\fP
+.sp
+\fBint setresuid(uid_t \fP\fIruid\fP\fB, uid_t \fP\fIeuid\fP\fB, uid_t \fP\fIsuid\fP\fB);\fP
+.br
+\fBint setresgid(gid_t \fP\fIrgid\fP\fB, gid_t \fP\fIegid\fP\fB, gid_t \fP\fIsgid\fP\fB);\fP
+.SH DESCRIPTION
+\fBsetresuid\fP() définit les UID réel, effectif et (effectif) sauvé du
+processus appelant.
+
+Un processus utilisateur non privilégié peut définir son UID réel, effectif
+ou sauvé avec sa valeur d'UID actuel, d'UID effectif actuel, ou d'UID sauvé.
+
+Un processus privilégié (sous Linux, qui a la capacité \fBCAP_SETUID\fP) peut
+positionner son UID réel, effectif ou sauvé à une valeur quelconque.
+
+Si l'un des paramètres vaut \-1, la valeur correspondante n'est pas modifiée.
+
+Indépendamment des changements concernant les UID réel, effectif et sauvés,
+le fsuid est toujours défini à la même valeur que l'UID effectif.
+
+De manière analogue, \fBsetresgid\fP() définit les GID réel, effectif et sauvé
+du processus appelant (et définit toujours le fsgid à la même valeur que le
+GID effectif) avec les mêmes restrictions pour les processus n'ayant aucun
+GID nul.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+\fIuid\fP ne correspond pas à l'UID courant et cet appel pourrait porter cet
+UID au\-delà de sa limite \fBRLIMIT_NPROC\fP.
+.TP 
+\fBEPERM\fP
+Le processus n'a pas de privilèges (n'a pas la capacité \fBCAP_SETUID\fP) et
+essaie de modifier ses ID de manière interdite.
+.SH VERSIONS
+Ces appels sont disponibles sous Linux depuis la version 2.1.44.
+.SH CONFORMITÉ
+Ces appels ne sont pas standards\ ; ils apparaissent également sur HP\-UX et
+certains BSD.
+.SH NOTES
+Sous HP\-UX et FreeBSD, le prototype se trouve dans
+\fI<unistd.h>\fP. Sous Linux, le prototype est fourni par la glibc
+depuis la version 2.3.2.
+
+Les appels système \fBsetresuid\fP() et \fBsetresgid\fP() originaux de Linux ne
+géraient que des identifiants d'utilisateur et de groupe sur 16\ bits. En
+conséquence, Linux\ 2.4 a ajouté \fBsetresuid32\fP() et \fBsetresgid32\fP() qui
+prennent en charge des identifiants 32\ bits. Les fonctions \fBsetresuid\fP() et
+\fBsetresgid\fP() de la glibc qui les encapsulent gèrent de manière
+transparente ces différences entre noyaux.
+.SH "VOIR AUSSI"
+\fBgetresuid\fP(2), \fBgetuid\fP(2), \fBsetfsgid\fP(2), \fBsetfsuid\fP(2),
+\fBsetreuid\fP(2), \fBsetuid\fP(2), \fBcapabilities\fP(7), \fBcredentials\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

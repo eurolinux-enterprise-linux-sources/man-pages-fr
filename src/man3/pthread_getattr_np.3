@@ -1,0 +1,362 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_GETATTR_NP 3 "10 septembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_getattr_np \- Obtenir les attributs d'un thread créé
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP             /* Consultez feature_test_macros(7) */
+\fB#include <pthread.h>\fP
+
+\fBint pthread_getattr_np(pthread_t \fP\fIthread\fP\fB, pthread_attr_t *\fP\fIattr\fP\fB);\fP
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+La fonction \fBpthread_getattr_np\fP() initialise l'objet d'attributs de thread
+auquel \fIattr\fP fait référence de telle sorte qu'il contienne les valeurs
+d'attributs qui décrivent le thread \fIthread\fP en cours d'exécution.
+
+Les valeurs d'attribut renvoyées peuvent être différentes des valeurs
+d'attribut correspondantes fournies dans l'objet \fIattr\fP utilisé pour créer
+le thread avec \fBpthread_create\fP(3). En particulier, les attributs suivants
+peuvent changer\ :
+.IP * 2
+l'état détaché ou non, puisqu'un thread fusionné peut s'être détaché lui
+même après sa création\ ;
+.IP *
+la taille de la pile, que l'implémentation peut aligner sur une limite plus
+appropriée.
+.IP *
+et la taille de garde, que l'implémentation peut arrondir au multiple
+supérieur de la taille de page ou ignorer (c'est\-à\-dire, considérer qu'elle
+vaut 0) si l'application alloue sa propre pile.
+.PP
+De plus, si l'attribut contenant l'adresse de la pile n'était pas défini
+dans l'objet d'attributs de thread utilisé pour créer le thread, alors
+l'objet d'attributs de thread renvoyé contiendra l'adresse effective de la
+pile que l'implémentation a choisit pour le thread.
+
+Quand l'objet d'attributs de thread renvoyé par \fBpthread_getattr_np\fP()
+n'est plus nécessaire, il devrait être détruit à l'aide de
+\fBpthread_attr_destroy\fP(3).
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, cette fonction renvoie 0\ ; en cas d'erreur, elle renvoie
+un numéro d'erreur non nul.
+.SH ERREURS
+.TP 
+\fBENOMEM\fP
+.\" Can happen (but unlikely) while trying to allocate memory for cpuset
+Mémoire insuffisante.
+.PP
+De plus, si \fIthread\fP se réfère à à un thread principal, alors
+\fBpthread_getattr_np\fP() peut échouer à cause de différents appels
+sous\-jacents\ : \fBfopen\fP(3), si \fI/proc/self/maps\fP ne peut être ouvert, et
+\fBgetrlimit\fP(2), si la limite de ressources \fBRLIMIT_STACK\fP n'est pas prise
+en charge.
+.SH VERSIONS
+Cette fonction est disponible dans la glibc depuis la version 2.2.3.
+.SH CONFORMITÉ
+Cette fonction est une extension GNU non standard\ ; c'est la raison du
+suffixe «\ _np\ » (non portable) dans son nom.
+.SH EXEMPLE
+Le programme ci\-dessous démontre l'utilisation de
+\fBpthread_getattr_np\fP(). Le programme crée un thread qui utilise ensuite
+\fBpthread_getattr_np\fP() pour récupérer et afficher les attributs contenant
+la taille de la garde, l'adresse de la pile et la taille de la pile. Des
+paramètres en ligne de commande peuvent être utilisés pour définir les
+attributs qui seront utilisés pour créer le thread à des valeurs autres que
+les valeurs par défaut. Les sessions d'interpréteur de commande ci\-dessous
+démontrent l'utilisation du programme.
+
+Lors de la première exécution, sur une système x86\-32, un thread est créé en
+utilisant les attributs par défaut\ :
+
+.in +4n
+.nf
+$\fB ulimit \-s\fP # Pas de limite de pile
+            # ==> la taille de pile par défaut est de 2\ Mo
+unlimited
+$\fB ./a.out\fP
+Attributes of created thread:
+        Guard size          = 4096 bytes
+        Stack address       = 0x40196000 (EOS = 0x40397000)
+        Stack size          = 0x201000 (2101248) bytes
+.fi
+.in
+
+Lors de l'exécution suivante, nous voyons que si la taille de la garde est
+fournie, elle est arrondie (vers le haut) au prochain multiple de la taille
+de page système (4096 octets sous x86\-32)\ :
+
+.in +4n
+.nf
+$\fB ./a.out \-g 4097\fP
+Thread attributes object after initializations:
+        Guard size          = 4097 bytes
+        Stack address       = (nil)
+        Stack size          = 0x0 (0) bytes
+
+Attributes of created thread:
+        Guard size          = 8192 bytes
+        Stack address       = 0x40196000 (EOS = 0x40397000)
+        Stack size          = 0x201000 (2101248) bytes
+.fi
+.in
+
+.\".in +4n
+.\".nf
+.\"$ ./a.out \-s 0x8000
+.\"Thread attributes object after initializations:
+.\"        Guard size          = 4096 bytes
+.\"        Stack address       = 0xffff8000 (EOS = (nil))
+.\"        Stack size          = 0x8000 (32768) bytes
+.\"
+.\"Attributes of created thread:
+.\"        Guard size          = 4096 bytes
+.\"        Stack address       = 0x4001e000 (EOS = 0x40026000)
+.\"        Stack size          = 0x8000 (32768) bytes
+.\".fi
+.\".in
+Lors de la dernière exécution, le programme alloue manuellement une pile
+pour le thread. Dans ce cas, l'attribut contenant la taille de la garde est
+ignorée.
+
+.in +4n
+.nf
+$\fB ./a.out \-g 4096 \-s 0x8000 \-a\fP
+Allocated thread stack at 0x804d000
+
+Thread attributes object after initializations:
+        Guard size          = 4096 bytes
+        Stack address       = 0x804d000 (EOS = 0x8055000)
+        Stack size          = 0x8000 (32768) bytes
+
+Attributes of created thread:
+        Guard size          = 0 bytes
+        Stack address       = 0x804d000 (EOS = 0x8055000)
+        Stack size          = 0x8000 (32768) bytes
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#define _GNU_SOURCE     /* Pour la déclaration de pthread_getattr_np() */
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+
+#define handle_error_en(en, msg) \e
+        do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
+
+static void
+display_stack_related_attributes(pthread_attr_t *attr, char *prefix)
+{
+    int s;
+    size_t stack_size, guard_size;
+    void *stack_addr;
+
+    s = pthread_attr_getguardsize(attr, &guard_size);
+    if (s != 0)
+        handle_error_en(s, "pthread_attr_getguardsize");
+    printf("%sGuard size          = %d bytes\en", prefix, guard_size);
+
+    s = pthread_attr_getstack(attr, &stack_addr, &stack_size);
+    if (s != 0)
+        handle_error_en(s, "pthread_attr_getstack");
+    printf("%sStack address       = %p", prefix, stack_addr);
+    if (stack_size > 0)
+        printf(" (EOS = %p)", (char *) stack_addr + stack_size);
+    printf("\en");
+    printf("%sStack size          = 0x%x (%d) bytes\en",
+            prefix, stack_size, stack_size);
+}
+
+static void
+display_thread_attributes(pthread_t thread, char *prefix)
+{
+    int s;
+    pthread_attr_t attr;
+
+    s = pthread_getattr_np(thread, &attr);
+    if (s != 0)
+        handle_error_en(s, "pthread_getattr_np");
+
+    display_stack_related_attributes(&attr, prefix);
+
+    s = pthread_attr_destroy(&attr);
+    if (s != 0)
+        handle_error_en(s, "pthread_attr_destroy");
+}
+
+static void *           /* Start function for thread we create */
+thread_start(void *arg)
+{
+    printf("Attributes of created thread:\en");
+    display_thread_attributes(pthread_self(), "\et");
+
+    exit(EXIT_SUCCESS);         /* Terminate all threads */
+}
+
+static void
+usage(char *pname, char *msg)
+{
+    if (msg != NULL)
+        fputs(msg, stderr);
+    fprintf(stderr, "Usage: %s [\-s stack\-size [\-a]]"
+            " [\-g guard\-size]\en", pname);
+    fprintf(stderr, "\et\et\-a means program should allocate stack\en");
+    exit(EXIT_FAILURE);
+}
+
+static pthread_attr_t *   /* Get thread attributes from command line */
+get_thread_attributes_from_cl(int argc, char *argv[],
+                              pthread_attr_t *attrp)
+{
+    int s, opt, allocate_stack;
+    long stack_size, guard_size;
+            void *stack_addr;
+    pthread_attr_t *ret_attrp = NULL;   /* Set to attrp if we initialize
+                                           a thread attributes object */
+    allocate_stack = 0;
+    stack_size = \-1;
+    guard_size = \-1;
+
+    while ((opt = getopt(argc, argv, "ag:s:")) != \-1) {
+        switch (opt) {
+        case \(aqa\(aq:   allocate_stack = 1;                     break;
+        case \(aqg\(aq:   guard_size = strtoul(optarg, NULL, 0);  break;
+        case \(aqs\(aq:   stack_size = strtoul(optarg, NULL, 0);  break;
+        default:    usage(argv[0], NULL);
+        }
+    }
+
+    if (allocate_stack && stack_size == \-1)
+        usage(argv[0], "Specifying \-a without \-s makes no sense\en");
+
+    if (argc > optind)
+        usage(argv[0], "Extraneous command\-line arguments\en");
+
+    if (stack_size >= 0 || guard_size > 0) {
+        ret_attrp = attrp;
+
+        s = pthread_attr_init(attrp);
+        if (s != 0)
+            handle_error_en(s, "pthread_attr_init");
+    }
+
+    if (stack_size >= 0) {
+        if (!allocate_stack) {
+            s = pthread_attr_setstacksize(attrp, stack_size);
+            if (s != 0)
+                handle_error_en(s, "pthread_attr_setstacksize");
+        } else {
+            s = posix_memalign(&stack_addr, sysconf(_SC_PAGESIZE),
+                               stack_size);
+            if (s != 0)
+                handle_error_en(s, "posix_memalign");
+            printf("Allocated thread stack at %p\en\en", stack_addr);
+
+            s = pthread_attr_setstack(attrp, stack_addr, stack_size);
+            if (s != 0)
+                handle_error_en(s, "pthread_attr_setstacksize");
+        }
+    }
+
+    if (guard_size >= 0) {
+        s = pthread_attr_setguardsize(attrp, guard_size);
+        if (s != 0)
+            handle_error_en(s, "pthread_attr_setstacksize");
+    }
+
+    return ret_attrp;
+}
+
+int
+main(int argc, char *argv[])
+{
+    int s;
+    pthread_t thr;
+    pthread_attr_t attr;
+    pthread_attr_t *attrp = NULL;    /* Set to &attr if we initialize
+                                        a thread attributes object */
+
+    attrp = get_thread_attributes_from_cl(argc, argv, &attr);
+
+    if (attrp != NULL) {
+        printf("Thread attributes object after initializations:\en");
+        display_stack_related_attributes(attrp, "\et");
+        printf("\en");
+    }
+
+    s = pthread_create(&thr, attrp, &thread_start, NULL);
+    if (s != 0)
+        handle_error_en(s, "pthread_create");
+
+    if (attrp != NULL) {
+        s = pthread_attr_destroy(attrp);
+        if (s != 0)
+            handle_error_en(s, "pthread_attr_destroy");
+    }
+
+    pause();    /* Terminates when other thread calls exit() */
+}
+.fi
+.SH "VOIR AUSSI"
+.ad l
+.nh
+\fBpthread_attr_getaffinity_np\fP(3), \fBpthread_attr_getdetachstate\fP(3),
+\fBpthread_attr_getguardsize\fP(3), \fBpthread_attr_getinheritsched\fP(3),
+\fBpthread_attr_getschedparam\fP(3), \fBpthread_attr_getschedpolicy\fP(3),
+\fBpthread_attr_getscope\fP(3), \fBpthread_attr_getstack\fP(3),
+\fBpthread_attr_getstackaddr\fP(3), \fBpthread_attr_getstacksize\fP(3),
+\fBpthread_attr_init\fP(3), \fBpthread_create\fP(3), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

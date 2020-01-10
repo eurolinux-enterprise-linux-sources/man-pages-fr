@@ -1,0 +1,111 @@
+.\" Copyright (C) 1995, Thomas K. Dyas <tdyas@eden.rutgers.edu>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Created   1995-08-06 Thomas K. Dyas <tdyas@eden.rutgers.edu>
+.\" Modified  2000-07-01 aeb
+.\" Modified  2002-07-23 aeb
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SETFSUID 2 "22 novembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+setfsuid \- Définir l'UID pour les vérifications d'accès au système de
+fichiers
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP /* glibc utilise <sys/fsuid.h> */
+.sp
+\fBint setfsuid(uid_t \fP\fIfsuid\fP\fB);\fP
+.SH DESCRIPTION
+\fBsetfsuid\fP() définit l'UID que le noyau Linux utilise pour vérifier tous
+les accès du processus au système de fichiers. Normalement, la valeur de
+\fIfsuid\fP va masquer la valeur de l'UID effectif. En fait, si l'UID effectif
+est modifié, \fIfsuid\fP sera aussi modifié pour la nouvelle valeur de l'UID
+effectif.
+
+L'appel explicite de \fBsetfsuid\fP() ou \fBsetfsgid\fP(2) n'est normalement utile
+qu'aux programmes tels que le serveur NFS qui ont besoin de modifier le GID
+utilisé pour les accès aux fichiers sans changer véritablement leurs GID
+réels et effectifs. Une modification des identifiants normaux d'un programme
+comme un serveur NFS serait un trou de sécurité qui l'exposerait à des
+signaux indésirables. Voir ci\(hydessous.
+
+\fBsetfsuid\fP() ne réussira que si l'appelant est le superutilisateur ou si
+\fIfsuid\fP correspond à l'UID réel, à l'UID effectif, à l'UID sauvé, ou encore
+à la valeur actuelle de \fIfsuid\fP.
+.SH "VALEUR RENVOYÉE"
+\fBsetfsuid\fP renvoie la valeur précédente \fIfsuid\fP s'il réussit. En cas
+d'erreur la valeur actuelle de \fIfsuid\fP est renvoyée.
+.SH VERSIONS
+.\" This system call is present since Linux 1.1.44
+.\" and in libc since libc 4.7.6.
+Cet appel système est présent sous Linux depuis la version 1.2.
+.SH CONFORMITÉ
+\fBsetfsuid\fP() est spécifique à Linux et ne devrait pas être employé dans des
+programmes destinés à être portables.
+.SH NOTES
+Lorsque la bibliothèque glibc s'aperçoit que l'argument n'est pas un UID
+valide, elle renvoie \-1 et place \fBEINVAL\fP dans \fIerrno\fP sans essayer
+d'appeler l'appel système réel.
+.LP
+Notez que lors de l'introduction de cet appel système, un processus pouvait
+envoyer un signal à un autre processus avec le même UID effectif. De nos
+jours, les permissions pour les signaux sont légèrement différentes.
+
+L'appel système \fBsetfsuid\fP() original de Linux ne gérait que des
+identifiants d'utilisateur sur 16\ bits. En conséquence, Linux\ 2.4 a ajouté
+\fBsetfsuid32\fP() qui prend en charge des identifiants 32\ bits. La fonction
+\fBsetfsuid\fP() de la glibc qui l'encapsule gère de manière transparente ces
+différences entre noyaux.
+.SH BOGUES
+Il n'y a pas de messages d'erreur renvoyés. Il serait bon d'avoir au moins
+un code d'erreur \fBEPERM\fP en cas d'échec (dans le cas où l'appelant n'a pas
+la capacité \fBCAP_SETUID\fP).
+.SH "VOIR AUSSI"
+\fBkill\fP(2), \fBsetfsgid\fP(2), \fBcapabilities\fP(7), \fBcredentials\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

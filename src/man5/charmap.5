@@ -1,0 +1,130 @@
+.\" This file is part of locale(1) which displays the settings of the
+.\" current locale.
+.\" Copyright (C) 1994  Jochen Hein (Hein@Student.TU-Clausthal.de)
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_3_PARA)
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CHARMAP 5 "28 novembre 1994" "" "Manuel de l'utilisateur Linux"
+.SH NOM
+charmap \- Symboles définissant le codage des caractères
+.SH DESCRIPTION
+.\" Not true anymore:
+.\" The portable character set is defined in the file
+.\" .I /usr/lib/nls/charmap/POSIX
+.\" .I /usr/share/i18n/charmap/POSIX
+.\" for reference purposes.
+Une description de table de caractères («\ charmap\ ») définit une liste des
+caractères disponibles et leur codage. Tous les jeux de caractères doivent
+contenir, comme sous\-ensemble propre, le \fBjeu de caractères standard\fP
+(«\ portable character set\ »).
+.SS Syntaxe
+Un fichier de table de caractères commence par un en\-tête contenant les
+mots\-clés suivants\ :
+.TP 
+\fI<codeset>\fP
+suivi du nom de l'ensemble des codes.
+.TP 
+\fI<mb_cur_max>\fP
+suivi du nombre maximal d'octets pour un caractère multioctets. Les
+caractères multioctets ne sont pas encore gérés. La valeur par défaut est 1.
+.TP 
+\fI<mb_cur_min>\fP
+suivi du nombre minimal d'octets par caractère. Cette valeur doit être
+inférieure ou égale à \fBmb_cur_max\fP. Par défaut, elle est égale à
+\fBmb_cur_max\fP.
+.TP 
+\fI<escape_char>\fP
+est suivi d'un caractère qui doit être utilisé comme caractère de
+déspécification (caractère «\ d'échappement\ ») pour le reste du fichier afin
+de marquer les caractères qui doivent être interprétés d'une manière
+particulières. La valeur par défaut est l'anti\-slash (\fB\e\fP).
+.TP 
+\fI<comment_char>\fP
+est suivi d'un caractère qui servira à introduire les commentaires dans le
+reste du fichier. Par défaut, il s'agit du dièse (\fB#\fP).
+.PP
+La définition de la table de caractères elle\-même commence avec le mot\-clé
+\fBCHARMAP\fP en colonne 1.
+
+Les lignes qui suivent peuvent prendre l'une des deux formes suivantes pour
+définir le codage du caractère\ :
+.TP 
+\fI<nom_symbolique> <codage> <commentaires>\fP
+Cette forme définit un seul caractère et son codage.
+.TP 
+\fI<nom_symbolique>...<nom_symbolique> <codage> <commentaires>\fP
+Cette forme définit plusieurs caractères. Ce n'est utile qu'avec les
+caractères multioctets, qui ne sont pas gérés pour l'instant.
+.PP
+La dernière ligne d'un fichier de table de caractères doit contenir \fBEND
+CHARMAP\fP.
+.SS "Noms symboliques"
+Le \fBnom symbolique\fP d'un caractère ne doit contenir lui\-même que des
+caractères du \fBjeu standard\fP. Le nom est encadré par < et >. Le
+caractère placé à la suite d'un caractère de déspécification
+\fB<escape_char>\fP prend sa valeur propre. Par exemple, la chaîne
+\fB"<\e\e\e>>"\fP représente le nom symbolique \fB"\e>"\fP encadré
+par < et >.
+.SS "Codage des caractères"
+Le codage peut prendre l'une des trois formes suivantes\ :
+.TP 
+\fI<caractère_de_déspécification>d<nombre>\fP
+avec un nombre décimal
+.TP 
+\fI<caractère_de_déspécification>x<nombre>\fP
+avec un nombre hexadécimal
+.TP 
+\fI<caractère_de_déspécification><nombre>\fP
+.\" FIXME comments
+.\" FIXME char ... char
+avec un nombre octal.
+.SH FICHIERS
+.\" .SH AUTHOR
+.\" Jochen Hein (jochen.hein@delphi.central.de)
+\fI/usr/share/i18n/charmaps/*\fP
+.SH CONFORMITÉ
+POSIX.2.
+.SH "VOIR AUSSI"
+\fBlocale\fP(1), \fBlocaledef\fP(1), \fBlocaleconv\fP(3), \fBsetlocale\fP(3),
+\fBlocale\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

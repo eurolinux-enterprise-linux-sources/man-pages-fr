@@ -1,0 +1,135 @@
+.\" Copyright (C) 2000 by Werner Almesberger
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" May be distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\" Written 2000-02-23 by Werner Almesberger
+.\" Modified 2004-06-17 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PIVOT_ROOT 2 "13 juillet 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+pivot_root \- Modifier la racine du système de fichiers
+.SH SYNOPSIS
+\fBint pivot_root(const char *\fP\fInew_root\fP\fB, const char *\fP\fIput_old\fP\fB);\fP
+
+\fIRemarque\fP\ : il n'existe pas de fonction glibc autour de cet appel
+système\ ; consultez \fBNOTES\fP.
+.SH DESCRIPTION
+.\"
+.\" The
+.\" .B CAP_SYS_ADMIN
+.\" capability is required.
+\fBpivot_root\fP() déplace la racine du système de fichiers pour le processus
+appelant vers le répertoire \fIput_old\fP et fait de \fInew_root\fP la nouvelle
+racine du système de fichiers pour le processus appelant.
+
+L'utilisation typique de \fBpivot_root\fP() est durant le boot, lorsque le
+système monte un système de fichiers temporaire (par exemple un \fBinitrd\fP)
+puis monte le véritable système de fichiers, et le transforme en racine pour
+tous les processus et threads concernés.
+
+\fBpivot_root\fP() peut changer ou non les répertoires racine et de travail en
+cours de tous les processus et threads qui utilisaient l'ancien répertoire
+racine. L'appelant de \fBpivot_root\fP() doit s'assurer que les processus ayant
+pour racine ou répertoire de travail l'ancien répertoire se comportent
+correctement. Le meilleur moyen est de modifier leur répertoire de travail
+et répertoire racine pour \fInew_root\fP avant d'invoquer \fBpivot_root\fP().
+
+Le paragraphe ci\-dessus est intentionnellement flou, car l'implémentation de
+\fBpivot_root\fP() peut changer dans le futur. Actuellement, \fBpivot_root\fP()
+modifie la racine et le répertoire de travail de tous les processus ou
+threads en \fInew_root\fP s'ils pointent sur l'ancien répertoire. Ceci est
+nécessaire pour éviter que des threads du noyau ne conservent l'ancien
+répertoire occupé, même s'ils accèdent au nouveau système de fichiers. Dans
+le futur, il y aura peut\-être un mécanisme pour les threads du noyau pour
+renoncer explicitement à tout accès au système de fichiers, ce qui évitera
+ce mécanisme un peu invasif.
+
+Notez que ceci s'applique aussi au processus appelant\ : \fBpivot_root\fP()
+peut changer ou non son répertoire de travail. Il vaut mieux donc appeler
+\fBchdir("/")\fP immédiatement après \fBpivot_root\fP().
+
+Les restrictions suivantes s'appliquent à \fInew_root\fP et \fIput_old\fP\ :
+.IP \- 3
+Ils doivent être des répertoires,
+.IP \- 3
+\fInew_root\fP et \fIput_old\fP ne doivent pas être sur le même système de
+fichiers que la racine actuelle.
+.IP \- 3
+\fIput_old\fP doit être un descendant de \fInew_root\fP\ : ajouter un nombre
+non\-nul de \fI/..\fP à la chaîne \fIput_old\fP doit ramener au même répertoire que
+\fInew_root\fP.
+.IP \- 3
+Aucun système de fichiers ne doit être monté sur \fIput_old\fP.
+.PP
+Consultez \fBpivot_root\fP(8) pour des exemples d'utilisation supplémentaires.
+
+Si la racine en cours n'est pas un point de montage (après un \fBchroot\fP(2)
+ou un \fBpivot_root\fP(), voir plus bas), ce n'est pas l'ancien répertoire,
+mais le point de montage du système de fichiers qui est monté dans
+\fIput_old\fP.
+
+\fInew_root\fP n'a pas besoin d'être un point de montage. Dans ce cas,
+\fI/proc/mounts\fP montrera le point de montage concernant \fInew_root\fP comme
+racine (\fI/\fP).
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+\fBpivot_root\fP() peut renvoyer (dans \fIerrno\fP) toute erreur renvoyée par
+\fBstat\fP(2). De plus, il peut renvoyer\ :
+.TP 
+\fBEBUSY\fP
+\fInew_root\fP ou \fIput_old\fP sont sur le système de fichiers principal actuel,
+ou un système de fichiers est déjà monté sur \fIput_old\fP.
+.TP 
+\fBEINVAL\fP
+\fIput_old\fP n'est pas un descendant de \fInew_root\fP.
+.TP 
+\fBENOTDIR\fP
+\fInew_root\fP ou \fIput_old\fP n'est pas un répertoire.
+.TP 
+\fBEPERM\fP
+Le processus appelant n'a pas la capacité \fBCAP_SYS_ADMIN\fP.
+.SH VERSIONS
+\fBpivot_root\fP() a été introduit dans Linux 2.3.41.
+.SH CONFORMITÉ
+\fBpivot_root\fP() est spécifique à Linux et donc non portable.
+.SH NOTES
+La glibc ne fournit pas de fonction autour de cet appel système\ ; utilisez
+\fBsyscall\fP(2) pour l'appeler.
+.SH BOGUES
+\fBpivot_root\fP() ne devrait pas modifier le répertoire racine et le
+répertoire de travail des autres processus du système.
+
+Les utilisations les plus obscures de \fBpivot_root\fP() peuvent rapidement
+rendre fou.
+.SH "VOIR AUSSI"
+\fBchdir\fP(2), \fBchroot\fP(2), \fBstat\fP(2), \fBinitrd\fP(4), \fBpivot_root\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,256 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Wed Jul 28 11:12:17 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Mon May 13 23:08:50 1996 by Martin Schulze (joey@linux.de)
+.\" Modified 11 May 1998 by Joseph S. Myers (jsm28@cam.ac.uk)
+.\" Modified 990912 by aeb
+.\" 2007-10-10 mtk
+.\"     Added description of GLOB_TILDE_NOMATCH
+.\"     Expanded the description of various flags
+.\"     Various wording fixes.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GLOB 3 "10 octobre 2007" GNU "Manuel du programmeur Linux"
+.SH NOM
+glob, globfree \- Rechercher un chemin d'accès correspondant à un motif
+.SH SYNOPSIS
+.nf
+\fB#include <glob.h>\fP
+.sp
+\fBint glob(const char *\fP\fIpattern\fP\fB, int \fP\fIflags\fP\fB,\fP
+.br
+\fB         int (*\fP\fIerrfunc\fP\fB) (const char *\fP\fIepath\fP\fB, int \fP\fIeerrno\fP\fB),\fP
+.br
+\fB         glob_t *\fP\fIpglob\fP\fB);\fP
+.br
+\fBvoid globfree(glob_t *\fP\fIpglob\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBglob\fP() recherche tous les chemins d'accès correspondant au
+motif \fIpattern\fP en utilisant les règles du shell (consultez
+\fBglob\fP(7)). Aucun remplacement de tilde ou substitution de paramètre n'est
+effectué. Si vous avez besoin de ces fonctionnalités, utilisez
+\fBwordexp\fP(3).
+.PP
+La fonction \fBglobfree\fP() libère la mémoire allouée dynamiquement lors d'un
+appel précédent à \fBglob\fP().
+.PP
+Les résultats d'un appel à \fBglob\fP() sont stockés dans une structure pointée
+par \fIpglob\fP. Cette structure est de type \fIglob_t\fP (défini dans
+\fI<glob.h>\fP) et inclut les éléments définis par POSIX.2 (il peut y
+en avoir plus sous forme d'extension GNU)\ :
+.PP
+.br
+.in +4n
+.nf
+typedef struct {
+    size_t   gl_pathc;    /* Nombre de chemins correspondant  */
+    char   **gl_pathv;    /* Liste des chemins correspondant  */
+    size_t   gl_offs;     /* Entrées à réserver dans \fIgl_pathv\fP.  */
+} glob_t;
+.fi
+.in
+.PP
+Les résultats sont sauvés dans une zone allouée dynamiquement.
+.PP
+Le paramètre \fIflags\fP est constitué d'un OU binaire «\ |\ » entre zéro ou
+plus des constantes symboliques suivantes, modifiant le comportement de
+\fBglob\fP()\ :
+.TP 
+\fBGLOB_ERR\fP
+Terminer dès qu'une erreur se produit (par exemple, un répertoire non
+lisible). Par défaut, \fBglob\fP() tente, malgré les erreurs, de lire tous les
+répertoires qu'il peut.
+.TP 
+\fBGLOB_MARK\fP
+Ajoute une barre oblique finale à chaque nom correspondant à un répertoire.
+.TP 
+\fBGLOB_NOSORT\fP
+Ne pas trier les chemins d'accès renvoyés. La seule raison pour faire cela
+est d'économiser du temps de traitement. Par défaut, les chemins d'accès
+renvoyés sont triés.
+.TP 
+\fBGLOB_DOOFFS\fP
+Réserve \fIpglob\->gl_offs\fP points d'entrée au début de la liste de
+chaînes dans \fIpglob\->pathv\fP. Les points d'entrée réservés contiennent
+des pointeurs NULL.
+.TP 
+\fBGLOB_NOCHECK\fP
+Si aucun motif ne correspond, renvoyer le motif original. Par défaut,
+\fBglob\fP() renvoie \fBGLOB_NOMATCH\fP s'il n'y a pas de correspondance.
+.TP 
+\fBGLOB_APPEND\fP
+Ajoute les résultats de cet appel au tableau de résultats renvoyé par un
+appel précédent à \fBglob\fP(). Ne pas indiquer cet attribut lors du premier
+appel de \fBglob\fP().
+.TP 
+\fBGLOB_NOESCAPE\fP
+Ne pas permettre l'utilisation de barre oblique inverse («\ \e\ ») pour
+désactiver les caractères d'échappement. Normalement, une barre oblique
+inverse peut être utilisée pour échapper le caractère qui le suit,
+fournissant un mécanisme de désactivation du sens particulier des
+méta\-caractères.
+.PP
+\fIflags\fP peut également utiliser les constantes suivantes, qui sont des
+extensions GNU, non définies dans POSIX.2\ :
+.TP 
+\fBGLOB_PERIOD\fP
+Permettre à un point en tête de chemin de correspondre à un
+méta\-caractère. Par défaut, les méta\-caractères ne peuvent pas correspondre
+à un point en tête de chemin.
+.TP 
+\fBGLOB_ALTDIRFUNC\fP
+Utiliser les fonctions alternatives \fIpglob\->gl_closedir\fP,
+\fIpglob\->gl_readdir\fP, \fIpglob\->gl_opendir\fP, \fIpglob\->gl_lstat\fP
+et \fIpglob\->gl_stat\fP pour l'accès au système de fichiers au lieu des
+fonctions normales de bibliothèque.
+.TP 
+\fBGLOB_BRACE\fP
+Développer dans le style \fBcsh\fP(1) les expressions de type \fB{a,b}\fP. Les
+expressions entre accolades peuvent être imbriquées. Ainsi, par exemple,
+spécifier le motif «\ {foo/{,cat,dog},bar}\ » retournera le même résultat que
+quatre appels à \fBglob\fP() séparés utilisant les chaînes\ : «\ foo/\ »,
+«\ foo/cat\ », «\ foo/dog\ », et «\ bar\ ».
+.TP 
+\fBGLOB_NOMAGIC\fP
+Si le motif renvoyé ne contient pas de méta\-caractères, il sera retourné
+comme seul mot correspondant, même s'il n'existe pas de fichier avec ce nom.
+.TP 
+\fBGLOB_TILDE\fP
+Prendre en charge l'expansion du tilde. Si un tilde («\ ~\ ») est le seul
+caractère du motif, ou si un tilde en tête est suivi par une barre oblique
+(«\ /\ »), le répertoire personnel de l'appelant sera substitué au tilde. Si
+un tilde en tête est suivi par un nom d'utilisateur (par exemple,
+«\ ~alain/bin\ », le tilde et le nom d'utilisateur sont substitués par le
+répertoire personnel de cet utilisateur. Si le nom d'utilisateur n'est pas
+valide ou si le répertoire personnel ne peut pas être déterminé, la
+substitution n'est pas effectuée.
+.TP 
+\fBGLOB_TILDE_CHECK\fP
+Fournit un comportement similaire à celui de \fBGLOB_TILDE\fP. La différence
+est que si le nom d'utilisateur n'est pas valable ou si le répertoire
+personnel ne peut pas être déterminé, plutôt que d'utiliser le motif
+lui\-même comme nom, \fBglob\fP() renvoie \fBGLOB_NOMATCH\fP pour indiquer
+l'erreur.
+.TP 
+\fBGLOB_ONLYDIR\fP
+C'est une \fIindication\fP pour \fBglob\fP() indiquant que l'appelant ne
+s'intéresse qu'aux répertoires correspondant au motif. Si l'implémentation
+peut facilement déterminer le type de fichier, les fichiers qui ne sont pas
+des répertoires ne sont pas renvoyés à l'appelant. Toutefois, l'appelant
+doit toujours vérifier que les fichiers renvoyés sont des répertoires (le
+but de cet attribut est simplement d'optimiser les performances lorsque
+l'appelant ne s'intéresse qu'aux répertoires).
+.PP
+Si \fIerrfunc\fP n'est pas NULL, elle sera appelée en cas d'erreur, avec les
+arguments \fIepath\fP un pointeur sur le chemin qui a échoué, et \fIeerrno\fP la
+valeur de \fIerrno\fP telle qu'elle a été renvoyée par un appel à
+\fBopendir\fP(3), \fBreaddir\fP(3) ou \fBstat\fP(2). Si \fIerrfunc\fP renvoie une valeur
+non nulle, ou si \fBGLOB_ERR\fP est positionné, \fBglob\fP() se terminera après
+l'appel de \fIerrfunc\fP.
+.PP
+Si \fBglob\fP() réussit complètement, \fIpglob\->gl_pathc\fP contient le nombre
+de chemins d'accès correspondants et \fIpglob\->gl_pathv\fP contient un
+pointeur sur une liste des chemins. Le premier pointeur après le dernier
+chemin vaut NULL.
+.PP
+Il est possible d'appeler \fBglob\fP() plusieurs fois. Dans ce cas, l'attribut
+\fBGLOB_APPEND\fP doit être indiqué dans \fIflags\fP durant le second appel et les
+suivants.
+.PP
+En tant qu'extension GNU, le champ \fIpglob\->gl_flags\fP contient les
+attributs indiqués liés par un \fBOU\fP avec \fBGLOB_MAGCHAR\fP si un
+méta\-caractère a été trouvé.
+.SH "VALEUR RENVOYÉE"
+S'il réussit complètement \fBglob\fP() renvoie zéro. Les autres valeurs
+renvoyées peuvent être\ :
+.TP 
+\fBGLOB_NOSPACE\fP
+pas assez de mémoire,
+.TP 
+\fBGLOB_ABORTED\fP
+erreur de lecture,
+.TP 
+\fBGLOB_NOMATCH\fP
+aucune correspondance trouvée.
+.SH CONFORMITÉ
+POSIX.2, POSIX.1\-2001.
+.SH NOTES
+Les membres \fIgl_pathc\fP et \fIgl_offs\fP de la structure glob_t sont des
+\fIsize_t\fP dans glibc 2.1, comme indiqué dans POSIX.2, mais sont déclarés
+sous forme de \fIint\fP dans libc4, libc5 et glibc 2.0.
+.SH BOGUES
+La fonction \fBglob\fP() peut échouer en cas d'erreur dans un appel de fonction
+sous\-jacent, comme \fBmalloc\fP(3) ou \fBopendir\fP(3). Le code d'erreur sera
+alors stocké dans \fIerrno\fP.
+.SH EXEMPLE
+L'exemple d'utilisation suivant simule la frappe de
+.sp
+.in +4n
+ls \-l *.c ../*.c
+.in
+.sp
+dans un shell\ :
+.nf
+.in +4n
+
+glob_t globbuf;
+
+globbuf.gl_offs = 2;
+glob("*.c", GLOB_DOOFS, NULL, &globbuf);
+glob("../*.c", GLOB_DOOFS | GLOB_APPEND, NULL, &globbuf);
+globbuf.gl_pathv[0] = "ls";
+globbuf.gl_pathv[1] = "\-l";
+execvp("ls", &globbuf.gl_pathv[0]);
+.in
+.fi
+.SH "VOIR AUSSI"
+\fBls\fP(1), \fBsh\fP(1), \fBstat\fP(2), \fBexec\fP(3), \fBfnmatch\fP(3), \fBmalloc\fP(3),
+\fBopendir\fP(3), \fBreaddir\fP(3), \fBwordexp\fP(3), \fBglob\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

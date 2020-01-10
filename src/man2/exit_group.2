@@ -1,0 +1,74 @@
+.\" Copyright (C) 2004 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH EXIT_GROUP 2 "27 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+exit_group \- Terminer tous les threads du processus
+.SH SYNOPSIS
+.nf
+\fB#include <linux/unistd.h>\fP
+.sp
+\fBvoid exit_group(int \fP\fIstatus\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Cet appel système est équivalent à \fBexit\fP(2) à ceci près qu'il termine non
+seulement le thread courant, mais tous les threads dans le groupe de threads
+du processus appelant.
+.SH "VALEUR RENVOYÉE"
+Cette fonction ne retourne pas.
+.SH VERSIONS
+Cet appel système est présent depuis Linux 2.5.35.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux.
+.SH NOTES
+Depuis la glibc 2.3, c'est l'appel système qui est appelé par la fonction
+enveloppe \fBexit\fP(2).
+.SH "VOIR AUSSI"
+\fBexit\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

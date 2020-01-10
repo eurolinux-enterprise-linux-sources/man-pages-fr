@@ -1,0 +1,256 @@
+.\" Page by b.hubert
+.\"
+.\" %%%LICENSE_START(FREELY_REDISTRIBUTABLE)
+.\" may be freely modified and distributed
+.\" %%%LICENSE_END
+.\"
+.\" Niki A. Rahimi (LTC Security Development, narahimi@us.ibm.com)
+.\" added ERRORS section.
+.\"
+.\" Modified 2004-06-17 mtk
+.\" Modified 2004-10-07 aeb, added FUTEX_REQUEUE, FUTEX_CMP_REQUEUE
+.\"
+.\" FIXME
+.\" See also https://bugzilla.kernel.org/show_bug.cgi?id=14303
+.\" 2.6.14 adds FUTEX_WAKE_OP
+.\"	commit 4732efbeb997189d9f9b04708dc26bf8613ed721
+.\"	Author: Jakub Jelinek <jakub@redhat.com>
+.\"	Date:   Tue Sep 6 15:16:25 2005 -0700
+.\"
+.\" FIXME
+.\" 2.6.18 adds (Ingo Molnar) priority inheritance support:
+.\" FUTEX_LOCK_PI, FUTEX_UNLOCK_PI, and FUTEX_TRYLOCK_PI.  These need
+.\" to be documented in the manual page.  Probably there is sufficient
+.\" material in the kernel source file Documentation/pi-futex.txt.
+.\"	commit c87e2837be82df479a6bae9f155c43516d2feebc
+.\"	Author: Ingo Molnar <mingo@elte.hu>
+.\"	Date:   Tue Jun 27 02:54:58 2006 -0700
+.\"
+.\"	commit e2970f2fb6950183a34e8545faa093eb49d186e1
+.\"	Author: Ingo Molnar <mingo@elte.hu>
+.\"	Date:   Tue Jun 27 02:54:47 2006 -0700
+.\"
+.\"	See Documentation/futex-requeue-pi.txt
+.\"
+.\" FIXME
+.\" 2.6.25 adds FUTEX_WAKE_BITSET, FUTEX_WAIT_BITSET
+.\"	commit cd689985cf49f6ff5c8eddc48d98b9d581d9475d
+.\"	Author: Thomas Gleixner <tglx@linutronix.de>
+.\"	Date:   Fri Feb 1 17:45:14 2008 +0100
+.\"
+.\" FIXME
+.\" 2.6.31 adds FUTEX_WAIT_REQUEUE_PI, FUTEX_CMP_REQUEUE_PI
+.\"	commit 52400ba946759af28442dee6265c5c0180ac7122
+.\"	Author: Darren Hart <dvhltc@us.ibm.com>
+.\"	Date:   Fri Apr 3 13:40:49 2009 -0700
+.\"
+.\"	commit ba9c22f2c01cf5c88beed5a6b9e07d42e10bd358
+.\"	Author: Darren Hart <dvhltc@us.ibm.com>
+.\"	Date:   Mon Apr 20 22:22:22 2009 -0700
+.\"
+.\"	See Documentation/futex-requeue-pi.txt
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FUTEX 2 "15 mars 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+futex \- Verrouillage rapide en mode utilisateur
+.SH SYNOPSIS
+.nf
+.sp
+\fB#include <linux/futex.h>\fP
+\fB#include <sys/time.h>\fP
+.sp
+\fBint futex(int *\fP\fIuaddr\fP\fB, int \fP\fIop\fP\fB, int \fP\fIval\fP\fB, const struct timespec *\fP\fItimeout\fP\fB,\fP
+.br
+.\" int *? void *? u32 *?
+\fB          int *\fP\fIuaddr2\fP\fB, int \fP\fIval3\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+.PP
+L'appel système \fBfutex\fP() donne à un programme la possibilité d'attendre
+qu'une valeur à une adresse donnée change, ou de réveiller tous ceux qui
+sont en attente sur cette adresse. Bien que les adresses soient différentes
+dans des processus séparés, le noyau fera la correspondance lors de l'appel
+système. Cet appel système est typiquement employé pour implémenter les
+verrous en mémoire partagée, tels qu'ils sont décrits dans \fBfutex\fP(7).
+.PP
+Quand une opération \fBfutex\fP(7) ne se termine pas de manière satisfaisante
+dans l'espace utilisateur, un appel au noyau est nécessaire pour
+l'arbitrage. Ceci signifie soit endormir le processus appelant, soit
+réveiller le processus en attente.
+.PP
+Les appelants de cette fonction doivent accepter les sémantiques décrites
+dans \fBfutex\fP(7). Comme celles\(hyci impliquent l'écriture d'instructions
+non portables en assembleur, leurs utilisateurs sont des auteurs de
+bibliothèques plus que des développeurs applicatifs.
+.PP
+Le paramètre \fIuaddr\fP doit pointer sur un entier aligné qui stocke le
+compteur. L'opération à exécuter est transmise dans le paramètre \fIop\fP, avec
+la valeur \fIval\fP.
+.PP
+Cinq opérations sont définies pour le moment\ :
+.TP 
+\fBFUTEX_WAIT\fP
+Cette opération vérifie que l'adresse du futex \fIuaddr\fP contient toujours la
+valeur \fIval\fP indiquée et s'endort en attendant un \fBFUTEX_WAKE\fP à cette
+adresse. Les deux étapes sont liées atomiquement. Si l'argument \fItimeout\fP
+est non nul, il contient la durée minimale de sommeil. Sinon, elle est
+infinie. Les arguments \fIuaddr2\fP et \fIval3\fP sont ignorés.
+
+D'après \fBfutex\fP(7), cet appel est exécuté si la décrémentation du compteur
+donne une valeur négative (indiquant un conflit) et le sommeil durera
+jusqu'à ce qu'un autre processus relâche le futex et exécute \fBFUTEX_WAKE\fP.
+.TP 
+\fBFUTEX_WAKE\fP
+Cette opération réveille au plus \fIval\fP processus en attente sur l'adresse
+du futex (endormis dans \fBFUTEX_WAIT\fP). Les arguments \fItimeout\fP, \fIuaddr2\fP
+et \fIval3\fP sont ignorés.
+
+D'après \fBfutex\fP(7), ceci est exécuté si l'incrémentation du compteur montre
+qu'il y a des processus en attente, une fois que la valeur du futex a été
+mise à 1 (indiquant qu'il est disponible).
+.TP 
+\fBFUTEX_FD\fP (présent jusqu'à Linux\ 2.6.25 inclus)
+.\" , suitable for .BR poll (2).
+Pour permettre des réveils asynchrones, cette opération associe un
+descripteur de fichier avec un futex. Si un autre processus exécute un
+\fBFUTEX_WAKE\fP, l'appelant recevra le signal dont le numéro a été indiqué
+dans \fIval\fP. L'appelant doit refermer le descripteur de fichier après
+utilisation. Les arguments \fItimeout\fP, \fIuaddr2\fP et \fIval3\fP sont ignorés.
+
+Pour éviter les situations de concurrence, l'appelant doit tester si le
+futex a été libéré après le retour de \fBFUTEX_FD\fP.
+
+Parce qu'il était de façon inhérent sujet à des situations de concurrence,
+\fBFUTEX_FD\fP a été supprimé de Linux\ 2.6.26 et les suivants.
+.TP 
+\fBFUTEX_REQUEUE\fP (depuis Linux 2.5.70)
+Cette opération a été introduite dans le but d'éviter que trop de processus
+nécessitant un autre futex ne soient activés lors de l'utilisation de
+\fBFUTEX_WAKE\fP. Cet appel réactive \fIval\fP processus, et remet en file
+d'attente tous les autres qui attendaient le futex à l'adresse
+\fIuaddr2\fP. Les arguments \fItimeout\fP et \fIval3\fP sont ignorés.
+.TP 
+\fBFUTEX_CMP_REQUEUE\fP (depuis Linux 2.6.7)
+Il y a un problème de concurrence dans l'utilisation prévue pour
+\fBFUTEX_REQUEUE\fP, aussi \fBFUTEX_CMP_REQUEUE\fP a été introduit. Cette
+opération est similaire à \fBFUTEX_REQUEUE\fP, sauf qu'elle vérifie si
+l'adresse \fIuaddr\fP contient encore la valeur \fIval3\fP. Si non, l'opération
+échoue avec l'erreur \fBEAGAIN\fP.L'argument \fItimeout\fP est ignoré.
+.SH "VALEUR RENVOYÉE"
+.PP
+En cas d'erreur, toutes les opérations renvoient \-1, et \fIerrno\fP contient le
+code d'erreur. La valeur de retour en cas de succès dépend de l'opération,
+conformément à la description de la liste suivante.
+.TP 
+\fBFUTEX_WAIT\fP
+Renvoie O si le processus a été réveillé par un appel
+\fBFUTEX_WAKE\fP. Consultez \fBERREURS\fP pour les divers retours d'erreur
+possibles.
+.TP 
+\fBFUTEX_WAKE\fP
+Renvoie le nombre de processus réveillés.
+.TP 
+\fBFUTEX_FD\fP
+Renvoie le nouveau descripteur associé au futex.
+.TP 
+\fBFUTEX_REQUEUE\fP
+Renvoie le nombre de processus réveillés.
+.TP 
+\fBFUTEX_CMP_REQUEUE\fP
+Renvoie le nombre de processus réveillés.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+Pas d'accès en lecture à la mémoire futex.
+.TP 
+\fBEAGAIN\fP
+\fBFUTEX_CMP_REQUEUE\fP a détecté que la valeur pointée par \fIuaddr\fP n'est pas
+égale à la valeur \fIval3\fP attendue (cela indique probablement une situation
+de compétition\ ; utilisez maintenant \fBFUTEX_WAKE\fP).
+.TP 
+\fBEFAULT\fP
+Erreur de récupération du renseignement \fItimeout\fP depuis l'espace
+utilisateur.
+.TP 
+\fBEINTR\fP
+Une opération \fBFUTEX_WAIT\fP a été interrompue par un signal (consultez
+\fBsignal\fP(7)) ou un réveil involontaire.
+.TP 
+\fBEINVAL\fP
+Argument incorrect.
+.TP 
+\fBENFILE\fP
+La limite du nombre total de fichiers ouverts sur le système a été atteinte.
+.TP 
+\fBENOSYS\fP
+\fIop\fP contient une opération non valable.
+.TP 
+\fBETIMEDOUT\fP
+Temps d'attente atteint pendant l'opération \fBFUTEX_WAIT\fP.
+.TP 
+\fBEWOULDBLOCK\fP
+\fIop\fP était \fBFUTEX_WAIT\fP et la valeur pointée par \fIuaddr\fP n'était pas
+égale à la valeur \fIval\fP attendue au moment de l'appel.
+.SH VERSIONS
+.PP
+Le support initial des futex a été ajouté dans Linux\ 2.5.7 mais avec une
+sémantique différente de celle décrite ci\(hydessus. Un appel système à
+4\ paramètres avec la sémantique décrite dans cette page a été ajouté dans
+Linux\ 2.5.40. Dans Linux\ 2.5.70, un paramètre supplémentaire a été
+ajouté. Un sixième paramètre a été ajouté dans Linux\ 2.6.7 \(em compliqué,
+surtout sur l'architecture s390.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux.
+.SH NOTES
+.PP
+.\" .SH "AUTHORS"
+.\" .PP
+.\" Futexes were designed and worked on by
+.\" Hubertus Franke (IBM Thomas J. Watson Research Center),
+.\" Matthew Kirkwood, Ingo Molnar (Red Hat)
+.\" and Rusty Russell (IBM Linux Technology Center).
+.\" This page written by bert hubert.
+Répétons\(hyle, les futex de base ne sont pas conçus comme une abstraction
+facile à employer pour les utilisateurs (mais la glibc ne fournit pas de
+fonction autour de cet appel système). Les implémenteurs doivent maîtriser
+l'assembleur et avoir lu les sources de la bibliothèque en espace
+utilisateur décrite ci\-dessous.
+.SH "VOIR AUSSI"
+\fBfutex\fP(7)
+.PP
+«\ Fuss, Futexes and Furwocks: Fast Userlevel Locking in Linux\ »
+(proceedings of the Ottawa Linux Symposium 2002), disponible en ligne à
+.br
+.UR http://kernel.org\:/doc\:/ols\:/2002\:/ols2002\-pages\-479\-495.pdf
+.UE
+.PP
+La bibliothèque d'exemple de futex, futex\-*.tar.bz2 à
+.br
+.UR ftp://ftp.nl.kernel.org\:/pub\:/linux\:/kernel\:/people\:/rusty/
+.UE
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

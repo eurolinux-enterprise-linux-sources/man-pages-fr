@@ -1,0 +1,63 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CLOG 3 "11 août 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+clog, clogf, clogl \- Logarithmes népériens de nombres complexes
+.SH SYNOPSIS
+\fB#include <complex.h>\fP
+.sp
+\fBdouble complex clog(double complex \fP\fIz\fP\fB);\fP
+.br
+\fBfloat complex clogf(float complex \fP\fIz\fP\fB);\fP
+.br
+\fBlong double complex clogl(long double complex \fP\fIz\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.SH DESCRIPTION
+La fonction logarithme \fBclog\fP() est l'inverse de la fonction exponentielle
+\fBcexp\fP(3). Ainsi, si \fIy\ =\ clog(z)\fP, alors \fIz\ =\ cexp(y)\fP. La partie
+imaginaire de \fIy\fP est choisie dans l'intervalle [\-pi,\ pi].
+.LP
+On a\ :
+.nf
+
+    clog(z) = log(cabs(z)) + I * carg(z)
+.fi
+.LP
+Veuillez noter que si \fIz\fP est proche de zéro, un débordement est possible.
+.SH VERSIONS
+Ces fonctions ont été introduites dans la glibc dans sa version\ 2.1.
+.SH CONFORMITÉ
+C99.
+.SH "VOIR AUSSI"
+\fBcabs\fP(3), \fBcexp\fP(3), \fBclog10\fP(3), \fBclog2\fP(3), \fBcomplex\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

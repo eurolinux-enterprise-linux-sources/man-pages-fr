@@ -1,0 +1,111 @@
+.\" Copyright (C) 2001 Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TIMEGM 3 "4 juillet 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+timegm, timelocal \- Fonctions réciproques de gmtime et localtime
+.SH SYNOPSIS
+.nf
+\fB#include <time.h>\fP
+.sp
+\fBtime_t timelocal(struct tm *\fP\fItm\fP\fB);\fP
+.sp
+\fBtime_t timegm(struct tm *\fP\fItm\fP\fB);\fP
+.sp
+.fi
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBtimelocal\fP(), \fBtimegm\fP()\ : _BSD_SOURCE || _SVID_SOURCE
+.SH DESCRIPTION
+Les fonctions \fBtimelocal\fP() et \fBtimegm\fP() sont les réciproques de
+\fBlocaltime\fP(3) et \fBgmtime\fP(3).
+.SH CONFORMITÉ
+Ces fonctions sont des extensions non standard de GNU qui sont également
+présentes sur les BSD. Évitez de les utiliser\ ; consultez la section NOTES.
+.SH NOTES
+La fonction \fBtimelocal\fP() est équivalente à la fonction standard POSIX
+\fBmktime\fP(3). Il n'y a aucune raison de l'utiliser.
+.LP
+Afin d'obtenir une version portable de \fBtimegm\fP(), positionnez la variable
+d'environnement \fBTZ\fP à UTC, appelez \fBmktime\fP(3) et restaurez la valeur de
+\fBTZ\fP. Soit un code similaire à\ :
+
+.in +4n
+.nf
+#include <time.h>
+#include <stdlib.h>
+
+time_t
+mon_timegm(struct tm *tm)
+{
+    time_t ret;
+    char *tz;
+
+    tz = getenv("TZ");
+    if (tz)
+        tz = strdup(tz);
+    setenv("TZ", "", 1);
+    tzset();
+    ret = mktime(tm);
+    if (tz) {
+        setenv("TZ", tz, 1);
+        free(tz);
+    } else
+        unsetenv("TZ");
+    tzset();
+    return ret;
+}
+.fi
+.in
+.SH "VOIR AUSSI"
+\fBgmtime\fP(3), \fBlocaltime\fP(3), \fBmktime\fP(3), \fBtzset\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Stéphan Rafin (2002),
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

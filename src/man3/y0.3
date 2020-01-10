@@ -1,0 +1,191 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 19:08:17 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified 2002-08-25, aeb
+.\" Modified 2004-11-12 as per suggestion by Fabian Kreutz/AEB
+.\" 2008-07-24, mtk, created this page, based on material from j0.3.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH Y0 3 "10 août 2008" "" "Manuel du programmeur Linux"
+.SH NOM
+y0, y0f, y0l, y1, y1f, y1l, yn, ynf, ynl \- Fonctions de Bessel de seconde
+espèce
+.SH SYNOPSIS
+.nf
+\fB#include <math.h>\fP
+.sp
+\fBdouble y0(double \fP\fIx\fP\fB);\fP
+.br
+\fBdouble y1(double \fP\fIx\fP\fB);\fP
+.br
+\fBdouble yn(int \fP\fIn\fP\fB, double \fP\fIx\fP\fB);\fP
+.sp
+\fBfloat y0f(float \fP\fIx\fP\fB);\fP
+.br
+\fBfloat y1f(float \fP\fIx\fP\fB);\fP
+.br
+\fBfloat ynf(int \fP\fIn\fP\fB, float \fP\fIx\fP\fB);\fP
+.sp
+\fBlong double y0l(long double \fP\fIx\fP\fB);\fP
+.br
+\fBlong double y1l(long double \fP\fIx\fP\fB);\fP
+.br
+\fBlong double ynl(int \fP\fIn\fP\fB, long double \fP\fIx\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBy0\fP(), \fBy1\fP(), \fByn\fP()\ :
+.RS 4
+_SVID_SOURCE || _BSD_SOURCE || _XOPEN_SOURCE
+.RE
+.br
+\fBy0f\fP(), \fBy0l\fP(), \fBy1f\fP(), \fBy1l\fP(), \fBynf\fP(), \fBynl\fP()\ :
+.RS 4
+.\" Also seems to work: -std=c99 -D_XOPEN_SOURCE
+_SVID_SOURCE || _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 600
+.RE
+.ad b
+.SH DESCRIPTION
+.PP
+Les fonctions \fBy0\fP() et \fBy1\fP() renvoient les fonctions de Bessel de \fIx\fP
+de la seconde espèce pour l'ordre 0 et l'ordre 1, respectivement. La
+fonction \fByn\fP() renvoie la fonction de Bessel de \fIx\fP de la seconde espèce
+à l'ordre \fIn\fP.
+.PP
+La valeur \fIx\fP doit être positive.
+.PP
+Les fonctions \fBy0f\fP(), etc. et \fBy0l\fP(), etc. sont des versions qui
+prennent et renvoient des valeurs de type \fIfloat\fP et \fIlong double\fP,
+respectivement.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient la valeur appropriée de Bessel
+de la seconde espèce pour \fIx\fP.
+
+Si \fIx\fP est un NaN, la valeur renvoyée est un NaN.
+
+Si \fIx\fP est négatif, une erreur de domaine se produit et les fonctions
+renvoient \-\fBHUGE_VAL\fP, \-\fBHUGE_VALF\fP ou \-\fBHUGE_VALL\fP, respectivement
+(POSIX.1\-2001 permet également de renvoyer un NaN dans ce cas).
+
+Si \fIx\fP vaut 0,0, une erreur de pôle se produit et les fonctions renvoient
+\-\fBHUGE_VAL\fP, \-\fBHUGE_VALF\fP ou \-\fBHUGE_VALL\fP, respectivement.
+
+En cas de dépassement pour le résultat, une erreur d'intervalle se produit
+et les fonctions renvoient 0,0.
+
+En cas de dépassement pour le résultat, une erreur d'intervalle se produit
+et les fonctions renvoient \-\fBHUGE_VAL\fP, \-\fBHUGE_VALF\fP ou \-\fBHUGE_VALL\fP,
+respectivement. (POSIX.1\-2001 permet également de renvoyer 0,0 dans ce cas.)
+.SH ERREURS
+Consultez \fBmath_error\fP(7) pour savoir comment déterminer qu'une erreur est
+survenue lors de l'appel de ces fonctions.
+.PP
+Les erreurs suivantes peuvent se produire\ :
+.TP 
+Erreur de domaine\ : \fIx\fP est négatif
+\fIerrno\fP prend la valeur \fBEDOM\fP. Une exception indiquant une virgule
+flottante incorrecte (\fBFE_INVALID\fP) est levée.
+.TP 
+Erreur de pôle\ : \fIx\fP vaut 0,0
+.\" Before POSIX.1-2001 TC2, this was (inconsistently) specified
+.\" as a range error.
+.\" FIXME . y0(0.0) gives EDOM
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6808
+\fIerrno\fP prend la valeur \fBERANGE\fP (mais consultez la section des
+BOGUES). Aucune exception \fBFE_DIVBYZERO\fP n'est renvoyée par
+\fBfetestexcept\fP(3) dans ce cas.
+.TP 
+Erreur d'intervalle\ : soupassement («\ underflow\ ») du résultat
+.\" e.g., y0(1e33) on glibc 2.8/x86-32
+.\" An underflow floating-point exception
+.\" .RB ( FE_UNDERFLOW )
+.\" is raised.
+.\" FIXME . Is it intentional that these functions do not use FE_*?
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6806
+\fIerrno\fP prend la valeur \fBERANGE\fP. Aucune exception \fBFE_UNDERFLOW\fP n'est
+renvoyée par \fBfetestexcept\fP(3) dans ce cas.
+.TP 
+Erreur d'intervalle\ : dépassement pour le résultat
+.\" e.g., yn(10, 1e-40) on glibc 2.8/x86-32
+.\" .I errno
+.\" is set to
+.\" .BR ERANGE .
+.\" FIXME . Is it intentional that errno is not set?
+.\" Bug raised: http://sources.redhat.com/bugzilla/show_bug.cgi?id=6808
+\fIerrno\fP n'est pas modifiée dans ce cas. Une exception de virgule flottante
+de dépassement (\fBFE_OVERFLOW\fP) est levée.
+.SH CONFORMITÉ
+Les fonctions renvoyant des valeurs de type \fIdouble\fP se conforment à SVr4,
+BSD\ 4.3 et POSIX.1\-2001. Les autres sont des fonctions non standard qui
+existent également sur les BSD.
+.SH BOGUES
+.\" FIXME .
+.\" Bug raised: http://sourceware.org/bugzilla/show_bug.cgi?id=6807
+En cas d'erreur de pôle, ces fonctions configurent \fIerrno\fP avec \fBEDOM\fP, à
+la place de \fBERANGE\fP comme demandé dans POSIX.1\-2004.
+
+.\" FIXME . Actually, 2.3.2 is the earliest test result I have; so yet
+.\" to confirm if this error occurs only in 2.3.2.
+Dans le glibc 2.3.2 et les versions antérieures, ces fonctions ne lèvent pas
+d'exception de virgule flottante incorrecte (\fBFE_INVALID\fP) quand une erreur
+de domaine se produit.
+.SH "VOIR AUSSI"
+\fBj0\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

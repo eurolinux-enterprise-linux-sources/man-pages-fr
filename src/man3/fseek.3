@@ -1,0 +1,134 @@
+.\" Copyright (c) 1990, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" This code is derived from software contributed to Berkeley by
+.\" Chris Torek and the American National Standards Committee X3,
+.\" on Information Processing Systems.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     @(#)fseek.3	6.11 (Berkeley) 6/29/91
+.\"
+.\" Converted for Linux, Mon Nov 29 15:22:01 1993, faith@cs.unc.edu
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FSEEK 3 "29 novembre 1993" GNU "Manuel du programmeur Linux"
+.SH NOM
+fgetpos, fseek, fsetpos, ftell, rewind \- Positionner un flux
+.SH SYNOPSIS
+\fB#include <stdio.h>\fP
+.sp
+\fBint fseek(FILE *\fP\fIstream\fP\fB, long \fP\fIoffset\fP\fB, int \fP\fIwhence\fP\fB);\fP
+
+\fBlong ftell(FILE *\fP\fIstream\fP\fB);\fP
+
+\fBvoid rewind(FILE *\fP\fIstream\fP\fB);\fP
+
+\fBint fgetpos(FILE *\fP\fIstream\fP\fB, fpos_t *\fP\fIpos\fP\fB);\fP
+.br
+\fBint fsetpos(FILE *\fP\fIstream\fP\fB, fpos_t *\fP\fIpos\fP\fB);\fP
+.SH DESCRIPTION
+La fonction \fBfseek\fP() définit l'indicateur de position du flux pointé par
+\fIstream\fP. La nouvelle position, mesurée en octets, est obtenue en
+additionnant \fIoffset\fP octets au point de départ indiqué par \fIwhence\fP. Si
+\fIwhence\fP vaut \fBSEEK_SET\fP, \fBSEEK_CUR\fP, ou \fBSEEK_END\fP, le point de départ
+correspond respectivement au début du fichier, à la position actuelle, ou à
+la fin du fichier. Un appel réussi à \fBfseek\fP() efface l'indicateur de fin
+de fichier du flux, et annule les effets de toute fonction \fBungetc\fP(3) sur
+le même flux.
+.PP
+La fonction \fBftell\fP() obtient la valeur de l'indicateur de position du flux
+pointé par \fIstream\fP.
+.PP
+La fonction \fBrewind\fP() place l'indicateur de position du flux pointé par
+\fIstream\fP au début du fichier. C'est l'équivalent de\ :
+.PP
+.RS
+(void) fseek(stream, 0L, SEEK_SET)
+.RE
+.PP
+sauf que l'indicateur d'erreur du flux est également effacé (consultez
+\fBclearerr\fP(3)).
+.PP
+Les fonctions \fBfgetpos\fP() et \fBfsetpos\fP() sont des alternatives à
+\fBftell\fP() et \fBfseek\fP() (avec \fIwhence\fP à \fBSEEK_SET\fP), en définissant et
+en mémorisant la valeur de l'indicateur de position du fichier dans ou
+depuis l'objet référencé par \fIpos\fP. Sur certains systèmes non UNIX, l'objet
+\fIfpos_t\fP peut être un objet complexe, et ces routines peuvent être les
+seules méthodes possibles pour repositionner un flux de texte de manière
+portable.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBrewind\fP() ne renvoie pas de valeur. Si elles réussissent
+totalement, \fBfgetpos\fP(), \fBfseek\fP(), \fBfsetpos\fP() renvoient 0, et
+\fBftell\fP() renvoie la position actuelle. Sinon, elles renvoient \-1 et la
+variable globale \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+Le flux \fIstream\fP n'est pas un flux positionnable.
+.TP 
+\fBEINVAL\fP
+L'argument \fIwhence\fP de \fBfseek\fP() n'était ni \fBSEEK_SET\fP, ni \fBSEEK_END\fP,
+ni \fBSEEK_CUR\fP.
+.PP
+Les fonctions \fBfgetpos\fP(), \fBfseek\fP(), \fBfsetpos\fP(), et \fBftell\fP() peuvent
+également, en cas d'échec, définir \fIerrno\fP sur n'importe quelle erreur
+indiquée par les routines \fBfflush\fP(3), \fBfstat\fP(2), \fBlseek\fP(2) et
+\fBmalloc\fP(3).
+.SH CONFORMITÉ
+C89, C99.
+.SH "VOIR AUSSI"
+\fBlseek\fP(2), \fBfseeko\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

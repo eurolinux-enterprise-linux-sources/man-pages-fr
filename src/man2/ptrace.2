@@ -1,0 +1,1202 @@
+.\" Copyright (c) 1993 Michael Haardt <michael@moria.de>
+.\" Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" and changes Copyright (C) 1999 Mike Coleman (mkc@acm.org)
+.\" -- major revision to fully document ptrace semantics per recent Linux
+.\"    kernel (2.2.10) and glibc (2.1.2)
+.\" Sun Nov  7 03:18:35 CST 1999
+.\"
+.\" and Copyright (c) 2011, Denys Vlasenko <vda.linux@googlemail.com>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Fri Jul 23 23:47:18 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Fri Jan 31 16:46:30 1997 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Thu Oct  7 17:28:49 1999 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\"
+.\" 2006-03-24, Chuck Ebbert <76306.1226@compuserve.com>
+.\"    Added    PTRACE_SETOPTIONS, PTRACE_GETEVENTMSG, PTRACE_GETSIGINFO,
+.\"        PTRACE_SETSIGINFO, PTRACE_SYSEMU, PTRACE_SYSEMU_SINGLESTEP
+.\"    (Thanks to Blaisorblade, Daniel Jacobowitz and others who helped.)
+.\" 2011-09, major update by Denys Vlasenko <vda.linux@googlemail.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTRACE 2 "16 février 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+ptrace \- Suivre un processus
+.SH SYNOPSIS
+.nf
+\fB#include <sys/ptrace.h>\fP
+.sp
+\fBlong ptrace(enum __ptrace_request \fP\fIrequest\fP\fB, pid_t \fP\fIpid\fP\fB, \fP
+\fB            void *\fP\fIaddr\fP\fB, void *\fP\fIdata\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+L'appel système \fBptrace\fP() fournit à un processus (l'«\ observateur\ ») un
+moyen d'observer et contrôler l'exécution d'un autre processus
+(l'«\ observé\ ») et d'examiner et éditer la mémoire et les registres de
+l'observé. L'utilisation principale de cette fonction est l'implémentation
+de points d'arrêt pour le débogage, et pour suivre les appels système.
+.LP
+Un observé doit d'abord être attaché à l'observateur. L'attachement et les
+commandes suivantes sont par thread\ : dans un processus multithreadé, chaque
+thread peut être attaché individuellement à un observateur (éventuellement
+différent), ou être laissé détaché et donc non débogué. Par conséquent,
+l'«\ observé\ » signifie toujours «\ (un) thread\ », jamais «\ un processus
+(éventuellement multithreadé)\ ». Les commandes ptrace sont toujours envoyées
+à un observé spécifique en utilisant un appel de la forme
+
+    ptrace(PTRACE_truc, pid, ...)
+
+où \fIpid\fP est l'identifiant de thread du thread Linux correspondant.
+.LP
+(Remarquez que dans cette page, un «\ processus multithreadé\ » signifie un
+groupe de threads constitué de threads créés en utilisant l'attribut
+\fBCLONE_THREAD\fP de \fBclone\fP(2).)
+.LP
+Un processus peut démarrer un suivi en appelant \fBfork\fP(2) et faire en sorte
+que le fils créé fasse un \fBPTRACE_TRACEME\fP, suivi (en général) par un
+\fBexecve\fP(2). Autrement, un processus peut commencer à suivre un autre
+processus en utilisant \fBPTRACE_ATTACH\fP ou \fBPTRACE_SEIZE\fP.
+.LP
+L'observé s'arrêtera à chaque fois qu'un signal lui sera distribué, même si
+le signal est ignoré (à l'exception de \fBSIGKILL\fP qui a les effets
+habituels). L'observateur sera prévenu à son prochain appel de \fBwaitpid\fP(2)
+(ou un des appels système liés à «\ wait\ »)\ ; cet appel renverra une valeur
+\fIstatus\fP contenant les renseignements indiquant la raison de l'arrêt de
+l'observé. Lorsque l'observé est arrêté, l'observateur peut utiliser
+plusieurs requêtes ptrace pour inspecter et modifier
+l'observé. L'observateur peut également laisser continuer l'exécution de
+l'observé, en ignorant éventuellement le signal ayant déclenché l'arrêt, ou
+même en envoyant un autre signal.
+.LP
+Si l'option \fBPTRACE_O_TRACEEXEC\fP n'est pas effective, tous les appels
+réussis d'\fBexecve\fP(2) par le processus suivi déclencheront l'envoi d'un
+signal \fBSIGTRAP\fP, ce qui permet au père de reprendre le contrôle avant que
+le nouveau programme commence son exécution.
+.LP
+Quand l'observateur a fini le suivi, il peut forcer l'observé à continuer
+normalement, en mode non suivi, avec \fBPTRACE_DETACH\fP.
+.LP
+La valeur de l'argument \fIrequest\fP indique précisément l'action à
+entreprendre.
+.TP 
+\fBPTRACE_TRACEME\fP
+Le processus en cours va être suivi par son père. Un processus ne devrait
+sans doute pas envoyer cette requête si son père n'est pas prêt à le
+suivre. Dans cette requête \fIpid\fP, \fIaddr\fP, et \fIdata\fP sont ignorés.
+.LP
+La requête \fBPTRACE_TRACEME\fP ne sert qu'à l'observé. Les requêtes restantes
+ne servent qu'à l'observateur. Par la suite, \fIpid\fP précise l'identifiant de
+thread de l'observé sur lequel agir. Pour les requêtes différentes de
+\fBPTRACE_ATTACH\fP, \fBPTRACE_SEIZE\fP, \fBPTRACE_INTERRUPT\fP et \fBPTRACE_KILL\fP,
+l'observé doit être arrêté.
+.TP 
+\fBPTRACE_PEEKTEXT\fP, \fBPTRACE_PEEKDATA\fP
+Lire un mot à l'adresse \fIaddr\fP dans l'espace mémoire de l'observé et le
+renvoyer en résultat de l'appel \fBptrace\fP(). Linux ne sépare pas les espaces
+d'adressage de code et de données, donc ces deux requêtes sont équivalentes
+(\fIdata\fP est ignoré).
+.TP 
+\fBPTRACE_PEEKUSER\fP
+.\" PTRACE_PEEKUSR in kernel source, but glibc uses PTRACE_PEEKUSER,
+.\" and that is the name that seems common on other systems.
+Lire un mot à la position \fIaddr\fP dans l'espace USER de l'observé, qui
+contient les registres et divers renseignements sur le processus (voir
+\fI<sys/user.h>\fP). La valeur est renvoyée en résultat de
+\fBptrace\fP(). En principe, l'adresse doit être alignée sur une frontière de
+mots, bien que cela varie selon les architectures. Consultez la section
+\fBNOTES\fP (\fIdata\fP est ignoré).
+.TP 
+\fBPTRACE_POKETEXT\fP, \fBPTRACE_POKEDATA\fP
+Copier un mot depuis l'adresse \fIdata\fP de la mémoire de l'observateur vers
+l'adresse \fIaddr\fP de la mémoire de l'observé. Comme pour \fBPTRACE_PEEKTEXT\fP
+et \fBPTRACE_PEEKDATA\fP, ces deux requêtes sont équivalentes.
+.TP 
+\fBPTRACE_POKEUSER\fP
+.\" PTRACE_POKEUSR in kernel source, but glibc uses PTRACE_POKEUSER,
+.\" and that is the name that seems common on other systems.
+.\" FIXME In the preceding sentence, which modifications are disallowed,
+.\" and when they are disallowed, how does user space discover that fact?
+Copier un mot depuis l'emplacement \fIdata\fP de la mémoire de l'observateur
+vers l'emplacement \fIaddr\fP dans l'espace USER de l'observé. Comme pour
+\fBPTRACE_PEEKUSER\fP, les emplacements doivent être alignés sur une frontière
+de mot. Pour maintenir l'intégrité du noyau, certaines modifications de la
+zone USER sont interdites.
+.TP 
+\fBPTRACE_GETREGS\fP, \fBPTRACE_GETFPREGS\fP
+Copier les registres généraux ou du processeur en virgule flottante de
+l'observé, vers l'adresse \fIdata\fP de l'observateur. Consultez
+\fI<sys/user.h>\fP pour les détails sur le format de ces données
+(\fIaddr\fP est ignoré). Remarquez que les systèmes SPARC ont la signification
+de \fIdata\fP et \fIaddr\fP inversée, c'est\-à\-dire que \fIdata\fP est ignoré et les
+registres sont copiés vers l'adresse \fIaddr\fP. \fBPTRACE_GETREGS\fP et
+\fBPTRACE_GETFPREGS\fP ne sont pas présents sur toutes les architectures.
+.TP 
+\fBPTRACE_GETREGSET\fP (depuis Linux\ 2.6.34)
+Lire les registres de l'observé. \fIaddr\fP indique, de manière dépendante de
+l'architecture, le type de registres à lire. \fBNT_PRSTATUS\fP (avec une valeur
+numérique de 1) a pour conséquence habituelle la lecture de registres
+généraux. Si le processeur a, par exemple, des registres en virgule
+flottante ou en vecteur, ils peuvent être récupéré en configurant \fIaddr\fP à
+la constante \fBNT_foo\fP correspondante. \fIdata\fP pointe vers une \fBstruct
+iovec\fP, qui décrit l'emplacement et la taille du tampon de destination. Le
+noyau modifie \fBiov.len\fP au retour pour indiquer le véritable nombre
+d'octets renvoyés.
+.TP 
+\fBPTRACE_GETSIGINFO\fP (depuis Linux\ 2.3.99\-pre6)
+Récupérer des renseignements sur le signal qui a provoqué l'arrêt. Pour ce
+faire, copier une structure \fIsiginfo_t\fP (consultez \fBsigaction\fP(2)) de
+l'observé à l'adresse \fIdata\fP de l'observateur (\fIaddr\fP est ignoré).
+.TP 
+\fBPTRACE_SETREGS\fP, \fBPTRACE_SETFPREGS\fP
+.\" FIXME In the preceding sentence, which modifications are disallowed,
+.\" and when they are disallowed, how does user space discover that fact?
+Modifier les registres généraux ou du processeur en virgule flottante de
+l'observé, depuis l'adresse \fIdata\fP de l'observateur. Comme pour
+\fBPTRACE_POKEUSER\fP, certaines modifications de registres généraux pourraient
+être interdites (\fIaddr\fP est ignoré). Remarquez que les systèmes SPARC ont
+la signification de \fIdata\fP et \fIaddr\fP inversée, c'est\-à\-dire que \fIdata\fP
+est ignoré et les registres sont copiés depuis l'adresse
+\fIaddr\fP. \fBPTRACE_SETREGS\fP\ et \fBPTRACE_SETFPREGS\fP ne sont pas présents sur
+toutes les architectures.
+.TP 
+\fBPTRACE_SETREGSET\fP (depuis Linux\ 2.6.34)
+Modifier les registres de l'observé. La signification de \fIaddr\fP et \fIdata\fP
+est analogue à \fBPTRACE_GETREGSET\fP.
+.TP 
+\fBPTRACE_SETSIGINFO\fP (depuis Linux\ 2.3.99\-pre6)
+Définir les renseignements de signaux\ : copier une structure \fIsiginfo_t\fP de
+l'adresse \fIdata\fP de l'observateur vers l'observé. Cela n'affecte que les
+signaux qui auraient dû être distribués à l'observé et ont été interceptés à
+cause de \fBptrace\fP(). Différencier ces signaux normaux des signaux créés par
+\fBptrace\fP() lui\-même peut être délicat (\fIaddr\fP est ignoré).
+.TP 
+\fBPTRACE_SETOPTIONS\fP (depuis Linux\ 2.4.6, consultez les remarques de \fBBOGUES\fP)
+Définir les options de ptrace à partir de l'adresse \fIdata\fP (\fIaddr\fP est
+ignoré). \fIdata\fP est interprété comme un masque d'options, qui est construit
+à partir des attributs suivants.
+.RS
+.TP 
+\fBPTRACE_O_EXITKILL\fP (depuis Linux\ 3.8)
+.\" commit 992fb6e170639b0849bace8e49bf31bd37c4123
+Si l'observateur définit cet attribut, un signal \fBSIGKILL\fP sera envoyé à
+tous les observés quand l'observateur se termine. Cet option est utile pour
+les gardiens ptrace qui veulent s'assurer que les observés ne peuvent jamais
+échapper au contrôle de l'observateur.
+.TP 
+\fBPTRACE_O_TRACECLONE\fP (depuis Linux\ 2.5.46)
+Arrêter l'observé au prochain \fBclone\fP(2) et commencer automatiquement à
+suivre le nouveau processus cloné, qui démarrera avec un signal
+\fBSIGSTOP\fP. Un \fBwaitpid\fP(2) par l'observateur renverra une valeur \fIstatus\fP
+comme
+
+.nf
+  status>>8 == (SIGTRAP | (PTRACE_EVENT_CLONE<<8))
+.fi
+
+Le PID du nouveau processus peut être récupéré avec \fBPTRACE_GETEVENTMSG\fP.
+.IP
+Cette option peut ne pas intercepter tous les appels \fBclone\fP(2). Si
+l'observé appelle \fBclone\fP(2) avec l'attribut \fBCLONE_VFORK\fP,
+\fBPTRACE_EVENT_VFORK\fP sera envoyé si \fBPTRACE_O_TRACEVFORK\fP est
+utilisé. Sinon, si l'observé appelle \fBclone\fP(2) avec \fBSIGCHLD\fP comme
+signal de terminaison, \fBPTRACE_EVENT_FORK\fP sera envoyé si
+\fBPTRACE_O_TRACEFORK\fP est utilisé.
+.TP 
+\fBPTRACE_O_TRACEEXEC\fP (depuis Linux\ 2.5.46)
+Arrêter l'observé au prochain \fBexecve\fP(2). Un \fBwaitpid\fP(2) par
+l'observateur renverra une valeur \fIstatus\fP comme
+
+.nf
+  status>>8 == (SIGTRAP | (PTRACE_EVENT_EXEC<<8))
+.fi
+
+Si le thread en cours d'exécution n'est pas un leader de groupe de threads,
+l'identifiant de thread est réinitialisé à l'identifiant du leader de groupe
+de threads avant cet arrêt. Depuis Linux\ 3.0, le premier identifiant de
+thread peut être récupéré avec \fBPTRACE_GETEVENTMSG\fP.
+.TP 
+\fBPTRACE_O_TRACEEXIT\fP (depuis Linux\ 2.5.60)
+Arrêter l'observé à la terminaison. Un \fBwaitpid\fP(2) par l'observateur
+renverra une valeur \fIstatus\fP comme
+
+.nf
+  status>>8 == (SIGTRAP | (PTRACE_EVENT_EXIT<<8))
+.fi
+
+L'état de fin de l'observé peut être récupéré avec \fBPTRACE_GETEVENTMSG\fP.
+.IP
+L'observé est arrêté tôt dans la terminaison du processus, alors que les
+registres sont toujours disponibles, ce qui permet au processus utilisant
+\fBptrace\fP() de voir où la terminaison s'est produite, alors que la
+notification de terminaison normale a lieu à la fin de cette
+terminaison. Même si le contexte est disponible, l'observateur ne peut pas
+empêcher la terminaison à ce moment là.
+.TP 
+\fBPTRACE_O_TRACEFORK\fP (depuis Linux\ 2.5.46)
+Arrêter l'observé au prochain \fBfork\fP(2) et commencer automatiquement à
+suivre le nouveau processus créé, qui démarrera avec un signal
+\fBSIGSTOP\fP. Un \fBwaitpid\fP(2) par l'observateur renverra une valeur \fIstatus\fP
+comme
+
+.nf
+  status>>8 == (SIGTRAP | (PTRACE_EVENT_FORK<<8))
+.fi
+
+Le PID du nouveau processus peut être récupéré avec \fBPTRACE_GETEVENTMSG\fP.
+.TP 
+\fBPTRACE_O_TRACESYSGOOD\fP (depuis Linux\ 2.4.6)
+Lors des interceptions d'appel système, mettre à 1 le bit\ 7 du numéro de
+signal (envoyer \fISIGTRAP\ |\ 0x80\fP). Cela permet au processus utilisant
+\fBptrace\fP() de faire la différence entre les interceptions normales et
+celles provoquées par un appel système. \fBPTRACE_O_TRACESYSGOOD\fP peut ne pas
+fonctionner sur toutes les architectures.
+.TP 
+\fBPTRACE_O_TRACEVFORK\fP (depuis Linux\ 2.5.46)
+Arrêter l'observé au prochain \fBvfork\fP(2) et commencer automatiquement à
+suivre le nouveau processus créé, qui démarrera avec un signal
+\fBSIGSTOP\fP. Un \fBwaitpid\fP(2) par l'observateur renverra une valeur \fIstatus\fP
+comme
+
+.nf
+  status>>8 == (SIGTRAP | (PTRACE_EVENT_VFORK<<8))
+.fi
+
+Le PID du nouveau processus peut être récupéré avec \fBPTRACE_GETEVENTMSG\fP.
+.TP 
+\fBPTRACE_O_TRACEVFORKDONE\fP (depuis Linux\ 2.5.60)
+Arrêter l'observé à la fin du prochain \fBvfork\fP(2). Un \fBwaitpid\fP(2) par
+l'observateur renverra une valeur \fIstatus\fP comme
+
+.nf
+  status>>8 == (SIGTRAP | (PTRACE_EVENT_VFORK_DONE<<8))
+.fi
+
+Le PID du nouveau processus peut (depuis Linux\ 2.6.18) être récupéré avec
+\fBPTRACE_GETEVENTMSG\fP.
+.RE
+.TP 
+\fBPTRACE_GETEVENTMSG\fP (depuis Linux\ 2.5.46)
+Récupérer un message (dans un \fIunsigned long\fP) concernant l'événement
+ptrace qui vient d'arriver, en le plaçant à l'adresse \fIdata\fP de
+l'observateur. Pour \fBPTRACE_EVENT_EXIT\fP, il s'agit du code de retour de
+l'observé. Pour \fBPTRACE_EVENT_FORK\fP, \fBPTRACE_EVENT_VFORK\fP,
+\fBPTRACE_EVENT_VFORK_DONE\fP et \fBPTRACE_EVENT_CLONE\fP, il s'agit du PID du
+nouveau processus (\fIaddr\fP est ignoré).
+.TP 
+\fBPTRACE_CONT\fP
+Redémarrer l'observé arrêté. Si \fIdata\fP est non nul, il est interprété comme
+un numéro de signal à distribuer à l'observé\ ; sinon aucun signal n'est
+distribué. L'observateur peut ainsi contrôler si un signal envoyé à
+l'observé doit lui être distribué ou non (\fIaddr\fP est ignoré).
+.TP 
+\fBPTRACE_SYSCALL\fP, \fBPTRACE_SINGLESTEP\fP
+Redémarrer l'observé arrêté comme pour \fBPTRACE_CONT\fP, mais en s'arrangeant
+pour qu'il soit arrêté à la prochaine entrée ou sortie d'un appel système,
+ou après la prochaine instruction, respectivement (l'observé sera aussi
+arrêté par l'arrivée d'un signal). Du point de vue de l'observateur,
+l'observé semblera être arrêté par \fBSIGTRAP\fP. Ainsi, pour \fBPTRACE_SYSCALL\fP
+l'idée est d'inspecter les arguments de l'appel système au premier arrêt
+puis de faire un autre \fBPTRACE_SYSCALL\fP et d'inspecter la valeur de retour
+au second arrêt. Le paramètre \fIdata\fP est interprété comme pour
+\fBPTRACE_CONT\fP (\fIaddr\fP est ignoré).
+.TP 
+\fBPTRACE_SYSEMU\fP, \fBPTRACE_SYSEMU_SINGLESTEP\fP (depuis Linux\ 2.6.14)
+.\" As at 3.7
+Pour \fBPTRACE_SYSEMU\fP, continuer puis s'arrêter lors du prochain appel
+système, qui ne sera pas exécuté. Pour \fBPTRACE_SYSEMU_SINGLESTEP\fP, faire la
+même chose, mais exécuter pas à pas s'il ne s'agit pas d'un appel
+système. Cette fonction est utilisée par des programmes comme User Mode
+Linux, qui veulent émuler tous les appels système de l'observé. Le paramètre
+\fIdata\fP est interprété comme pour \fBPTRACE_CONT\fP. L'argument \fIaddr\fP est
+ignoré. Ces requêtes ne sont pour l'instant disponibles que sur x86.
+.TP 
+\fBPTRACE_LISTEN\fP (depuis Linux\ 3.4)
+Redémarrer l'observé arrêté, mais en l'empêchant de s'exécuter. L'état
+résultant de l'observé est similaire a celui d'un processus qui a été arrêté
+par un \fBSIGSTOP\fP (ou autre signal d'arrêt). Consultez la sous\-section
+\fBArrêt\-groupe\fP pour des renseignements supplémentaires. \fBPTRACE_LISTEN\fP ne
+fonctionne que sur les observés attachés par \fBPTRACE_SEIZE\fP.
+.TP 
+\fBPTRACE_KILL\fP
+Envoyer à l'observé un signal \fBSIGKILL\fP pour le terminer (\fIaddr\fP et
+\fIdata\fP sont ignorés).
+.IP
+.\" [Note from Denys Vlasenko:
+.\"     deprecation suggested by Oleg Nesterov. He prefers to deprecate it
+.\"     instead of describing (and needing to support) PTRACE_KILL's quirks.]
+\fICette opération est obsolète, ne l'utilisez pas.\fP À la place, envoyez un
+\fBSIGKILL\fP directement en utilisant \fBkill\fP(2) ou \fBtgkill\fP(2). Le problème
+avec \fBPTRACE_KILL\fP est qu'il nécessite que l'observé soit en
+arrêt\-distribution\-signal, sinon cela risque de ne pas fonctionner
+(c'est\-à\-dire risque de se terminer avec succès sans tuer l'observé). En
+revanche, envoyer \fBSIGKILL\fP directement n'est pas concerné par cette
+limite.
+.TP 
+\fBPTRACE_INTERRUPT\fP (depuis Linux\ 3.4)
+Arrêter un observé. Si l'observé est en cours d'exécution, il s'arrêtera
+avec \fBPTRACE_EVENT_STOP\fP. Si l'observé est déjà arrêté par un signal, ou
+reçoit un signale en parallèle avec \fBPTRACE_INTERRUPT\fP, il pourrait
+signaler un arrêt\-groupe ou un arrêt\-distribution\-signal au lieu de
+\fBPTRACE_EVENT_STOP\fP. \fBPTRACE_INTERRUPT\fP ne fonctionne que sur les observés
+attaché par \fBPTRACE_SEIZE\fP.
+.TP 
+\fBPTRACE_ATTACH\fP
+.\" No longer true (removed by Denys Vlasenko, 2011, who remarks:
+.\"        "I think it isn't true in non-ancient 2.4 and in 2.6/3.x.
+.\"         Basically, it's not true for any Linux in practical use.
+.\" ; the behavior of the tracee is as if it had done a
+.\" .BR PTRACE_TRACEME .
+.\" The calling process actually becomes the parent of the tracee
+.\" process for most purposes (e.g., it will receive
+.\" notification of tracee events and appears in
+.\" .BR ps (1)
+.\" output as the tracee's parent), but a
+.\" .BR getppid (2)
+.\" by the tracee will still return the PID of the original parent.
+Attacher le processus numéro \fIpid\fP, pour le suivre. L'observé va recevoir
+un \fBSIGSTOP\fP, mais il ne sera peut\-être pas arrêté tout de suite, utilisez
+\fBwaitid\fP(2) pour attendre son arrêt. Consultez la sous\-section
+\fBAttachement et détachement\fP pour obtenir de plus amples renseignements
+(\fIaddr\fP et \fIdata\fP sont ignorés).
+.TP 
+\fBPTRACE_SEIZE\fP (depuis Linux\ 3.4)
+Attacher au processus indiqué par \fIpid\fP, faisant de lui l'observé du
+processus appelant. Contrairement à \fBPTRACE_ATTACH\fP, \fBPTRACE_SEIZE\fP
+n'arrête pas le processus. Seul un processus sous \fBPTRACE_SEIZE\fP peut
+accepter les commandes \fBPTRACE_INTERRUPT\fP et \fBPTRACE_LISTEN\fP. \fIaddr\fP doit
+être zéro. \fIdata\fP contient un masque d'options de ptrace à activer
+immédiatement.
+.TP 
+\fBPTRACE_DETACH\fP
+Relancer l'observé arrêté comme avec \fBPTRACE_CONT\fP, mais en commençant par
+s'en détacher. Sous Linux un observé peut être détaché ainsi quelque soit la
+méthode employée pour démarrer le suivi (\fIaddr\fP est ignoré).
+.SS "Mort sous ptrace"
+Quand un processus (éventuellement multithreadé) reçoit un signal pour le
+tuer (un dont la disposition est configurée à \fBSIG_DFL\fP et dont l'action
+par défaut est de tuer le processus), tous les threads se terminent. Chaque
+observé signale sa mort à son ou ses observateurs. La notification de cet
+événement est distribuée par \fBwaitpid\fP(2).
+.LP
+Remarquez que le signal tueur provoquera d'abord un
+arrêt\-distribution\-signal (sur un seul observé) et, seulement après être
+injecté par l'observateur (ou après être envoyé à un thread qui n'est pas
+suivi), la mort du signal arrivera sur \fItous\fP les observés d'un processus
+multithreadé (le terme «\ arrêt\-distribution\-signal\ » est expliqué plus bas).
+.LP
+\fBSIGKILL\fP ne génère pas d'arrêt\-distribution\-signal et l'observateur ne
+peut par conséquent pas le supprimer. \fBSIGKILL\fP tue même à l'intérieur des
+appels systèmes (arrêt\-sortie\-appel\-système n'est pas créé avant la mort par
+\fBSIGKILL\fP). L'effet direct est que \fBSIGKILL\fP tue toujours le processus
+(tout ses threads), même si certains threads du processus sont suivis avec
+ptrace.
+.LP
+Quand l'observé appelle \fB_exit\fP(2), il signale sa mort à son
+observateur. Les autres threads ne sont pas concernés.
+.LP
+Quand n'importe quel thread exécute \fBexit_group\fP(2), tous les observés de
+son groupe de threads signalent leur mort à leur observateur.
+.LP
+Si l'option \fBPTRACE_O_TRACEEXIT\fP est active, \fBPTRACE_EVENT_EXIT\fP arrivera
+avant la mort réelle. Cela s'applique aux terminaisons avec \fBexit\fP(2),
+\fBexit_group\fP(2) et aux morts de signal (sauf \fBSIGKILL\fP), et lorsque les
+threads sont démolis par \fBexecve\fP(2) dans un processus multithreadé .
+.LP
+L'observateur ne peut pas assumer que l'observé arrêté\-ptrace
+existe. L'observé risque de mourir avant d'être arrêté dans plusieurs cas
+(comme avec \fBSIGKILL\fP). Par conséquent, le tracé doit être préparé pour
+traiter une erreur \fBESRCH\fP sur n'importe quel opération
+ptrace. Malheureusement, la même erreur est renvoyée si l'observé existe
+mais n'est pas arrêté\-ptrace (pour les commandes qui nécessitent un observé
+arrêté), ou s'il n'est pas suivi par le processus qui a envoyé l'appel
+ptrace. L'observateur doit garder une trace de l'état arrêté ou en
+fonctionnement de l'observé, et interpréter \fBESRCH\fP comme «\ l'observé s'est
+achevé de manière inattendue\ » seulement s'il sait que l'observé est
+effectivement entré en arrêt\-ptrace. Remarquez qu'il n'est pas garanti que
+\fIwaitpid(WNOHANG)\fP signale de façon fiable l'état de mort de l'observé si
+une opération ptrace renvoie \fBESRCH\fP. \fIwaitpid(WNOHANG)\fP pourrait plutôt
+renvoyer 0. Autrement dit, l'observé pourrait «\ ne pas être encore mort\ »,
+mais déjà refuser des requêtes ptrace.
+.LP
+L'observateur ne peut pas assumer que l'observé finit \fItoujours\fP sa vie en
+signalant \fIWIFEXITED(status)\fP ou \fIWIFSIGNALED(status)\fP\ ; dans certains cas
+ça n'arrive pas. Par exemple si un thread différent du leader de groupe de
+threads fait un \fBexecve\fP(2), il disparaît\ ; son PID ne sera plus jamais vu,
+tous les arrêts suivants de ptrace seront signalés sous le PID du leader de
+groupe de threads.
+.SS "États arrêtés"
+Deux états existent pour un observé\ : en cours d'exécution ou à l'arrêt.
+.LP
+De nombreuses sortes d'états sont possibles quand l'observé est arrêté, et
+les discussions dans ptrace sont souvent confondues. Par conséquent,
+l'utilisation de termes précis est importante.
+.LP
+Dans cette page de manuel, tous les états d'arrêt dans lesquels l'observé
+est prêt à accepter des commandes ptrace de l'observateur sont appelés
+\fIarrêts\-ptrace\fP. Les arrêts\-ptrace peuvent ensuite être sous\-divisés en
+\fIarrêt\-distribution\-signal\fP, \fIarrêt\-groupe\fP,
+\fIarrêt\-appel\-système\fP,\ etc. Ces états d'arrêt sons décrits en détail
+ci\-dessous.
+.LP
+Lorsque l'observé en cours d'exécution entre en arrêt\-ptrace, il avise son
+observateur en utilisant \fBwaitpid\fP(2) (ou un des autres appels système
+«\ wait\ »). La plupart de cette page de manuel suppose que l'observateur
+attend avec\ :
+.LP
+    pid = waitpid(pid_ou_moins_1, &status, __WALL);
+.LP
+.\" Denys Vlasenko:
+.\"     Do we require __WALL usage, or will just using 0 be ok? (With 0,
+.\"     I am not 100% sure there aren't ugly corner cases.) Are the
+.\"     rules different if user wants to use waitid? Will waitid require
+.\"     WEXITED?
+.\"
+Les observés arrêtés\-ptrace sont signalés comme renvoyés avec un \fIpid\fP
+strictement positif et \fIWIFSTOPPED(status)\fP vrai.
+.LP
+L'attribut \fB__WALL\fP ne contient pas les attributs \fBWSTOPPED\fP et
+\fBWEXITED\fP, mais implique leur fonctionnalité.
+.LP
+La configuration de l'attribut \fBWCONTINUED\fP en appelant \fBwaitpid\fP(2) n'est
+pas conseillée\ : l'état «\ exécuté\ » est relatif au processus et l'utiliser
+peut embrouiller le vrai père de l'observé.
+.LP
+Utiliser l'attribut \fBWNOHANG\fP pourrait forcer \fBwaitpid\fP(2) à renvoyer 0
+(«\ aucun résultat d'attente encore disponible\ ») même si l'observateur sait
+qu'il devrait y avoir une notification. Exemple\ :
+.nf
+
+    errno = 0;
+    ptrace(PTRACE_CONT, pid, 0L, 0L);
+    if (errno == ESRCH) {
+        /* l'observé est mort */
+        r = waitpid(observé, &status, __WALL | WNOHANG);
+        /* r peut encore être 0 ici\ ! */
+    }
+.fi
+.\" FIXME:
+.\"     waitid usage? WNOWAIT?
+.\"     describe how wait notifications queue (or not queue)
+.LP
+Les sortes d'arrêts\-ptrace suivants existent\ : arrêts\-distribution\-signal,
+arrêts\-groupe, arrêts \fBPTRACE_EVENT\fP et arrêts\-appel\-système. Ils sont
+signalés par \fBwaitpid\fP(2) avec \fIWIFSTOPPED(status)\fP vrai. Ils peuvent être
+distingués en examinant la valeur \fIstatus>>8\fP, et en cas
+d'ambiguïté dans cette valeur, en faisant une requête \fBPTRACE_GETSIGINFO\fP
+(remarque\ : la macro \fIWSTOPSIG(status)\fP ne peut pas être utilisée pour
+réaliser cet examen, car elle renvoie la valeur \fI(status>>8)\ &\ 0xff\fP.)
+.SS Arrêt\-distribution\-signal
+Quand un processus (éventuellement multithreadé) reçoit n'importe quel
+signal sauf \fBSIGKILL\fP, le noyau choisi un thread arbitraire pour traiter le
+signal (si le signal est créé avec \fBtgill\fP(2), le thread cible peut être
+explicitement choisi par l'appelant). Si le thread choisi est suivi, il
+entre en arrêt\-distribution\-signal. À ce moment là, le signal n'est pas
+encore distribué au processus, et peut être supprimé par l'observateur. Si
+l'observateur ne supprime pas le signal, il passe le signal à l'observé lors
+de la requête suivante de redémarrage de ptrace. Cette deuxième étape de
+distribution de signal est appelée \fIinjection de signal\fP dans cette page de
+manuel. Remarquez que si le signal est bloqué, l'arrêt\-distribution\-signal
+n'arrive pas avant que le signal soit débloqué, à l'exception habituelle que
+\fBSIGSTOP\fP ne peut pas être bloqué.
+.LP
+L'arrêt\-distribution\-signal est respecté par l'observateur tant que
+\fBwaitpid\fP(2) retourne avec \fIWIFSTOPPED(status)\fP vrai, avec le signal
+renvoyé par \fIWSTOPSIG(status)\fP. Si le signal est \fBSIGTRAP\fP, cela pourrait
+être un arrêt\-ptrace de nature différente\ ; consultez les sections
+\fBArrêts\-appel\-système\fP et \fBexecve(2) sous ptrace\fP plus bas pour obtenir de
+plus amples précisions. Si \fIWSTOPSIG(status)\fP renvoie un signal d'arrêt,
+cela pourrait être un arrêt\-groupe\ ; voir ci\-dessous.
+.SS "Injection et suppression de signal"
+Après un arrêt\-distribution\-signal respecté par l'observateur, l'observateur
+devrait redémarrer l'observé avec l'appel
+.LP
+    ptrace(PTRACE_redémarrer, pid, 0, sig)
+.LP
+où \fBPTRACE_redémarrer\fP est une des requêtes ptrace de redémarrage. Si
+\fIsig\fP est 0, alors aucun signal n'est distribué. Sinon, le signal \fIsig\fP
+est distribué. Cette opération est appelée \fIinjection de signal\fP dans cette
+page de manuel, pour la distinguer de l'arrêt\-distribution\-signal.
+.LP
+La valeur de \fIsig\fP peut être différente de celle de \fIWSTOPSIG(status)\fP\ :
+l'observateur peut provoquer l'injection d'un autre signal.
+.LP
+Remarquez qu'un signal supprimé provoque toujours un retour prématuré des
+appels système. Dans ce cas, les appels système seront redémarrés\ :
+l'observateur forcera l'observé à réexécuter l'appel système interrompu (ou
+l'appel système \fBrestart_syscall\fP(2) pour les quelques appels système qui
+utilisent un autre mécanisme de redémarrage) si l'observateur utilise
+\fBPTRACE_SYSCALL\fP. Même les appels système (comme \fBpoll\fP(2)) qui ne sont
+pas redémarrables après signal sont redémarré après la suppression du
+signal\ ; cependant, des bogues du noyau existent et certains appels système
+échouent avec \fBEINTR\fP même si aucun signal observable n'est injecté dans
+l'observé.
+.LP
+Lors du redémarrage des commandes ptrace émises dans d'autres arrêts\-ptrace
+qu'arrêt\-distribution\-signal, l'injection de signal n'est pas garantie, même
+si \fIsig\fP est non nul. Aucune erreur n'est signalée\ ; un \fIsig\fP non nul
+risque simplement d'être ignoré. Les utilisateurs de ptrace ne devraient pas
+essayer de «\ créer un nouveau signal\ » de cette façon\ : utilisez plutôt
+\fBtgkill\fP(2).
+.LP
+Le fait que des requêtes d'injection de signal puissent être ignorées lors
+du redémarrage de l'observé après des arrêts ptrace qui ne sont pas des
+arrêts\-distribution\-signal est une source de confusion pour les utilisateurs
+de ptrace. Un scénario typique est que l'observateur remarque un
+arrêt\-groupe, le confonde avec un arrêt\-distribution\-signal, et redémarre
+l'observé avec
+
+    ptrace(PTRACE_restart, pid, 0, stopsig)
+
+dans le but d'injecter \fIstopsig\fP, alors que \fIstopsig\fP sera ignoré et que
+l'observé continuera de fonctionner.
+.LP
+Le signal \fBSIGCONT\fP a pour effet de bord de réveiller (tous les threads
+d')un processus arrêté\-groupe. Cet effet de bord arrive avant un
+arrêt\-distribution\-signal. L'observateur ne peut pas supprimer cet effet de
+bord (il ne peut que supprimer l'injection de signal, qui force seulement le
+gestionnaire de \fBSIGCONT\fP à ne pas être exécuté dans l'observé, si un
+gestionnaire de ce type est installé). En fait, le réveil depuis un
+arrêt\-groupe pourrait être suivi par un arrêt\-distribution\-signal pour le ou
+les signaux \fIdifférents\fP de \fBSIGCONT\fP, s'ils étaient en attente quand
+\fBSIGCONT\fP a été distribué. Autrement dit, \fBSIGCONT\fP pourrait ne pas être
+le premier signal remarqué par l'observé après avoir été envoyé.
+.LP
+L'arrêt de signaux force (tous les threads d')un processus à entrer en
+arrêt\-groupe. Cet effet de bord arrive après une injection de signal, et
+peut par conséquent être supprimé par l'observateur.
+.LP
+.\" In the Linux 2.4 sources, in arch/i386/kernel/signal.c::do_signal(),
+.\" there is:
+.\"
+.\"             /* The debugger continued.  Ignore SIGSTOP.  */
+.\"             if (signr == SIGSTOP)
+.\"                     continue;
+Sous Linux\ 2.4 et les versions précédentes, le signal \fBSIGSTOP\fP ne pouvait
+pas être injecté.
+.LP
+\fBPTRACE_GETSIGINFO\fP peut être utilisé pour récupérer une structure
+\fIsiginfo_t\fP qui correspond au signal distribué. \fBPTRACE_SETSIGINFO\fP
+pourrait être utilisé pour le modifier. Si \fBPTRACE_SETSIGINFO\fP a été
+utilisé pour modifier \fIsiginfo_t\fP, le champ \fIsi_signo\fP et le paramètre
+\fIsig\fP de la commande de redémarrage doivent correspondre, sinon le résultat
+est indéfini.
+.SS Arrêt\-groupe
+Quand un processus (éventuellement multithreadé) reçoit un signal d'arrêt,
+tous les threads s'arrêtent. Si certains threads sont suivis, ils entrent en
+arrêt\-groupe. Remarquez que le signal d'arrêt provoquera d'abord un
+arrêt\-distribution\-signal (sur un seul observé) et, seulement après avoir
+été injecté par l'observateur (ou après avoir été envoyé à un thread qui
+n'est pas suivi), l'arrêt\-groupe sera initié sur \fItous\fP les observés d'un
+processus multithreadé. Comme d'habitude, tous les observés signalent leur
+arrêt\-groupe séparément à l'observateur correspondant.
+.LP
+L'arrêt\-groupe est respecté par l'observateur tant que \fBwaitpid\fP(2)
+retourne avec \fIWIFSTOPPED(status)\fP vrai, avec le signal d'arrêt disponible
+par l'intermédiaire de \fIWSTOPSIG(status)\fP. Le même résultat est renvoyé par
+d'autres classes d'arrêts\-ptrace, par conséquent la méthode conseillée est
+de réaliser l'appel
+.LP
+    ptrace(PTRACE_GETSIGINFO, pid, 0, &siginfo)
+.LP
+L'appel peut être évité si le signal n'est pas \fBSIGSTOP\fP, \fBSIGTSTP\fP,
+\fBSIGTTIN\fP ou \fBSIGTTOU\fP\ ; seuls ces quatre signaux sont des signaux
+d'arrêt. Si l'observateur voit autre chose, ce ne peut pas être un
+arrêt\-groupe. Sinon, l'observateur doit appeler \fBPTRACE_GETSIGINFO\fP. Si
+\fBPTRACE_GETSIGINFO\fP échoue avec \fBEINVAL\fP, alors c'est définitivement un
+arrêt\-groupe (d'autres codes d'échec sont possibles, comme \fBESRCH\fP («\ pas
+de processus de ce type\ ») si un \fBSIGKILL\fP a tué l'observé).
+.LP
+Depuis Linux\ 2.6.38, après que l'observateur a vu l'arrêt\-ptrace de
+l'observé et jusqu'à ce qu'il le redémarre ou le tue, l'observé ne
+fonctionnera pas, et n'enverra pas de notification (sauf mort par
+\fBSIGKILL\fP) à l'observateur, même si l'observateur entre dans un autre appel
+\fBwaitpid\fP(2).
+.LP
+Le comportement du noyau décrit dans le paragraphe précédent pose un
+problème avec la gestion transparente de signaux d'arrêt. Si l'observateur
+redémarre l'observé après un arrêt\-groupe, le signal d'arrêt est
+effectivement ignoré —\ l'observé ne reste pas arrêté, il fonctionne. Si
+l'observateur ne redémarre pas l'observé avant d'entrer dans le prochain
+\fBwaitpid\fP(2), les signaux \fBSIGCONT\fP suivants ne seront pas signalés à
+l'observateur\ ; cela pourrait forcer des signaux \fBSIGCONT\fP à être sans
+effet sur l'observé.
+.LP
+Depuis Linux 3.4, une méthode permet d'éviter ce problème\ : à la place de
+\fBPTRACE_CONT\fP, une commande \fBPTRACE_LISTEN\fP peut être utilisée pour
+redémarrer un observé de façon à ce qu'il ne s'exécute pas, mais attende un
+nouvel événement qu'il peut signaler à l'aide de \fBwaitpid\fP(2) (comme s'il
+était redémarré par un \fBSIGCONT\fP).
+.SS "Arrêts PTRACE_EVENT"
+Si l'observateur configure des options \fBPTRACE_O_TRACE_*\fP, l'observé
+entrera en arrêts\-ptrace appelés arrêts \fBPTRACE_EVENT\fP.
+.LP
+Les arrêts \fBPTRACE_EVENT\fP sont respectés par l'observateur tant que
+\fBwaitpid\fP(2) retourne avec \fIWIFSTOPPED(status)\fP, et que
+\fIWSTOPSIG(status)\fP renvoie \fBSIGTRAP\fP. Un bit supplémentaire est configuré
+dans l'octet le plus haut du mot d'état\ : la valeur \fIstatus>>8\fP
+sera
+
+    (SIGTRAP | PTRACE_EVENT_truc << 8).
+
+Les événements suivants existent.
+.TP 
+\fBPTRACE_EVENT_VFORK\fP
+Arrêt avant de revenir de \fBvfork\fP(2) ou \fBclone\fP(2) avec l'attribut
+\fBCLONE_VFORK\fP. Quand l'observé est continué après cet arrêt, il attendra
+une sortie ou exécution du fils avant de continuer son exécution (autrement
+dit, le comportement normal avec \fBvfork\fP(2)).
+.TP 
+\fBPTRACE_EVENT_FORK\fP
+Arrêt avant de revenir de \fBfork\fP(2) ou \fBclone\fP(2) avec le signal de sortie
+configuré à \fBSIGCHLD\fP.
+.TP 
+\fBPTRACE_EVENT_CLONE\fP
+Arrêt avant de revenir de \fBclone\fP(2).
+.TP 
+\fBPTRACE_EVENT_VFORK_DONE\fP
+Arrêt avant de revenir de \fBvfork\fP(2) ou \fBclone\fP(2) avec l'attribut
+\fBCLONE_VFORK\fP, mais après que le fils a débloqué son observé par sortie ou
+exécution.
+.LP
+Pour les quatre arrêts décrits ci\-dessus, l'arrêt arrive dans le père
+(c'est\-à\-dire l'observé), pas dans le nouveau thread
+créé. \fBPTRACE_GETEVENTMSG\fP permet de récupérer l'identifiant du nouveau
+thread.
+.TP 
+\fBPTRACE_EVENT_EXEC\fP
+Arrêt avant le retour d'\fBexecve\fP(2). Depuis Linux\ 3.0,
+\fBPTRACE_GETEVENTMSG\fP renvoie le premier identifiant de thread.
+.TP 
+\fBPTRACE_EVENT_EXIT\fP
+Arrêt avant la sortie (y compris la mort depuis \fBexit_group\fP(2)), la mort
+du signal ou la sortie provoquée par \fBexecve\fP(2) dans un processus
+multithreadé. \fBPTRACE_GETEVENTMSG\fP renvoie l'état de sortie. Les registres
+peuvent être examinés (contrairement à quand une «\ vraie\ » sortie
+arrive). L'observé est toujours actif\ ; il a besoin de \fBPTRACE_CONT\fP ou
+\fBPTRACE_DETACH\fP pour terminer sa sortie.
+.TP 
+\fBPTRACE_EVENT_STOP\fP
+Arrêt induit par la commande \fBPTRACE_INTERRUPT\fP.
+.LP
+\fBPTRACE_GETSIGINFO\fP sur les arrêts \fBPTRACE_EVENT\fP renvoie \fBSIGTRAP\fP dans
+\fIsi_signo\fP, avec \fIsi_code\fP configuré à \fI(event<<8)\ |\ SIGTRAP\fP.
+.SS Arrêts\-appel\-système
+Si l'observé était redémarré par \fBPTRACE_SYSCALL\fP, l'observé entre en
+arrêt\-entrée\-appel\-système juste avant d'entrer dans n'importe quel appel
+système. Si l'observateur redémarre l'observé avec \fBPTRACE_SYSCALL\fP,
+l'observé entre en arrêt\-sortie\-appel\-système quand l'appel système est
+terminé, ou s'il est interrompu par un signal (c'est\-à\-dire qu'un
+arrêt\-distribution\-signal n'arrive jamais entre un
+arrêt\-entrée\-appel\-système et un arrêt\-sortie\-appel\-système\ : il arrive
+\fIaprès\fP l'arrêt\-sortie\-appel\-système).
+.LP
+D'autres possibilités sont que l'observé pourrait s'arrêter dans un arrêt
+\fBPTRACE_EVENT\fP, sortir (s'il est entré en \fB_exit\fP(2) ou \fBexit_group\fP(2)),
+être tué par \fBSIGKILL\fP ou mourir silencieusement (s'il s'agit d'un leader
+de groupe de threads, que l'\fBexecve\fP(2) est arrivé dans un autre thread et
+que ce thread n'est pas suivi par le même observateur\ ; cette situation sera
+abordée plus tard).
+.LP
+Les arrêt\-entrée\-appel\-système et arrêt\-sortie\-appel\-système sont respectés
+par l'observateur tant que \fBwaitpid\fP(2) retourne avec \fIWIFSTOPPED(status)\fP
+vrai, et que \fIWSTOPSIG(status)\fP donne \fBSIGTRAP\fP. Si l'option
+\fBPTRACE_O_TRACESYSGOOD\fP était configurée par l'observateur, alors
+\fIWSTOPSIG(status)\fP donnera la valeur (\fBSIGTRAP\ |\ 0x80\fP).
+.LP
+Les arrêts\-appel\-système peuvent être distingués d'un
+arrêt\-distribution\-signal avec \fBSIGTRAP\fP en demandant \fBPTRACE_GETSIGINFO\fP
+pour les cas suivants.
+.TP 
+\fIsi_code\fP <= 0
+\fBSIGTRAP\fP a été distribué comme résultat d'une action en espace
+utilisateur, par exemple, un appel système (\fBtgkill\fP(2), \fBkill\fP(2),
+\fBsigqueue\fP(3),\ etc.), l'expiration d'un minuteur POSIX, la modification
+d'état sur une file de messages POSIX où la fin d'une requête d'E/S
+asynchrone.
+.TP 
+\fIsi_code\fP == SI_KERNEL (0x80)
+\fBSIGTRAP\fP a été envoyé par le noyau.
+.TP 
+\fIsi_code\fP == SIGTRAP ou \fIsi_code\fP == (SIGTRAP|0x80)
+C'est un arrêt\-appel\-système.
+.LP
+Cependant, les arrêts\-appel\-système arrivent très souvent (deux fois par
+appel système) et réaliser \fBPTRACE_GETSIGINFO\fP pour chaque
+arrêt\-appel\-système pourrait être assez coûteux.
+.LP
+Certaines architectures permettent de distinguer ces cas en examinant les
+registres. Par exemple, sur x86, \fIrax\fP == \-\fBENOSYS\fP en
+arrêt\-entrée\-appel\-système. Puisque \fBSIGTRAP\fP (comme tout autre signal)
+arrive toujours \fIaprès\fP l'arrêt\-sortie\-appel\-système et que \fIrax\fP ne
+contient à ce moment presque jamais \-\fBENOSYS\fP, le \fBSIGTRAP\fP ressemble à un
+«\ arrêt\-appel\-système qui n'est pas un arrêt\-entrée\-appel\-système\ »\ ;
+autrement dit, il ressemble à un «\ arrêt\-sortie\-appel\-système perdu\ » et
+peut être détecté de cette façon. Une telle détection est néanmoins fragile,
+elle est donc a éviter.
+.LP
+L'utilisation de l'option \fBPTRACE_O_TRACESYSGOOD\fP est la méthode conseillée
+pour distinguer les arrêts\-appel\-système des autres sortes d'arrêts\-ptrace,
+puisqu'il est fiable et n'induit pas de perte de performances.
+.LP
+Les arrêt\-entrée\-appel\-système et arrêt\-sortie\-appel\-système ne sont pas
+différentiables l'un de l'autre. L'observateur doit garder une trace de la
+suite d'arrêts\-ptrace afin de ne pas mal interpréter un
+arrêt\-entrée\-appel\-système comme un arrêt\-sortie\-appel\-système ou vice
+versa. La règle est que l'arrêt\-entrée\-appel\-système est toujours suivi par
+un arrêt\-sortie\-appel\-système, un arrêt \fBPTRACE_EVENT\fP ou la mort de
+l'observé\ ; aucune autre sorte d'arrêt\-ptrace ne peut arriver entre\-deux.
+.LP
+Si suite à un arrêt\-entrée\-appel\-système, l'observateur utilise une commande
+de redémarrage différente de \fBPTRACE_SYSCALL\fP, l'arrêt\-sortie\-appel\-système
+n'est pas créé.
+.LP
+\fBPTRACE_GETSIGINFO\fP sur les arrêts\-appel\-système renvoie \fBSIGTRAP\fP dans
+\fIsi_signo\fP, avec \fIsi_code\fP configuré à \fBSIGTRAP\fP ou (\fBSIGTRAP\ |\ 0x80\fP).
+.SS "Arrêts PTRACE_SINGLESTEP, PTRACE_SYSEMU, PTRACE_SYSEMU_SINGLESTEP"
+.\"
+.\" FIXME
+.\" document stops occurring with PTRACE_SINGLESTEP, PTRACE_SYSEMU,
+.\" PTRACE_SYSEMU_SINGLESTEP
+[Les précisions sur ces types d'arrêts sont encore à documenter.]
+.SS "Commandes ptrace d'information et de redémarrage"
+La plupart des commandes ptrace (toutes sauf \fBPTRACE_ATTACH\fP,
+\fBPTRACE_SEIZE\fP, \fBPTRACE_TRACEME\fP, \fBPTRACE_INTERRUPT\fP et \fBPTRACE_KILL\fP)
+nécessitent que l'observé soit en arrêt\-ptrace, sinon il échoue avec
+\fBESRCH\fP.
+.LP
+Quand l'observé est en arrêt\-ptrace, l'observateur peut lire et écrire les
+donnés sur l'observé en utilisant les commandes d'information. Ces commandes
+laissent l'observé en état arrêté\-ptrace\ :
+.LP
+.nf
+    ptrace(PTRACE_PEEKTEXT/PEEKDATA/PEEKUSER, pid, addr, 0);
+    ptrace(PTRACE_POKETEXT/POKEDATA/POKEUSER, pid, addr, long_val);
+    ptrace(PTRACE_GETREGS/GETFPREGS, pid, 0, &struct);
+    ptrace(PTRACE_SETREGS/SETFPREGS, pid, 0, &struct);
+    ptrace(PTRACE_GETREGSET, pid, NT_foo, &iov);
+    ptrace(PTRACE_SETREGSET, pid, NT_foo, &iov);
+    ptrace(PTRACE_GETSIGINFO, pid, 0, &siginfo);
+    ptrace(PTRACE_SETSIGINFO, pid, 0, &siginfo);
+    ptrace(PTRACE_GETEVENTMSG, pid, 0, &long_var);
+    ptrace(PTRACE_SETOPTIONS, pid, 0, PTRACE_O_flags);
+.fi
+.LP
+Remarquez que certaines erreurs ne sont pas signalées. Par exemple, la
+configuration d'informations de signal (\fIsiginfo\fP) pourrait être sans effet
+pour certains arrêts\-ptrace, alors que l'appel pourrait\-être réussi (en
+renvoyant 0 et sans définir \fIerrno\fP)\ ; la demande de \fBPTRACE_GETEVENTMSG\fP
+pourrait réussir et renvoyer une quelconque valeur aléatoire si
+l'arrêt\-ptrace actuel n'est pas documenté comme renvoyant un message
+d'événement significatif.
+.LP
+L'appel
+
+    ptrace(PTRACE_SETOPTIONS, pid, 0, PTRACE_O_flags);
+
+ne concerne qu'un observé. Les attributs actuels de l'observé sont
+remplacés. Les attributs sont hérités par les nouveaux observés créés et
+«\ attachés automatiquement\ » à l'aide d'options \fBPTRACE_O_TRACEFORK\fP,
+\fBPTRACE_O_TRACEVFORK\fP ou \fBPTRACE_O_TRACECLONE\fP actives.
+.LP
+Un autre groupe de commandes peut redémarrer l'observé arrêté ptrace. Ils
+sont de la forme\ :
+.LP
+    ptrace(cmd, pid, 0, sig);
+.LP
+où  \fIcmd\fP est \fBPTRACE_CONT\fP, \fBPTRACE_LISTEN\fP, \fBPTRACE_DETACH\fP,
+\fBPTRACE_SYSCALL\fP, \fBPTRACE_SINGLESTEP\fP, \fBPTRACE_SYSEMU\fP ou
+\fBPTRACE_SYSEMU_SINGLESTEP\fP. Si l'observé est en arrêt\-distribution\-signal,
+\fIsig\fP est le signal à injecter (s'il est non nul). Sinon, \fIsig\fP pourrait
+être ignoré (lors du redémarrage d'un observé depuis un arrêt\-ptrace
+différent d'un arrêt\-distribution\-signal, il est conseillé de toujours
+passer 0 à \fIsig\fP).
+.SS "Attachement et détachement"
+Un thread peut être attaché à l'observateur en utilisant l'appel
+
+    ptrace(PTRACE_ATTACH, pid, 0, 0);
+
+ou
+
+    ptrace(PTRACE_SEIZE, pid, 0, PTRACE_O_flags);
+
+.\"
+.\" FIXME: Describe how to attach to a thread which is already
+.\"        group-stopped.
+\fBPTRACE_ATTACH\fP envoie aussi \fBSIGSTOP\fP à ce thread. Si l'observateur veut
+que \fBSIGSTOP\fP soit sans effet, il doit le supprimer. Remarquez que si
+d'autres signaux sont envoyés en même temps à ce thread pendant
+l'attachement, l'observateur pourrait voir l'observé entrer en
+arrêt\-distribution\-signal avec d'autres signaux d'abord\ ! Ces signaux sont
+d'habitude réinjectés jusqu'à ce que \fBSIGSTOP\fP soit vu, puis l'injection
+\fBSIGSTOP\fP est supprimée. Le bogue de conception ici est qu'un attachement
+ptrace et un \fBSIGSTOP\fP distribués en même temps peuvent entrer en
+compétition et le \fBSIGSTOP\fP risque d'être perdu.
+.LP
+Puisque l'attachement envoie \fBSIGSTOP\fP et que l'observateur le supprime
+normalement, cela risque de forcer le retour d'un \fBEINTR\fP perdu de l'appel
+système en cours d'exécution dans l'observé, tel que c'est décrit dans la
+section \fBInjection et suppression de signal\fP.
+.LP
+Depuis Linux\ 3.4, \fBPTRACE_SEIZE\fP peut être utilisé à la place de
+\fBPTRACE_ATTACH\fP. \fBPTRACE_SEIZE\fP n'arrête pas le processus attaché. Si vous
+devez l'arrêter après attachement (ou à n'importe quel autre moment) sans
+lui envoyer de signal du tout, utilisez la commande \fBPTRACE_INTERRUPT\fP.
+.LP
+La requête
+
+    ptrace(PTRACE_TRACEME, 0, 0, 0);
+
+transforme le thread appelant en observé. L'appel continue d'être exécuté
+(n'entre pas en arrêt\-ptrace). \fBPTRACE_TRACEME\fP est habituellement suivi
+avec
+
+    raise(SIGSTOP);
+
+et permet au père (qui est maintenant l'observateur) de respecter
+l'arrêt\-distribution\-signal.
+.LP
+Si les options \fBPTRACE_O_TRACEFORK\fP, \fBPTRACE_O_TRACEVFORK\fP ou
+\fBPTRACE_O_TRACECLONE\fP font effet, alors les fils respectivement créés par
+\fBvfork\fP(2) ou \fBclone\fP(2) avec l'attribut \fBCLONE_VFORK\fP, \fBvfork\fP(2) ou
+\fBclone\fP(2) avec le signal de sortie configuré à \fBSIGCHLD\fP, et d'autres
+sortes de \fBclone\fP(2), sont automatiquement attachés au même observateur qui
+à suivi leur père. \fBSIGSTOP\fP est distribué aux fils, les forçant à entrer
+en arrêt\-distribution\-signal après être sortis de l'appel système qu'ils ont
+créé.
+.LP
+Le détachement de l'observé est réalisé par\ :
+
+    ptrace(PTRACE_DETACH, pid, 0, sig);
+
+\fBPTRACE_DETACH\fP est une opération de redémarrage\ ; par conséquent elle
+nécessite que l'observé soit en arrêt\-ptrace. Si l'observé est en
+arrêt\-distribution\-signal, un signal peut être injecté. Sinon, le paramètre
+\fIsig\fP pourrait être silencieusement ignoré.
+.LP
+.\" FIXME: Describe how to detach from a group-stopped tracee so that it
+.\"        doesn't run, but continues to wait for SIGCONT.
+Si l'observé est en cours d'exécution quand l'observateur veut le détacher,
+la solution habituelle est d'envoyer \fBSIGSTOP\fP (en utilisant \fBtgkill\fP(2),
+pour s'assurer qu'il va au bon thread), d'attendre que l'observé s'arrête en
+arrêt\-distribution\-signal pour \fBSIGSTOP\fP et ensuite de le détacher (en
+supprimant l'injection \fBSIGSTOP\fP). Un bogue de conception est que l'observé
+pourrait entrer dans d'autres arrêts\-ptrace et avoir besoin d'être redémarré
+et attendre encore, jusqu'à ce que \fBSIGSTOP\fP soit vu. Encore une autre
+complication est de s'assurer que l'observé n'est pas déjà arrêté\-ptrace,
+parce qu'aucune distribution de signal n'arrive tant qu'il l'est —\ pas même
+\fBSIGSTOP\fP.
+.LP
+Si l'observateur meurt, tous les observés sont automatiquement détachés et
+redémarrés, sauf s'il étaient en arrêt\-groupe. Le gestion de redémarrage
+depuis un arrêt\-groupe est en ce moment dysfonctionnelle, mais le
+comportement «\ prévu\ »\ est de laisser les observés arrêtés et d'attendre un
+\fBSIGCONT\fP. Si l'observé est redémarré depuis un arrêt\-distribution\-signal,
+le signal en attente est injecté.
+.SS "execve(2) sous ptrace"
+.\" clone(2) CLONE_THREAD says:
+.\"     If  any  of the threads in a thread group performs an execve(2),
+.\"     then all threads other than the thread group leader are terminated,
+.\"     and the new program is executed in the thread group leader.
+.\"
+.\" In kernel 3.1 sources, see fs/exec.c::de_thread()
+Quand un thread de processus multithreadé appelle \fBexecve\fP(2), le noyau
+détruit tous les autres threads du processus, et réinitialise l'identifiant
+de thread du thread exécuté à l'identifiant de groupe de threads (PID) (ou,
+pour le présenter autrement, quand un processus multithreadé fait un
+\fBexecve\fP(2), à la fin de l'appel, il apparaît comme si l'\fBexecve\fP(2)
+s'était appliqué au leader de groupe de threads, quelque soit le thread qui
+a fait \fBexecve\fP(2)). Cette réinitialisation de l'identifiant de thread
+semble est très déroutante pour les observateurs.
+.IP * 3
+Tous les autres threads s'arrêtent en arrêt \fBPTRACE_EVENT_EXIT\fP, si
+l'option \fBPTRACE_O_TRACEEXIT\fP était activée. Alors tous les autres threads
+sauf le leader de groupe de threads signalent leur mort comme s'il s'étaient
+terminés par l'intermédiaire de \fB_exit\fP(2) avec un code de retour 0.
+.IP *
+L'observé en cours d'exécution modifie son identifiant de thread pendant
+qu'il est dans l'\fBexecve\fP(2) (rappelez\-vous que, sous ptrace, le «\ pid\ »
+renvoyé par \fBwaitpid\fP(2) ou fourni dans les appels ptrace, est
+l'identifiant de thread de l'observé). Ainsi, l'identifiant de thread de
+l'observé est réinitialisé pour être le même que son identifiant de
+processus (PID), qui est le même que l'identifiant de thread du leader de
+groupe de threads.
+.IP *
+Ensuite un arrêt \fBPTRACE_EVENT_EXEC\fP arrive, si l'option
+\fBPTRACE_O_TRACEEXEC\fP était activée.
+.IP *
+Si le leader de groupe de threads a signalé son arrêt \fBPTRACE_EVENT_EXIT\fP
+pendant ce temps, le leader de thread mort à l'air de «\ revenir de nulle
+part\ » du point de vue de l'observateur (remarque\ : le leader de groupe de
+threads ne signale pas sa mort à l'aide de \fIWIFEXITED(status)\fP tant qu'au
+moins un autre thread est en vie. Cela enlève la possibilité à l'observateur
+de le voir mourir puis réapparaître). Si le leader de groupe de threads
+était encore en vie, cela pourrait être vu par l'observateur comme si le
+leader de groupe revenait d'un autre appel système que celui dans lequel il
+était entré, ou même «\ revenait d'un appel système même s'il n'y avait pas
+d'appel système\ ». Si le leader de groupe de threads n'était pas suivi (ou
+était suivi par un autre observateur), alors pendant \fBexecve\fP(2) il
+apparaîtra comme s'il était devenu un observé de l'observateur de l'observé
+en cours d'exécution.
+.LP
+Tous les effets précédents sont des artifices de la modification
+d'identifiant de thread de l'observé.
+.LP
+L'option \fBPTRACE_O_TRACEEXEC\fP est l'outil conseillé pour s'occuper de cette
+situation. D'abord, elle active l'arrêt \fBPTRACE_EVENT_EXEC\fP, qui arrive
+avant le retour d'\fBexecve\fP(2). Dans cet arrêt, l'observateur peut utiliser
+\fBPTRACE_GETEVENTMSG\fP pour récupérer l'ancien identifiant de thread de
+l'observé (cette fonctionnalité a été introduite avec Linux\ 3.0). Ensuite,
+l'option \fBPTRACE_O_TRACEEXEC\fP désactive la création obsolète de \fBSIGTRAP\fP
+dans \fBexecve\fP(2).
+.LP
+Quand l'observé reçoit une notification d'arrêt \fBPTRACE_EVENT_EXEC\fP, il est
+garanti qu'à part cet observé et le leader de groupe de threads, aucun autre
+thread du processus n'est en vie.
+.LP
+Lors de la réception d'une notification d'arrêt \fBPTRACE_EVENT_EXEC\fP,
+l'observateur devrait nettoyer toutes ses structures de données internes
+décrivant les threads de ce processus et ne garder qu'une seule structure de
+données —\ celle qui décrit l'unique observé en cours d'exécution, avec
+
+    identifiant de thread == identifiant de groupe de threads == identifiant de processus.
+.LP
+Par exemple, soient deux threads qui appellent \fBexecve\fP(2) en même temps\ :
+.LP
+.nf
+*** arrêt\-entrée\-appel\-système obtenu dans le thread 1 : **
+PID1 execve("/bin/truc", "truc" <pas terminé…>
+*** PTRACE_SYSCALL émis pour le thread 1 **
+*** arrêt\-entrée\-appel\-système obtenu dans le thread 2 : **
+PID2 execve("/bin/bidule", "bidule" <pas terminé…>
+*** PTRACE_SYSCALL émis pour le thread 2 **
+*** PTRACE_EVENT_EXEC obtenu pour PID0, PTRACE_SYSCALL émis **
+*** arrêt\-sortie\-appel\-système obtenu pour PID0 : **
+PID0 <… retour d'execve> )             = 0
+.fi
+.LP
+Si l'option \fBPTRACE_O_TRACEEXEC\fP n'est \fIpas\fP effective pour l'observé en
+cours d'exécution, le noyau distribue un \fBSIGTRAP\fP supplémentaire à
+l'observé après le retour d'\fBexecve\fP(2). C'est un signal normal (similaire
+à celui qui peut être créé par \fIkill \-TRAP\fP), pas une sorte spéciale
+d'arrêt\-ptrace. L'utilisation de \fBPTRACE_GETSIGINFO\fP pour ce signal renvoie
+\fIsi_code\fP configuré à 0 (\fISI_USER\fP). Ce signal pourrait être bloqué par un
+masque de signal, et pourrait ainsi être distribué (bien) plus tard.
+.LP
+Normalement, l'observé (par exemple \fBstrace\fP(1)) ne voudrait pas montrer ce
+signal \fBSIGTRAP\fP post\-execve supplémentaire à l'utilisateur, et voudrait
+supprimer sa distribution à l'observé (si \fBSIGTRAP\fP est configuré à
+\fBSIG_DFL\fP, s'est un signal tueur). Cependant, déterminer \fIquel\fP est le
+\fBSIGTRAP\fP à supprimer n'est pas simple. La configuration de l'option
+\fBPTRACE_O_TRACEEXEC\fP et par conséquent la suppression du \fBSIGTRAP\fP
+supplémentaire est l'approche conseillée.
+.SS "Vrai père"
+L'interface de programmation de ptrace utilise (parfois mal) la norme UNIX
+de signalement de père ou fils par l'intermédiaire de \fBwaitpid\fP(2). Cela a
+régulièrement forcé le vrai père du processus à arrêter de recevoir
+plusieurs sortes de notifications de \fBwaitpid\fP(2) quand le processus fils
+est suivi par un autre processus.
+.LP
+Nombreux bogues de ce type ont été corrigés, mais il en reste encore
+beaucoup dans Linux\ 2.6.38. Consultez la section \fBBOGUES\fP ci dessous.
+.LP
+Depuis Linux\ 2.6.38, ce qui suit est censé fonctionner correctement\ :
+.IP * 3
+l'exécution ou la mort par signal sont d'abord signalées à l'observateur,
+puis, quand l'observateur consomme le résultat de \fBwaitpid\fP(2), au vrai
+père (au vrai père seulement quand l'intégralité du processus multithreadé
+se termine). Si l'observateur et le vrai père sont le même processus, le
+signalement n'est envoyé qu'une fois.
+.SH "VALEUR RENVOYÉE"
+Pour les requêtes \fBPTRACE_PEEK*\fP, \fBptrace\fP() renvoie la valeur réclamée et
+zéro pour les autres requêtes, ou \-1 en cas d'échec en remplissant \fIerrno\fP
+avec le code d'erreur. Comme la valeur renvoyée par une requête
+\fBPTRACE_PEEK*\fP peut légitimement être \-1, l'appelant doit effacer \fIerrno\fP
+avant l'appel, et ensuite le vérifier pour savoir si une erreur s'est
+produite.
+.SH ERREURS
+.TP 
+\fBEBUSY\fP
+(i386 seulement) Une erreur est survenue lors de l'allocation ou de la
+libération d'un registre de débogage.
+.TP 
+\fBEFAULT\fP
+Tentative de lire ou écrire dans une zone mémoire non valable de
+l'observateur ou de l'observé, probablement parce que la zone n'était pas
+projetée ou accessible. Malheureusement sous Linux, certaines variantes de
+cette erreur déclencheront \fBEIO\fP ou \fBEFAULT\fP plus ou moins arbitrairement.
+.TP 
+\fBEINVAL\fP
+Tentative d'utiliser une option non valable.
+.TP 
+\fBEIO\fP
+La requête \fIrequest\fP n'est pas valable ou une tentative de lecture ou
+d'écriture dans une zone non valable de mémoire de l'observateur ou de
+l'observé a eu lieu. Un problème d'alignement a aussi pu survenir sur une
+frontière de mot, ou une tentative de redémarrage en envoyant un signal non
+valable.
+.TP 
+\fBEPERM\fP
+Le processus indiqué ne peut pas être suivi. Cela peut être dû à un manque
+de privilège de l'observateur (la capacité nécessaire est
+\fBCAP_SYS_PTRACE\fP). Les processus non privilégiés ne peuvent pas suivre les
+processus auxquels ils ne peuvent envoyer de signal, ou ceux qui s'exécutent
+Set\-UID/Set\-GID. En outre, le processus visé peut être déjà suivi, ou (sur
+les noyaux antérieurs à 2.6.26) être \fBinit\fP(8) (le processus numéro\ 1).
+.TP 
+\fBESRCH\fP
+Le processus indiqué n'existe pas, ou n'est pas suivi par l'appelant, ou
+n'est pas arrêté (pour les requêtes qui ont besoin d'un observé arrêté).
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3.
+.SH NOTES
+Bien que les arguments de \fBptrace\fP() soient interprétés comme dans le
+prototype donné, la bibliothèque glibc déclare \fBptrace\fP comme une fonction
+variadique où seul l'argument \fIrequest\fP est corrigé. Il vaut mieux toujours
+fournir quatre arguments, même si l'opération demandée ne les utilise pas,
+en configurant les arguments non utilisés ou ignorés à \fI0L\fP ou \fI(void\ *)\ 0\fP.
+.LP
+.\" See commit 00cd5c37afd5f431ac186dd131705048c0a11fdb
+Dans les noyaux antérieurs à 2.6.26, \fBinit\fP(8), le processus numéro\ 1, ne
+peut pas être suivi.
+.LP
+.\" See http://lkml.org/lkml/2008/5/8/375
+La disposition du contenu de la mémoire et de la zone USER dépendent du
+système d'exploitation et de l'architecture. Le décalage fourni et les
+données renvoyées peuvent ne pas correspondre entièrement avec la définition
+d'une structure \fIstruct user\fP.
+.LP
+La taille d'un mot («\ word\ ») est déterminée par la version du système
+d'exploitation (par exemple 32\ bits pour Linux 32\ bits).
+.LP
+Cette page documente le fonctionnement actuel de \fBptrace\fP() sous
+Linux. Celui\-ci peut varier sensiblement sur d'autres types d'UNIX. De toute
+façon, l'utilisation de \fBptrace\fP() dépend fortement de l'architecture et du
+système d'exploitation.
+.SH BOGUES
+Sur les machines ayant des en\-têtes du noyau\ 2.6, \fBPTRACE_SETOPTIONS\fP est
+déclaré avec une valeur différente de celle du noyau\ 2.4. De ce fait, les
+applications compilées avec des en\-têtes du noyau\ 2.6 ne peuvent pas
+s'exécuter sous des noyaux\ 2.4. Il est possible de contourner cette
+difficulté en redéfinissant \fBPTRACE_SETOPTIONS\fP à \fBPTRACE_OLDSETOPTIONS\fP,
+si cette dernière constante est définie.
+.LP
+Les notifications d'arrêt\-groupe sont envoyées à l'observateur, mais pas au
+vrai père. C'était encore vrai en 2.6.38.6.
+.LP
+.\" Note from Denys Vlasenko:
+.\"     Here "exits" means any kind of death - _exit, exit_group,
+.\"     signal death. Signal death and exit_group cases are trivial,
+.\"     though: since signal death and exit_group kill all other threads
+.\"     too, "until all other threads exit" thing happens rather soon
+.\"     in these cases. Therefore, only _exit presents observably
+.\"     puzzling behavior to ptrace users: thread leader _exit's,
+.\"     but WIFEXITED isn't reported! We are trying to explain here
+.\"     why it is so.
+.\"  FIXME: ^^^ need to test/verify this scenario
+Si un leader de groupe de threads est suivi et existe en appelant
+\fB_exit\fP(2), un arrêt \fBPTRACE_EVENT_EXIT\fP lui arrivera (si réclamé), mais
+la notification \fBWIFEXITED\fP suivante ne sera pas distribuée avant la fin de
+tous les autres threads. Comme expliqué précédemment, si un des autres
+threads appelle \fBexecve\fP(2), la mort du leader de groupe de threads ne sera
+\fIjamais\fP signalée. Si le thread exécuté n'est pas suivi par cet
+observateur, l'observé ne saura jamais qu'\fBexecve\fP(2) est arrivé. Un
+contournement possible est de \fBPTRACE_DETACH\fPer le leader de groupe de
+threads au lieu de le redémarrer dans ce cas. C'était encore vrai en
+2.6.38.6.
+.LP
+Un signal \fBSIGKILL\fP pourrait encore provoquer un arrêt \fBPTRACE_EVENT_EXIT\fP
+avant une véritable mort du signal. Cela pourrait évoluer à
+l'avenir. \fBSIGKILL\fP est supposé tuer immédiatement les tâches même sous
+ptrace. C'était encore vrai en 2.6.38.6.
+.LP
+Certains appels système renvoient \fBEINTR\fP si un signal a été envoyé à
+l'observé, mais que la distribution a été supprimée par l'observateur (c'est
+une opération tout à fait caractéristique\ : elle est normalement réalisée
+par les débogueurs sur tous les attachements, afin de ne pas introduire de
+\fBSIGSTOP\fP défectueux). Depuis Linux 3.2.9, les appels système suivants sont
+concernés (cette liste est sans doute incomplète)\ : \fBepoll_wait\fP(2) et
+\fBread\fP(2) depuis un descripteur de fichier \fBinotify\fP(7). Le symptôme
+classique de ce bogue est qu'en attachant à un processus quiescent avec la
+commande
+
+    strace \-p <ID\-processus>
+
+alors, au lieu de la ligne de sortie habituelle attendue comme
+.nf
+
+    restart_syscall(<... retour de l'appel interrompu ...>_
+
+.fi
+ou
+.nf
+
+    select(6, [5], NULL, [5], NULL_
+
+.fi
+(«\ _\ » indique la position du curseur), plusieurs lignes sont affichées. Par
+exemple\ :
+.nf
+
+    clock_gettime(CLOCK_MONOTONIC, {15370, 690928118}) = 0
+    epoll_wait(4,_
+
+.fi
+Ce qui n'est pas visible ici est que le processus a été bloqué dans
+\fBepoll_wait\fP(2) avant que \fBstrace\fP(1) ne s'y soit attaché. L'attachement a
+forcé \fBepoll_wait\fP(2) à revenir dans l'espace utilisateur avec l'erreur
+\fBEINTR\fP. Dans ce cas particulier, le programme a réagit à \fBEINTR\fP en
+vérifiant l'heure actuelle et en exécutant encore \fBepoll_wait\fP(2) (les
+programmes qui ne s'attendent pas à de telles erreurs \fBEINTR\fP «\ perdue\ »
+risquent de se comporter de façon inattendue sur une attache \fBstrace\fP(1)).
+.SH "VOIR AUSSI"
+\fBgdb\fP(1), \fBstrace\fP(1), \fBclone\fP(2), \fBexecve\fP(2), \fBfork\fP(2),
+\fBgettid\fP(2), \fBsigaction\fP(2), \fBtgkill\fP(2), \fBvfork\fP(2), \fBwaitpid\fP(2),
+\fBexec\fP(3), \fBcapabilities\fP(7), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

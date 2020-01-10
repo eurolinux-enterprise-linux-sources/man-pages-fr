@@ -1,0 +1,136 @@
+.\" t
+.\" Copyright (c) Michael Haardt (michael@cantor.informatik.rwth-aachen.de),
+.\"     Sun Jan 15 19:16:33 1995
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified, Sun Feb 26 15:02:58 1995, faith@cs.unc.edu
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LP 4 "15 janvier 1995" Linux "Manuel du programmeur Linux"
+.SH NOM
+lp \- Imprimantes parallèles
+.SH SYNOPSIS
+\fB#include <linux/lp.h>\fP
+.SH CONFIGURATION
+\fBlp\fP[0\(en2] sont des périphériques caractères pour les imprimantes à
+liaison parallèle. Ils ont un numéro majeur 6 et un numéro mineur 0\(en2. Le
+numéro mineur correspond aux ports d'imprimantes d'adresse de base 0x03bc,
+0x0378 et 0x0278. Habituellement, ils ont un mode d'accès 220 et un
+propriétaire root.lp. On peut utiliser les ports parallèles soit en
+scrutation (polling) soit en interruption. L'utilisation en interruption est
+surtout recommandée avec un haut trafic (p.\ ex.\ : imprimante laser). Pour
+les imprimantes matricielles classiques, la scrutation suffira. Par défaut,
+le système utilise la scrutation.
+.SH DESCRIPTION
+Les appels système \fBioctl\fP(2) suivants sont supportés\ :
+.IP "\fBint ioctl(int \fP\fIfd\fP\fB, LPTIME, int \fP\fIarg\fP\fB)\fP"
+Définit la durée pendant laquelle le pilote s'endort avant de revérifier
+l'état de l'imprimante après que le tampon a été rempli. Avec une imprimante
+rapide, on peut diminuer ce délai\ ; avec une imprimante lente on peut
+l'augmenter. La durée est indiquée dans \fIarg\fP, en centièmes de secondes. La
+valeur par défaut est 2 (soit 0,02 seconde). Cela n'influe que sur le pilote
+en scrutation.
+.IP "\fBint ioctl(int \fP\fIfd\fP\fB, LPCHAR, int \fP\fIarg\fP\fB)\fP"
+Indique le nombre maximal d'itérations d'attente active que le pilote en
+scrutation effectue alors qu'il attend que l'imprimante soit prête. Si
+l'impression est trop lente, augmenter cette valeur\ ; si le système
+ralentit trop, la diminuer. Le nombre est indiqué dans \fIarg\fP, la valeur par
+défaut est 1000. Cela n'influe que sur le pilote en scrutation.
+.IP "\fBint ioctl(int \fP\fIfd\fP\fB, LPABORT, int \fP\fIarg\fP\fB)\fP"
+Si \fIarg\fP vaut 0, le pilote réessaiera en cas d'erreur d'impression, sinon
+il abandonnera. La valeur par défaut est 0.
+.IP "\fBint ioctl(int \fP\fIfd\fP\fB, LPABORTOPEN, int \fP\fIarg\fP\fB)\fP"
+Si \fIarg\fP vaut 0, \fBopen\fP(2) sera annulé en cas d'erreur, sinon l'erreur
+sera ignorée. Par défaut, elle est ignorée.
+.IP "\fBint ioctl(int \fP\fIfd\fP\fB, LPCAREFUL, int \fP\fIarg\fP\fB)\fP"
+Si \fIarg\fP vaut 0, on bloquera l'écriture sur le port parallèle au cas où les
+broches \fIerreur\fP, \fIplus\-de\-papier\fP ou \fIimprimante\-hors\-ligne\fP sont
+validées. Sinon, ces signaux seront ignorés. Par défaut, ils sont ignorés.
+.IP "\fBint ioctl(int \fP\fIfd\fP\fB, LPWAIT, int \fP\fIarg\fP\fB)\fP"
+Indique le nombre d'itérations d'attente active à effectuer avant d'activer
+la broche STROBE pour que l'imprimante accepte le caractère écrit, et le
+nombre d'itérations à effectuer avant d'éteindre à nouveau la broche
+STROBE. Les spécifications indiquent que ce délai devrait être de 0,5
+microsecondes, mais l'expérience a montré que le délai induit par le code du
+pilote est suffisant. La valeur est indiquée dans \fIarg\fP, elle vaut 0 par
+défaut. Ceci concerne autant le gestionnaire en interruption que celui en
+scrutation.
+.IP "\fBint ioctl(int \fP\fIfd\fP\fB, LPSETIRQ, int \fP\fIarg\fP\fB)\fP"
+Cet \fBioctl\fP(2) nécessite des privilèges superutilisateur. Son paramètre est
+de type \fIint\fP et contient une nouvelle IRQ pour l'imprimante. Comme effet
+de bord, l'imprimante est réinitialisée. Si \fIarg\fP vaut 0, le gestionnaire
+en scrutation sera utilisé, ce qui est le comportement par défaut.
+.IP "\fBint ioctl(int \fP\fIfd\fP\fB, LPGETIRQ, int *\fP\fIarg\fP\fB)\fP"
+Stocke la valeur actuelle d'IRQ dans \fIarg\fP.
+.IP "\fBint ioctl(int \fP\fIfd\fP\fB, LPGETSTATUS, int *\fP\fIarg\fP\fB)\fP"
+Stocke l'état actuel du port dans \fIarg\fP. Les bits ont les significations
+suivantes\ :
+.TS
+l l.
+LP_PBUSY	Entrée OCCUPÉE inversée, active à 1
+LP_PACK	Entrée ACQUITTEMENT, active à 0
+LP_POUTPA	Entrée PLUS\-DE\-PAPIER, active à 1
+LP_PSELECD	Entrée SELECT, active à 1
+LP_PERRORP	Entrée ERREUR, active à 0
+.TE
+.sp
+Référez\-vous au manuel de votre imprimante pour la signification de ces
+signaux. Des bits non documentés peuvent également être présents, suivant le
+type d'imprimante.
+.IP "\fBint ioctl(int \fP\fIfd\fP\fB, LPRESET)\fP"
+Réinitialise l'imprimante. Pas de paramètre.
+.SH FICHIERS
+.\" .SH AUTHORS
+.\" The printer driver was originally written by Jim Weigand and Linus
+.\" Torvalds.
+.\" It was further improved by Michael K.\& Johnson.
+.\" The interrupt code was written by Nigel Gamble.
+.\" Alan Cox modularized it.
+.\" LPCAREFUL, LPABORT, LPGETSTATUS were added by Chris Metcalf.
+/dev/lp*
+.SH "VOIR AUSSI"
+\fBchmod\fP(1), \fBchown\fP(1), \fBmknod\fP(1), \fBlpcntl\fP(8), \fBtunelp\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Simon Paillard et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

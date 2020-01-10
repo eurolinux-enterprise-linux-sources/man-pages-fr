@@ -1,0 +1,93 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH WCSTOK 3 "28 septembre 2011" GNU "Manuel du programmeur Linux"
+.SH NOM
+wcstok \- Extraire des mots d'une chaîne de caractères larges
+.SH SYNOPSIS
+.nf
+\fB#include <wchar.h>\fP
+.sp
+\fBwchar_t *wcstok(wchar_t *\fP\fIwcs\fP\fB, const wchar_t *\fP\fIdelim\fP\fB, wchar_t **\fP\fIptr\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBwcstok\fP() est l'équivalent pour les caractères larges de la
+fonction \fBstrtok\fP(3), avec un argument supplémentaire permettant de
+l'employer dans un contexte multithread. On peut l'utiliser pour découper la
+chaîne de caractères larges \fIwcs\fP en éléments syntaxiques (tokens), définis
+comme des sous\-chaînes ne contenant aucun caractère large contenu dans la
+chaîne \fIdelim\fP.
+.PP
+La recherche démarre en \fIwcs\fP si \fIwcs\fP n'est pas NULL, ou en \fI*ptr\fP si
+\fIwcs\fP est NULL. D'abord tous les caractères larges délimiteurs sont
+ignorés, c'est\-à\-dire que le pointeur est placé au\-delà de tous les
+caractères se trouvant dans \fIdelim\fP. Si la fin de la chaîne est atteinte,
+\fBwcstok\fP() renvoie NULL pour indiquer qu'aucun mot n'a été trouvé, et
+stocke dans \fI*ptr\fP une valeur qui forcera les éventuels appels suivants de
+\fBwcstok\fP() à renvoyer NULL. Sinon, la fonction considère avoir atteint le
+début d'un mot, et renvoie un pointeur dessus après l'avoir fait suivre par
+un caractère large nul (L\(aq\e0\(aq) (en remplaçant le premier caractère se
+trouvant dans \fIdelim\fP). Elle met à jour le pointeur \fI*ptr\fP pour qu'un
+nouvel appel de \fBwcstok\fP() continue la recherche à la suite du mot trouvé.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBwcstok\fP() renvoie un pointeur sur le mot suivant, ou NULL si
+aucun mot n'a été trouvé.
+.SH CONFORMITÉ
+C99.
+.SH NOTES
+La chaîne de caractères larges \fIwcs\fP originale est modifiée de manière
+destructrice durant l'opération.
+.SH EXEMPLE
+Le code suivant parcourt les mots contenus dans la chaîne de caractères
+larges.
+.sp
+.nf
+wchar_t * wcs = ...;
+wchar_t * token;
+wchar_t * etat;
+for (token = wcstok(wcs, " \et\en", &etat);
+    token != NULL;
+    token = wcstok(NULL, " \et\en", &etat)) {
+    ...
+}
+.fi
+.SH "VOIR AUSSI"
+\fBstrtok\fP(3), \fBwcschr\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

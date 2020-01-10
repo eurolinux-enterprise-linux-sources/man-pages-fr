@@ -1,0 +1,160 @@
+.\" Copyright (C) 2005 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PIPE 7 "8 décembre 2005" Linux "Manuel du programmeur Linux"
+.SH NOM
+pipe \- Panorama des tubes et des FIFO
+.SH DESCRIPTION
+Les tubes et les FIFO (ou tubes nommés) fournissent un canal de
+communication interprocessus unidirectionnel. Un tube a une \fIentrée\fP et une
+\fIsortie\fP. Les données écrites à l'entrée du tube peuvent être lues à sa
+sortie.
+
+Un tube est créé avec l'appel système \fBpipe\fP(2), qui crée un nouveau tube
+et renvoie deux descripteurs de fichier, l'un correspondant à l'entrée du
+tube, et l'autre à la sortie. Les tubes peuvent être utilisés pour créer un
+canal de communication entre des processus liés\ ; consultez \fBpipe\fP(2) pour
+un exemple.
+
+Un FIFO (abréviation de First In First Out) a un nom sur le système de
+fichiers (créé avec \fBmkfifo\fP(3)), et est ouvert avec \fBopen\fP(2). Tout
+processus peut ouvrir un FIFO, si les permissions du fichier
+l'autorisent. La sortie est ouverte avec l'option \fBO_RDONLY\fP\ ; l'entrée
+est ouverte avec l'option \fBO_WRONLY\fP. Consultez \fBfifo\fP(7) pour plus de
+détails. \fINote\fP\ : même si les FIFO ont un nom sur le système de fichiers,
+les entrées/sorties sur un FIFO n'impliquent pas d'opérations sur le
+périphérique sous\(hyjacent (s'il y en a un).
+.SS "E/S sur les tubes et les FIFO"
+La seule différence entre les tubes et les FIFO est la manière dont ils sont
+créés et ouverts. Une fois ces tâches accomplies, les E/S sur les tubes et
+les FIFO ont strictement les mêmes sémantiques.
+
+Si un processus essaie de lire dans un tube vide, \fBread\fP(2) bloquera
+jusqu'à ce que des données soient disponibles. Si un processus essaie
+d'écrire dans un tube plein (voir ci\(hydessous), \fBwrite\fP(2) bloque jusqu'à
+ce que suffisamment de données aient été lues dans le tube avant de
+permettre la réussite de l'écriture. Des E/S non bloquantes sont possibles
+en utilisant l'opération \fBF_SETFL\fP de \fBfcntl\fP(2) pour activer l'attribut
+\fBO_NONBLOCK\fP.
+
+Le canal de communication fourni par un tube est un \fIflot d'octets\fP\ : il
+n'y a pas de notion de limite entre messages.
+
+Si tous les descripteurs de fichier correspondant à l'entrée d'un tube sont
+fermés, une tentative de lecture sur le tube renverra une condition de fin
+de fichier (\fBread\fP(2) renverra 0). Si tous les descripteurs de fichier
+correspondant à la sortie d'un tube sont fermés, une tentative d'écriture
+provoquera l'envoi du signal \fBSIGPIPE\fP au processus appelant. Si le
+processus appelant ignore ce signal, \fBwrite\fP(2) échoue avec l'erreur
+\fBEPIPE\fP. Une application utilisant \fBpipe\fP(2) et \fBfork\fP(2) doit utiliser
+des appels à \fBclose\fP(2) afin de fermer les descripteurs de fichier
+superflus\ ; ceci permet d'assurer que la condition de fin de ficher et
+\fBSIGPIPE\fP/\fBEPIPE\fP sont renvoyés correctement.
+
+Il n'est pas possible d'invoquer \fBlseek\fP(2) sur un tube.
+.SS "Capacité d'un tube"
+Un tube a une capacité limitée. Si le tube est plein, un \fBwrite\fP(2)
+bloquera ou échouera, selon que l'attribut \fBO_NONBLOCK\fP est activé ou non
+(voir ci\(hydessous). Différentes implémentations ont différentes limites de
+capacité des tubes. Les applications ne doivent pas dépendre d'une capacité
+particulière, mais être conçues pour qu'un processus lecteur lise les
+données dès qu'elles sont disponibles, pour qu'un processus écrivain ne soit
+pas bloqué.
+
+Dans les versions de Linux antérieures à 2.6.11, la capacité d'un tube était
+la taille d'une page système (p.ex. 4096\ octets sur i386). Depuis
+Linux\ 2.6.11, la capacité d'un tube est de 65536\ octets.
+.SS PIPE_BUF
+POSIX.1\-2001 indique que les écritures de moins que \fBPIPE_BUF\fP\ octets
+doivent être atomiques\ : les données sont écrites dans le tube de façon
+contiguë. Les écritures de plus que \fBPIPE_BUF\fP peuvent ne pas être
+atomiques\ : le noyau peut entrelacer les données avec des données écrites
+par d'autres processus. POSIX.1\-2001 demande que \fBPIPE_BUF\fP soit au moins
+512\ octets. (Sous Linux, \fBPIPE_BUF\fP vaut 4096\ octets.) La sémantique
+précise dépend de l'attribut non\-bloquant du descripteur de fichier
+(\fBO_NONBLOCK\fP), du nombre d'écrivains dans le tube, et de \fIn\fP, le nombre
+d'octets à écrire\ :
+.TP 
+\fBO_NONBLOCK\fP désactivé, \fIn\fP <= \fBPIPE_BUF\fP
+Les \fIn\fP\ octets sont écrits de manière atomique\ ; \fBwrite\fP(2) peut bloquer
+s'il n'y a pas de place pour écrire \fIn\fP\ octets immédiatement.
+.TP 
+\fBO_NONBLOCK\fP activé, \fIn\fP <= \fBPIPE_BUF\fP
+S'il y a la place d'écrire \fIn\fP\ octets dans le tube, \fBwrite\fP(2) réussit
+immédiatement, en écrivant les \fIn\fP\ octets\ ; sinon, \fBwrite\fP(2) échoue, et
+définit \fIerrno\fP à \fBEAGAIN\fP.
+.TP 
+\fBO_NONBLOCK\fP désactivé, \fIn\fP > \fBPIPE_BUF\fP
+L'écriture est non atomique\ : les données fournies à \fBwrite\fP(2) peuvent
+être entrelacées avec des écritures d'autres processus\ ; l'écriture bloque
+jusqu'à ce que \fIn\fP\ octets aient été écrits.
+.TP 
+\fBO_NONBLOCK\fP activé, \fIn\fP > \fBPIPE_BUF\fP
+Si le tube est plein, \fBwrite\fP(2) échoue, en plaçant \fIerrno\fP à
+\fBEAGAIN\fP. Sinon, entre 1 et \fIn\fP\ octets peuvent être écrits (une «\ écriture partielle\ » peut se produire\ ; l'appelant doit vérifier la valeur
+de retour de \fBwrite\fP(2) pour voir combien d'octets ont réellement été
+écrits), et ces octets peuvent être entrelacés avec des écritures d'autres
+processus.
+.SS "Attributs d'état de fichier ouvert"
+Les seuls attributs d'état de fichier ouvert qui peuvent s'appliquer aux
+tubes et aux FIFO sont \fBO_NONBLOCK\fP et \fBO_ASYNC\fP.
+
+Activer l'attribut \fBO_ASYNC\fP à la sortie d'un tube provoque l'envoi d'un
+signal (\fBSIGIO\fP par défaut) lorsque de nouvelles données sont disponibles
+sur le tube (consultez \fBfcntl\fP(2) pour les détails). Sous Linux, \fBO_ASYNC\fP
+n'est possible sur les tubes et les FIFO que depuis le noyau\ 2.6.
+.SS "Notes sur la portabilité"
+Sur certains systèmes (mais pas sous Linux), les tubes sont bidirectionnels\ : des données peuvent être transmises dans les deux directions entre les
+bouts du tube. Selon POSIX.1\-2001, les tubes sont uniquement décrits comme
+unidirectionnels. Les applications portables doivent éviter de s'appuyer sur
+une sémantique bidirectionnelle des tubes.
+.SH "VOIR AUSSI"
+\fBdup\fP(2), \fBfcntl\fP(2), \fBopen\fP(2), \fBpipe\fP(2), \fBpoll\fP(2), \fBselect\fP(2),
+\fBsocketpair\fP(2), \fBstat\fP(2), \fBmkfifo\fP(3), \fBepoll\fP(7), \fBfifo\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

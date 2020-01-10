@@ -1,0 +1,299 @@
+.\" Copyright 1993 Giorgio Ciucci <giorgio@crcc.it>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Tue Oct 22 16:40:11 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Mon Jul 10 21:09:59 2000 by aeb
+.\" Modified 1 Jun 2002, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Language clean-ups.
+.\"	Enhanced and corrected information on msg_qbytes, MSGMNB and MSGMAX
+.\"	Added note on restart behavior of msgsnd() and msgrcv()
+.\"	Formatting clean-ups (argument and field names marked as .I
+.\"		instead of .B)
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\" Modified, 11 Nov 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Language and formatting clean-ups
+.\"	Added notes on /proc files
+.\" FIXME . Add example programs to this page.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MSGOP 2 "31 mai 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+msgrcv, msgsnd \- Opérations sur les files de messages System\ V
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <sys/ipc.h>\fP
+\fB#include <sys/msg.h>\fP
+.sp
+\fBint msgsnd(int \fP\fImsqid\fP\fB, const void *\fP\fImsgp\fP\fB, size_t \fP\fImsgsz\fP\fB, int \fP\fImsgflg\fP\fB);\fP
+.sp
+\fBssize_t msgrcv(int \fP\fImsqid\fP\fB, void *\fP\fImsgp\fP\fB, size_t \fP\fImsgsz\fP\fB, long \fP\fImsgtyp\fP\fB,\fP
+\fB               int \fP\fImsgflg\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Les appels système \fBmsgsnd\fP() et \fBmsgrcv\fP() servent respectivement à
+envoyer et à recevoir des messages d'une file de messages System\ V. Le
+processus appelant doit avoir une permission d'écriture sur la file pour
+envoyer un message, et une permission de lecture pour en recevoir un.
+.PP
+L'argument \fImsgp\fP est un pointeur vers une structure définie par l'appelant
+de forme générale suivante\ :
+.in +4n
+.nf
+
+struct msgbuf {
+    long mtype;       /* type de message, doit être > 0 */
+    char mtext[1];    /* contenu du message */
+};
+.fi
+.in
+.PP
+Le champ \fImtext\fP est un tableau ou autre structure de taille \fImsgsz\fP,
+valeur entière positive ou nulle. Les message de taille nulle (sans champ
+\fImtext\fP) sont autorisés. Le membre \fImtype\fP doit avoir une valeur
+strictement positive qui puisse être utilisée par le processus lecteur pour
+la sélection de messages (voir la description de \fBmsgrcv\fP ci\(hydessous).
+.SS msgsnd()
+L'appel système \fBmsgsnd\fP() insère une copie du message pointé par
+l'argument \fImsgp\fP dans la file dont l'identifiant est indiqué par la valeur
+de l'argument \fImsqid\fP.
+.PP
+S'il y a assez de place dans la file, \fBmsgsnd\fP() réussit immédiatement. (La
+capacité de la file est définie par le champ \fImsg_qbytes\fP de la structure
+associée à la file de messages. Durant la création de la file, ce champ est
+initialisé à \fBMSGMNB\fP octets, mais cette limite peut être modifiée avec
+\fBmsgctl\fP(2).) S'il n'y a pas assez de place, alors le comportement par
+défaut de \fBmsgsnd\fP() est de bloquer jusqu'à obtenir suffisamment
+d'espace. En indiquant \fBIPC_NOWAIT\fP dans l'argument \fImsgflg\fP, le message
+ne sera pas envoyé et l'appel système échouera en retournant \fBEAGAIN\fP dans
+\fBerrno\fP.
+
+Un appel à \fBmsgsnd\fP() bloqué peut échouer si\ :
+.IP * 2
+la file est supprimée, auquel cas l'appel système échoue avec \fIerrno\fP
+valant \fBEIDRM\fP\ ; ou
+.IP *
+un signal a été intercepté, auquel cas l'appel système échoue avec \fIerrno\fP
+valant \fBEINTR\fP\ ; consultez \fBsignal\fP(7). (\fBmsgsnd\fP() n'est jamais relancé
+automatiquement après interruption par un gestionnaire de signal, quelle que
+soit la configuration de \fBSA_RESTART\fP lors de l'installation du
+gestionnaire.)
+.PP
+Si l'appel système réussit, la structure décrivant la file de messages est
+mise à jour comme suit\ :
+.IP
+\fImsg_lspid\fP contient le PID du processus appelant.
+.IP
+\fImsg_qnum\fP est incrémenté de 1.
+.IP
+\fImsg_stime\fP est rempli avec l'heure actuelle.
+.SS msgrcv()
+L'appel système \fBmsgrcv\fP() supprime un message depuis la file indiquée par
+\fImsqid\fP et le place dans le tampon pointé par \fImsgp\fP.
+.PP
+L'argument \fImsgsz\fP indique la taille maximale en octets du membre \fImtext\fP
+de la structure pointée par l'argument \fImsgp\fP. Si le contenu du message est
+plus long que \fImsgsz\fP octets, le comportement dépend de la présence ou non
+de \fBMSG_NOERROR\fP dans \fImsgflg\fP. Si \fBMSG_NOERROR\fP est spécifié, alors le
+message sera tronqué (et la partie tronquée sera perdue)\ ; si
+\fBMSG_NOERROR\fP n'est pas spécifié, le message ne sera pas extrait de la
+file, et l'appel système échouera en renvoyant \-1 et en indiquant \fBE2BIG\fP
+dans \fBerrno\fP
+.PP
+L'argument \fImsgtyp\fP indique le type de message désiré\ :
+.IP * 2
+Si \fImsgtyp\fP vaut 0, le premier message est lu.
+.IP *
+Si \fImsgtyp\fP est supérieur à 0, alors le premier message de type \fImsgtyp\fP
+est extrait de la file. Si \fImsgflg\fP contient \fBMSG_EXCEPT\fP l'inverse est
+effectué, le premier message de type différent de \fImsgtyp\fP est extrait de
+la file.
+.IP *
+Si \fImsgtyp\fP est inférieur à 0, le premier message de la file avec un type
+inférieur ou égal à la valeur absolue de \fImsgtyp\fP est extrait.
+.PP
+L'argument \fImsgflg\fP est composé d'un \fIOU\fP binaire «\ |\ » avec les options
+suivantes\ :
+.TP 
+\fBIPC_NOWAIT\fP
+Retourne immédiatement si aucun message du type désiré n'est présent dans la
+file. L'appel système échoue et \fIerrno\fP est configuré à \fBENOMSG\fP.
+.TP 
+\fBMSG_EXCEPT\fP
+Utilisé avec \fImsgtyp\fP supérieur à 0 pour lire les messages de type
+différent de \fImsgtyp\fP.
+.TP 
+\fBMSG_NOERROR\fP
+Tronque silencieusement les messages plus longs que \fImsgsz\fP octets.
+.PP
+Si aucun message du type requis n'est disponible et si on n'a pas demandé
+\fBIPC_NOWAIT\fP dans \fImsgflg\fP, le processus appelant est bloqué jusqu'à
+l'occurrence d'un des événements suivants\ :
+.IP * 2
+Un message du type désiré arrive dans la file.
+.IP *
+La file de messages est supprimée. L'appel système échoue et \fIerrno\fP
+contient \fBEIDRM\fP.
+.IP *
+Le processus appelant intercepte un signal. Dans ce cas l'appel système
+échoue avec \fIerrno\fP valant \fBEINTR\fP. (\fBmsgrcv\fP() n'est jamais relancé
+automatiquement après interruption par un gestionnaire de signal, quelle que
+soit la configuration de \fBSA_RESTART\fP lors de l'installation du
+gestionnaire.)
+.PP
+Si l'appel système réussit, la structure décrivant la file de messages est
+mise à jour comme suit\ :
+.IP
+\fImsg_lrpid\fP est rempli avec le PID du processus appelant.
+.IP
+\fImsg_qnum\fP est décrémenté de 1.
+.IP
+\fImsg_rtime\fP est rempli avec l'heure actuelle.
+.SH "VALEUR RENVOYÉE"
+En cas d'échec les deux appels système renvoient \-1 et \fIerrno\fP contient le
+code d'erreur. Sinon \fBmsgsnd\fP() renvoie 0 et \fBmsgrcv\fP() renvoie le nombre
+d'octets copiés dans la table \fImtext\fP.
+.SH ERREURS
+En cas d'échec de \fBmsgsnd\fP(), \fIerrno\fP aura l'une des valeurs suivantes\ :
+.TP 
+\fBEACCES\fP
+Le processus appelant n'a pas de permissions d'écriture dans la file et n'a
+pas la capacité \fBCAP_IPC_OWNER\fP.
+.TP 
+\fBEAGAIN\fP
+Le message n'a pas pu être envoyé à cause de la limite \fImsg_qbytes\fP pour la
+file et de la requête \fBIPC_NOWAIT\fP dans \fImsgflg\fP.
+.TP 
+\fBEFAULT\fP
+\fImsgp\fP pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEIDRM\fP
+La file de messages a été supprimée.
+.TP 
+\fBEINTR\fP
+Un signal est arrivé avant d'avoir pu écrire quoi que ce soit.
+.TP 
+\fBEINVAL\fP
+\fImsqid\fP est invalide, ou bien \fImtype\fP n'est pas positif, ou bien \fImsgsz\fP
+est invalide (négatif ou supérieur à la valeur \fBMSGMAX\fP du système).
+.TP 
+\fBENOMEM\fP
+Le système n'a pas assez de mémoire pour copier le message pointé par
+\fImsgp\fP.
+.PP
+En cas d'échec de \fBmsgrcv\fP(), \fIerrno\fP prend l'une des valeurs suivantes\ :
+.TP 
+\fBE2BIG\fP
+Le message est plus long que \fImsgsz\fP, et \fBMSG_NOERROR\fP n'a pas été indiqué
+dans \fImsgflg\fP.
+.TP 
+\fBEACCES\fP
+Le processus appelant n'a pas de permission de lecture dans la file et n'a
+pas la capacité \fBCAP_IPC_OWNER\fP.
+.TP 
+\fBEAGAIN\fP
+Aucun message n'est disponible dans la file, et \fBIPC_NOWAIT\fP est spécifié
+dans \fImsgflg\fP.
+.TP 
+\fBEFAULT\fP
+\fImsgp\fP pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEIDRM\fP
+La file de messages a été supprimée alors que le processus attendait un
+message.
+.TP 
+\fBEINTR\fP
+Un signal est arrivé avant d'avoir pu lire quoi que ce soit\ ; consultez
+\fBsignal\fP(7).
+.TP 
+\fBEINVAL\fP
+\fImsgqid\fP ou \fImsgsz\fP invalides.
+.TP 
+\fBENOMSG\fP
+\fBIPC_NOWAIT\fP a été requis dans \fImsgflg\fP et aucun message du type réclamé
+n'existe dans la file.
+.SH CONFORMITÉ
+SVr4, POSIX.1\-2001.
+.SH NOTES
+.\" Like Linux, the FreeBSD man pages still document
+.\" the inclusion of these header files.
+L'inclusion de \fI<sys/types.h>\fP et \fI<sys/ipc.h>\fP n'est pas
+nécessaire sous Linux et n'est exigée par aucune version de
+POSIX. Cependant, certaines implémentations anciennes nécessitent
+l'inclusion de ces fichiers d'en\-tête, et le SVID documente aussi leur
+inclusion. Les applications ayant pour but d'être portables pourraient
+inclure ces fichiers d'en\-tête.
+
+L'argument \fImsgp\fP est déclaré comme un \fIstruct msgbuf *\fP avec les
+bibliothèques libc4, libc5, glibc 2.0, glibc 2.1. Il est déclaré comme un
+\fIvoid *\fP avec la bibliothèque glibc 2.2, suivant ainsi les spécifications
+SUSv2 et SUSv3.
+
+Les limites système concernant les files de messages et affectant
+\fBmsgsnd\fP() sont\ :
+.TP 
+\fBMSGMAX\fP
+Taille maximale d'un message\ : 8192 octets (sous Linux, cette limite peut
+être lue et modifiée grâce au fichier \fI/proc/sys/kernel/msgmax\fP).
+.TP 
+\fBMSGMNB\fP
+Taille maximale, en octets, d'une file de messages\ : 16384 octets (sous
+Linux, elle peut être lue et modifiée grâce au fichier
+\fI/proc/sys/kernel/msgmnb\fP). Le superutilisateur peut augmenter la taille
+d'une file de messages au\-delà de \fBMSGMNB\fP en utilisant l'appel système
+\fBmsgctl\fP(2).
+.PP
+L'implémentation des files de messages sous Linux n'a pas de limite
+intrinsèque pour le nombre maximal d'en\(hytêtes de messages (\fBMSGTQL\fP) et
+la taille maximale, en octets, de l'ensemble de tous les messages sur le
+système (\fBMSGPOOL\fP).
+.SH "VOIR AUSSI"
+\fBmsgctl\fP(2), \fBmsgget\fP(2), \fBcapabilities\fP(7), \fBmq_overview\fP(7),
+\fBsvipc\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

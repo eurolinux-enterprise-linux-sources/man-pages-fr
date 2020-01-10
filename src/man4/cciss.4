@@ -1,0 +1,325 @@
+.\" Copyright (C) 2011, Hewlett-Packard Development Company, L.P.
+.\" Written by Stephen M. Cameron <scameron@beardog.cce.hp.com>
+.\"
+.\" %%%LICENSE_START(GPLv2_ONELINE)
+.\" Licensed under GNU General Public License version 2 (GPLv2)
+.\" %%%LICENSE_END
+.\"
+.\" shorthand for double quote that works everywhere.
+.ds q \N'34'
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CCISS 4 "5 août 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+cciss \- pilote de périphérique de bloc HP Smart Array
+.SH SYNOPSIS
+.nf
+modprobe cciss [ cciss_allow_hpsa=1 ]
+.fi
+.SH DESCRIPTION
+\fBcciss\fP est un pilote de périphérique de bloc pour les contrôleurs RAID HP
+Smart Array anciens.
+.SS Options
+\fIcciss_allow_hpsa=1\fP\ : cette option empêche le pilote \fBcciss\fP d'essayer de
+faire fonctionner un contrôleur qui pourrait être géré par le pilote
+\fBhpsa\fP(4). En d'autre termes, cela signifie que le pilote \fBcciss\fP est
+alors restreint avec cette option aux contrôleurs suivants\ :
+.nf
+
+    Smart Array 5300
+    Smart Array 5i
+    Smart Array 532
+    Smart Array 5312
+    Smart Array 641
+    Smart Array 642
+    Smart Array 6400
+    Smart Array 6400 EM
+    Smart Array 6i
+    Smart Array P600
+    Smart Array P400i
+    Smart Array E200i
+    Smart Array E200
+    Smart Array E200i
+    Smart Array E200i
+    Smart Array E200i
+    Smart Array E500
+.fi
+.SS "Matériel pris en charge"
+Le pilote \fBcciss\fP prend en charge les cartes Smart Array suivantes\ :
+.nf
+
+    Smart Array 5300
+    Smart Array 5i
+    Smart Array 532
+    Smart Array 5312
+    Smart Array 641
+    Smart Array 642
+    Smart Array 6400
+    Smart Array 6400 U320 Expansion Module
+    Smart Array 6i
+    Smart Array P600
+    Smart Array P800
+    Smart Array E400
+    Smart Array P400i
+    Smart Array E200
+    Smart Array E200i
+    Smart Array E500
+    Smart Array P700m
+    Smart Array P212
+    Smart Array P410
+    Smart Array P410i
+    Smart Array P411
+    Smart Array P812
+    Smart Array P712m
+    Smart Array P711m
+.fi
+.SS "Détails de configuration"
+Pour configurer les contrôleurs HP Smart Array, utilisez l'utilitaire de
+configuration (\fBhpacuxe\fP(8) ou bien \fBhpacucli\fP(8)) ou l'utilitaire de
+configuration hors\-ligne sur ROM, lancé au démarrage depuis l'option «\ ROM\ »
+du Smart Array.
+.SH FICHIERS
+.SS "Nœuds de périphériques"
+La convention de nommage des périphériques est la suivante\ :
+.nf
+
+Numéros majeurs\ :
+
+    104     cciss0
+    105     cciss1
+    106     cciss2
+    105     cciss3
+    108     cciss4
+    109     cciss5
+    110     cciss6
+    111     cciss7
+
+Numéros mineurs\ :
+
+    b7 b6 b5 b4 b3 b2 b1 b0
+    |\-\-\-\-+\-\-\-\-| |\-\-\-\-+\-\-\-\-|
+         |           |
+         |           +\-\-\-\-\-\-\-\- identifiant partition (0=périph. entier, 1\-15 partition)
+         |
+         +\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- numéro du volume logique
+
+La convention de nommage de périphérique est\ :
+
+    /dev/cciss/c0d0         contrôleur\ 0, disque\ 0, périphérique entier
+    /dev/cciss/c0d0p1       contrôleur\ 0, disque\ 0, partition\ 1
+    /dev/cciss/c0d0p2       contrôleur\ 0, disque\ 0, partition\ 2
+    /dev/cciss/c0d0p3       contrôleur\ 0, disque\ 0, partition\ 3
+
+    /dev/cciss/c1d1         contrôleur\ 1, disque\ 1, périphérique entier
+    /dev/cciss/c1d1p1       contrôleur\ 1, disque\ 1, partition\ 1
+    /dev/cciss/c1d1p2       contrôleur\ 1, disque\ 1, partition\ 2
+    /dev/cciss/c1d1p3       contrôleur\ 1, disque\ 1, partition\ 3
+.fi
+.SS "Fichiers dans /proc"
+Les fichiers \fI/proc/driver/cciss/cciss[0\-9]+\fP contiennent des informations
+au sujet de la configuration de chaque contrôleur. Par exemple\ :
+.nf
+
+    $ \fBcd /proc/driver/cciss\fP
+    $ \fBls \-l\fP
+    total 0
+    \-rw\-r\-\-r\-\- 1 root root 0 2010\-09\-10 10:38 cciss0
+    \-rw\-r\-\-r\-\- 1 root root 0 2010\-09\-10 10:38 cciss1
+    \-rw\-r\-\-r\-\- 1 root root 0 2010\-09\-10 10:38 cciss2
+    $ \fBcat cciss2\fP
+    cciss2: HP Smart Array P800 Controller
+    Board ID: 0x3223103c
+    Firmware Version: 7.14
+    IRQ: 16
+    Logical drives: 1
+    Current Q depth: 0
+    Current # commands on controller: 0
+    Max Q depth since init: 1
+    Max # commands on controller since init: 2
+    Max SG entries since init: 32
+    Sequential access devices: 0
+
+    cciss/c2d0:   36.38GB       RAID 0
+.fi
+.SS "Fichiers dans /sys"
+.TP 
+\fI/sys/bus/pci/devices/<dev>/ccissX/cXdY/model\fP
+Affiche le modèle indiqué sur la page\ 0 de SCSI INQUIRY pour le lecteur
+logique\ \fIY\fP du contrôleur\ \fIX\fP.
+.TP 
+\fI/sys/bus/pci/devices/<dev>/ccissX/cXdY/rev\fP
+Affiche la révision indiquée sur la page\ 0 de SCSI INQUIRY pour le lecteur
+logique\ \fIY\fP du contrôleur\ \fIX\fP.
+.TP 
+\fI/sys/bus/pci/devices/<dev>/ccissX/cXdY/unique_id\fP
+Affiche le numéro de série indiqué sur la page\ 83 de SCSI INQUIRY pour le
+lecteur logique\ \fIY\fP du contrôleur\ \fIX\fP.
+.TP 
+\fI/sys/bus/pci/devices/<dev>/ccissX/cXdY/vendor\fP
+Affiche le fournisseur indiqué sur la page\ 0 de SCSI INQUIRY pour le lecteur
+logique\ \fIY\fP du contrôleur\ \fIX\fP.
+.TP 
+\fI/sys/bus/pci/devices/<dev>/ccissX/cXdY/block:cciss!cXdY\fP
+Lien  symbolique vers  \fI/sys/block/cciss!cXdY\fP.
+.TP 
+\fI/sys/bus/pci/devices/<dev>/ccissX/rescan\fP
+Après écriture dans ce fichier, le pilote rescanne le contrôleur à la
+recherche de lecteurs logiques dont l'état a changé (nouveaux, retirés ou
+modifiés).
+.TP 
+\fI/sys/bus/pci/devices/<dev>/ccissX/resettable\fP
+Si le fichier contient la valeur\ 1, cela signifie que le paramètre du noyau
+«\ reset_devices=1\ » (utilisé par \fBkdump\fP) est pris en compte par le
+contrôleur. S'il contient la valeur\ 0, cela signifie que le paramètre du
+noyau «\ reset_devices=1\ » n'est pas pris en compte. Certains modèles de
+Smart Array ne sont pas capables de prendre en compte ce paramètre.
+.TP 
+\fI/sys/bus/pci/devices/<dev>/ccissX/cXdY/lunid\fP
+Affiche l'identifiant d'unité logique («\ LUN ID\ ») sur 8\ octets pour
+représenter le lecteur logique \ \fIY\fP du contrôleur\ \fIX\fP.
+.TP 
+\fI/sys/bus/pci/devices/<dev>/ccissX/cXdY/raid_level\fP
+Affiche le niveau RAID du lecteur logique\ \fIY\fP du contrôleur\ \fIX\fP.
+.TP 
+\fI/sys/bus/pci/devices/<dev>/ccissX/cXdY/usage_count\fP
+Affiche le comptage d'utilisation (nombre d'ouvertures) du lecteur
+logique\ \fIY\fP du contrôleur\ \fIX\fP.
+.SS "Lecteur de bandes SCSI et prise en charge du changeur de support."
+Les périphériques SCSI à accès séquentiel et les périphériques de changement
+de support sont pris en charge, et les nœuds de périphériques idoines sont
+automatiquement créés (p. ex. \fI/dev/st0\fP, \fI/dev/st1\fP, etc.\ ; consultez
+\fBst\fP(4) pour plus de détails). Vous devez activer «\ SCSI tape drive support
+for Smart Array 5xxx\ » et «\ SCSI support\ » dans votre configuration du noyau
+pour pouvoir utiliser des lecteurs de bandes SCSI avec votre contrôleur
+Smart Array 5xxx.
+
+De plus, notez que le pilote n'engagera pas le cœur SCSI à
+l'initialisation. Le pilote ne doit pas être réglé pour engager
+dynamiquement le cœur SCSI au moyen de l'entrée
+\fI/proc/driver/cciss/cciss*\fP, qui est créée par la partie «\ bloc\ » du pilote
+pendant l'exécution. En effet, à l'initialisation du pilote, le cœur SCSI
+peut ne pas être encore initialisé (car il s'agit d'un pilote de
+périphérique bloc) et essayer d'engager le cœur SCSI dans cet état pourrait
+causer un plantage. La meilleure façon de le faire est d'utiliser un script
+d'initialisation (typiquement dans \fI/etc/init.d\fP, mais peut dépendre de la
+distribution). Par exemple\ :
+.nf
+
+    for x in /proc/driver/cciss/cciss[0\-9]*
+    do
+        echo "Engager le cœur SCSI" > $x
+    done
+
+.fi
+Une fois le cœur SCSI engagé par le pilote, il ne peut être désengagé (sauf
+en retirant le pilote, s'il est lié sous forme d'un module).
+
+Notez aussi que si aucun périphérique à accès séquentiel ou changeur de
+support n'est détecté, le cœur SCSI ne sera pas engagé par l'action du
+script ci\-dessus.
+.SS "Prise en charge du branchement à chaud de lecteurs de bandes SCSI"
+Le branchement à chaud des lecteurs de bandes SCSI est pris en charge, avec
+quelques mises en garde. Le pilote \fBcciss\fP doit être informé des
+changements apportés au bus SCSI. Cela peut être réalisé en utilisant de
+système de fichiers /proc. Par exemple\ :
+
+    echo "rescan" > /proc/scsi/cciss0/1
+
+Cela fait faire au pilote les actions suivantes\ :
+.RS
+.IP 1. 3
+interroger l'adaptateur au sujet des changements intervenus sur les bus SCSI
+physiques et/ou sur le Fibre Channel en boucle, et
+.IP 2.
+prendre note de tout périphérique à accès séquentiel ou changeur de support
+ajouté ou retiré
+.RE
+.LP
+Le pilote affichera des messages indiquant quels périphériques ont été
+ajoutés ou retirées, ainsi que les contrôleur, bus, cible et numéro d'unité
+logique utilisés pour accéder à chacun de ces périphériques. Le pilote
+prévient ensuite la couche intermédiaire SCSI de ces changements.
+
+Notez que la convention de nommage des entrées du système de fichiers /proc
+contient un numéro en plus du nom du pilote (p. ex. «\ cciss0\ » au lieu du
+simple «\ cciss\ » attendu).
+
+Remarque\ : \fIseulement\fP les périphériques à accès séquentiel et les
+changeurs de support sont présentés par le pilote \fBcciss\fP comme des
+périphériques SCSI à la couche intermédiaire SCSI. Précisément, les disques
+physiques SCSI \fIne sont pas\fP présentés à la couche intermédiaire SCSI. Les
+seuls périphériques de disque présentés au noyau sont les lecteurs logiques
+que le contrôleur construit à partir de régions sur les lecteurs
+physiques. Les lecteurs logiques sont présentés à la couche «\ bloc\ » (et non
+à la couche intermédiaire SCSI). Il est important que le pilote empêche le
+noyau d'accéder directement aux lecteurs physiques, puisque ces lecteurs
+sont utilisés par le contrôleur pour construire les lecteurs logiques.
+.SS "Gestion des erreurs SCSI pour les lecteurs de bandes et les changeurs de support"
+La couche intermédiaire SCSI de Linux fournit un protocole de gestion
+d'erreurs, qui est initialisé dès qu'une commande SCSI échoue après un
+certain laps de temps (qui peut dépendre de la commande). Le pilote \fBcciss\fP
+participe à ce protocole dans une certaine mesure. Le protocole normal
+comprend quatre étapes\ :
+.IP * 3
+D'abord, le périphérique est prié d'interrompre la commande.
+.IP *
+Si cela ne fonctionne pas, le périphérique est réinitialisé.
+.IP *
+Si cela ne fonctionne pas, le bus SCSI est réinitialisé.
+.IP *
+Si cela ne fonctionne pas, le bus hôte est réinitialisé.
+.LP
+Le pilote \fBcciss\fP est un pilote pour périphérique bloc, ainsi qu'un pilote
+SCSI et seuls les lecteurs de bandes et les changeurs de support sont
+présentés à la couche intermédiaire SCSI. De plus, contrairement à d'autres
+pilotes SCSI plus simples, les opérations d'entrée et sortie sur le disque
+continuent du côté bloc pendant le processus de réparation d'erreur. C'est
+pourquoi le pilote \fBcciss\fP implémente seulement les deux premières
+actions\ : interrompre la commande, et réinitialiser le périphérique. Notez
+aussi que la plupart des lecteurs de bandes ne vont pas coopérer lors de
+l'interruption de commandes, et parfois même ne vont pas obéir à la commande
+de réinitialisation, même s'ils le feront dans la majorité des cas. Si la
+commande ne peut être interrompue et le périphérique ne peut être
+réinitialisé, le périphérique sera placé hors\-ligne.
+
+Dans le cas où la gestion des erreurs est déclenchée et un lecteur de bandes
+est réinitialisé correctement ou la commande qui traîne est interrompue
+correctement, le lecteur de bandes peut quand même ne pas permettre les
+opérations d'entrée\-sortie de continuer tant qu'une commande qui
+positionnera la bande à une position connue ne sera pas
+exécutée. Typiquement, vous devez rembobiner la bande (en exécutant \fImt \-f
+/dev/st0 rewind\fP par exemple), avant que les opérations d'entrée\-sorties
+puissent reprendre sur un lecteur de bandes  réinitialisé.
+.SH "VOIR AUSSI"
+\fBcciss_vol_status\fP(8), \fBhpsa\fP(4), \fBhpacucli\fP(8), \fBhpacuxe\fP(8),
+
+.\" .SH AUTHORS
+.\" Don Brace, Steve Cameron, Chase Maupin, Mike Miller, Michael Ni,
+.\" Charles White, Francis Wiran
+.\" and probably some other people.
+.UR http://cciss.sf.net
+.UE ,
+les fichiers source du noyau Linux
+\fIDocumentation/blockdev/cciss.txt\fP et
+\fIDocumentation/ABI/testing/sysfs\-bus\-pci\-devices\-cciss\fP
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

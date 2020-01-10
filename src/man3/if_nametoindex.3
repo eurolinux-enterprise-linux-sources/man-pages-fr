@@ -1,0 +1,88 @@
+.\" Copyright (c) 2012 YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of
+.\" this manual under the conditions for verbatim copying, provided that
+.\" the entire resulting derived work is distributed under the terms of
+.\" a permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume
+.\" no responsibility for errors or omissions, or for damages resulting
+.\" from the use of the information contained herein.  The author(s) may
+.\" not have taken the same level of care in the production of this
+.\" manual, which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH IF_NAMETOINDEX 3 "14 décembre 2012" GNU "Manuel du programmeur Linux"
+.SH NOM
+if_nametoindex, if_indextoname \- Correspondance entre noms d'interfaces
+réseau et indices
+.SH SYNOPSIS
+.nf
+\fB#include <net/if.h>\fP
+.sp
+\fBunsigned int if_nametoindex(const char *\fP\fInom_if\fP\fB);\fP
+.sp
+\fBchar *if_indextoname(unsigned int indice_if, char *\fP\fInom_if\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBif_nametoindex\fP() renvoie l'indice de l'interface réseau
+correspondant au nom \fInom_if\fP.
+
+La fonction \fBif_indextoname\fP() renvoie le nom de l'interface réseau
+correspondant à l'indice d'interface \fIindice_if\fP. Le nom est placé dans le
+tampon sur lequel pointe \fInom_if\fP. Le tampon doit autoriser le stockage
+d'au moins \fBIF_NAMESIZE\fP octets.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, \fBif_nametoindex\fP() renvoie l'indice de l'interface
+réseau. En cas d'erreur, elle renvoie 0 et \fIerrno\fP est rempli avec le code
+d'erreur.
+
+En cas de réussite, \fBif_indextoname\fP() renvoie \fInom_if\fP. En cas d'erreur,
+elle renvoie un pointeur NULL et \fIerrno\fP est rempli avec le code d'erreur.
+.SH ERREURS
+\fBif_indextoname\fP() peut échouer et remplir \fIerrno\fP si\ :
+.TP 
+\fBENXIO\fP
+aucune interface n'est trouvée pour l'indice.
+.PP
+\fBif_nametoindex\fP() et \fBif_indextoname\fP() peuvent aussi échouer pour une
+des erreurs précisées pour \fBsocket\fP(2) ou \fBioctl\fP(2).
+.SH CONFORMITÉ
+RFC\ 3493, POSIX.1\-2001.
+
+Cette fonction est d'abord apparue dans BSDi.
+.SH "VOIR AUSSI"
+\fBgetifaddrs\fP(3), \fBif_nameindex\fP(3), \fBifconfig\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

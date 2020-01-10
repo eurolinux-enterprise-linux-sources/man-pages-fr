@@ -1,0 +1,182 @@
+.\" Copyright (c) 1980, 1991 Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" This code is derived from software contributed to Berkeley by
+.\" the American National Standards Committee X3, on Information
+.\" Processing Systems.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     @(#)setbuf.3	6.10 (Berkeley) 6/29/91
+.\"
+.\" Converted for Linux, Mon Nov 29 14:55:24 1993, faith@cs.unc.edu
+.\" Added section to BUGS, Sun Mar 12 22:28:33 MET 1995,
+.\"                   Thomas.Koenig@ciw.uni-karlsruhe.de
+.\" Correction,  Sun, 11 Apr 1999 15:55:18,
+.\"     Martin Vicente <martin@netadmin.dgac.fr>
+.\" Correction,  2000-03-03, Andreas Jaeger <aj@suse.de>
+.\" Added return value for setvbuf, aeb,
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SETBUF 3 "3 août 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+setbuf, setbuffer, setlinebuf, setvbuf \- Agir sur les tampons d'un flux
+.SH SYNOPSIS
+.nf
+\fB#include <stdio.h>\fP
+
+\fBvoid setbuf(FILE *\fP\fIstream\fP\fB, char *\fP\fIbuf\fP\fB);\fP
+
+\fBvoid setbuffer(FILE *\fP\fIstream\fP\fB, char *\fP\fIbuf\fP\fB, size_t \fP\fIsize\fP\fB);\fP
+
+\fBvoid setlinebuf(FILE *\fP\fIstream\fP\fB);\fP
+
+\fBint setvbuf(FILE *\fP\fIstream\fP\fB, char *\fP\fIbuf\fP\fB, int \fP\fImode\fP\fB, size_t \fP\fIsize\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBsetbuffer\fP(), \fBsetlinebuf\fP()\ : _BSD_SOURCE
+.SH DESCRIPTION
+Les trois types de tampons disponibles sont les suivants\ : pas de tampons,
+tampons de blocs, et tampons de lignes. Quand un flux de sortie n'a pas de
+tampon, les données apparaissent dans le fichier destination, ou sur le
+terminal, dès qu'elles sont écrites. Avec les tampons par blocs, une
+certaine quantité de données est conservée avant d'être écrite en tant que
+bloc. Avec les tampons de lignes, les caractères sont conservés jusqu'à ce
+qu'un saut de ligne soit transmis, ou que l'on réclame une lecture sur un
+flux attaché au terminal (typiquement \fIstdin\fP). La fonction \fBfflush\fP(3)
+peut être utilisée pour forcer l'écriture à n'importe quel moment (voir
+\fBfclose\fP(3)). Normalement, tous les fichiers utilisent des tampons de
+blocs. Quand une première opération d'entrée\-sortie se déroule sur un
+fichier, \fBmalloc\fP(3) est appelée, et un tampon est créé. Si le flux se
+rapporte à un terminal (comme \fIstdout\fP habituellement) il s'agit d'un
+tampon de ligne. Le flux standard de sortie d'erreur \fIstderr\fP n'a jamais de
+tampon par défaut.
+.PP
+La fonction \fBsetvbuf\fP() peut être utilisée sur n'importe quel flux ouvert
+pour modifier son type de tampon. La paramètre \fImode\fP doit correspondre à
+l'une des constantes symboliques suivantes\ :
+.RS
+.TP 
+\fB_IONBF\fP
+pas de tampon
+.TP 
+\fB_IOLBF\fP
+tampon de ligne
+.TP 
+\fB_IOFBF\fP
+tampon complet
+.RE
+.PP
+À l'exception des fichiers sans tampons, l'argument \fIbuf\fP doit pointer sur
+un tampon contenant au moins \fIsize\fP octets. Ce nouveau tampon sera utilisé
+à la place de l'ancien. Si l'argument \fIbuf\fP est NULL, seul le mode est
+affecté. Un nouveau tampon sera alloué automatiquement lors de la prochaine
+opération de lecture ou d'écriture. La fonction \fBsetvbuf\fP() ne peut être
+utilisée qu'après l'ouverture du flux, et avant toute opération dessus.
+.PP
+Les trois autres appels sont, en fait, simplement des alias pour l'appel de
+\fBsetvbuf\fP(). la fonction \fBsetbuf\fP() est exactement équivalente à
+.PP
+.in +4n
+setvbuf(stream, buf, buf ? _IOFBF : _IONBF, BUFSIZ);
+.in
+.PP
+La fonction \fBsetbuffer\fP() est identique, sauf que la taille du tampon est
+indiquée par l'appelant plutôt que la valeur par défaut \fBBUFSIZ\fP. La
+fonction \fBsetlinebuf\fP() est exactement équivalente à\ :
+.PP
+.in +4n
+setvbuf(stream, NULL, _IOLBF, 0);
+.in
+.SH "VALEUR RENVOYÉE"
+La fonction \fBsetvbuf\fP() renvoie zéro si elle réussit. Elle renvoie une
+valeur non nulle en cas d'échec (\fImode\fP n'est pas valable ou la requête ne
+peut pas être honorée). Elle peut remplir \fIerrno\fP en cas d'erreur. Les
+autres fonctions ne renvoient rien.
+
+Les autres fonctions ne renvoient pas de valeur.
+.SH CONFORMITÉ
+Les fonctions \fBsetbuf\fP() et \fBsetvbuf\fP() sont conformes à C89 et C99.
+.SH BOGUES
+Les fonctions \fBsetbuffer\fP() et \fBsetlinebuf\fP() ne sont pas portables sur
+les systèmes BSD antérieurs à BSD\ 4.2, et sont disponibles sous Linux
+depuis la libc 4.5.21. Sur les systèmes BSD\ 4.2 et BSD\ 4.3, \fBsetbuf\fP()
+utilise toujours une taille de tampon non optimale, et doit être évitée.
+.P
+Il faut toujours s'assurer que le contenu de \fIbuf\fP existe encore au moment
+de la fermeture du flux \fIstream\fP (qui se produit automatiquement à la fin
+du programme). Par exemple, ceci n'est pas valable\ :
+.nf
+.sp
+#include <stdio.h>
+
+int
+main(void)
+{
+    char buf[BUFSIZ];
+    setbuf(stdin, buf);
+    printf("Hello, world!\en");
+    return 0;
+}
+.fi
+.SH "VOIR AUSSI"
+\fBfclose\fP(3), \fBfflush\fP(3), \fBfopen\fP(3), \fBfread\fP(3), \fBmalloc\fP(3),
+\fBprintf\fP(3), \fBputs\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

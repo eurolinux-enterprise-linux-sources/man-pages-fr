@@ -1,0 +1,88 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MAKEDEV 3 "10 mai 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+makedev, major, minor \- Gérer les numéros de périphériques
+.SH SYNOPSIS
+.nf
+\fB#define _BSD_SOURCE\fP             /* See feature_test_macros(7) */
+\fB#include <sys/types.h>\fP
+
+\fBdev_t makedev(int \fP\fImaj\fP\fB, int \fP\fImin\fP\fB);\fP
+
+\fBunsigned int major(dev_t \fP\fIdev\fP\fB);\fP
+\fBunsigned int minor(dev_t \fP\fIdev\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Un ID de périphérique est divisé en deux parties\ : un ID majeur,
+identifiant la classe du périphérique, et un ID mineur, identifiant une
+instance spécifique d'un périphérique dans la classe. Un ID de périphérique
+est représenté avec le type \fIdev_t\fP.
+
+\fBmakedev\fP() combine un ID de périphérique majeur et mineur, pour produire
+un ID de périphérique, renvoyé par la fonction. Cet ID de périphérique peut
+être utilisé avec \fBmknod\fP(2) par exemple.
+
+Les fonctions \fBmajor\fP() et \fBminor\fP() renvoient respectivement l'ID majeur
+et mineur du périphérique. Ces macros sont utiles pour, par exemple,
+décomposer un ID de périphérique renvoyé dans une structure par \fBstat\fP(2).
+.SH CONFORMITÉ
+.\" The BSDs, HP-UX, Solaris, AIX, Irix
+Les fonctions \fBmakedev\fP(), \fBmajor\fP(), et  \fBminor\fP() ne sont pas
+spécifiées dans POSIX.1 mais elles sont présentes sur de nombreux autres
+systèmes.
+.SH NOTES
+Ces interfaces sont définies sous forme de macros. Depuis la glibc\ 2.3.3,
+elles sont aliasées à trois fonctions GNU spécifiques\ :
+\fBgnu_dev_makedev\fP(), \fBgnu_dev_major\fP(), et \fBgnu_dev_minor\fP(). Ces
+derniers noms de fonction sont exportés mais les noms traditionnels sont
+plus portables.
+.SH "VOIR AUSSI"
+\fBmknod\fP(2), \fBstat\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

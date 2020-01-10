@@ -1,0 +1,183 @@
+.\" Copyright (c) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETPWENT_R 3 "21 octobre 2010" GNU "Manuel du programmeur Linux"
+.SH NOM
+getpwent_r, fgetpwent_r \- Obtenir un enregistrement du fichier passwd de
+manière réentrante
+.SH SYNOPSIS
+.nf
+\fB#include <pwd.h>\fP
+.sp
+\fBint getpwent_r(struct passwd *\fP\fIpwbuf\fP\fB, char *\fP\fIbuf\fP\fB,\fP
+.br
+\fB               size_t \fP\fIbuflen\fP\fB, struct passwd **\fP\fIpwbufp\fP\fB);\fP
+.sp
+\fBint fgetpwent_r(FILE *\fP\fIfp\fP\fB, struct passwd *\fP\fIpwbuf\fP\fB, char *\fP\fIbuf\fP\fB,\fP
+.br
+\fB                size_t \fP\fIbuflen\fP\fB, struct passwd **\fP\fIpwbufp\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBgetpwent_r\fP()\ : _BSD_SOURCE || _SVID_SOURCE
+.br
+\fBfgetpwent_r\fP()\ : _SVID_SOURCE
+.SH DESCRIPTION
+Les fonctions \fBgetpwent_r\fP() et \fBfgetpwent_r\fP() sont les versions
+réentrantes des fonctions \fBgetpwent\fP(3) et \fBfgetpwent\fP(3). La première lit
+l'enregistrement passwd suivant à partir du flux initialisé par
+\fBsetpwent\fP(3). La seconde lit l'enregistrement passwd suivant à partir du
+flux \fIfp\fP.
+.PP
+La structure \fIpasswd\fP est définie dans \fI<pwd.h>\fP comme ceci\ :
+.sp
+.in +4n
+.nf
+struct passwd {
+    char    *pw_name;      /* Nom d'utilisateur */
+    char    *pw_passwd;    /* Mot de passe de l'utilisateur */
+    uid_t    pw_uid;       /* ID de l'utilisateur */
+    gid_t    pw_gid;       /* ID du groupe */
+    char    *pw_gecos;     /* Information utilisateur */
+    char    *pw_dir;       /* Répertoire personnel */
+    char    *pw_shell;     /* Interpréteur de commande */
+};
+.fi
+.in
+.PP
+Pour plus d'informations à propos des champs de cette structure, consultez
+\fBpasswd\fP(5).
+
+Les fonctions non réentrantes renvoient un pointeur sur une zone statique,
+zone qui contient d'autres pointeurs vers le nom, le mot de passe, le champ
+gecos, le répertoire personnel et le shell de l'utilisateur. Les fonctions
+réentrantes décrites ici renvoient tout ceci dans des tampons fournis par
+l'appelant. Il y a tout d'abord le tampon \fIpwbuf\fP qui contient une
+structure \fIpasswd\fP. Puis le tampon \fIbuf\fP de taille \fIbuflen\fP qui contient
+les chaînes supplémentaires. Le résultat de ces fonctions, la structure
+\fIpasswd\fP lue dans le flux, est enregistré dans le tampon \fI*pwbuf\fP fourni,
+et un pointeur vers cette structure \fIpasswd\fP est renvoyé dans \fI*pwbufp\fP.
+.SH "VALEUR RENVOYÉE"
+Si elles réussissent, ces fonctions renvoient 0 et \fI*pwbufp\fP est un
+pointeur vers la structure \fIpasswd\fP. Si elles échouent, ces fonctions
+renvoient une valeur d'erreur et \fI*pwbufp\fP est NULL.
+.SH ERREURS
+.TP 
+\fBENOENT\fP
+Plus d'entrées.
+.TP 
+\fBERANGE\fP
+L'espace tampon fourni est insuffisant. Veuillez essayer à nouveau avec un
+tampon plus grand.
+.SH CONFORMITÉ
+Ces fonctions sont des extensions GNU, effectuées dans un style ressemblant
+à la version POSIX de fonctions comme \fBgetpwnam_r\fP(3). D'autres systèmes
+utilisent le prototype
+.sp
+.nf
+.in +4n
+struct passwd *
+getpwent_r(struct passwd *pwd, char *buf, int buflen);
+.in
+.fi
+.sp
+ou mieux,
+.sp
+.nf
+.in +4n
+int
+getpwent_r(struct passwd *pwd, char *buf, int buflen,
+           FILE **pw_fp);
+.in
+.fi
+.SH NOTES
+La fonction \fBgetpwent_r\fP() n'est pas vraiment réentrante puisqu'elle
+partage la position de lecture dans le flux avec tous les autres threads.
+.SH EXEMPLE
+.nf
+#define _GNU_SOURCE
+#include <pwd.h>
+#include <stdio.h>
+#define BUFLEN 4096
+
+int
+main(void)
+{
+    struct passwd pw, *pwp;
+    char buf[BUFLEN];
+    int i;
+
+    setpwent();
+    while (1) {
+        i = getpwent_r(&pw, buf, BUFLEN, &pwp);
+        if (i)
+            break;
+        printf("%s (%d)\etHOME %s\etSHELL %s\en", pwp\->pw_name,
+               pwp\->pw_uid, pwp\->pw_dir, pwp\->pw_shell);
+    }
+    endpwent();
+    exit(EXIT_SUCCESS);
+}
+.fi
+.\" perhaps add error checking - should use strerror_r
+.\" #include <errno.h>
+.\" #include <stdlib.h>
+.\"         if (i) {
+.\"               if (i == ENOENT)
+.\"                     break;
+.\"               printf("getpwent_r: %s", strerror(i));
+.\"               exit(EXIT_SUCCESS);
+.\"         }
+.SH "VOIR AUSSI"
+\fBfgetpwent\fP(3), \fBgetpw\fP(3), \fBgetpwent\fP(3), \fBgetpwnam\fP(3),
+\fBgetpwuid\fP(3), \fBputpwent\fP(3), \fBpasswd\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

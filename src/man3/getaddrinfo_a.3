@@ -1,0 +1,513 @@
+.\" Copyright (c) 2009 Petr Baudis <pasky@suse.cz>
+.\" and clean-ups and additions (C) 2010 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References: http://people.redhat.com/drepper/asynchnl.pdf,
+.\"     http://www.imperialviolet.org/2005/06/01/asynchronous-dns-lookups-with-glibc.html
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETADDRINFO_A 3 "27 septembre 2010" GNU "Manuel du programmeur Linux"
+.SH NOM
+getaddrinfo_a, gai_suspend, gai_error, gai_cancel \- Traduction asynchrone
+d'adresses et de services réseau
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP         /* Consultez feature_test_macros(7) */
+\fB#include <netdb.h>\fP
+.sp
+\fBint getaddrinfo_a(int \fP\fImode\fP\fB, struct gaicb *\fP\fIlist[]\fP\fB,\fP
+\fB                int \fP\fInitems\fP\fB, struct sigevent *\fP\fIsevp\fP\fB);\fP
+.sp
+\fBint gai_suspend(struct gaicb *\fP\fIlist[]\fP\fB, int \fP\fInitems\fP\fB,\fP
+\fB                struct timespec *\fP\fItimeout\fP\fB);\fP
+.sp
+\fBint gai_error(struct gaicb *\fP\fIreq\fP\fB);\fP
+.sp
+\fBint gai_cancel(struct gaicb *\fP\fIreq\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lanl\fP.
+.fi
+.SH DESCRIPTION
+La fonction \fBgetaddrinfo_a\fP() effectue la même opération que
+\fBgetaddrinfo\fP(3), mais permet d'effectuer plusieurs résolutions de manière
+asynchrone et de recevoir une notification à chaque résolution effectuée.
+
+Le champ \fImode\fP peut prendre une des valeurs suivantes\ :
+.TP 
+\fBGAI_WAIT\fP
+Effectue les résolutions de manière synchrone. L'appel bloque tant que les
+résolutions ne sont pas terminées.
+.TP 
+\fBGAI_NOWAIT\fP
+Effectue les résolutions de manière asynchrone. L'appel s'achève
+immédiatement et les requêtes sont résolues en arrière\-plan. Consultez la
+description du paramètre \fIsevp\fP ci\-dessous.
+.PP
+Le tableau \fIlist\fP spécifie les requêtes de recherche à traiter. Le
+paramètre \fInitems\fP spécifie le nombre d'éléments dans \fIlist\fP. Les
+opérations de recherche demandées sont lancées en parallèle. Les éléments
+égal à NULL de \fIlist\fP sont ignorés. Chaque requête est décrite par une
+structure \fIgaicb\fP définie ci\-dessous\ :
+.sp
+.in +4n
+.nf
+struct gaicb {
+    const char            *ar_name;
+    const char            *ar_service;
+    const struct addrinfo *ar_request;
+    struct addrinfo       *ar_result;
+};
+.fi
+.in
+
+Les éléments de cette structure correspondent aux paramètres de
+\fBgetaddrinfo\fP(3). Ainsi, \fIar_name\fP correspond au paramètre \fInode\fP et
+\fIar_service\fP au paramètre \fIservice\fP, identifiant respectivement un hôte et
+un service Internet. L'élément \fIar_request\fP correspond au paramètre
+\fIhints\fP, spécifiant le critère de sélection des structures d'adresse de
+socket renvoyées. Enfin, \fIar_result\fP correspond au paramètre \fIres\fP\ ; vous
+n'avez pas besoin d'initialiser ce paramètre, il sera automatiquement défini
+lorsque la requête sera résolue. La structure \fIaddrinfo\fP référencée par les
+deux derniers éléments est décrite dans \fBgetaddrinfo\fP(3).
+
+Lorsque \fImode\fP est défini à \fBGAI_NOWAIT\fP, les notifications des requêtes
+résolues peuvent être obtenues avec la structure \fIsigevent\fP pointée par le
+paramètre \fIsevp\fP. Pour la définition et les détails généraux de cette
+structure, consultez \fBsigevent\fP(7). Le champ \fIsevp\->sigev_notify\fP peut
+prendre l'une des valeurs suivantes\ :
+.TP 
+\fBSIGEV_NONE\fP
+Ne fournit pas de notification.
+.TP 
+\fBSIGEV_SIGNAL\fP
+.\" si_pid and si_uid are also set, to the values of the calling process,
+.\" which doesn't provide useful information, so we'll skip mentioning it.
+Lorsqu'une recherche se termine, générer le signal \fIsigev_signo\fP à
+destination du processus. Consultez \fBsigevent\fP(7) pour plus de détails. Le
+champ \fIsi_code\fP de la structure \fIsiginfo_t\fP sera défini à \fBSI_ASYNCNL\fP.
+.TP 
+\fBSIGEV_THREAD\fP
+Lors d'une résolution, invoquer \fIsigev_notify_function\fP comme si c'était la
+fonction de création d'un nouveau processus léger. Consultez \fBsigevent\fP(7)
+pour plus détails.
+.PP
+Pour \fBSIGEV_SIGNAL\fP et \fBSIGEV_THREAD\fP, il peut être utile de faire pointer
+\fIsevp\->sigev_value.sival_ptr\fP vers \fIlist\fP.
+
+La fonction \fBgai_suspend\fP() suspend l'exécution du processus léger
+appelant, attendant la fin d'une ou plusieurs requêtes du tableau
+\fIlist\fP. L'argument \fInitems\fP spécifie la taille du tableau \fIlist\fP. L'appel
+est bloquant tant que l'un des événements suivants ne se produisent\ :
+.IP * 3
+Une ou plusieurs des opérations de \fIlist\fP se sont terminées.
+.IP *
+L'appel a été interrompu par un signal qui a été interrompu.
+.IP *
+L'intervalle de temps spécifié dans \fItimeout\fP s'est écoulé. Ce paramètre
+spécifie un délai en seconds plus nanosecondes (consultez \fBnanosleep\fP(2)
+pour plus de détails sur la structure \fItimespec\fP). Si \fItimeout\fP est NULL,
+alors l'appel est bloqué indéfiniment (à moins que l'un des événement
+ci\-dessus se produisent).
+.PP
+Aucune indication explicite sur la requête qui s'est terminée est fournie\ ;
+vous devez déterminer quelle requête s'est terminée en parcourant avec
+\fBgai_error\fP() la liste des requête (il peut y avoir plusieurs requêtes).
+
+La fonction \fBgai_error\fP() renvoie l'état de la requête \fIreq\fP\ : soit
+\fBEAI_INPROGRESS\fP si la requête ne s'est pas encore terminée, soit 0 si elle
+s'est terminé correctement ou soit un code d'erreur si elle ne peut pas être
+résolue.
+
+La fonction \fBgai_cancel\fP() annule la requête \fIreq\fP. Si la requête a été
+annulée avec succès, le statut d'erreur de la requête sera défini à
+\fBEAI_CANCELLED\fP et un notification asynchrone normale sera exécutée. La
+requête ne peut pas être annulée si elle est en cours d'utilisation\ ; dans
+ce cas, elle continuera comme si \fBgai_cancel\fP() n'avait jamais été
+appelée. Si \fIreq\fP est NULL, une tentative d'annulation de toutes les
+requêtes en cours que le processus a fait sera exécutée.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBgetaddrinfo_a\fP() renvoie 0 si toutes les requêtes ont été
+mises en file d'attente avec succès, ou un des codes d'erreur non nuls
+suivants\ :
+.TP 
+\fBEAI_AGAIN\fP
+Les ressources nécessaires pour mettre en file d'attente les requêtes de
+recherche ne sont pas disponibles. L'application devrait vérifier le statut
+d'erreur de chaque requête pour déterminer laquelle a échoué.
+.TP 
+\fBEAI_MEMORY\fP
+Plus de mémoire disponible.
+.TP 
+\fBEAI_SYSTEM\fP
+\fImode\fP est non valable.
+.PP
+La fonction \fBgai_suspend\fP() renvoie 0 si au moins une des requêtes listées
+s'est terminée. Sinon, elle renvoie un des codes d'erreur non nuls suivants\ :
+.TP 
+\fBEAI_AGAIN\fP
+Le délai d'attente a expiré avant que toute requête ne soit terminée.
+.TP 
+\fBEAI_ALLDONE\fP
+Il n'y a actuellement aucune requête fournie à la fonction.
+.TP 
+\fBEAI_INTR\fP
+Un signal a interrompu la fonction. Notez que cette interruption pourrait
+avoir été causé par une notification de signal de fin de certaines requêtes
+de recherche.
+.PP
+La fonction \fBgai_error\fP() peut renvoyer \fBEAI_INPROGRESS\fP pour une requête
+de recherche non terminée, 0 pour une recherche terminée avec succès (cas
+décrit ci\-dessus), un des codes d'erreur qui peut être renvoyé par
+\fBgetaddrinfo\fP(3), ou le code d'erreur \fBEAI_CANCELLED\fP si la requête a été
+annulée explicitement avant quelle ne soit terminée.
+
+La fonction \fBgai_cancel\fP() peut renvoyer une des valeurs suivantes\ :
+.TP 
+\fBEAI_CANCELLED\fP
+La requête a été annulée avec succès.
+.TP 
+\fBEAI_NOTCANCELLED\fP
+La requête n'a pas été annulée.
+.TP 
+\fBEAI_ALLDONE\fP
+La requête est déjà terminée.
+.PP
+La fonction \fBgai_strerror\fP(3) traduit ces codes d'erreur en une chaîne de
+caractères compréhensible, utilisable pour rendre compte du problème.
+.SH CONFORMITÉ
+Ces fonctions sont des extensions GNU. Elles ont été introduites dans la
+glibc dans sa version\ 2.1.1.
+.SH NOTES
+L'interface de \fBgetaddrinfo_a\fP() a été modifiée après l'interface
+\fBlio_listio\fP(3).
+.SH EXEMPLE
+Deux exemples sont fournis\ : un simple exemple qui résout plusieurs requête
+en parallèle de façon synchrone et un exemple complexe montrant certaines
+des capacités asynchrones.
+.SS "Exemple synchrone"
+Le programme ci\-dessous résout simplement plusieurs noms d'hôte en
+parallèle, améliorant le temps de résolution des noms d'hôtes comparé à des
+appels séquentiels à \fBgetaddrinfo\fP(3). Le programme peut être utilisé comme
+suit\ :
+.in +4n
+.nf
+
+$ \fB./a.out ftp.us.kernel.org enoent.linuxfoundation.org gnu.cz\fP
+ftp.us.kernel.org: 128.30.2.36
+enoent.linuxfoundation.org: Name or service not known
+gnu.cz: 87.236.197.13
+.fi
+.in
+.PP
+Voilà le code source du programme
+.nf
+
+#define _GNU_SOURCE
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int
+main(int argc, char *argv[])
+{
+    int i, ret;
+    struct gaicb *reqs[argc \- 1];
+    char host[NI_MAXHOST];
+    struct addrinfo *res;
+
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s HOST...\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = 0; i < argc \- 1; i++) {
+        reqs[i] = malloc(sizeof(*reqs[0]));
+        if (reqs[i] == NULL) {
+            perror("malloc");
+            exit(EXIT_FAILURE);
+        }
+        memset(reqs[i], 0, sizeof(*reqs[0]));
+        reqs[i]\->ar_name = argv[i + 1];
+    }
+
+    ret = getaddrinfo_a(GAI_WAIT, reqs, argc \- 1, NULL);
+    if (ret != 0) {
+        fprintf(stderr, "getaddrinfo_a() failed: %s\en",
+                gai_strerror(ret));
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = 0; i < argc \- 1; i++) {
+        printf("%s: ", reqs[i]\->ar_name);
+        ret = gai_error(reqs[i]);
+        if (ret == 0) {
+            res = reqs[i]\->ar_result;
+
+            ret = getnameinfo(res\->ai_addr, res\->ai_addrlen,
+                    host, sizeof(host),
+                    NULL, 0, NI_NUMERICHOST);
+            if (ret != 0) {
+                fprintf(stderr, "getnameinfo() failed: %s\en",
+                        gai_strerror(ret));
+                exit(EXIT_FAILURE);
+            }
+            puts(host);
+
+        } else {
+            puts(gai_strerror(ret));
+        }
+    }
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SS "Exemple asynchrone"
+Cet exemple est une simple application interactive utilisant
+\fBgetaddrinfo_a\fP(). Les fonctionnalités de notification ne sont pas
+exploitées.
+.PP
+Un exemple de session pourrait ressembler à ceci\ :
+.in +4n
+.nf
+
+$ \fB./a.out\fP
+> a ftp.us.kernel.org enoent.linuxfoundation.org gnu.cz
+> c 2
+[2] gnu.cz: Request not canceled
+> w 0 1
+[00] ftp.us.kernel.org: Finished
+> l
+[00] ftp.us.kernel.org: 216.165.129.139
+[01] enoent.linuxfoundation.org: Processing request in progress
+[02] gnu.cz: 87.236.197.13
+> l
+[00] ftp.us.kernel.org: 216.165.129.139
+[01] enoent.linuxfoundation.org: Name or service not known
+[02] gnu.cz: 87.236.197.13
+.fi
+.in
+.PP
+Le code source du programme est\ :
+
+.nf
+#define _GNU_SOURCE
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+static struct gaicb **reqs = NULL;
+static int nreqs = 0;
+
+static char *
+getcmd(void)
+{
+    static char buf[256];
+
+    fputs("> ", stdout); fflush(stdout);
+    if (fgets(buf, sizeof(buf), stdin) == NULL)
+        return NULL;
+
+    if (buf[strlen(buf) \- 1] == \(aq\en\(aq)
+        buf[strlen(buf) \- 1] = 0;
+
+    return buf;
+}
+
+/* Add requests for specified hostnames */
+static void
+add_requests(void)
+{
+    int nreqs_base = nreqs;
+    char *host;
+    int ret;
+
+    while ((host = strtok(NULL, " "))) {
+        nreqs++;
+        reqs = realloc(reqs, nreqs * sizeof(reqs[0]));
+
+        reqs[nreqs \- 1] = calloc(1, sizeof(*reqs[0]));
+        reqs[nreqs \- 1]\->ar_name = strdup(host);
+    }
+
+    /* Queue nreqs_base..nreqs requests. */
+
+    ret = getaddrinfo_a(GAI_NOWAIT, &reqs[nreqs_base],
+                        nreqs \- nreqs_base, NULL);
+    if (ret) {
+        fprintf(stderr, "getaddrinfo_a() failed: %s\en",
+                gai_strerror(ret));
+        exit(EXIT_FAILURE);
+    }
+}
+
+/* Wait until at least one of specified requests completes */
+static void
+wait_requests(void)
+{
+    char *id;
+    int i, ret, n;
+    struct gaicb const **wait_reqs = calloc(nreqs, sizeof(*wait_reqs));
+                /* NULL elements are ignored by gai_suspend(). */
+
+    while ((id = strtok(NULL, " ")) != NULL) {
+        n = atoi(id);
+
+        if (n >= nreqs) {
+            printf("Bad request number: %s\en", id);
+            return;
+        }
+
+        wait_reqs[n] = reqs[n];
+    }
+
+    ret = gai_suspend(wait_reqs, nreqs, NULL);
+    if (ret) {
+        printf("gai_suspend(): %s\en", gai_strerror(ret));
+        return;
+    }
+
+    for (i = 0; i < nreqs; i++) {
+        if (wait_reqs[i] == NULL)
+            continue;
+
+        ret = gai_error(reqs[i]);
+        if (ret == EAI_INPROGRESS)
+            continue;
+
+        printf("[%02d] %s: %s\en", i, reqs[i]\->ar_name,
+               ret == 0 ? "Finished" : gai_strerror(ret));
+    }
+}
+
+/* Cancel specified requests */
+static void
+cancel_requests(void)
+{
+    char *id;
+    int ret, n;
+
+    while ((id = strtok(NULL, " ")) != NULL) {
+        n = atoi(id);
+
+        if (n >= nreqs) {
+            printf("Bad request number: %s\en", id);
+            return;
+        }
+
+        ret = gai_cancel(reqs[n]);
+        printf("[%s] %s: %s\en", id, reqs[atoi(id)]\->ar_name,
+               gai_strerror(ret));
+    }
+}
+
+/* List all requests */
+static void
+list_requests(void)
+{
+    int i, ret;
+    char host[NI_MAXHOST];
+    struct addrinfo *res;
+
+    for (i = 0; i < nreqs; i++) {
+        printf("[%02d] %s: ", i, reqs[i]\->ar_name);
+        ret = gai_error(reqs[i]);
+
+        if (!ret) {
+            res = reqs[i]\->ar_result;
+
+            ret = getnameinfo(res\->ai_addr, res\->ai_addrlen,
+                              host, sizeof(host),
+                              NULL, 0, NI_NUMERICHOST);
+            if (ret) {
+                fprintf(stderr, "getnameinfo() failed: %s\en",
+                        gai_strerror(ret));
+                exit(EXIT_FAILURE);
+            }
+            puts(host);
+        } else {
+            puts(gai_strerror(ret));
+        }
+    }
+}
+
+int
+main(int argc, char *argv[])
+{
+    char *cmdline;
+    char *cmd;
+
+    while ((cmdline = getcmd()) != NULL) {
+        cmd = strtok(cmdline, " ");
+
+        if (cmd == NULL) {
+            list_requests();
+        } else {
+            switch (cmd[0]) {
+            case \(aqa\(aq:
+                add_requests();
+                break;
+            case \(aqw\(aq:
+                wait_requests();
+                break;
+            case \(aqc\(aq:
+                cancel_requests();
+                break;
+            case \(aql\(aq:
+                list_requests();
+                break;
+            default:
+                fprintf(stderr, "Bad command: %c\en", cmd[0]);
+                break;
+            }
+        }
+    }
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBgetaddrinfo\fP(3), \fBinet\fP(3), \fBlio_listio\fP(3), \fBhostname\fP(7), \fBip\fP(7),
+\fBsigevent\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

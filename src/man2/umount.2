@@ -1,0 +1,151 @@
+.\" Copyright (C) 1993 Rickard E. Faith <faith@cs.unc.edu>
+.\" and Copyright (C) 1994 Andries E. Brouwer <aeb@cwi.nl>
+.\" and Copyright (C) 2002, 2005 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 2008-10-06, mtk: Created this as a new page by splitting
+.\"     umount/umount2 material out of mount.2
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UMOUNT 2 "19 juin 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+umount, umount2 \- Démonter un système de fichier
+.SH SYNOPSIS
+.nf
+\fB#include <sys/mount.h>\fP
+.sp
+\fBint umount(const char *\fP\fItarget\fP\fB);\fP
+.sp
+\fBint umount2(const char *\fP\fItarget\fP\fB, int \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+.\" Note: the kernel naming differs from the glibc naming
+.\" umount2 is the glibc name for what the kernel now calls umount
+.\" and umount is the glibc name for oldumount
+\fBumount\fP() et \fBumount2\fP() suppriment l'attachement du système de fichiers
+(le plus récemment) monté sur le répertoire \fItarget\fP.
+
+Les privilèges appropriés 'sous Linux\ : la capacité \fBCAP_SYS_ADMIN\fP) est
+requise pour démonter des systèmes de fichiers.
+
+Depuis Linux 2.1.116 l'appel système \fBumount2\fP() fonctionne comme
+\fBumount\fP(), mais dispose d'options supplémentaires (\fIflags\fP) configurant
+le comportement de l'opération\ :
+.TP 
+\fBMNT_FORCE\fP (depuis Linux 2.1.116)
+Forcer le démontage, même si le système de fichiers est occupé. Cela peut
+causer des pertes de données (seulement pour les montages NFS).
+.TP 
+\fBMNT_DETACH\fP (depuis Linux 2.4.11)
+Faire un détachement paresseux\ : rendre le point de montage invalide pour
+les nouveaux accès, et réaliser le démontage complet lorsque le point ne
+sera plus occupé.
+.TP 
+\fBMNT_EXPIRE\fP (depuis Linux 2.6.8)
+Marquer le point de montage comme ayant expiré. Si un point de montage n'est
+pas utilisé, un premier appel à \fBumount2\fP() avec ce paramètre échoue avec
+l'erreur \fBEAGAIN\fP, mais marque le point de montage comme expiré. Il reste
+dans cet état tant qu'aucun processus n'y accède. Un second appel à
+\fBumount2\fP() avec \fBMNT_EXPIRE\fP détache le point de montage expiré. Ce
+paramètre ne peut être combiné avec \fBMNT_FORCE\fP ou \fBMNT_DETACH\fP.
+.TP 
+\fBUMOUNT_NOFOLLOW\fP (depuis Linux 2.6.34)
+.\" Later added to 2.6.33-stable
+Ne pas démonter \fItarget\fP s'il s'agit d'un lien symbolique. Ce paramètre
+permet d'éviter des problèmes de sécurité dans des programmes
+set\-UID\-\fIroot\fP qui permettent aux utilisateurs ordinaires de démonter des
+systèmes de fichiers.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+Les erreurs détaillées ici sont indépendantes du type de système de
+fichiers. Chaque type de système peut avoir des codes d'erreurs spécifiques,
+et un comportement particulier. Consultez les sources du noyau Linux pour
+plus de précisions.
+.TP 
+\fBEAGAIN\fP
+Un appel à \fBumount2\fP() avec l'attribut \fBMNT_EXPIRE\fP a marqué correctement
+un système de fichiers non utilisé comme expiré.
+.TP 
+\fBEBUSY\fP
+\fItarget\fP ne peut pas être démonté car il est occupé.
+.TP 
+\fBEFAULT\fP
+\fItarget\fP pointe en dehors de l'espace d'adressage de l'utilisateur.
+.TP 
+\fBEINVAL\fP
+\fItarget\fP n'est pas un point de montage. Ou \fBumount2\fP() a été appelé avec
+l'option \fBMNT_EXPIRE\fP, en même temps que \fBMNT_DETACH\fP ou \fBMNT_FORCE\fP.
+.TP 
+\fBENAMETOOLONG\fP
+Un des arguments est plus long que \fBMAXPATHLEN\fP.
+.TP 
+\fBENOENT\fP
+Un des chemins est vide ou a un composant inexistant.
+.TP 
+\fBENOMEM\fP
+Le noyau n'a pas pu allouer suffisamment de mémoire.
+.TP 
+\fBEPERM\fP
+L'appelant n'a pas les privilèges appropriés.
+.SH VERSIONS
+.\" http://sourceware.org/bugzilla/show_bug.cgi?id=10092
+\fBMNT_DETACH\fP et \fBMNT_EXPIRE\fP  sont disponibles depuis la glibc\ 2.11.
+.SH CONFORMITÉ
+Ces fonctions sont spécifiques à Linux et ne doivent pas être employées dans
+des programmes destinés à être portables.
+.SH NOTES
+La fonction \fBumount\fP d'origine était invoquée avec \fIumount(device)\fP et
+renvoyait \fBENOTBLK\fP si l'argument était autre chose qu'un périphérique
+bloc. Dans Linux 0.98p4 un appel \fIumount(répertoire)\fP fut ajouté, afin de
+gérer des périphériques anonymes. Dans Linux 2.3.99\-pre7 l'appel
+\fIumount(device)\fP fut supprimé, en ne gardant que \fIumount(répertoire)\fP (car
+maintenant les périphériques peuvent être montés en plusieurs endroits, et
+l'indication du périphérique ne suffit plus).
+.SH "VOIR AUSSI"
+\fBmount\fP(2), \fBpath_resolution\fP(7), \fBmount\fP(8), \fBumount\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

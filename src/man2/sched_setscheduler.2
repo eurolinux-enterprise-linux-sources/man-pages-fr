@@ -1,0 +1,447 @@
+.\" Copyright (C) Tom Bjorkholm, Markus Kuhn & David A. Wheeler 1996-1999
+.\" and Copyright (C) 2007 Carsten Emde <Carsten.Emde@osadl.org>
+.\" and Copyright (C) 2008 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 1996-04-01 Tom Bjorkholm <tomb@mydata.se>
+.\"            First version written
+.\" 1996-04-10 Markus Kuhn <mskuhn@cip.informatik.uni-erlangen.de>
+.\"            revision
+.\" 1999-08-18 David A. Wheeler <dwheeler@ida.org> added Note.
+.\" Modified, 25 Jun 2002, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Corrected description of queue placement by sched_setparam() and
+.\"		sched_setscheduler()
+.\"	A couple of grammar clean-ups
+.\" Modified 2004-05-27 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" 2005-03-23, mtk, Added description of SCHED_BATCH.
+.\" 2007-07-10, Carsten Emde <Carsten.Emde@osadl.org>
+.\"     Add text on real-time features that are currently being
+.\"     added to the mainline kernel.
+.\" 2008-05-07, mtk; Rewrote and restructured various parts of the page to
+.\"     improve readability.
+.\" 2010-06-19, mtk, documented SCHED_RESET_ON_FORK
+.\"
+.\" Worth looking at: http://rt.wiki.kernel.org/index.php
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SCHED_SETSCHEDULER 2 "12 février 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+sched_setscheduler, sched_getscheduler \- Lire et définir la politique
+d'ordonnancement et ses paramètres
+.SH SYNOPSIS
+.nf
+\fB#include <sched.h>\fP
+.sp
+\fBint sched_setscheduler(pid_t \fP\fIpid\fP\fB, int \fP\fIpolicy\fP\fB,\fP
+.br
+\fB                       const struct sched_param *\fP\fIparam\fP\fB);\fP
+.sp
+\fBint sched_getscheduler(pid_t \fP\fIpid\fP\fB);\fP
+.sp
+\fBstruct sched_param {
+    ...
+    int \fP\fIsched_priority\fP\fB;
+    ...
+};\fP
+.fi
+.SH DESCRIPTION
+\fBsched_setscheduler\fP() définit à la fois la politique d'ordonnancement et
+ses paramètres pour le processus dont l'identifiant est indiqué par
+\fIpid\fP. Si \fIpid\fP vaut zéro, la politique d'ordonnancement et ses paramètres
+pour le processus en cours seront définis. L'interprétation du paramètre
+\fIparam\fP dépend de la politique employée. Actuellement, les politiques
+normales (c'est\-à\-dire non temps réel) proposées par Linux sont les
+suivantes\ :
+.TP  14
+\fBSCHED_OTHER\fP
+.\" In the 2.6 kernel sources, SCHED_OTHER is actually called
+.\" SCHED_NORMAL.
+politique standard de temps partagé «\ round\-robin\ »\ :
+.TP 
+\fBSCHED_BATCH\fP
+pour une exécution de style traitement par lot des processus\ ; et
+.TP 
+\fBSCHED_IDLE\fP
+pour l'exécution de tâches de \fItrès\fP faible priorité en arrière\-plan.
+.PP
+Les politiques temps réel suivantes sont également gérées, pour des
+applications particulières sensibles au temps qui nécessitent un contrôle
+précis sur la façon dont sont choisis pour exécution les processus
+exécutables\ :
+.TP  14
+\fBSCHED_FIFO\fP
+une politique de «\ premier entré, premier sorti\ »\ ; et
+.TP 
+\fBSCHED_RR\fP
+une politique «\ round\-robin\ ».
+.PP
+La sémantique de chacune de ces politiques est décrite ci\-dessous.
+
+.\"
+\fBsched_getscheduler\fP() lit la politique d'ordonnancement et ses paramètres
+pour le processus identifié par \fIpid\fP. Si \fIpid\fP vaut zéro, la politique du
+processus en cours sera renvoyée.
+.SS "Politiques d'ordonnancement"
+L'ordonnanceur est la partie du noyau qui décide quel processus prêt va être
+exécuté ensuite. Chaque processus a une politique d'ordonnancement associée
+et une priorité d'ordonnancement \fIstatique\fP, \fIsched_priority\fP\ ; ce sont
+les réglages modifiés par \fBsched_setscheduler\fP(). L'ordonnanceur prend ses
+décisions en fonction de la politique d'ordonnancement et de la priorité
+statique de tous les processus du système.
+
+Pour les processus ordonnancés sous l'une des politiques d'ordonnancement
+normales (\fBSCHED_OTHER\fP, \fBSCHED_IDLE\fP, \fBSCHED_BATCH\fP), \fIsched_priority\fP
+n'est pas utilisée dans les décisions d'ordonnancement (et doit valoir 0).
+
+Les processus ordonnancés sous l'une des politiques d'ordonnancement temps
+réel (\fBSCHED_FIFO\fP, \fBSCHED_RR\fP) ont une valeur de \fIsched_priority\fP dans
+l'intervalle 1 (faible) à 99 (haute). (Comme les nombres l'impliquent, les
+processus temps réel ont toujours une priorité plus haute que les processus
+normaux.) Notez bien\ : POSIX.1\-2001 exige seulement d'une implémentation
+qu'elle gère un minimum de 32 niveaux de priorité distincts pour les
+politiques temps réel et certains systèmes n'offrent que ce minimum. Les
+programmes portables doivent utiliser \fBsched_get_priority_min\fP(2) et
+\fBsched_get_priority_max\fP(2) pour connaître l'intervalle des priorités
+gérées pour une politique particulière.
+
+Conceptuellement, l'ordonnanceur dispose d'une liste de tous les processus
+prêts pour chaque valeur possible de \fIsched_priority\fP. Afin de déterminer
+quel processus doit s'exécuter ensuite, l'ordonnanceur recherche la liste
+non vide de plus haute priorité statique et choisit le processus en tête de
+cette liste.
+
+La politique d'ordonnancement d'un processus détermine l'emplacement où il
+sera inséré dans la liste contenant les processus de même priorité statique,
+et comment il se déplacera dans cette liste.
+
+Tout ordonnancement est préemptif\ : si un processus avec une priorité
+statique plus élevée devient prêt, le processus actuellement en cours
+d'exécution est interrompu et retourne dans la liste d'attente avec son
+niveau de priorité statique. La politique d'ordonnancement détermine
+simplement l'ordre utilisé dans une liste de processus prêts avec des
+priorités statiques égales.
+.SS "SCHED_FIFO\ : Ordonnancement First In\-First Out (premier arrivé, premier servi)"
+\fBSCHED_FIFO\fP ne peut être utilisée qu'avec des priorités statiques
+supérieures à 0, ce qui signifie que dès qu'un processus \fBSCHED_FIFO\fP
+devient prêt, un processus normal \fBSCHED_OTHER\fP, \fBSCHED_BATCH\fP ou
+\fBSCHED_IDLE\fP en cours d'exécution sera interrompu. \fBSCHED_FIFO\fP est un
+ordonnancement simple sans tranches de temps. Pour les processus ordonnancés
+par \fBSCHED_FIFO\fP les règles suivantes sont appliquées\ :
+.IP * 3
+Un processus \fBSCHED_FIFO\fP qui a été préempté par un autre processus de
+priorité supérieure restera en tête de sa liste et reprendra son exécution
+dès que tous les processus de priorités supérieures sont à nouveau bloqués.
+.IP *
+Quand un processus \fBSCHED_FIFO\fP devient prêt, il est inséré à la fin de sa
+liste.
+.IP *
+.\" In 2.2.x and 2.4.x, the process is placed at the front of the queue
+.\" In 2.0.x, the Right Thing happened: the process went to the back -- MTK
+Un appel système \fBsched_setscheduler\fP() ou \fBsched_setparam\fP(2) placera le
+processus \fBSCHED_FIFO\fP (ou \fBSCHED_RR\fP) identifié par \fIpid\fP en tête de sa
+liste s'il est prêt. Il pourra donc stopper le processus en cours
+d'exécution si sa priorité est au moins aussi grande. (Selon POSIX.1\-2001,
+le processus devrait aller à la fin de sa liste.)
+.IP *
+Un processus appelant \fBsched_yield\fP(2) sera placé à la fin de sa liste.
+.PP
+Aucun autre événement ne modifiera l'ordre des listes de priorités statiques
+égales avec \fBSCHED_FIFO\fP.
+
+Un processus \fBSCHED_FIFO\fP s'exécute jusqu'à ce qu'il soit bloqué par une
+opération d'entrée\-sortie, qu'il soit préempté par un processus de priorité
+supérieure, ou qu'il appelle \fBsched_yield\fP(2).
+.SS "SCHED_RR\ : Ordonnancement Round Robin"
+.\" On Linux 2.4, the length of the RR interval is influenced
+.\" by the process nice value -- MTK
+.\"
+\fBSCHED_RR\fP est une amélioration simple de la politique \fBSCHED_FIFO\fP. Tout
+ce qui est décrit pour \fBSCHED_FIFO\fP s'applique aussi à \fBSCHED_RR\fP, sauf
+que chaque processus ne dispose que d'une tranche temporelle limitée pour
+son exécution. Si un processus sous politique \fBSCHED_RR\fP s'est exécuté
+depuis une durée supérieure ou égale à la tranche temporelle (time quantum),
+il sera placé à la fin de la liste de sa priorité. Un processus sous
+\fBSCHED_RR\fP qui a été préempté par un processus de priorité supérieure
+terminera sa tranche de temps lorsqu'il reprendra son exécution. La longueur
+du quantum de temps peut être lue avec \fBsched_rr_get_interval\fP(2).
+.SS "SCHED_OTHER\ : Ordonnancement temps\(hypartagé par défaut"
+.\"
+La politique \fBSCHED_OTHER\fP ne peut être utilisée qu'avec des priorités
+statiques à 0. C'est la politique standard de l'ordonnanceur temps partagé
+de Linux, et est conçue pour tous les processus ne réclamant pas de
+fonctionnalités temps\-réel. Le processus à exécuter est choisi dans la liste
+des processus de priorités statiques nulles, en utilisant une priorité
+\fIdynamique\fP qui ne s'applique que dans cette liste. La priorité dynamique
+est basée sur la valeur de «\ politesse\ » du processus (définie avec les
+appels système \fBnice\fP(2) ou \fBsetpriority\fP(2)) et est incrémentée à chaque
+quantum de temps où le processus est prêt mais non sélectionné par
+l'ordonnanceur. Ceci garantit une progression équitable de tous les
+processus \fBSCHED_OTHER\fP.
+.SS "SCHED_BATCH\ : Ordonnancement de processus de traitement par lots"
+(Depuis Linux 2.6.16) \fBSCHED_BATCH\fP ne peut être utilisée qu'avec une
+priorité statique de 0. Cette politique est similaire à \fBSCHED_OTHER\fP, en
+ce qu'elle ordonnance les processus conformément à leur priorité dynamique
+(basée sur la valeur de politesse). La différence est que cette politique
+fera que l'ordonnanceur considérera toujours que ce processus demande
+beaucoup de ressources processeur. Par conséquent, il lui appliquera une
+pénalité d'ordonnancement vis\-à\-vis du comportement au réveil, et le
+processus sera légèrement désavantagé dans les décisions d'ordonnancement.
+
+.\" The following paragraph is drawn largely from the text that
+.\" accompanied Ingo Molnar's patch for the implementation of
+.\" SCHED_BATCH.
+.\"
+Cette politique est utile pour les processus non interactifs, mais qui ne
+souhaitent pas diminuer leur valeur de politesse, ou pour ceux qui veulent
+une politique d'ordonnancement déterministe, sans que l'interactivité ne
+cause de préemptions supplémentaires.
+.SS "SCHED_IDLE\ : Ordonnancement de tâches de très faible priorité"
+(Depuis Linux 2.6.23.) \fBSCHED_IDLE\fP ne peut être utilisée qu'avec une
+priorité statique de 0\ ; la valeur de courtoisie n'a pas d'influence pour
+cette politique.
+
+.\"
+Cette politique est conçue pour l'exécution de tâches de très faible
+priorité (inférieure même à une valeur de courtoisie +19 dans les politiques
+\fBSCHED_OTHER\fP ou \fBSCHED_BATCH\fP).
+.SS "Réinitialiser la politique d'ordonnancement pour les processus fils"
+Depuis Linux 2.6.32, l'attribut \fBSCHED_RESET_ON_FORK\fP peut être inclus à
+l'aide d'un OU binaire dans \fIpolicy\fP dans l'appel à
+\fBsched_setscheduler\fP(). Avec cet attribut, les fils créés par \fBfork\fP(2)
+n'héritent pas de politiques d'ordonnancement privilégiées. Cette
+fonctionnalité est prévue pour des applications de lecture audiovisuelle, et
+peut être utilisée pour empêcher les applications de passer outre la limite
+de ressource \fBRLIMIT_RTTIME\fP (consultez \fBgetrlimit\fP(2)) en créant de
+nombreux processus fils.
+
+Plus précisément, si l'attribut \fBSCHED_RESET_ON_FORK\fP est utilisé, les
+règles suivantes seront appliquées lors de la création ultérieure des fils\ :
+.IP * 3
+Si le processus appelant a une politique d'ordonnancement \fBSCHED_FIFO\fP ou
+\fBSCHED_RR\fP, la politique pour les processus fils est réinitialisée à
+\fBSCHED_OTHER\fP.
+.IP *
+Si le processus appelant a une valeur de politesse négative, elle est mise à
+zéro pour les processus fils.
+.PP
+Une fois que l'attribut \fBSCHED_RESET_ON_FORK\fP est activé, il ne peut être
+désactivé que si le processus possède la capacité \fBCAP_SYS_NICE\fP. Cet
+attribut est désactivé pour les processus fils créés avec \fBfork\fP(2).
+
+.\"
+L'attribut \fBSCHED_RESET_ON_FORK\fP est visible dans la valeur de la politique
+du processus renvoyée par \fBsched_getscheduler\fP()
+.SS "Privilèges et limites de ressources"
+Avec les noyaux Linux antérieurs à 2.6.12, seuls les processus privilégiés
+(\fBCAP_SYS_NICE\fP) pouvaient attribuer une priorité statique non nulle
+(c'est\-à\-dire définir une politique d'ordonnancement temps réel). Le seul
+changement qu'un processus non privilégié pouvait faire était d'affecter la
+politique \fBSCHED_OTHER\fP, et seulement si l'UID effectif de l'appelant de
+\fBsched_setscheduler\fP() était le même que l'UID réel ou effectif du
+processus cible (c'est\-à\-dire le processus spécifié par \fIpid\fP), dont la
+politique est modifiée.
+
+Depuis Linux\ 2.6.12, la limite de ressources \fBRLIMIT_RTPRIO\fP définit un
+plafond pour la priorité statique d'un processus non privilégié pour les
+politiques \fBSCHED_RR\fP et \fBSCHED_FIFO\fP. Les règles pour modifier la
+politique d'ordonnancement et la priorité sont les suivantes\ :
+.IP * 3
+Si un processus non privilégié a une limite souple \fBRLIMIT_RTPRIO\fP non
+nulle, il peut modifier sa politique et sa priorité d'ordonnancement, à
+condition que la priorité reste inférieure au maximum de sa priorité
+actuelle et à la limite souple \fBRLIMIT_RTPRIO\fP.
+.IP *
+Si la limite souple \fBRLIMIT_RTPRIO\fP est nulle, les seules modifications
+permises sont une diminution de la priorité ou bien un basculement vers une
+politique qui ne soit pas temps réel.
+.IP *
+Soumis aux mêmes règles, un autre processus non privilégié peut également
+faire ces modifications à partir du moment où l'UID effectif du processus
+effectuant la modification correspond à l'UID réel ou effectif du processus
+cible.
+.IP *
+.\" commit c02aa73b1d18e43cfd79c2f193b225e84ca497c8
+Des règles particulières s'appliquent à \fBSCHED_IDLE\fP. Dans les noyaux Linux
+antérieurs à 2.6.39, un processus non privilégié opérant sous cette
+politique ne peut pas modifier sa politique, quelle que soit la valeur de sa
+limite souple de ressources \fBRLIMIT_RTPRIO\fP. Dans les noyaux Linux
+postérieurs à 2.6.39, un processus non privilégié peut basculer vers la
+politique \fBSCHED_BATCH\fP ou \fBSCHED_NORMAL\fP tant que sa valeur de politesse
+tombe dans l'intervalle permis par sa limite de ressources \fBRLIMIT_NICE\fP
+(consultez \fBgetrlimit\fP(2)).
+.PP
+Les processus privilégiés (\fBCAP_SYS_NICE\fP) ignorent la limite
+\fBRLIMIT_RTPRIO\fP\ : comme avec d'anciens noyaux, ils peuvent modifier
+arbitrairement la politique d'ordonnancement et la priorité. Consultez
+\fBgetrlimit\fP(2) pour plus d'informations sur \fBRLIMIT_RTPRIO\fP.
+.SS "Temps de réponse"
+.\" as described in
+.\" .BR request_irq (9).
+Un processus de haute priorité bloqué en attente d'entrées\-sorties est
+affecté d'un certain temps de réponse avant d'être sélectionné à nouveau. Le
+concepteur d'un gestionnaire de périphérique peut réduire grandement ce
+temps de réponse en utilisant un gestionnaire d'interruptions lentes.
+.SS Divers
+Les processus fils héritent de la politique d'ordonnancement et des
+paramètres associés lors d'un \fBfork\fP(2). L'algorithme et les paramètres
+d'ordonnancement sont conservés au travers d'un \fBexecve\fP(2).
+
+Le verrouillage de pages en mémoire est généralement nécessaire pour les
+processus temps réel afin d'éviter les délais de pagination\ ; ceci peut être
+effectué avec \fBmlock\fP(2) ou \fBmlockall\fP(2).
+
+Comme une boucle sans fin non bloquante dans un processus ordonnancé sous
+une politique \fBSCHED_FIFO\fP ou \fBSCHED_RR\fP bloquera indéfiniment tous les
+processus avec une priorité plus faible, le développeur d'applications
+temps\(hyréel devrait toujours conserver sur une console un shell ordonnancé
+avec une priorité supérieure à celle de l'application testée. Ceci permettra
+un \fBkill\fP(1) d'urgence des applications testées qui ne se bloquent pas ou
+qui ne se terminent pas comme prévu. Consultez également la description de
+la limite de ressources \fBRLIMIT_RTTIME\fP dans \fBgetrlimit\fP(2).
+
+Les systèmes POSIX sur lesquels \fBsched_setscheduler\fP() et
+\fBsched_getscheduler\fP() sont disponibles définissent
+\fB_POSIX_PRIORITY_SCHEDULING\fP dans \fI<unistd.h>\fP.
+.SH "VALEUR RENVOYÉE"
+\fBsched_setscheduler\fP() renvoie 0 s'il réussit. \fBsched_getscheduler\fP()
+renvoie la politique pour le processus (un entier >= 0) s'il réussit. En
+cas d'échec, \-1 est renvoyé et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+La valeur de politique d'ordonnancement \fIpolicy\fP n'existe pas, \fIparam\fP
+vaut NULL ou n'a pas de signification pour la politique \fIpolicy\fP.
+.TP 
+\fBEPERM\fP
+Le processus appelant ne possède pas les privilèges nécessaires.
+.TP 
+\fBESRCH\fP
+Le processus numéro \fIpid\fP n'existe pas.
+.SH CONFORMITÉ
+POSIX.1\-2001 (voir la section BOGUES ci\-dessous). Les politiques
+\fBSCHED_BATCH\fP et \fBSCHED_IDLE\fP sont spécifiques à Linux.
+.SH NOTES
+POSIX.1 ne détaille pas quelles permissions sont nécessaire pour qu'un
+processus non privilégié puisse appeler \fBsched_setscheduler\fP(), et les
+détails dépendent des systèmes. Par exemple, la page de manuel de Solaris 7
+dit que l'UID réel ou effectif du processus appelant doit correspondre à
+l'UID réel ou sauvé du processus visé.
+.PP
+Sous Linux, la politique et les paramètres d'ordonnancement sont,  des
+attributs des threads. La valeur renvoyée par un appel à \fBgettid\fP(2) peut
+être passée via l'argument \fIpid\fP. Lorsque la valeur de \fIpid\fP indiquée est
+0, l'attribut sera défini pour le thread appelant\ ; lorsque cette valeur est
+celle renvoyée par \fBgetpid\fP(2), l'attribut modifié sera celui du thread
+principal du groupe de threads (si vous utilisez l'API de manipulation des
+threads POSIX, alors utilisez \fBpthread_setschedparam\fP(3),
+\fBpthread_getschedparam\fP(3) et \fBpthread_setschedprio\fP(3) plutôt que les
+appels système \fBsched_*\fP(2)).
+.PP
+À l'origine, le noyau Linux standard visait un système d'exploitation à
+vocation généraliste, devant gérer des processus en arrière\-plan, des
+applications interactives, et des applications en temps réel souple (qui ont
+besoin en général de répondre à des critères de temps maximal). Bien que le
+noyau Linux\ 2.6 ait permis la préemption du noyau et que le nouvellement
+introduit ordonnanceur O(1) assure que le temps nécessaire pour planifier
+soit fixe et déterministe quel que soit le nombre de tâches, une vraie
+gestion temps réel n'était pas possible avant le noyau\ 2.6.17.
+.SS "Fonctionnalités temps réel dans le noyau Linux principal"
+.\" FIXME . Probably this text will need some minor tweaking
+.\" by about the time of 2.6.30; ask Carsten Emde about this then.
+Toutefois, depuis le noyau 2.6.18, Linux s'est vu graduellement équipé de
+possibilités temps réel, la plupart étant dérivées des ajouts de préemption
+temps réel (\fIrealtime\-preempt\fP) réalisés par Ingo Molnar, Thomas Gleixner,
+Steven Rostedt et autres. Jusqu'à ce que ces ajouts aient été entièrement
+fusionnés dans le noyau principal (c'est attendu aux alentours des versions
+2.6.30), ils doivent être installés pour atteindre les meilleures
+performances temps réel. Ces ajouts s'appellent\ :
+.in +4n
+.nf
+
+patch\-\fIversion\-noyau\fP\-rt\fIversion\-patch\fP
+.fi
+.in
+.PP
+et peuvent être téléchargés à partir de
+.UR http://www.kernel.org\:/pub\:/linux\:/kernel\:/projects\:/rt/
+.UE .
+
+Sans les ajouts et avant leur complète inclusion dans le noyau principal, la
+configuration du noyau n'offre que trois classes de préemption
+\fBCONFIG_PREEMPT_NONE\fP, \fBCONFIG_PREEMPT_VOLUNTARY\fP et
+\fBCONFIG_PREEMPT_DESKTOP\fP qui fournissement respectivement «\ aucune\ »,
+«\ quelque\ » et une «\ considérable\ » réduction de la latence d'ordonnancement
+de pire cas.
+
+Avec les ajouts appliqués ou après leur pleine inclusion dans le noyau
+principal, la configuration supplémentaire \fBCONFIG_PREEMPT_RT\fP devient
+disponible. Si elle est choisie, Linux est transformé en un système
+d'exploitation temps réel ordinaire. Les politiques d'ordonnancement FIFO et
+RR qui peuvent être définies avec \fBsched_setscheduler\fP() sont alors
+utilisées pour lancer un processus avec une vraie priorité temps réel et une
+latence minimum d'ordonnancement de pire cas.
+.SH BOGUES
+POSIX dit qu'en cas de réussite, \fBsched_setscheduler\fP() devrait renvoyer la
+politique d'ordonnancement précédente. La version Linux de
+\fBsched_setscheduler\fP() ne se conforme par à cette demande puisqu'elle
+renvoie toujours 0 en cas de réussite.
+.SH "VOIR AUSSI"
+.ad l
+.nh
+\fBchrt\fP(1), \fBgetpriority\fP(2), \fBmlock\fP(2), \fBmlockall\fP(2), \fBmunlock\fP(2),
+\fBmunlockall\fP(2), \fBnice\fP(2), \fBsched_get_priority_max\fP(2),
+\fBsched_get_priority_min\fP(2), \fBsched_getaffinity\fP(2), \fBsched_getparam\fP(2),
+\fBsched_rr_get_interval\fP(2), \fBsched_setaffinity\fP(2), \fBsched_setparam\fP(2),
+\fBsched_yield\fP(2), \fBsetpriority\fP(2), \fBcapabilities\fP(7), \fBcpuset\fP(7)
+.ad
+.PP
+\fIProgramming for the real world \- POSIX.4\fP de Bill O. Gallmeister, O'Reilly
+& Associates, Inc., ISBN 1\-56592\-074\-0.
+.PP
+Le fichier des sources du noyau Linux
+\fIDocumentation/scheduler/sched\-rt\-group.txt\fP
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

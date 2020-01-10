@@ -1,0 +1,270 @@
+.\" t
+.\" This man page is Copyright (C) 1999 Matthew Wilcox <willy@bofh.ai>.
+.\" %%%LICENSE_START(VERBATIM_ONE_PARA)
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" %%%LICENSE_END
+.\"
+.\" Modified June 1999 Andi Kleen
+.\" $Id: arp.7,v 1.10 2000/04/27 19:31:38 ak Exp $
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ARP 7 "25 novembre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+arp \- Module ARP du noyau Linux
+.SH DESCRIPTION
+Ce module du noyau implémente le protocole de résolution d'adresse ARP tel
+qu'il est décrit dans le document RFC\ 826. Il sert à la conversion entre
+les adresses matérielles de niveau\ 2 et les adresses du protocole IPv4 sur
+les réseaux connectés en direct. L'utilisateur n'a normalement pas
+d'interactions avec ce module sauf pour le configurer. En fait, ce module
+fournit des services aux autres protocoles du noyau.
+
+Un processus utilisateur peut recevoir les paquets ARP en utilisant les
+sockets de type \fBpacket\fP(7). Il y a aussi un mécanisme pour gérer le cache
+ARP dans l'espace utilisateur avec des sockets \fBnetlink\fP(7). La table ARP
+peut être contrôlée par le biais d'un \fBioctl\fP(2) sur n'importe quelle
+socket \fBAF_INET\fP.
+
+Le module ARP maintient un cache des correspondances entre les adresses
+matérielles et les adresses logiques. Le cache a une taille limitée, ainsi
+les entrées anciennes et utilisées moins fréquemment sont récupérées. Les
+entrées qui sont marquées comme permanentes ne sont jamais effacées. Le
+cache peut être manipulé directement par l'intermédiaire des \fBioctl\fPs et
+son comportement peut être ajusté à l'aide des interfaces \fI/proc\fP décrites
+plus bas.
+
+Lorsqu'il n'y a pas de retour positif pour une correspondance existante
+après un certain temps (voir les interfaces \fI/proc\fP ci\-dessous), l'entrée
+est considérée comme gelée. Un retour positif peut être obtenu d'un niveau
+supérieur, par exemple un ACK TCP réussi. D'autres protocoles peuvent
+signaler des avancées en utilisant l'attribut \fBMSG_CONFIRM\fP de
+\fBsendmsg\fP(2). Pour envoyer à nouveau des données à cette cible, l'ARP
+essaye d'abord d'interroger un démon arp local au maximum \fBapp_solicit\fP
+fois, afin d'obtenir une adresse MAC à jour. Si ceci échoue, et si une
+ancienne adresse MAC est connue, une tentative unicast est envoyée
+\fBucast_solicit\fP fois. Si on échoue encore, il enverra une requête ARP en
+broadcast sur le réseau. Les requêtes ne sont envoyées que s'il y a des
+données en attente d'émission.
+
+Linux ajoutera automatiquement une entrée arp proxy non permanente lorsqu'il
+reçoit une requête pour une adresse à laquelle il envoie des données, si le
+proxy arp est validé sur l'interface réceptrice. Aucune entrée n'est ajoutée
+s'il y a une route de rejet pour la cible.
+.SS Ioctls
+Trois ioctls sont disponibles pour les sockets \fBAF_INET\fP. Elles prennent un
+pointeur sur une \fIstruct arpreq\fP comme paramètre.
+
+.in +4n
+.nf
+struct arpreq {
+    struct sockaddr arp_pa;      /* adresse protocole */
+    struct sockaddr arp_ha;      /* adresse matérielle */
+    int             arp_flags;   /* attributs */
+    struct sockaddr arp_netmask; /* masque réseau du protocole */
+    char            arp_dev[16];
+};
+.fi
+.in
+
+\fBSIOCSARP\fP, \fBSIOCDARP\fP et \fBSIOCGARP\fP ajoute, supprime, et consulte
+respectivement une correspondance ARP. L'ajout et la suppression de
+correspondance ARP sont des opérations privilégiées ne pouvant être
+réalisées que par un processus avec la capacité \fBCAP_NET_ADMIN\fP ou un UID
+effectif nul.
+
+\fIarp_pa\fP doit être une adresse \fBAF_INET\fP et \fIarp_ha\fP doit être du même
+type que le périphérique indiqué dans \fIarp_dev\fP. \fIarp_dev\fP est une chaîne
+terminée par un caractère nul, contenant le nom d'un périphérique.
+.RS
+.TS
+tab(:) allbox;
+c s
+l l.
+\fIarp_flags\fP
+attribut:signification
+ATF_COM:Recherche complète
+ATF_PERM:Entrée permanente
+ATF_PUBL:Entrée publique
+ATF_USETRAILERS:Demande trailer
+ATF_NETMASK:Utiliser le masque réseau
+ATF_DONTPUB:Ne pas répondre
+.TE
+.RE
+.PP
+Si l'attribut \fBATF_NETMASK\fP est activé, alors le membre \fIarp_netmask\fP doit
+être valide. Linux\ 2.2 ne prend pas en charge les entrées ARP proxy
+réseau. Ainsi, il doit être configuré avec 0xFFFFFFFF ou 0 pour supprimer
+une entrée arp proxy existante. \fBATF_USETRAILERS\fP est obsolète et ne doit
+pas être utilisé.
+.SS "Interfaces /proc"
+ARP prend en charge une série d'interface \fI/proc\fP pour configurer les
+paramètres sur une base globale ou interface par interface. Les interfaces
+sont accessibles en lisant ou en écrivant dans les fichiers
+\fI/proc/sys/net/ipv4/neigh/*/*\fP. Chaque interface dans le système a son
+propre répertoire dans \fI/proc/sys/net/ipv4/neigh/\fP. La configuration dans
+le répertoire «\ default\ » sert pour tous les nouveaux périphériques. Sauf
+mention contraire, les durées sont en secondes.
+.TP 
+\fIanycast_delay\fP (depuis Linux\ 2.2)
+.\" Precisely: 2.1.79
+Le nombre maximal de jiffies à attendre avant de répondre à un message de
+sollicitation IPv6 du voisinage. La prise en charge anycast n'est pas encore
+implémentée. Par défaut, le délai est 1\ seconde.
+.TP 
+\fIapp_solicit\fP (depuis Linux\ 2.2)
+.\" Precisely: 2.1.79
+Le nombre maximal d'essais d'envoi au démon ARP de l'espace utilisateur par
+netlink avant de basculer en tentatives multicast (consultez
+\fImcast_solicit\fP). La valeur par défaut est 0.
+.TP 
+\fIbase_reachable_time\fP (depuis Linux\ 2.2)
+.\" Precisely: 2.1.79
+Une fois qu'un voisin a été trouvé, l'entrée est considérée comme valide
+pendant, au moins, une durée aléatoire entre \fIbase_reachable_time\fP/2 et
+3*\fIbase_reachable_time\fP/2. La validité d'une entrée sera étendue si on
+reçoit un retour positif des protocoles de plus haut niveau. La valeur par
+défaut est 30\ secondes. Ce fichier est maintenant obsolète et remplacé par
+\fIbase_reachable_time_ms\fP.
+.TP 
+\fIbase_reachable_time_ms\fP (depuis Linux\ 2.6.12)
+Comme pour \fIbase_reachable_time\fP, mais le temps est mesuré en
+millisecondes. La valeur par défaut est 30000 millisecondes.
+.TP 
+\fIdelay_first_probe_time\fP (depuis Linux\ 2.2)
+.\" Precisely: 2.1.79
+Délai avant la première tentative multicast après avoir décidé qu'un voisin
+est gelé. La valeur par défaut est 5\ secondes.
+.TP 
+\fIgc_interval\fP (depuis Linux\ 2.2)
+.\" Precisely: 2.1.79
+Fréquence avec laquelle on vérifie les entrées valides. La valeur par défaut
+est 30\ secondes.
+.TP 
+\fIgc_stale_time\fP (depuis Linux\ 2.2)
+.\" Precisely: 2.1.79
+Fréquence avec laquelle on vérifie une entrée de voisinage gelée. Lorsqu'une
+correspondance est considérée comme gelée, elle sera à nouveau redéterminée
+avant d'y envoyer des données. La valeur par défaut est 60\ secondes.
+.TP 
+\fIgc_thresh1\fP (depuis Linux\ 2.2)
+.\" Precisely: 2.1.79
+Le nombre minimal d'entrées à conserver dans le cache ARP. Le récupérateur
+ne sera pas déclenché s'il y a moins d'entrées que cette valeur. La valeur
+par défaut est 128.
+.TP 
+\fIgc_thresh2\fP (depuis Linux\ 2.2)
+.\" Precisely: 2.1.79
+La limite maximale souple d'entrées à conserver dans le cache ARP. Le
+récupérateur autorisera un dépassement de cette valeur pendant 5\ secondes
+avant de lancer une véritable récupération. La valeur par défaut est 512
+entrées.
+.TP 
+\fIgc_thresh3\fP (depuis Linux\ 2.2)
+.\" Precisely: 2.1.79
+La limite maximale d'entrées à conserver dans le cache ARP. Le récupérateur
+sera immédiatement déclenché si cette valeur est dépassée. La valeur par
+défaut est 1024.
+.TP 
+\fIlocktime\fP (depuis Linux\ 2.2)
+.\" Precisely: 2.1.79
+Le nombre minimal de jiffies pendant lesquels on conserve une entrée ARP
+dans le cache. Ceci évite la dégradation du cache s'il y a plusieurs
+correspondances possibles (généralement à cause d'une mauvaise configuration
+du réseau). La valeur par défaut est 1\ seconde.
+.TP 
+\fImcast_solicit\fP (depuis Linux\ 2.2)
+.\" Precisely: 2.1.79
+Le nombre maximal de tentatives de résolution d'une adresse par le multicast
+et le broadcast avant de marquer l'entrée comme inaccessible. La valeur par
+défaut est 3.
+.TP 
+\fIproxy_delay\fP (depuis Linux\ 2.2)
+.\" Precisely: 2.1.79
+Lorsqu'une requête arrive pour une adresse proxy\-ARP, on attend
+\fIproxy_delay\fP jiffies avant de répondre. Ceci permet d'éviter des
+saturations du réseau dans certains cas. La valeur par défaut est
+0,8\ secondes.
+.TP 
+\fIproxy_qlen\fP (depuis Linux\ 2.2)
+.\" Precisely: 2.1.79
+Le nombre maximal de paquets qui peuvent être conservés pour des adresses
+proxy\-ARP. La valeur par défaut est 64.
+.TP 
+\fIretrans_time\fP (depuis Linux\ 2.2)
+.\" Precisely: 2.1.79
+Le nombre de jiffies à attendre avant de retransmettre une requête. La
+valeur par défaut est 1\ seconde. Ce fichier est maintenant obsolète et
+remplacé par \fIretrans_time_ms\fP.
+.TP 
+\fIretrans_time_ms\fP (depuis Linux\ 2.6.12)
+Le nombre de millisecondes à attendre avant de retransmettre une requête. La
+valeur par défaut est 1000 millisecondes.
+.TP 
+\fIucast_solicit\fP (depuis Linux\ 2.2)
+.\" Precisely: 2.1.79
+Le nombre maximal de tentatives d'envoi unicast avant d'interroger le démon
+ARP (consultez \fIapp_solicit\fP). La valeur par défaut est 3.
+.TP 
+\fIunres_qlen\fP (depuis Linux\ 2.2)
+.\" Precisely: 2.1.79
+Le nombre maximal de paquets conservés pour chaque adresse non résolue par
+les autres couches réseau. La valeur par défaut est 3.
+.SH VERSIONS
+La structure \fIarpreq\fP a changé dans Linux\ 2.0 pour inclure le membre
+\fIarp_dev\fP et les numéros d'ioctl ont changé en même temps. La prise en
+charge pour les anciens ioctl a été abandonnée dans Linux\ 2.2.
+
+La prise en charge pour les entrées proxy ARP concernant des réseaux
+(netmask différent de 0xFFFFFFF) a été supprimée de Linux\ 2.2. Elle est
+remplacée par une configuration proxy ARP automatique dans le noyau pour
+tous les hôtes accessibles sur les autres interfaces (lorsque l'on fait du
+forwarding et que le proxy ARP est activé sur l'interface).
+
+Les interfaces \fIneigh/*\fP n'existaient pas avant Linux\ 2.2.
+.SH BOGUES
+Certaines temporisations sont exprimées en jiffies, qui dépendent de
+l'architecture et de la version du noyau\ ; consultez \fBtime\fP(7).
+
+Il n'y a pas de moyen d'envoyer une réponse positive de l'espace
+utilisateur. Ceci signifie que les protocoles orientés connexion implémentés
+dans l'espace utilisateur engendreront un trafic ARP excessif, car ndisc
+revérifiera régulièrement les adresses MAC. Le même problème se pose pour
+certains protocoles du noyau (par exemple NFS sur UDP).
+
+Cette page de manuel mélange les spécificités IPv4 et les fonctionnalités
+communes à IPv4 et IPv6.
+.SH "VOIR AUSSI"
+\fBcapabilities\fP(7), \fBip\fP(7)
+.PP
+RFC\ 826 pour une description d'ARP. RFC\ 2461 pour une description de
+l'exploration du voisinage IPv6 et des algorithmes de base employés. L'ARP
+IPv4 de Linux\ 2.2 et version ultérieures utilise l'algorithme IPv6 lorsque
+c'est possible.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

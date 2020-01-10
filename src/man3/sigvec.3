@@ -1,0 +1,185 @@
+.\" t
+.\" Copyright (c) 2005 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SIGVEC 3 "6 septembre 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+sigvec, sigblock, sigsetmask, siggetmask, sigmask \- API signaux BSD
+.SH SYNOPSIS
+\fB#include <signal.h>\fP
+.sp
+\fBint sigvec(int \fP\fIsig\fP\fB, struct sigvec *\fP\fIvec\fP\fB, struct sigvec
+*\fP\fIovec\fP\fB);\fP
+.sp
+\fBint sigmask(int \fP\fIsignum\fP\fB);\fP
+.sp
+\fBint sigblock(int \fP\fImask\fP\fB);\fP
+.sp
+\fBint sigsetmask(int \fP\fImask\fP\fB);\fP
+.sp
+\fBint siggetmask(void);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+Toutes les fonctions ci\-dessus\ : _BSD_SOURCE
+.SH DESCRIPTION
+Ces fonctions sont fournies dans la glibc comme interface de compatibilité
+pour les programmes qui utilisent l'API signaux BSD historique. Cette API
+est obsolète, les nouvelles applications devraient utiliser l'API signaux
+POSIX (\fBsigaction\fP(2), \fBsigprocmask\fP(2), etc.).
+
+La fonction \fBsigvec\fP() configure et/ou récupère le dispositif du signal
+\fIsig\fP (comme l'appel POSIX \fBsigaction\fP(2)). Si \fIvec\fP n'est pas NULL, il
+pointe sur une structure \fIsigvec\fP qui définit le nouveau dispositif pour
+\fIsig\fP. Si \fIovec\fP n'est pas NULL, il pointe sur une structure \fIsigvec\fP qui
+est utilisée pour renvoyer le dispositif précédent de \fIsig\fP. Pour obtenir
+le dispositif courant de \fIsig\fP sans le modifier, vous devez spécifier NULL
+pour \fIvec\fP, et un pointeur non NULL pour \fIovec\fP.
+
+Les dispositifs pour \fBSIGKILL\fP et \fBSIGSTOP\fP ne peuvent pas être modifiés.
+
+La structure \fIsigvec\fP à la forme suivante\ :
+.in +4n
+.nf
+
+struct sigvec {
+    void (*sv_handler)(int); /* Dispositif du signal*/
+    int    sv_mask;          /* Signaux à bloquer dans le gestionnaire */
+    int    sv_flags;         /* Drapeaux */
+};
+
+.fi
+.in
+Le champ \fIsv_handler\fP spécifie le dispositif du signal et est soit
+l'adresse de la fonction gestionnaire de signal, soit \fBSIG_DFL\fP signifiant
+que le dispositif par défaut s'applique au signal, soit \fBSIG_IGN\fP
+signifiant que le signal est ignoré.
+
+Si \fIsv_handler\fP spécifie l'adresse d'un gestionnaire de signal, \fIsv_mask\fP
+spécifie un masque de signaux qui seront bloqués pendant que le gestionnaire
+s'exécute. De plus, le signal pour lequel le gestionnaire est appelé est
+également bloqué. Toute tentative de bloquer \fBSIGKILL\fP ou \fBSIGSTOP\fP est
+silencieusement ignorée.
+
+Si \fIsv_handler\fP spécifie l'adresse d'un gestionnaire de signal, le champ
+\fIsv_flags\fP spécifie des attributs contrôlant ce qui se passe lorsque le
+gestionnaire est appelé. Ce champ peut contenir zéro ou plus des attributs
+suivants\ :
+.TP 
+\fBSV_INTERRUPT\fP
+Si le gestionnaire de signaux interrompt un appel système bloquant, l'appel
+système ne sera pas relancé au retour du gestionnaire. À la place, il
+échouera avec l'erreur \fBEINTR\fP. Si cet attribut n'est pas spécifié, les
+appels système sont relancés par défaut.
+.TP 
+\fBSV_RESETHAND\fP
+Réinitialiser le dispositif du signal à sa valeur par défaut avant d'appeler
+le gestionnaire de signaux. Si cet attribut n'est pas spécifié, le
+gestionnaire reste positionné jusqu'à ce qu'il soit explicitement supprimé
+par un appel ultérieur à \fBsigvec\fP() ou jusqu'à ce que le processus effectue
+un \fBexecve\fP(2).
+.TP 
+\fBSV_ONSTACK\fP
+Gère le signal sur la pile de signaux spécifique (historiquement positionné
+sous BSD avec la fonction obsolète \fBsigstack\fP()\ ; la fonction POSIX qui la
+remplace est \fBsigaltstack\fP(2)).
+.PP
+La fonction \fBsigmask\fP() construit et renvoie un masque de signaux pour
+\fIsignum\fP. Par exemple, on peut initialiser le champ \fIvec.sv_mask\fP passé à
+\fBsigvec\fP() avec un code tel que le suivant\ :
+.nf
+
+    vec.sv_mask = sigmask(SIGQUIT) | sigpause(SIGABRT);
+                /* Bloquer SIGQUIT et SIGABRT pendant
+                   l'exécution du gestionnaire */
+.fi
+.PP
+La fonction \fBsigblock\fP() ajoute les signaux de \fImask\fP au masque de signaux
+du processus (comme l'appel POSIX \fIsigprocmask(SIG_BLOCK)\fP), et renvoie le
+masque de signaux précédent du processus. Toute tentative de bloquer
+\fBSIGKILL\fP ou \fBSIGSTOP\fP est silencieusement ignorée.
+.PP
+La fonction \fBsigsetmask\fP() configure le masque de signaux du processus à la
+valeur donnée dans \fImask\fP (comme l'appel POSIX
+\fIsigprocmask(SIG_SETMASK)\fP), et renvoie le masque de signaux précédent du
+processus.
+.PP
+La fonction \fBsiggetmask\fP() renvoie le masque de signaux courant du
+processus. Cet appel est équivalent à \fIsigblock(0)\fP.
+.SH "VALEUR RENVOYÉE"
+Si elle réussit, la fonction \fBsigvec\fP() renvoie 0. Si elle échoue, elle
+renvoie \-1 et écrit \fIerrno\fP pour indiquer l'erreur.
+
+Les fonctions \fBsigblock\fP() et \fBsigsetmask\fP() renvoient le masque de
+signaux précédent.
+
+La fonction \fBsigmask\fP() renvoie le masque de signaux pour \fIsignum\fP.
+.SH ERREURS
+Consultez la section ERREURS des pages de manuel \fBsigaction\fP(2) et
+\fBsigprocmask\fP(2).
+.SH CONFORMITÉ
+Toutes ces fonctions étaient dans BSD\ 4.3, excepté \fBsiggetmask\fP(), dont
+l'origine n'est pas claire. Ces fonctions sont obsolètes. Ne les utilisez
+pas dans de nouveaux programmes.
+.SH NOTES
+Sur BSD\ 4.3, la fonction \fBsignal\fP() fournit une sémantique fiable (comme
+lorsqu'on appelle \fBsigvec\fP() avec \fIvec.sv_mask\fP valant 0). Sur System\ V,
+la fonction \fBsignal\fP() fournit une sémantique non fiable. POSIX.1\-2001
+laisse ces aspects de \fBsignal\fP() non spécifiés. Consultez \fBsignal\fP(2) pour
+plus de détails.
+
+Afin d'attendre un signal, BSD et System\ V fournissent tous les deux une
+fonction nommée \fBsigpause\fP(3), mais cette fonction n'a pas le même argument
+sur les deux systèmes. Consultez \fBsigpause\fP(3) pour les détails.
+.SH "VOIR AUSSI"
+\fBkill\fP(2), \fBpause\fP(2), \fBsigaction\fP(2), \fBsignal\fP(2), \fBsigprocmask\fP(2),
+\fBraise\fP(3), \fBsigpause\fP(3), \fBsigset\fP(3), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

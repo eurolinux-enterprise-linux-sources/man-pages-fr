@@ -1,0 +1,509 @@
+.\" t
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\" Parts Copyright (c) 1995 Nicolai Langfeldt (janl@ifi.uio.no), 1/1/95
+.\" and Copyright (c) 2007 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified 1993-07-24 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1995-05-18 by Todd Larason <jtl@molehill.org>
+.\" Modified 1997-01-31 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1995-01-09 by Richard Kettlewell <richard@greenend.org.uk>
+.\" Modified 1998-05-13 by Michael Haardt <michael@cantor.informatik.rwth-aachen.de>
+.\" Modified 1999-07-06 by aeb & Albert Cahalan
+.\" Modified 2000-01-07 by aeb
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" 2007-06-08 mtk: Added example program
+.\" 2007-07-05 mtk: Added details on underlying system call interfaces
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STAT 2 "11 novembre 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+stat, fstat, lstat \- Obtenir l'état d'un fichier (file status)
+.SH SYNOPSIS
+\fB#include <sys/types.h>\fP
+.br
+\fB#include <sys/stat.h>\fP
+.br
+\fB#include <unistd.h>\fP
+.sp
+\fBint stat(const char *\fP\fIpath\fP\fB, struct stat *\fP\fIbuf\fP\fB);\fP
+.br
+\fBint fstat(int \fP\fIfd\fP\fB, struct stat *\fP\fIbuf\fP\fB);\fP
+.br
+\fBint lstat(const char *\fP\fIpath\fP\fB, struct stat *\fP\fIbuf\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.ad l
+.PD 0
+.sp
+\fBlstat\fP()\ :
+.RS 4
+_BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.br
+|| /* Depuis la glibc 2.10\ : */ _POSIX_C_SOURCE\ >=\ 200112L
+.RE
+.PD
+.ad
+.SH DESCRIPTION
+.PP
+Ces fonctions renvoient des informations à propos du fichier indiqué. Vous
+n'avez besoin d'aucun droit d'accès au fichier pour obtenir les
+informations, mais vous devez \(em\ dans le cas de \fBstat\fP() et
+\fBlstat\fP()\ \(em avoir le droit de parcours de tous les répertoires
+mentionnés dans le chemin menant au fichier.
+.PP
+\fBstat\fP() récupère l'état du fichier pointé par \fIpath\fP et remplit le tampon
+\fIbuf\fP.
+
+\fBlstat\fP() est identique à \fBstat\fP(), sauf que dans le cas où \fIpath\fP est un
+lien symbolique, il donne l'état du lien lui\-même plutôt que celui du
+fichier visé.
+
+\fBfstat\fP() est identique à \fBstat\fP(), sauf que le fichier dont l'état est
+donné est celui référencé par le descripteur de fichier \fIfd\fP.
+.PP
+Les trois fonctions retournent une structure \fIstat\fP contenant les champs
+suivants\ :
+.PP
+.in +4n
+.nf
+struct stat {
+    dev_t     st_dev;      /* Périphérique                    */
+    ino_t     st_ino;      /* Numéro inœud                    */
+    mode_t    st_mode;     /* Protection                      */
+    nlink_t   st_nlink;    /* Nb liens matériels              */
+    uid_t     st_uid;      /* UID propriétaire                */
+    gid_t     st_gid;      /* GID propriétaire                */
+    dev_t     st_rdev;     /* Type périphérique               */
+    off_t     st_size;     /* Taille totale en octets         */
+    blksize_t st_blksize;  /* Taille de bloc pour E/S         */
+    blkcnt_t  st_blocks;   /* Nombre de blocs de 512B alloués */
+    time_t    st_atime;    /* Heure dernier accès             */
+    time_t    st_mtime;    /* Heure dernière modification     */
+    time_t    st_ctime;    /* Heure dernier changement état   */
+};
+.fi
+.in
+.PP
+Le champ \fIst_dev\fP décrit le périphérique sur lequel ce fichier réside. Les
+macros \fBmajor\fP(3) et \fBminor\fP(3) peuvent être utiles pour décomposer
+l'identifiant de périphérique de ce champ.
+
+Le champ \fIst_rdev\fP indique le périphérique que ce fichier (inœud)
+représente.
+
+Le champ \fIst_size\fP indique la taille du fichier (s'il s'agit d'un fichier
+ordinaire ou d'un lien symbolique) en octets. La taille d'un lien symbolique
+est la longueur de la chaîne représentant le chemin d'accès qu'il vise, sans
+le caractère NUL final.
+
+Le champ \fIst_blocks\fP indique le nombre de blocs de 512 octets alloués au
+fichier. Cette valeur peut être inférieure à \fIst_size\fP/512 si le fichier a
+des trous.
+
+Le champ \fIst_blksize\fP donne la taille de bloc «\ préférée\ » pour des
+entrées\-sorties efficaces. Des écritures par blocs plus petits peuvent
+entraîner un cycle lecture/modification/réécriture inefficace.
+.PP
+Tous les systèmes de fichiers de Linux n'implémentent pas tous les champs
+liés à la date. Certains systèmes de fichiers autorisent le montage de telle
+manière que les accès à des fichiers et/ou répertoires ne modifient pas le
+champ \fIst_atime\fP (voir les options \fInoatime\fP, \fInodiratime\fP et \fIrelatime\fP
+de \fBmount\fP(8) ainsi que les informations correspondante dans
+\fBmount\fP(2)). De plus, \fIst_atime\fP n'est pas mis à jour si un fichier est
+ouvert avec l'option \fBO_NOATIME\fP\ ; consultez \fBopen\fP(2).
+
+Le champ \fIst_atime\fP est modifié par les accès au fichier, par exemple avec
+\fBexecve\fP(2), \fBmknod\fP(2), \fBpipe\fP(2), \fButime\fP(2) et \fBread\fP(2) (d'au moins
+un octet). D'autres routines, comme \fBmmap\fP(2), peuvent ou non mettre à jour
+ce champ \fIst_atime\fP.
+
+Le champ \fIst_mtime\fP est modifié par des changements sur le fichier
+lui\-même, c'est\-à\-dire \fBmknod\fP(2), \fBtruncate\fP(2), \fButime\fP(2) et
+\fBwrite\fP(2) (d'au moins un octet). D'autre part, le champ \fIst_mtime\fP d'un
+répertoire est modifié lors de la création ou la suppression de fichiers en
+son sein. Le champ \fIst_mtime\fP n'est \fIpas\fP mis à jour lors de modification
+de propriétaire, groupe, mode ou nombre de liens physiques.
+
+Le champ \fIst_ctime\fP est modifié lors d'une écriture ou une modification de
+données concernant l'inœud (propriétaire, groupe, mode, etc.).
+.PP
+Les macros POSIX suivantes sont fournies pour vérifier le type de fichier
+(dans le champ \fIst_mode\fP)\ :
+.RS 4
+.TP  1.2i
+\fBS_ISREG\fP(m)
+un fichier ordinaire\ ?
+.TP 
+\fBS_ISDIR\fP(m)
+un répertoire\ ?
+.TP 
+\fBS_ISCHR\fP(m)
+un périphérique caractère\ ?
+.TP 
+\fBS_ISBLK\fP(m)
+un périphérique bloc\ ?
+.TP 
+\fBS_ISFIFO\fP(m)
+FIFO (tube nommé)\ ?
+.TP 
+\fBS_ISLNK\fP(m)
+un lien symbolique\ ? (Pas dans POSIX.1\-1996).
+.TP 
+\fBS_ISSOCK\fP(m)
+une socket\ ? (Pas dans POSIX.1\-1996).
+.RE
+.PP
+Les attributs suivants correspondent au champ \fIst_mode\fP\ :
+.in +4n
+.TS
+lB l l.
+S_IFMT	0170000	masque du type de fichier
+S_IFSOCK	0140000	socket
+S_IFLNK	0120000	lien symbolique
+S_IFREG	0100000	fichier ordinaire
+S_IFBLK	0060000	périphérique bloc
+S_IFDIR	0040000	répertoire
+S_IFCHR	0020000	périphérique caractère
+S_IFIFO	0010000	fifo
+S_ISUID	0004000	bit Set\-UID
+S_ISGID	0002000	bit Set\-Gid (voir ci\(hydessous)
+S_ISVTX	0001000	bit «\ sticky\ » (voir ci\(hydessous)
+S_IRWXU	00700	lecture/écriture/exécution du propriétaire
+S_IRUSR	00400	le propriétaire a le droit de lecture
+S_IWUSR	00200	le propriétaire a le droit d'écriture
+S_IXUSR	00100	le propriétaire a le droit d'exécution
+S_IRWXG	00070	lecture/écriture/exécution du groupe
+S_IRGRP	00040	le groupe a le droit de lecture
+S_IWGRP	00020	le groupe a le droit d'écriture
+S_IXGRP	00010	le groupe a le droit d'exécution
+S_IRWXO	00007	lecture/écriture/exécution des autres
+S_IROTH	00004	les autres ont le droit de lecture
+S_IWOTH	00002	les autres ont le droit d'écriture
+S_IXOTH	00001	les autres ont le droit d'exécution
+.TE
+.in
+.P
+Le bit Set\-GID (\fBS_ISGID\fP) a plusieurs utilisations particulières\ : pour
+un répertoire, il indique que la sémantique BSD doit être appliquée en son
+sein, c'est\-à\-dire que les fichiers qui y sont créés héritent leur GID du
+répertoire et non pas du GID effectif du processus créateur, et les
+sous\-répertoires auront automatiquement le bit \fBS_ISGID\fP actif. Pour les
+fichiers qui n'ont pas d'autorisation d'exécution pour le groupe (\fBS_IXGRP\fP
+non actif), ce bit indique qu'un verrouillage strict est en vigueur sur ce
+fichier.
+.P
+Le bit «\ sticky\ » (\fBS_ISVTX\fP) sur un répertoire indique que les fichiers
+qui s'y trouvent ne peuvent être renommés ou effacés que par leur
+propriétaire, par le propriétaire du répertoire ou par un processus
+privilégié.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+La permission de parcours est refusée pour un des répertoires contenu dans
+le chemin \fIpath\fP. (Consultez aussi \fBpath_resolution\fP(7).)
+.TP 
+\fBEBADF\fP
+\fIfd\fP est un mauvais descripteur.
+.TP 
+\fBEFAULT\fP
+Un pointeur se trouve en dehors de l'espace d'adressage.
+.TP 
+\fBELOOP\fP
+Trop de liens symboliques rencontrés dans le chemin d'accès.
+.TP 
+\fBENAMETOOLONG\fP
+\fIpath\fP est trop long.
+.TP 
+\fBENOENT\fP
+Un composant du chemin \fIpath\fP n'existe pas, ou \fIpath\fP est une chaîne vide.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire (mémoire noyau).
+.TP 
+\fBENOTDIR\fP
+Un élément du préfixe du chemin \fIpath\fP n'est pas un répertoire.
+.TP 
+\fBEOVERFLOW\fP
+\fIpath\fP ou \fIfd\fP se réfèrent à un fichier dont la taille, l'inœud ou le
+nombre de blocs ne peut pas être représenté respectivement avec le type
+\fIoff_t\fP, \fIino_t\fP ou \fIblkcnt_t\fP. Cela peut arriver par exemple quand une
+application compilée sans l'option \fI\-D_FILE_OFFSET_BITS=64\fP sur une
+plate\-forme 32\ bits appelle \fBstat\fP() pour un fichier dont la taille est
+supérieure à \fI(1<<31)\-1\fP octets.
+.SH CONFORMITÉ
+.\" SVr4 documents additional
+.\" .BR fstat ()
+.\" error conditions EINTR, ENOLINK, and EOVERFLOW.  SVr4
+.\" documents additional
+.\" .BR stat ()
+.\" and
+.\" .BR lstat ()
+.\" error conditions EINTR, EMULTIHOP, ENOLINK, and EOVERFLOW.
+Ces appels système sont conformes à SVr4, BSD\ 4.3, POSIX.1\-2001.
+
+D'après POSIX.1\-2001, \fBlstat\fP() sur un lien symbolique ne doit renvoyer des
+informations valables que dans le champ \fIst_size\fP et pour le composant de
+type de fichier du champ \fIst_mode\fP de la structure \fIstat\fP. POSIX.\-2008
+renforce la spécification, obligeant \fBlstat\fP() à renvoyer des informations
+valables dans tous les champs à part les bits de droit de \fIst_mode\fP.
+
+L'utilisation des champs \fIst_blocks\fP et \fIst_blksize\fP risque d'être moins
+portable (ils ont été introduits dans BSD. Leur interprétation change
+suivant les systèmes, voire sur un même système s'il y a des montages
+NFS). Si vous avez besoin de connaitre la définition des types \fIblkcnt_t\fP
+ou \fIblksize_t\fP de \fI<sys/stat.h>\fP, alors définissez
+\fB_XOPEN_SOURCE\fP avec une valeur supérieure ou égale à 500 (avant d'inclure
+\fItout\fP en\(hytête).
+.LP
+POSIX.1\-1990 ne décrivait pas les constantes \fBS_IFMT\fP, \fBS_IFSOCK\fP,
+\fBS_IFLNK\fP, \fBS_IFREG\fP, \fBS_IFBLK\fP, \fBS_IFDIR\fP, \fBS_IFCHR\fP, \fBS_IFIFO\fP,
+\fBS_ISVTX\fP, mais réclamait d'utiliser les macros \fBS_ISDIR\fP(), etc. Les
+constantes \fBS_IF\fP\fI*\fP() sont présentes dans POSIX.1\-2011 et versions
+suivantes.
+
+Les macros \fBS_ISLNK\fP() et \fBS_ISSOCK\fP() ne se trouvent pas dans
+POSIX.1\-1996 mais sont présentes dans POSIX.1\-2001. La première vient de
+SVID 4, la seconde de SUSv2.
+.LP
+UNIX V7 (et les systèmes suivants) propose \fBS_IREAD\fP, \fBS_IWRITE\fP,
+\fBS_IEXEC\fP, là où POSIX préfère leurs synonymes \fBS_IRUSR\fP, \fBS_IWUSR\fP,
+\fBS_IXUSR\fP.
+.SS "Autres systèmes"
+Voici quelques valeurs qui ont été (ou sont) utilisées sur d'autres systèmes
+.ad l
+.TS
+l l l l l.
+hex	nom	ls	octal	description
+f000	S_IFMT		170000	masque du type de fichier
+0000			000000	T{
+inœud hors\-service (SCO)\ ; type inconnu (BSD)\ ; SVID\-v2 et XPG2 ont 0 et
+0100000 pour «\ fichier ordinaire\ »
+T}
+1000	S_IFIFO	p|	010000	fifo (tube nommé)
+2000	S_IFCHR	c	020000	fichier spécial caractère (V7)
+3000	S_IFMPC		030000	fichier spécial caractère multiplexé
+				(V7)
+4000	S_IFDIR	d/	040000	répertoire (V7)
+5000	S_IFNAM		050000	T{
+fichier spécial nommé XENIX avec deux sous\-types distingués par
+\fIst_rdev\fP valant 1 ou 2
+T}
+0001	S_INSEM	s	000001	sous\-type sémaphore de IFNAM XENIX
+0002	S_INSHD	m	000002	sous\-type données partagées de IFNAM
+				XENIX
+6000	S_IFBLK	b	060000	fichier spécial bloc (V7)
+7000	S_IFMPB		070000	fichier spécial bloc multiplexé (V7)
+8000	S_IFREG	\-	100000	fichier normal (V7)
+9000	S_IFCMP		110000	compressé VxFS
+9000	S_IFNWK	n	110000	fichier spécial réseau (HP\-UX)
+a000	S_IFLNK	l@	120000	lien symbolique (BSD)
+b000	S_IFSHAD		130000	T{
+inœud shadow Solaris pour l'ACL (invisible depuis l'espace utilisateur)
+T}
+c000	S_IFSOCK	s=	140000	socket (BSD\ ; aussi "S_IFSOC" sur VxFS)
+d000	S_IFDOOR	D>	150000	Solaris door
+e000	S_IFWHT	w%	160000	correcteur BSD (inutilisé pour les
+				inœuds)
+0200	S_ISVTX		001000	T{
+«\ sticky bit\ »\ : garder en mémoire après exécution (V7)
+.br
+réservé (SVID\-v2)
+.br
+non répertoires\ : ne pas placer ce fichier en cache (SunOS)
+.br
+répertoires\ : attribut de restrictions d'effacement (SVID\-v4.2)
+T}
+0400	S_ISGID		002000	T{
+définir le GID à l'exécution (V7)
+.br
+pour les répertoires\ : sémantique BSD pour la propagation du GID
+T}
+0400	S_ENFMT		002000	T{
+verrouillage strict System\ V (partagé avec S_ISGID)
+T}
+0800	S_ISUID		004000	définir l'UID à l'exécution (V7)
+0800	S_CDF		004000	T{
+le répertoire est un fichier dépendant du contexte (HP\-UX)
+T}
+.TE
+.ad
+
+Une commande sticky est apparue dans la version 32V d'AT&T UNIX.
+.SH NOTES
+.\" As at kernel 2.6.25, XFS and JFS support nanosecond timestamps,
+.\" but ext2, ext3, and Reiserfs do not.
+Depuis le noyau 2.5.48, la structure \fIstat\fP propose une résolution d'une
+nanoseconde pour les trois champs d'heure. La glibc montre le composant en
+nanosecondes de chaque champ en utilisant des noms de la forme
+\fIst_atim.tv_nsec\fP si \fB_BSD_SOURCE\fP ou \fB_SVID_SOURCE\fP est définie. Ces
+champs sont définis dans POSIX.1\-2008 et, à partir de la version 2.12, la
+glibc expose aussi ces noms de champs si \fB_POSIX_C_SOURCE\fP est définie avec
+une valeur supérieure ou égale à 200809L ou si \fB_XOPEN_SOURCE\fP est définie
+avec une valeur supérieure ou égale à 700. Si aucune de ces macros ne sont
+définies, alors les valeurs en nanosecondes sont exposées avec des noms de
+la forme \fIst_atimensec\fP. Sur les systèmes de fichiers qui ne gèrent pas les
+résolutions inférieures à la seconde, ces champs prennent la valeur 0.
+
+Sous Linux, \fBlstat\fP() ne provoque généralement pas d'action de
+l'«\ automonteur\ », tandis que \fBstat\fP() le fera (mais consultez
+\fBfstatat\fP(2)).
+
+Pour la plupart des fichiers sous \fI/proc\fP, \fBstat\fP() ne renvoie pas la
+taille du fichier dans le champ \fIst_size\fP. La valeur 0 est placée dans ce
+champ.
+.SS "Interface noyau sous\-jacente"
+.\"
+.\" A note from Andries Brouwer, July 2007
+.\"
+.\" > Is the story not rather more complicated for some calls like
+.\" > stat(2)?
+.\"
+.\" Yes and no, mostly no. See /usr/include/sys/stat.h .
+.\"
+.\" The idea is here not so much that syscalls change, but that
+.\" the definitions of struct stat and of the types dev_t and mode_t change.
+.\" This means that libc (even if it does not call the kernel
+.\" but only calls some internal function) must know what the
+.\" format of dev_t or of struct stat is.
+.\" The communication between the application and libc goes via
+.\" the include file <sys/stat.h> that defines a _STAT_VER and
+.\" _MKNOD_VER describing the layout of the data that user space
+.\" uses. Each (almost each) occurrence of stat() is replaced by
+.\" an occurrence of xstat() where the first parameter of xstat()
+.\" is this version number _STAT_VER.
+.\"
+.\" Now, also the definitions used by the kernel change.
+.\" But glibc copes with this in the standard way, and the
+.\" struct stat as returned by the kernel is repacked into
+.\" the struct stat as expected by the application.
+.\" Thus, _STAT_VER and this setup cater for the application-libc
+.\" interface, rather than the libc-kernel interface.
+.\"
+.\" (Note that the details depend on gcc being used as c compiler.)
+Avec le temps, l'augmentation de la taille de la structure \fIstat\fP a conduit
+à 3 versions successives de \fBstat\fP()\ : \fIsys_stat\fP() (entrée
+\fI__NR_oldstat\fP), \fIsys_newstat\fP() (entrée \fI__NR_stat\fP) et \fIsys_stat64\fP()
+(nouveauté du noyau 2.4\ ; entrée \fI__NR_stat64\fP). La fonction \fBstat\fP()
+fournie par la glibc cache ces détails aux applications, en appelant la
+version la plus récente de l'appel système fournie par le noyau et en
+réorganisant si nécessaire les informations renvoyées pour les anciens
+binaires. La même remarque s'applique à \fBfstat\fP() et \fBlstat\fP().
+.SH EXEMPLE
+Le programme suivant appelle \fBstat\fP() et affiche certains champs
+sélectionnés dans la structure \fIstat\fP renvoyée.
+.nf
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main(int argc, char *argv[])
+{
+    struct stat sb;
+
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <pathname>\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    if (stat(argv[1], &sb) == \-1) {
+        perror("stat");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Type de fichier\ :                  ");
+
+    switch (sb.st_mode & S_IFMT) {
+    case S_IFBLK:  printf("périphérique bloc\en");       break;
+    case S_IFCHR:  printf("périphérique caractère\en");  break;
+    case S_IFDIR:  printf("répertoire\en");              break;
+    case S_IFIFO:  printf("FIFO/tube\en");               break;
+    case S_IFLNK:  printf("lien symbolique\en");         break;
+    case S_IFREG:  printf("fichier ordinaire\en");       break;
+    case S_IFSOCK: printf("socket\en");                  break;
+    default:       printf("inconnu\ ?\en");               break;
+    }
+
+    printf("Numéro d'inœud\ :                   %ld\en", (long) sb.st_ino);
+
+    printf("Mode\ :                             %lo (octal)\en",
+            (unsigned long) sb.st_mode);
+
+    printf("Nombre de liens\ :                  %ld\en", (long) sb.st_nlink);
+    printf("Propriétaires\ :                    UID=%ld   GID=%ld\en",
+            (long) sb.st_uid, (long) sb.st_gid);
+
+    printf("Taille de bloc d'E/S\ :             %ld octets\en",
+            (long) sb.st_blksize);
+    printf("Taille du fichier\ :                %lld octets\en",
+            (long long) sb.st_size);
+    printf("Blocs alloués\ :                    %lld\en",
+            (long long) sb.st_blocks);
+
+    printf("Dernier changement d'état\ :        %s", ctime(&sb.st_ctime));
+    printf("Dernier accès au fichier\ :         %s", ctime(&sb.st_atime));
+    printf("Dernière modification du fichier\ : %s", ctime(&sb.st_mtime));
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBaccess\fP(2), \fBchmod\fP(2), \fBchown\fP(2), \fBfstatat\fP(2), \fBreadlink\fP(2),
+\fButime\fP(2), \fBcapabilities\fP(7), \fBsymlink\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

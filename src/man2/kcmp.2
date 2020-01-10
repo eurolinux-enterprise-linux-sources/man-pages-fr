@@ -1,0 +1,176 @@
+.\" Copyright (C) 2012, Cyrill Gorcunov <gorcunov@openvz.org>
+.\" and Copyright (C) 2012, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of
+.\" this manual under the conditions for verbatim copying, provided that
+.\" the entire resulting derived work is distributed under the terms of
+.\" a permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume
+.\" no responsibility for errors or omissions, or for damages resulting
+.\" from the use of the information contained herein.  The author(s) may
+.\" not have taken the same level of care in the production of this
+.\" manual, which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Kernel commit d97b46a64674a267bc41c9e16132ee2a98c3347d
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH KCMP 2 "27 janvier 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+kcmp \- compare deux processus afin de déterminer s'ils partagent des
+ressources du noyau
+.SH SYNOPSIS
+.nf
+\fB#include <linux/kcmp.h>\fP
+
+\fBint kcmp(pid_t \fP\fIpid1\fP\fB, pid_t \fP\fIpid2\fP\fB, int \fP\fItype\fP\fB,\fP
+\fB         unsigned long \fP\fIidx1\fP\fB, unsigned long \fP\fIidx2\fP\fB);\fP
+.fi
+
+\fINote\fP\ : Il n'existe pas de fonction d'encapsulation dans glibc pour cet
+appel système\ ; consultez NOTES.
+.SH DESCRIPTION
+L'appel système  \fBkcmp\fP() peut être utilisé pour vérifier si deux processus
+identifiés par \fIpid1\fP et \fIpid2\fP partagent des ressources du noyau, telles
+que de la mémoire virtuelle, des descripteurs de fichiers, etc.
+
+L'argument \fInstype\fP indique pour quelle ressource une comparaison doit être
+effectuée entre les deux processus. Il peut prendre l'une des valeurs
+suivantes\ :
+.TP 
+\fBKCMP_FILE\fP
+Vérifie si un descripteur de fichier \fIidx1\fP utilisé par le processus
+\fIpid1\fP fait référence à la même description de fichier ouvert (consultez
+\fBopen\fP(2)) que le descripteur de fichier \fIidx2\fP utilisé par le processus
+\fIpid2\fP.
+.TP 
+\fBKCMP_FILES\fP
+Vérifier si le processus partage un même ensemble de descripteurs de
+fichiers ouverts. Les arguments  \fIidx1\fP et \fIidx2\fP ne sont pas pris en
+compte.
+.TP 
+\fBKCMP_FS\fP
+Vérifie si les processus partagent les même informations relatives au
+système de fichiers (c'est\-à\-dire le masque de création de fichiers, le
+répertoire de travail, et la racine du système de fichiers). Les arguments
+\fIidx1\fP et \fIidx2\fP ne sont pas pris en compte.
+.TP 
+\fBKCMP_IO\fP
+Vérifie si les processus partagent un contexte E/S. Les arguments \fIidx1\fP et
+\fIidx2\fP ne sont pas pris en compte.
+.TP 
+\fBKCMP_SIGHAND\fP
+Vérifie si les processus partagent la même table de disposition des
+signaux. Les arguments \fIidx1\fP et \fIidx2\fP ne sont pas pris en compte.
+.TP 
+\fBKCMP_SYSVSEM\fP
+Vérifie si les processus partagent la même liste d'opérations «\ undo\ »
+pour les sémaphores System V. Les arguments \fIidx1\fP et \fIidx2\fP ne sont pas
+pris en compte.
+.TP 
+\fBKCMP_VM\fP
+Vérifie si les processus partagent le même espace d'adressage. Les arguments
+\fIidx1\fP et \fIidx2\fP ne sont pas pris en compte.
+.PP
+Remarquez que \fBkcmp\fP() n'est pas à l'abri de «faux positifs» qui peuvent
+avoir été placés par des tâches en cours d'exécution. Cela signifie que si
+l'on souhaite obtenir des résultats significatifs, il faut préalablement
+arrêter les tâches contrôlées par cet appel système.
+.SH "VALEUR RENVOYÉE"
+La valeur renvoyée par un appel réussi à \fBkcmp\fP() est le résultat de la
+comparaison arithmétique des pointeurs du noyau (lorsque le noyau compare
+des ressources, il utilise leurs adresses en mémoire).
+
+Pour mieux comprendre, regardons l'exemple suivant. Supposons que \fIv1\fP and
+\fIv2\fP sont les adresses des ressources concernées, alors la valeur renvoyée
+sera l'une des suivantes\ :
+.RS 4
+.IP 0 4
+\fIv1\fP est égal à \fIv2\fP\ ; en d'autres termes, les deux processus partagent la
+même ressource.
+.IP 1
+\fIv1\fP est inférieur à \fIv2\fP.
+.IP 2
+\fIv1\fP est supérieur à \fIv2\fP.
+.IP 3
+\fIv1\fP n'est pas égal à \fIv2\fP, mais aucune information concernant l'ordre des
+nombres n'est disponible.
+.RE
+.PP
+En cas d'erreur, le retour vaut \-1 et \fIerrno\fP reçoit une valeur
+correspondante.
+
+\fBkcmp ()\fP a été conçu pour renvoyer des variables pouvant être
+triées. C'est particulièrement pratique lorsqu'on souhaite comparer un grand
+nombre de descripteurs de fichiers.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fItype\fP est \fBKCMP_FILE\fP et \fIfd1\fP ou \fIfd2\fP n'est pas un descripteur de
+fichier ouvert.
+.TP 
+\fBEINVAL\fP
+\fItype\fP n'est pas valide.
+.TP 
+\fBEPERM\fP
+Permissions insuffisantes pour inspecter les ressources du noyau. Le
+privilège \fBCAP_SYS_PTRACE\fP est nécessaire pour inspecter les processus dont
+vous n'êtes pas propriétaire.
+.TP 
+\fBESRCH\fP
+Au moins l'un des processus \fIpid1\fP ou \fIpid2\fP n'existe pas.
+.SH VERSIONS
+L'appel système \fBsetns\fP() a fait son apparition dans la version 3.5 de
+Linux.
+.SH CONFORMITÉ
+\fBkcmp\fP() est spécifique à Linux et ne doit pas être utilisé dans des
+programmes conçus pour être portables.
+.SH NOTES
+Glibc ne fournit pas de fonction d'encapsulation pour cet appel système\ ;
+utilisez \fBsyscall\fP(2) pour l'appeler.
+
+Cet appel système n'est disponible que si le noyau a été configuré avec
+\fBCONFIG_CHECKPOINT_RESTORE\fP. Cet appel est utilisé principalement pour la
+fonctionnalité de gel des applications (checkpoint/restore) dans l'espace
+utilisateur (CRIU). L'alternative à cet appel système aurait consisté à
+présenter les informations pertinentes concernant le processus via le
+système de fichier \fBproc\fP(5)\ ; cette solution n'a pas été jugée
+satisfaisante pour des raisons de sécurité.
+
+Consultez \fBclone\fP(2) pour obtenir des informations générales sur les
+ressources partagées dont il est fait mention dans cette page.
+.SH "VOIR AUSSI"
+\fBclone\fP(2), \fBunshare\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

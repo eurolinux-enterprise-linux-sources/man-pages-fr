@@ -1,0 +1,130 @@
+.\" This manpage is Copyright (C) 1992 Drew Eckhardt;
+.\"             and Copyright (C) 1993 Michael Haardt, Ian Jackson.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Wed Jul 21 22:40:25 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Sat Feb 18 15:27:48 1995 by Michael Haardt
+.\" Modified Sun Apr 14 11:40:50 1996 by Andries Brouwer <aeb@cwi.nl>:
+.\"   corrected description of effect on locks (thanks to
+.\"   Tigran Aivazian <tigran@sco.com>).
+.\" Modified Fri Jan 31 16:21:46 1997 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 2000-07-22 by Nicolás Lichtmaier <nick@debian.org>
+.\"   added note about close(2) not guaranteeing that data is safe on close.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CLOSE 2 "28 décembre 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+close \- Fermer un descripteur de fichier
+.SH SYNOPSIS
+.nf
+\fB#include <unistd.h>\fP
+.sp
+\fBint close(int \fP\fIfd\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBclose\fP() ferme le descripteur \fIfd\fP, de manière à ce qu'il ne référence
+plus aucun fichier, et puisse être réutilisé. Tous les verrouillages
+(consultez \fBfcntl\fP(2)) sur le fichier qui lui était associé, appartenant au
+processus, sont supprimés (quel que soit le descripteur qui fut utilisé pour
+obtenir le verrouillage).
+.PP
+Si \fIfd\fP est le dernier descripteur de fichier qui se réfère à une
+description de fichier ouvert sous\-jacente (consultez \fBopen\fP(2)), les
+ressources associées à la description de fichier ouvert sont libérées. Si le
+descripteur était la dernière référence sur un fichier supprimé avec
+\fBunlink\fP(2), le fichier est effectivement effacé.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, la fonction \fBclose\fP() renvoie zéro. En cas d'erreur, il
+renvoie \-1 et remplit \fIerrno\fP avec le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+Le descripteur de fichier \fIfd\fP est invalide.
+.TP 
+\fBEINTR\fP
+L'appel système \fBclose\fP() a été interrompu par un signal\ ; consultez
+\fBsignal\fP(7).
+.TP 
+\fBEIO\fP
+Une erreur d'entrée\-sortie s'est produite.
+.SH CONFORMITÉ
+.\" SVr4 documents an additional ENOLINK error condition.
+SVr4, BSD\ 4.3, POSIX.1\-2001.
+.SH NOTES
+Ne pas vérifier la valeur de retour de \fBclose\fP() est une pratique courante
+mais également une grave erreur de programmation. Il est possible qu'une
+erreur correspondant à un appel \fBwrite\fP(2) antérieur ne soit rapportée que
+lors du \fBclose\fP() final. Ne pas vérifier la valeur de retour lorsque l'on
+ferme un fichier peut conduire à une perte silencieuse de données. Ceci est
+principalement vrai dans le cas de systèmes de fichiers NFS, ou avec
+l'utilisation des quotas de disques.
+.PP
+Une fermeture sans erreur ne garantit pas que les données ont été vraiment
+écrites sur le disque, car le noyau repousse les écritures le plus tard
+possible. Il n'est pas fréquent qu'un système de fichiers vide les tampons
+dès la fermeture d'un flux. Si vous désirez vous assurer que les
+informations sont en sûreté sur le disque, utilisez \fBfsync\fP(2) (mais des
+considérations matérielles entrent en jeu à ce moment).
+.PP
+.\" Date: Tue, 4 Sep 2007 13:57:35 +0200
+.\" From: Fredrik Noring <noring@nocrew.org>
+.\" One such race involves signals and ERESTARTSYS. If a file descriptor
+.\" in use by a system call is closed and then reused by e.g. an
+.\" independent open() in some unrelated thread, before the original system
+.\" call has restared after ERESTARTSYS, the original system call will
+.\" later restart with the reused file descriptor. This is most likely a
+.\" serious programming error.
+Il est probablement imprudent de fermer des descripteurs de fichier alors
+qu'ils peuvent peut\-être être utilisés par des appels système dans d'autres
+threads du même processus. Puisqu'un descripteur de fichier peut être
+réutilisé, il y a des conditions de concurrence obscures qui peuvent
+provoquer des effets de bord non désirés.
+.SH "VOIR AUSSI"
+\fBfcntl\fP(2), \fBfsync\fP(2), \fBopen\fP(2), \fBshutdown\fP(2), \fBunlink\fP(2),
+\fBfclose\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

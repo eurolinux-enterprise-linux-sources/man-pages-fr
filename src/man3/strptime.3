@@ -1,0 +1,361 @@
+.\" Copyright 1993 Mitchum DSouza <m.dsouza@mrc-apu.cam.ac.uk>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified, jmv@lucifer.dorms.spbu.ru, 1999-11-08
+.\" Modified, aeb, 2000-04-07
+.\" Updated from glibc docs, C. Scott Ananian, 2001-08-25
+.\" Modified, aeb, 2001-08-31
+.\" Modified, wharms 2001-11-12, remark on white space and example
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STRPTIME 3 "5 décembre 2009" GNU "Manuel du programmeur Linux"
+.SH NOM
+strptime \- Conversion d'une chaîne de date en une structure tm
+.SH SYNOPSIS
+\fB#define _XOPEN_SOURCE\fP /* Consultez feature_test_macros(7) */
+.br
+\fB#include <time.h>\fP
+.sp
+\fBchar *strptime(const char *\fP\fIbuf\fP\fB, const char *\fP\fIformat\fP\fB,\fP \fBstruct
+tm *\fP\fItm\fP\fB);\fP
+.SH DESCRIPTION
+La fonction \fBstrptime\fP() est complémentaire de la fonction
+\fBstrftime\fP(3). Elle convertit la chaîne de caractères pointée par \fIbuf\fP en
+une valeur qui est stockée dans la structure \fItm\fP pointée par l'argument
+\fItm\fP, la conversion étant réalisée en suivant les indications contenues
+dans la chaîne \fIformat\fP. Cette dernière contient des descripteurs de champs
+et du texte, rappelant \fBscanf\fP(3). Chaque descripteur consiste en un
+caractère \fB%\fP suivi d'un second caractère indiquant le champ à
+interpréter. Tous les autres sont considérés comme du texte, qui doit être
+présent dans la chaîne fournie en entrée. Toutefois un espace blanc se
+trouvant dans la chaîne de format peut être mis en correspondance avec zéro
+ou plusieurs espaces. Il devrait toujours y avoir un espace ou un autre
+caractère alphanumérique entre deux descripteurs de champs.
+.PP
+La fonction \fBstrptime\fP() traite la chaîne d'entrée de gauche à droite. Les
+trois types d'éléments d'entrée possibles (espace, caractère littéral,
+conversion) sont manipulés l'un après l'autre. Si l'entrée ne peut pas être
+mise en correspondance avec la chaîne de format, la fonction s'arrête. Le
+reste du format et de la chaîne d'entrée ne sont pas traités.
+.PP
+Les descripteurs applicables sont décrits ci\-dessous. Dans le cas d'une
+chaîne de caractères (comme un nom de jour ou de mois), la comparaison ne
+tient pas compte des majuscules/minuscules. Dans le cas d'un nombre, les
+zéros au début sont autorisés mais pas obligatoires.
+.TP 
+\fB%%\fP
+Le caractère \fB%\fP
+.TP 
+\fB%a\fP ou \fB%A\fP
+Le jour de la semaine en utilisant les noms correspondants à la
+localisation. Les noms abrégés ou entiers peuvent être utilisés.
+.TP 
+\fB%b\fP ou \fB%B\fP ou \fB%h\fP
+Le mois en utilisant les noms correspondants à la localisation. Les noms
+abrégés ou entiers peuvent être utilisés.
+.TP 
+\fB%c\fP
+La date et l'heure en utilisant le format de la localisation.
+.TP 
+\fB%C\fP
+Le numéro de siècle (0\-99).
+.TP 
+\fB%d\fP ou \fB%e\fP
+Le jour du mois (1\-31)
+.TP 
+\fB%D\fP
+La date, ainsi\ : \fB%m/%d/%y\fP. C'est la date au format américain, très
+gênante pour les autres pays, notamment l'Europe qui utilise une notation
+\fB%d/%m/%y\fP. Le format standard ISO 8601 est \fB%Y\-%m\-%d\fP.
+.TP 
+\fB%H\fP
+L'heure (0\-23)
+.TP 
+\fB%I\fP
+L'heure (0\-12)
+.TP 
+\fB%j\fP
+Le numéro du jour dans l'année (001\-366)
+.TP 
+\fB%m\fP
+Le numéro du mois (1\-12)
+.TP 
+\fB%M\fP
+La minute (0\-59)
+.TP 
+\fB%n\fP
+Un espace blanc quelconque
+.TP 
+\fB%p\fP
+Équivalent local de AM ou PM (éventuellement rien).
+.TP 
+\fB%r\fP
+L'heure sur 12 heures avec l'équivalent local de AM ou PM. Dans la
+localisation POSIX, équivalent à \fB%I:%M:%S %p\fP. Si le champ \fIt_fmt_ampm\fP
+de la catégorie \fBLC_TIME\fP de la localisation est vide, le comportement est
+indéfini.
+.TP 
+\fB%R\fP
+Équivalent de \fB%H:%M\fP.
+.TP 
+\fB%S\fP
+Les secondes (0\-61, des secondes de rattrapages sont autorisées)
+.TP 
+\fB%t\fP
+Un espace blanc quelconque
+.TP 
+\fB%T\fP
+Équivalent de \fB%H:%M:%S\fP.
+.TP 
+\fB%U\fP
+Le numéro de semaine (0\-53), le premier dimanche de janvier étant le premier
+jour de la semaine 1.
+.TP 
+\fB%w\fP
+Le numéro du jour dans la semaine (0\-6), en commençant le dimanche.
+.TP 
+\fB%W\fP
+Le numéro de semaine (0\-53), le premier lundi de janvier étant le premier
+jour de la semaine 1.
+.TP 
+\fB%x\fP
+la date, en utilisant le format usuel de la localisation.
+.TP 
+\fB%X\fP
+l'heure, en utilisant le format usuel de la localisation.
+.TP 
+\fB%y\fP
+l'année sans le siècle (0\-99; les zéros au début sont autorisés mais pas
+obligatoires). Lorsque le siècle n'est pas indiqué par une autre conversion,
+les années 69 à 99 sont considérées comme étant du vingtième siècle (1969 à
+1999), et les années 00\-68 du vingt\-et\-unième siècle (2000\-2068).
+.TP 
+\fB%Y\fP
+L'année en incluant le siècle (par exemple, 1996)
+.LP
+Certains descripteurs peuvent être complétés par les caractères
+modificateurs E et O, indiquant qu'il faut employer un autre format ou une
+autre spécification. Si cet autre format, ou cette autre conversion n'est
+pas disponible dans la localisation en cours, le descripteur n'est pas
+modifié.
+.LP
+Le modificateur E indique que la chaîne d'entrée peut contenir des versions
+différentes de la date et l'heure, en fonction de la localisation\ :
+.TP 
+\fB%Ec\fP
+Une représentation différente de la date et l'heure.
+.TP 
+\fB%EC\fP
+Le nom de l'année de base (période) dans la représentation locale
+alternative.
+.TP 
+\fB%Ex\fP
+Une autre représentation de la date.
+.TP 
+\fB%EX\fP
+Une autre représentation de l'heure.
+.TP 
+\fB%Ey\fP
+Le décalage (en année) par rapport à l'année \fB%EC\fP dans la représentation
+locale alternative.
+.TP 
+\fB%EY\fP
+La représentation complète de l'année.
+.LP
+Le modificateur O indique que les saisies numériques peuvent être effectuées
+dans un format différent, dépendant de la localisation.
+.TP 
+\fB%Od\fP or \fB%Oe\fP
+Le jour du mois. Les zéros en tête sont permis mais pas obligatoires.
+.TP 
+\fB%OH\fP
+L'heure (sur 24 heures).
+.TP 
+\fB%OI\fP
+L'heure (sur 12 heures).
+.TP 
+\fB%Om\fP
+Le numéro du mois.
+.TP 
+\fB%OM\fP
+Les minutes.
+.TP 
+\fB%OS\fP
+Les secondes.
+.TP 
+\fB%OU\fP
+Le numéro de la semaine.
+.TP 
+\fB%Ow\fP
+Numéro du jour dans la semaine, le dimanche étant zéro.
+.TP 
+\fB%OW\fP
+Le numéro du jour de la semaine, en commençant le lundi.
+.TP 
+\fB%Oy\fP
+L'année (ou décalage par rapport à \fB%C\fP) en utilisant les symboles
+numérique régiaunaux.
+.LP
+Les champs de la structure \fItm\fP définie dans \fI<time.h>\fP sont\ :
+.sp
+.in +4n
+.nf
+struct tm
+{
+    int tm_sec;        /* secondes           */
+    int tm_min;        /* minutes            */
+    int tm_hour;       /* heures             */
+    int tm_mday;       /* jour du mois       */
+    int tm_mon;        /* mois               */
+    int tm_year;       /* année              */
+    int tm_wday;       /* jour de la semaine */
+    int tm_yday;       /* jour de l'année    */
+    int tm_isdst;      /* décalage été/hiver */
+};
+.fi
+.in
+.SH "VALEUR RENVOYÉE"
+La fonction \fBstrptime\fP() renvoie un pointeur sur le premier caractère de la
+chaîne \fIbuf\fP n'ayant pas été traité. Dans le cas où la chaîne de saisie est
+plus longue que ce que réclame le format, la valeur renvoyée pointe juste
+après le dernier caractère d'entrée ayant été analysé. Si toute la chaîne a
+été traitée, le pointeur est dirigé sur le caractère NUL en fin de
+chaîne. Si \fBstrptime\fP() n'arrive pas à effectuer toutes les conversions, il
+renvoie NULL.
+.SH CONFORMITÉ
+SUSv2, POSIX.1\-2001.
+.SH NOTES
+.LP
+En principe cette fonction n'initialise pas \fItm\fP, mais n'y stocke que les
+valeurs lues. Ceci signifie que le contenu de \fItm\fP doit être initialisé
+avant l'appel. Les détails diffèrent suivant les systèmes
+UNIX. L'implémentation de la bibliothèque C Gnu ne modifie pas les champs
+non mentionnés explicitement, sauf \fItm_wday\fP, et \fItm_yday\fP qui sont
+recalculés si un champ d'année, de mois ou de jour est modifié.
+.PP
+Cette fonction n'est disponible que dans les versions de bibliothèque depuis
+la 4.6.8. Les bibliothèques Linux libc4 et libc5 incluaient toujours le
+prototype de cette fonction, la bibliothèque glibc 2 ne fournit le prototype
+que si les constantes \fB_XOPEN_SOURCE\fP ou \fB_GNU_SOURCE\fP sont définies.
+.PP
+Avant la libc 5.4.13, les espaces (et les conversions «\ n\ » et «\ t\ »)
+n'étaient pas gérés\ ; les caractères de modification locale E et O n'étaient
+pas acceptés\ ; et la spécification «\ C\ » était un synonyme pour «\ c\ ».
+.PP
+.\" In libc4 and libc5 the code for %I is broken (fixed in glibc;
+.\" %OI was fixed in glibc 2.2.4).
+La conversion «\ y\ » (année dans le siècle) est toujours considérée comme
+appartenant au vingtième siècle dans les libc4 et libc5. Elle est prise dans
+l'intervalle 1950\-2049 par la glibc 2.0, et 1969\-2068 par la glibc 2.1.
+.SS "Notes sur la glibc"
+Pour des raisons de symétrie, la glibc essaye d'offrir pour \fBstrptime\fP()
+les mêmes caractères de formatage que ceux de \fBstrftime\fP(3) (dans la
+plupart des cas, les champs sont lus mais aucun membre de \fItm\fP n'est
+modifié). Ceci conduit à\ :
+.TP 
+\fB%F\fP
+Équivalent à \fB%Y\-%m\-%d\fP, le format ISO 8601 pour la date.
+.TP 
+\fB%g\fP
+L'année correspondant au numéro de semaine ISO, sans le siècle (0\-99).
+.TP 
+\fB%G\fP
+L'année correspondant au numéro de semaine ISO (par exemple 1991).
+.TP 
+\fB%u\fP
+Le numéro du jour de la semaine (1\-7, lundi valant 1).
+.TP 
+\fB%V\fP
+Le numéro de semaine ISO 8601:1988 (1\-53). Si la semaine (commençant lundi)
+contenant le 1er janvier a quatre jours ou plus de la nouvelle année, elle
+est comptée en semaine 1. Sinon elle est considérée comme dernière semaine
+de l'année précédente, et c'est la suivante qui est la semaine 1.
+.TP 
+\fB%z\fP
+Spécification standard RFC\-822/ISO 8601 pour le fuseau horaire.
+.TP 
+\fB%Z\fP
+Le nom du fuseau horaire.
+.LP
+De même, à cause des extensions GNU de \fBstrftime\fP(3), \fB%k\fP est accepté en
+synonyme de \fB%H\fP, et \fB%l\fP est accepté comme synonyme de \fB%I\fP, et \fB%P\fP en
+synonyme de \fB%p\fP. Enfin,
+.TP 
+\fB%s\fP
+Le nombre de secondes depuis l'époque, 1er\ janvier 1970 à\ 00:00:00
+(UTC). Les secondes de rattrapage ne sont pas comptées, sauf si un support
+spécifique est disponible.
+.LP
+L'implémentation de la glibc n'impose pas la présence de caractères blancs
+entre deux descripteurs de champs.
+.SH EXEMPLE
+L'exemple suivant montre l'utilisation de \fBstrptime\fP() et \fBstrftime\fP(3).
+.sp
+.nf
+#define _XOPEN_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+int
+main(void)
+{
+    struct tm tm;
+    char buf[255];
+
+    memset(&tm, 0, sizeof(struct tm));
+    strptime("2001\-11\-12 18:31:01", "%Y\-%m\-%d %H:%M:%S", &tm);
+    strftime(buf, sizeof(buf), "%d %b %Y %H:%M", &tm);
+    puts(buf);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBtime\fP(2), \fBgetdate\fP(3), \fBscanf\fP(3), \fBsetlocale\fP(3), \fBstrftime\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

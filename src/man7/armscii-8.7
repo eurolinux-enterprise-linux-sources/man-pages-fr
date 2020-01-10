@@ -1,0 +1,165 @@
+.\" t -*- coding: UTF-8 -*-
+.\" Copyright 2009  Lefteris Dimitroulakis <edimitro at tee.gr>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ARMSCII\-8 7 "20 septembre 2010" Linux "Manuel du programmeur Linux"
+.nh
+.SH NOM
+armscii\-8 \- Jeu de caractères arménien en octal, décimal, et hexadécimal
+.SH DESCRIPTION
+ArmSCII signifie «\ Armenian Standard Code for Information Interchange\ », un
+jeu de caractères codé sur 8\ bits.
+.SS "Caractères ArmSCII\-8"
+Le tableau suivant affiche les caractères de l'ArmSCII\-8 qui sont
+imprimables et non disponibles dans la page de manuel \fBascii\fP(7). La
+quatrième colonne affichera correctement les glyphes seulement dans un
+environnement configuré pour l'UTF\-8 avec les polices adéquates.
+.TS
+l l l c lp-1.
+Oct	Déc	Hex	Car.	Description
+_
+240	160	A0	\ 	ESPACE INSÉCABLE
+242	162	A2	և	LIGATURE MINUSCULE ARMÉNIENNE YÈTCH HIOUN
+243	163	A3	։	POINT ARMÉNIEN
+244	164	A4	)	PARENTHÈSE DROITE
+245	165	A5	(	PARENTHÈSE GAUCHE
+246	166	A6	»	GUILLEMET DROIT
+				(guillemet chevron pointant vers la droite)
+247	167	A7	«	GUILLEMET GAUCHE
+				(guillemet chevron pointant vers la gauche)
+250	168	A8	—	TIRET CADRATIN
+251	169	A9	.	POINT
+252	170	AA	՝	VIRGULE ARMÉNIENNE
+253	171	AB	,	VIRGULE
+254	172	AC	\-	TRAIT D'UNION\-SIGNE MOINS
+255	173	AD	֊	TRAIT D'UNION ARMÉNIEN
+256	174	AE	…	POINTS DE SUSPENSION
+257	175	AF	՜	POINT D'EXCLAMATION ARMÉNIEN
+260	176	B0	՛	SIGNE D'ACCENTUATION ARMÉNIEN
+261	177	B1	՞	POINT D'INTERROGATION ARMÉNIEN
+262	178	B2	Ա	LETTRE MAJUSCULE ARMÉNIENNE AÏP
+263	179	B3	ա	LETTRE MINUSCULE ARMÉNIENNE AÏP
+264	180	B4	Բ	LETTRE MAJUSCULE ARMÉNIENNE PÈN
+265	181	B5	բ	LETTRE MINUSCULE ARMÉNIENNE PÈN
+266	182	B6	Գ	LETTRE MAJUSCULE ARMÉNIENNE KIM
+267	183	B7	գ	LETTRE MINUSCULE ARMÉNIENNE KIM
+270	184	B8	Դ	LETTRE MAJUSCULE ARMÉNIENNE TA
+271	185	B9	դ	LETTRE MINUSCULE ARMÉNIENNE TA
+272	186	BA	Ե	LETTRE MAJUSCULE ARMÉNIENNE YÈTCH
+273	187	BB	ե	LETTRE MINUSCULE ARMÉNIENNE YÈTCH
+274	188	BC	Զ	LETTRE MAJUSCULE ARMÉNIENNE ZA
+275	189	BD	զ	LETTRE MINUSCULE ARMÉNIENNE ZA
+276	190	BE	Է	LETTRE MAJUSCULE ARMÉNIENNE É
+277	191	BF	է	LETTRE MINUSCULE ARMÉNIENNE É
+300	192	C0	Ը	LETTRE MAJUSCULE ARMÉNIENNE ETT
+301	193	C1	ը	LETTRE MINUSCULE ARMÉNIENNE ETT
+302	194	C2	Թ	LETTRE MAJUSCULE ARMÉNIENNE TÔ
+303	195	C3	թ	LETTRE MINUSCULE ARMÉNIENNE TÔ
+304	196	C4	Ժ	LETTRE MAJUSCULE ARMÉNIENNE JÉ
+305	197	C5	ժ	LETTRE MINUSCULE ARMÉNIENNE JÉ
+306	198	C6	Ի	LETTRE MAJUSCULE ARMÉNIENNE INI
+307	199	C7	ի	LETTRE MINUSCULE ARMÉNIENNE INI
+310	200	C8	Լ	LETTRE MAJUSCULE ARMÉNIENNE LIOUN
+311	201	C9	լ	LETTRE MINUSCULE ARMÉNIENNE LIOUN
+312	202	CA	Խ	LETTRE MAJUSCULE ARMÉNIENNE KHÉ
+313	203	CB	խ	LETTRE MINUSCULE ARMÉNIENNE KHÉ
+314	204	CC	Ծ	LETTRE MAJUSCULE ARMÉNIENNE DZA
+315	205	CD	ծ	LETTRE MINUSCULE ARMÉNIENNE DZA
+316	206	CE	Կ	LETTRE MAJUSCULE ARMÉNIENNE GUÉN
+317	207	CF	կ	LETTRE MINUSCULE ARMÉNIENNE GUÉN
+320	208	D0	Հ	LETTRE MAJUSCULE ARMÉNIENNE HÔ
+321	209	D1	հ	LETTRE MINUSCULE ARMÉNIENNE HÔ
+322	210	D2	Ձ	LETTRE MAJUSCULE ARMÉNIENNE TSA
+323	211	D3	ձ	LETTRE MINUSCULE ARMÉNIENNE TSA
+324	212	D4	Ղ	LETTRE MAJUSCULE ARMÉNIENNE GHAD
+325	213	D5	ղ	LETTRE MINUSCULE ARMÉNIENNE GHAD
+326	214	D6	Ճ	LETTRE MAJUSCULE ARMÉNIENNE DJÉ
+327	215	D7	ճ	LETTRE MINUSCULE ARMÉNIENNE DJÉ
+330	216	D8	Մ	LETTRE MAJUSCULE ARMÉNIENNE MÈN
+331	217	D9	մ	LETTRE MINUSCULE ARMÉNIENNE MÈN
+332	218	DA	Յ	LETTRE MAJUSCULE ARMÉNIENNE HÎ
+333	219	DB	յ	LETTRE MINUSCULE ARMÉNIENNE HÎ
+334	220	DC	Ն	LETTRE MAJUSCULE ARMÉNIENNE NOU
+335	221	DD	ն	LETTRE MINUSCULE ARMÉNIENNE NOU
+336	222	DE	Շ	LETTRE MAJUSCULE ARMÉNIENNE CHA
+337	223	DF	շ	LETTRE MINUSCULE ARMÉNIENNE CHA
+340	224	E0	Ո	LETTRE MAJUSCULE ARMÉNIENNE VO
+341	225	E1	ո	LETTRE MINUSCULE ARMÉNIENNE VO
+342	226	E2	Չ	LETTRE MAJUSCULE ARMÉNIENNE TCHA
+343	227	E3	չ	LETTRE MINUSCULE ARMÉNIENNE TCHA
+344	228	E4	Պ	LETTRE MAJUSCULE ARMÉNIENNE BÉ
+345	229	E5	պ	LETTRE MINUSCULE ARMÉNIENNE BÉ
+346	230	E6	Ջ	LETTRE MAJUSCULE ARMÉNIENNE DCHÉ
+347	231	E7	ջ	LETTRE MINUSCULE ARMÉNIENNE DCHÉ
+350	232	E8	Ռ	LETTRE MAJUSCULE ARMÉNIENNE RRA
+351	233	E9	ռ	LETTRE MINUSCULE ARMÉNIENNE RRA
+352	234	EA	Ս	LETTRE MAJUSCULE ARMÉNIENNE SÉ
+353	235	EB	ս	LETTRE MINUSCULE ARMÉNIENNE SÉ
+354	236	EC	Վ	LETTRE MAJUSCULE ARMÉNIENNE VÈV
+355	237	ED	վ	LETTRE MINUSCULE ARMÉNIENNE VÈV
+356	238	EE	Տ	LETTRE MAJUSCULE ARMÉNIENNE DIOUN
+357	239	EF	տ	LETTRE MINUSCULE ARMÉNIENNE DIOUN
+360	240	F0	Ր	LETTRE MAJUSCULE ARMÉNIENNE RÉ
+361	241	F1	ր	LETTRE MINUSCULE ARMÉNIENNE RÉ
+362	242	F2	Ց	LETTRE MAJUSCULE ARMÉNIENNE TSÔ
+363	243	F3	ց	LETTRE MINUSCULE ARMÉNIENNE TSÔ
+364	244	F4	Ւ	LETTRE MAJUSCULE ARMÉNIENNE HIOUN
+365	245	F5	ւ	LETTRE MINUSCULE ARMÉNIENNE HIOUN
+366	246	F6	Փ	LETTRE MAJUSCULE ARMÉNIENNE PIOUR
+367	247	F7	փ	LETTRE MINUSCULE ARMÉNIENNE PIOUR
+370	248	F8	Ք	LETTRE MAJUSCULE ARMÉNIENNE KÉ
+371	249	F9	ք	LETTRE MINUSCULE ARMÉNIENNE KÉ
+372	250	FA	Օ	LETTRE MAJUSCULE ARMÉNIENNE Ô
+373	251	FB	օ	LETTRE MINUSCULE ARMÉNIENNE Ô
+374	252	FC	Ֆ	LETTRE MAJUSCULE ARMÉNIENNE FÉ
+375	253	FD	ֆ	LETTRE MINUSCULE ARMÉNIENNE FÉ
+376	254	FE	՚	APOSTROPHE ARMÉNIENNE
+.TE
+.SH "VOIR AUSSI"
+\fBascii\fP(7)
+
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

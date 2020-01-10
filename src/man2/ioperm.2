@@ -1,0 +1,120 @@
+.\" Copyright (c) 1993 Michael Haardt
+.\" (michael@moria.de)
+.\" Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 15:12:05 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Tue Aug  1 16:27    1995 by Jochen Karrer
+.\"                              <cip307@cip.physik.uni-wuerzburg.de>
+.\" Modified Tue Oct 22 08:11:14 EDT 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Mon Feb 15 17:28:41 CET 1999 by Andries E. Brouwer <aeb@cwi.nl>
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH IOPERM 2 "12 mars 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+ioperm \- Positionner les autorisations d'entrée\-sortie sur les ports
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP /* pour libc5 */
+.br
+\fB#include <sys/io.h>\fP /* pour glibc */
+.sp
+\fBint ioperm(unsigned long \fP\fIfrom\fP\fB, unsigned long \fP\fInum\fP\fB, int
+\fP\fIturn_on\fP\fB);\fP
+.SH DESCRIPTION
+\fBioperm\fP() positionne les bits de permission d'accès du thread appelant aux
+ports commençant à l'adresse \fIfrom\fP étalés sur \fInum\fP bits. Si \fIturn_on\fP
+n'est pas nul, les autorisations correspondantes aux bits indiqués sont
+activées, sinon désactivées. Si \fIturn_on\fP est non nul, le thread appelant
+doit être privilégié (\fBCAP_SYS_RAWIO\fP).
+
+Avant Linux\ 2.6.8, seuls les 0x3ff premiers ports d'entrée\-sortie pouvaient
+être indiqués de cette manière. Pour d'autres ports, il fallait utiliser
+l'appel système \fBiopl\fP(2) (avec un paramètre \fIlevel\fP de 3). Depuis
+Linux\ 2.6.8, 65\ 536 ports d'entrée\-sortie peuvent être indiqués.
+
+Les permissions ne sont pas héritées par le processus fils durant un
+\fBfork\fP(2)\ : le process fils doit activer les permissions dont il en a
+besoin. En revanche, elles le sont lors d'un \fBexecve\fP(2). Ceci permet de
+donner des autorisations d'accès à des programmes non privilégiés.
+
+Cet appel existe principalement pour l'architecture i386. Sur beaucoup
+d'autres architectures, il est soit inexistant soit renvoie toujours une
+erreur.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+Valeur invalide pour \fIfrom\fP ou \fInum\fP.
+.TP 
+\fBEIO\fP
+(sur PowerPC) Cet appel n'est pas supporté.
+.TP 
+\fBENOMEM\fP
+.\" Could not allocate I/O bitmap.
+Plus de mémoire disponible.
+.TP 
+\fBEPERM\fP
+L'appelant n'a pas les privilèges nécessaires.
+.SH CONFORMITÉ
+\fBioperm\fP() est spécifique a Linux et ne doit pas être utilisé dans des
+programmes destinés à être portables.
+.SH NOTES
+Le fichier \fI/proc/ioports\fP indique les ports d'entrée\-sortie actuellement
+alloués sur le système.
+
+Libc5 considère qu'il s'agit d'un appel système et fournit le prototype dans
+\fI<unistd.h>\fP. glibc1 n'offre pas de prototype. glibc2 fournit un
+prototype à la fois dans \fI<sys/io.h>\fP et dans
+\fI<sys/perm.h>\fP. Évitez ce dernier, il n'est disponible que sur les
+i386.
+.SH "VOIR AUSSI"
+\fBiopl\fP(2), \fBoutb\fP(2), \fBcapabilities\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

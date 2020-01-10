@@ -1,0 +1,81 @@
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(PERMISSIVE_MISC)
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+.\" CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+.\" TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+.\" SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH INVOCATION_NAME 3 "29 avril 2006" GNU "Manuel du programmeur Linux"
+.SH NOM
+program_invocation_name, program_invocation_short_name \- Obtenir le nom
+utilisé pour invoquer le programme appelant
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP         /* Consultez feature_test_macros(7) */
+\fB#include <errno.h>\fP
+
+\fBextern char *\fP\fIprogram_invocation_name\fP\fB;\fP
+\fBextern char *\fP\fIprogram_invocation_short_name\fP\fB;\fP
+.fi
+.SH DESCRIPTION
+\fIprogram_invocation_name\fP contient le nom qui a été utilisé pour invoquer
+le programme appelant. C'est le même que la valeur de \fIargv[0]\fP dans
+\fImain\fP(), à la différence que la portée de \fIprogram_invocation_name\fP est
+globale.
+
+\fIprogram_invocation_short_name\fP contient la partie nom de base du nom
+utilisé pour invoquer le programme appelant. Ainsi, c'est la même valeur que
+\fIprogram_invocation_name\fP, amputée de tout le texte jusqu'à la dernière
+barre oblique (/).
+
+Ces variables sont automatiquement initialisées par le code exécuté au
+démarrage de la glibc.
+.SH CONFORMITÉ
+Ces variables sont des extensions GNU et ne devraient pas être utilisées
+dans des programmes destinés à être portables.
+.SH NOTES
+Le fichier \fI/proc/[nombre]/cmdline\fP, spécifique à Linux, fournit un accès à
+une information similaire.
+.SH "VOIR AUSSI"
+\fBproc\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,205 @@
+.\" Copyright (c) 1998 Andries Brouwer
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 2003-08-24 fix for / by John Kristoff + joey
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GLOB 7 "28 juillet 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+glob \- Développement des noms de fichiers
+.SH DESCRIPTION
+Il y a bien longtemps, dans UNIX V6, existait un programme nommé
+\fI/etc/glob\fP qui permettait de développer les motifs génériques dans les
+noms de fichiers. Ce programme devint bientôt une routine interne du shell.
+
+De nos jours, on trouve également une routine de bibliothèque nommée
+\fBglob\fP(3) qui effectue le même travail en étant invoquée par un programme
+utilisateur.
+
+Les règles de développement sont les suivantes (POSIX.2, 3.13).
+.SS "Motifs génériques"
+Une chaîne est un motif générique si elle contient un ou plusieurs
+caractères parmi «\ ?\ », «\ *\ » et «\ [\ ». Le développement (\fIglobbing\fP)
+est l'opération qui transforme un motif générique en une liste de noms de
+fichiers correspondant à ce motif. La correspondance est définie ainsi\ :
+
+Un «\ ?\ » (sans les guillemets) correspond à n'importe quel caractère.
+
+Un «\ *\ » (sans les guillemets) correspond à n'importe quelle chaîne, y
+compris la chaîne vide.
+.PP
+\fBClasses de caractères\fP
+.sp
+Une expression du type «\ \fI[...]\fP\ », dans laquelle le premier caractère
+après le «\ [\ » n'est pas un «\ !\ » est mise en correspondance avec un
+seul des caractères contenus entre les crochets. L'ensemble des caractères
+cités ne peut pas être vide, ainsi, le crochet fermant «\ ]\ » peut être
+présent dans l'ensemble, à la condition qu'il soit en première place. Par
+conséquent, la chaîne «\ \fI[][!]\fP\ » peut être mise en correspondance avec
+l'un des trois caractères «\ [\ », «\ ]\ » et «\ !\ ».
+.PP
+\fBIntervalles\fP
+.sp
+Il existe une convention particulière, suivant laquelle deux caractères
+séparés par un tiret «\ \-\ » indiquent un intervalle. Ainsi, «\ \fI[A\-Fa\-f0\-9]\fP\ » équivaut à «\ \fI[ABCDEFabcdef0123456789]\fP\ ». Pour inclure
+un tiret au sens littéral, il suffit de l'utiliser en premier ou en dernier
+entre les crochets. Ainsi, «\ \fI[]\-]\fP\ » correspond uniquement aux
+caractères «\ ]\ » et «\ \-\ », et «\ \fI[\-\-0]\fP\ » correspond aux trois
+caractères «\ \-\ », «\ .\ » et «\ 0\ », puisqu'il ne peut y avoir de
+correspondance avec «\ /\ ».
+.PP
+\fBNégation\fP
+.sp
+Une expression «\ \fI[!...]\fP\ » correspond à n'importe quel caractère qui ne
+puisse pas être mis en correspondance avec la chaîne obtenue en supprimant
+le «\ !\ » initial (ainsi, «\ \fI[!]a\-]\fP\ » correspond à tout caractère sauf
+«\ ]\ », «\ a\ » et «\ \-\ »).
+
+On peut désactiver le comportement spécial des caractères «\ ?\ », «\ *\ »
+et «\ [\ » en les faisant précéder par une barre oblique inverse «\ \e\ »,
+ou, dans le cas d'une ligne de commande shell, en les encadrant par des
+guillemets. Entre crochets, ces caractères ne prennent que leur
+signification littérale. Ainsi, «\ \fI[[?*\e]\fP\ » correspond aux quatre
+caractères «\ [\ », «\ ?\ », «\ *\ » et «\ \e\ ».
+.SS "Chemins d'accès"
+Le développement est appliqué à chaque composant du chemin d'accès
+séparément. Un «\ /\ » dans un chemin ne peut pas être mis en correspondance
+avec un «\ ?\ » ou «\ *\ », ni par un intervalle tel que «\ \fI[.\-0]\fP\ ». Un
+intervalle ne peut pas contenir explicitement un caractère «\ /\ ». Ceci
+déclencherait une erreur de syntaxe.
+
+Si un nom de fichier commence par un «\ .\ », ce caractère doit être mis en
+correspondance explicitement (ainsi, \fIrm *\fP ne supprimera pas .profile, et
+\fItar\ c\ *\fP n'archivera pas tous les fichiers\ ; \fItar\ c\ .\fPserait
+préférable).
+.SS "Listes vides"
+La définition simple et élégante fournie plus haut «\ transformer un motif
+générique en une liste de noms de fichiers correspondants\ » est la
+définition UNIX originale. Elle autorisait la présence de motif se
+développant en listes vides, comme
+
+.nf
+    xv \-wait 0 *.gif *.jpg
+.fi
+
+alors qu'il n'y a peut\-être aucun fichier *.gif présent (et on ne peut pas
+considérer cela comme une erreur). Toutefois, POSIX réclame qu'un motif soit
+laissé inchangé s'il est syntaxiquement incorrect, ou si la liste des noms
+de fichiers correspondants est vide. On peut forcer \fBbash\fP à adopter le
+comportement classique en utilisant cette commande\ :
+
+.\" In Bash v1, by setting allow_null_glob_expansion=true
+    shopt \-s nullglob
+
+(Des problèmes similaires se produisent ailleurs. Par exemple, de vieux
+scripts avec
+
+.nf
+    rm \`find . \-name "*~"\`
+.fi
+
+devraient être remplacés par des nouveaux scripts contenant
+
+.nf
+    rm \-f fichier\-non\-existant \`find . \-name "*~"\`
+.fi
+
+pour éviter les messages d'erreurs si \fBrm\fP est invoqué avec une liste vide
+d'arguments).
+.SH NOTES
+.SS "Expressions rationnelles"
+Notez que les motifs génériques ne sont pas des expressions rationnelles
+bien qu'ils leur ressemblent. Tout d'abord, ils correspondent à des noms de
+fichiers, et pas à du texte. De plus, les conventions ne sont pas
+identiques. Par exemple, dans une expression rationnelle, «\ *\ » signifie
+zéro ou plusieurs copies de l'élément précédent.
+
+Maintenant que les expressions rationnelles disposent de composants entre
+crochets où la négation est indiquée par un «\ ^\ », POSIX a précisé que le
+motif générique «\ \fI[^...]\fP\ » a un effet indéfini.
+.SS "Internationalisation et classes de caractères"
+Bien entendu, les intervalles ont été créés à l'origine en tant
+qu'intervalle ASCII où «\ \fI[\ \-%]\fP\ » signifie «\ \fI[\ !"#$%]\fP\ » et «\ \fI[a\-z]\fP\ » correspond à «\ toute lettre minuscule\ ». Certaines
+implémentations UNIX ont généralisé ceci de manière à ce que l'intervalle
+X\-Y corresponde à l'ensemble des caractères dont les codes se trouvent entre
+ceux de X et de Y. Néanmoins, ceci signifie que l'utilisateur doit connaître
+le codage utilisé sur le système local. De plus, ceci ne fonctionne pas si
+l'ordre de l'alphabet local n'est pas celui adopté pour le codage des
+caractères. POSIX a alors étendu grandement la notation des expressions
+entre crochets autant pour les motifs génériques que pour les expressions
+rationnelles. Nous avons vu précédemment 3\ types d'éléments pouvant se
+trouver entre crochets. Plus précisément (i) une négation, (ii) des
+caractères explicites, et (iii) des intervalles. POSIX spécifie les
+intervalles d'une manière plus utile au niveau international, et ajoute
+trois nouveaux types\ :
+
+(iii) Les intervalles X\-Y comprenant tous les caractères se trouvant entre X
+et Y (inclus) dans l'ordre de l'alphabet décrit par la catégorie
+\fBLC_COLLATE\fP de la localisation en cours.
+
+(iv) Des classes de caractères comme
+.nf
+
+[:alnum:]  [:alpha:]  [:blank:]  [:cntrl:]
+[:digit:]  [:graph:]  [:lower:]  [:print:]
+[:punct:]  [:space:]  [:upper:]  [:xdigit:]
+
+.fi
+Ainsi, on peut écrire «\ \fI[[:lower:]]\fP\ » à la place de «\ \fI[a\-z]\fP\ », et
+que le comportement soit aussi valide au Danemark, où il existe 3 lettres
+postérieures au «\ z\ ». Ces classes de caractères sont définies par la
+catégorie \fBLC_CTYPE\fP de la localisation en cours.
+
+(v) Les symboles groupant plusieurs lettres comme «\ \fI[.ch.]\fP\ » ou «\ \fI[.a\-acute.]\fP\ », dans lesquels les chaînes entre «\ \fI[.\fP\ » et «\ \fI.]\fP\ » sont un élément de classement (\fIcollating element\fP) défini dans la
+localisation en cours. Il peut également s'agir de multicaractères.
+
+(vi) Des classes d'équivalence comme «\ \fI[=a=]\fP\ », où la chaîne entre «\ \fI[=\fP\ » et «\ \fI=]\fP\ » est un élément de classement définissant une classe
+d'équivalence dans la localisation en cours. Par exemple, «\ \fI[[=a=]]\fP\ »
+peut être équivalent à «\ \fI[a\('a\(`a\(:a\(^a]\fP\ », c'est\-à\-dire «\ \fI[a[.a\-acute.][.a\-grave.][.a\-umlaut.][.a\-circumflex.]]\fP\ ».
+.SH "VOIR AUSSI"
+\fBsh\fP(1), \fBfnmatch\fP(3), \fBglob\fP(3), \fBlocale\fP(7), \fBregex\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

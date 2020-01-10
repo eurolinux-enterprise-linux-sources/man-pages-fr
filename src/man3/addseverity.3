@@ -1,0 +1,76 @@
+.\"  Copyright 2002 walter harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"  adapted glibc info page
+.\"
+.\"  polished a little, aeb
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ADDSEVERITY 3 "14 juin 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+addseverity \- Introduire de nouvelles classes de sévérité
+.SH SYNOPSIS
+.nf
+.sp
+\fB#include <fmtmsg.h>\fP
+.sp
+\fBint addseverity(int \fP\fIseverity\fP\fB, const char *\fP\fIs\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBaddseverity\fP()\ : _SVID_SOURCE
+.SH DESCRIPTION
+Cette fonction permet l'introduction de nouvelles classes de sévérité qui
+peuvent être adressées par le paramètre \fIseverity\fP de la fonction
+\fBfmtmsg\fP(3). Par défaut, cette dernière ne sait afficher des messages que
+pour les sévérités de 0 à 4 (avec les chaînes (none), HALT, ERROR, WARNING,
+INFO). Cet appel associe la chaîne \fIs\fP donnée à la valeur \fIseverity\fP
+donnée. Si \fIs\fP est vide (NULL), la classe de sévérité de valeur numérique
+\fIseverity\fP est supprimée. Il n'est pas possible de surcharger ou de
+supprimer une des classes de sévérité par défaut. La valeur de sévérité ne
+doit pas être négative.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, la valeur \fBMM_OK\fP est renvoyée. En cas d'échec, la
+valeur de retour est \fBMM_NOTOK\fP. Parmi les erreurs possibles, on trouve\ :
+pas assez de mémoire, tentative de suppression d'une classe de sévérité par
+défaut ou d'une classe de sévérité inexistante.
+.SH VERSIONS
+\fBaddseverity\fP() est fournie par la glibc depuis la version\ 2.1.
+.SH CONFORMITÉ
+Cette fonction n'est pas spécifiée dans le «\ X/Open Portability Guide\ »
+bien que la fonction \fBfmtmsg\fP(3) le soit. Elle est disponible sur les
+systèmes System\ V.
+.SH NOTES
+De nouvelles classes de sévérité peuvent également être ajoutées avec la
+variable d'environnement \fBSEV_LEVEL\fP.
+.SH "VOIR AUSSI"
+\fBfmtmsg\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2004-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

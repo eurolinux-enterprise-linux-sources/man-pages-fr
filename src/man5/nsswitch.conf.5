@@ -1,0 +1,314 @@
+.\" Copyright (c) 1998, 1999 Thorsten Kukuk (kukuk@vt.uni-paderborn.de)
+.\" Copyright (c) 2011, Mark R. Bannister <cambridge@users.sourceforge.net>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH NSSWITCH.CONF 5 "12 février 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+nsswitch.conf \- Fichier de configuration du service de noms («\ Name Service
+Switch\ »)
+.SH DESCRIPTION
+Le fichier de configuration du service de noms («\ Name Service Switch\ » ou
+NSS), \fI/etc/nsswitch.conf\fP, est utilisé par la bibliothèque\ C de GNU pour
+déterminer les sources desquelles obtenir les renseignements de service de
+noms en fonction des catégories, et dans quel ordre. Chaque catégorie de
+renseignements est identifiée par un nom de base de données.
+.LP
+Le fichier est en texte ASCII, avec les colonnes séparées par des espaces ou
+des tabulations. La première colonne indique le nom de la base de
+données. Les autres colonnes décrivent les sources, dans l'ordre des
+requêtes à réaliser, et un ensemble limité d'actions possibles en fonction
+du résultat de la résolution.
+.LP
+Les bases de données suivantes sont comprises par la bibliothèque\ C de GNU\ :
+.TP  12
+\fBaliases\fP
+Alias d'adresses électroniques, utilisés par \fBgetaliasent\fP(3) et les
+fonctions apparentées.
+.TP 
+\fBethers\fP
+Numéros Ethernet.
+.TP 
+\fBgroup\fP
+Groupes d'utilisateurs, utilisés par \fBgetgrent\fP(3) et les fonctions
+apparentées.
+.TP 
+\fBhosts\fP
+Noms d'hôtes et leurs adresses, utilisés par \fBgethostbyname\fP(3) et les
+fonctions apparentées.
+.TP 
+\fBinitgroups\fP
+Liste d'accès de groupes supplémentaires, utilisée par la fonction
+\fBgetgrouplist\fP(3).
+.TP 
+\fBnetgroup\fP
+Liste d'hôtes et d'utilisateurs valable pour l'ensemble du réseau, servant à
+établir les règles d'accès. Les bibliothèques\ C antérieures à glibc\ 2.1 ne
+géraient les groupes réseau qu'avec NIS.
+.TP 
+\fBnetworks\fP
+Noms et masques de réseau, utilisés par \fBgetnetent\fP(3) et les fonctions
+apparentées.
+.TP 
+\fBpasswd\fP
+Mots de passe des utilisateurs, utilisés par \fBgetpwent\fP(3) et les fonctions
+apparentées.
+.TP 
+\fBprotocols\fP
+Protocoles réseau, utilisés par \fBgetprotoent\fP(3) et les fonctions
+apparentées.
+.TP 
+\fBpublickey\fP
+Clés publiques et privées des «\ secure_RPC\ », utilisées par NFS et NIS+.
+.TP 
+\fBrpc\fP
+Noms et numéros de RPC, utilisés par \fBgetrpcbyname\fP(3) et les fonctions
+apparentées.
+.TP 
+\fBservices\fP
+Services réseau, utilisés par \fBgetservent\fP(3) et les fonctions apparentées.
+.TP 
+\fBshadow\fP
+Mots de passe cachés des utilisateurs, utilisé par \fBgetspnam\fP(3) et les
+fonctions apparentées.
+.LP
+Voici un exemple de fichier \fI/etc/nsswitch.conf\fP\ :
+.LP
+.RS 4
+.PD 0
+.TP  16
+passwd:
+compat
+.TP 
+group:
+compat
+.TP 
+shadow:
+compat
+.sp 1n
+.TP 
+hosts:
+dns [!UNAVAIL=return] files
+.TP 
+networks:
+nis [NOTFOUND=return] files
+.TP 
+ethers:
+nis [NOTFOUND=return] files
+.TP 
+protocols:
+nis [NOTFOUND=return] files
+.TP 
+rpc:
+nis [NOTFOUND=return] files
+.TP 
+services:
+nis [NOTFOUND=return] files
+.PD
+.RE
+.LP
+La première colonne est le nom de la base de données. Les autres colonnes
+indiquent\ :
+.IP * 3
+une ou plusieurs spécifications de services, par exemple «\ files\ », «\ db\ »
+ou «\ nis\ ». L'ordre des services sur la ligne indique l'ordre dans lequel
+les requêtes seront réalisées sur ces services, tour à tour, jusqu'à ce
+qu'un résultat soit obtenu\ ;
+.IP *
+des actions facultatives à réaliser si un résultat particulier est obtenu du
+service précédent, par exemple «\ [NOTFOUND=return]\ ».
+.LP
+Les spécifications de services pris en charge sur le système dépendent de la
+présence de bibliothèques partagées, et sont par conséquent évolutives. Les
+bibliothèques appelées \fI/lib/libnss_SERVICE.so.\fP\fBX\fP fourniront le
+\fISERVICE\fP indiqué. Sur une installation de base, «\ files\ », «\ db\ », «\ nis\ »
+et «\ nisplus\ » sont utilisables. Pour la base de données \fBhosts\fP, «\ dns\ »
+peut aussi être indiqué. Pour les bases de données \fBpasswd\fP, \fBgroup\fP et
+\fBshadow\fP, «\ compat\ » peut aussi être indiqué (consultez \fBMode de
+compatibilité\fP ci\-dessous). Le numéro de version \fBX\fP peut être 1 pour
+glibc\ 2.0 ou 2 pour glibc\ 2.1 et versions ultérieures. Sur les systèmes avec
+des bibliothèques supplémentaires, d'autres services peuvent être
+disponibles comme «\ hesiod\ », «\ ldap\ », «\ winbind\ » et «\ wins\ ».
+.LP
+Une action peut aussi être indiquée après une spécification de
+service. L'action modifie le comportement après un résultat obtenu de la
+source de données précédente. Les actions sont désignées sous la forme
+générale\ :
+.LP
+.RS 4
+[\fIÉTAT\fP=\fIACTION\fP]
+.br
+[!\fIÉTAT\fP=\fIACTION\fP]
+.RE
+.LP
+où
+.LP
+.RS 4
+\fIÉTAT\fP => \fBsuccess\fP | \fBnotfound\fP | \fBunavail\fP | \fBtryagain\fP
+.br
+\fIACTION\fP => \fBreturn\fP | \fBcontinue\fP
+.RE
+.LP
+Le ! inverse le résultat du test, en correspondant à tous les résultats
+possibles sauf celui indiqué. La casse des mots\-clés n'est pas
+significative.
+.LP
+La valeur \fIÉTAT\fP est comparée au résultat de la fonction de résolution
+appelée par la spécification de service précédente, et fait partie des
+valeurs suivantes.
+.RS 4
+.TP  12
+\fBsuccess\fP
+Aucune erreur ne s'est produite, et la donnée demandée a été
+trouvée. L'action par défaut pour cette condition est «\ return\ ».
+.TP 
+\fBnotfound\fP
+La résolution a réussi, mais la donnée demandée n'a pas été
+trouvée. L'action par défaut pour cette condition est «\ continue\ ».
+.TP 
+\fBunavail\fP
+Le service est indisponible de manière permanente. Cela peut indiquer que le
+fichier nécessaire n'est pas lisible, ou, pour les services réseau, que le
+serveur n'est pas disponible ou n'accepte pas les requêtes. L'action par
+défaut pour cette condition est «\ continue\ ».
+.TP 
+\fBtryagain\fP
+Le service est temporairement indisponible. Cela signifie qu'un fichier est
+verrouillé, et qu'un serveur ne peut pas actuellement accepter davantage de
+connexions. L'action par défaut pour cette condition est «\ continue\ ».
+.RE
+.LP
+La valeur \fIACTION\fP fait partie des valeurs suivantes.
+.RS 4
+.TP  12
+\fBreturn\fP
+Renvoyer un résultat maintenant. Ne pas appeler d'autre fonction de
+résolution. Cependant, pour des raisons de compatibilité, si c'est l'action
+sélectionnée pour la base de données \fBgroup\fP et l'état \fBnotfound\fP, et que
+le fichier de configuration ne contient pas la ligne \fBinitgroups\fP, la
+fonction de résolution suivante est toujours appelée sans affecter le
+résultat de recherche.
+.TP 
+\fBcontinue\fP
+Appeler la fonction de résolution suivante.
+.RE
+.SS "Mode de compatibilité (compat)"
+le service NSS «\ compat\ » ressemble à «\ files\ », à la différence qu'il
+utilise en plus des entrées particulières de \fI/etc/passwd\fP pour permettre
+aux utilisateurs ou membres de groupes réseau d'accéder au système. Les
+entrées suivantes sont valables dans ce mode.
+.RS 4
+.TP  12
+\fB+\fP\fIutilisateur\fP
+Inclure l'\fIutilisateur\fP indiqué depuis la carte de passwd NIS.
+.TP 
+\fB+@\fP\fIgroupe_réseau\fP
+Inclure tous les utilisateurs du \fIgroupe_réseau\fP donné.
+.TP 
+\fB\-\fP\fIutilisateur\fP
+Exclure l'\fIutilisateur\fP indiqué de la carte de passwd NIS.
+.TP 
+\fB\-@\fP\fIgroupe_réseau\fP
+Exclure tous les utilisateurs du \fIgroupe_réseau\fP donné.
+.TP 
+\fB+\fP
+Inclure tous les utilisateurs, sauf ceux exclus précédemment, depuis la
+carte de passwd NIS.
+.RE
+.LP
+La source est «\ nis\ » par défaut, mais cela peut être écrasé en indiquant
+«\ nisplus\ » comme source des pseudobases de données \fBpasswd_compat\fP,
+\fBgroup_compat\fP et \fBshadow_compat\fP.
+.SH FICHIERS
+Un service appelé \fISERVICE\fP est implémenté par une bibliothèque objet
+partagée appelée \fIlibnss_SERVICE.so.\fP\fBX\fP qui se trouve dans \fI/lib\fP.
+.RS 4
+.TP  25
+.PD 0
+\fI/etc/nsswitch.conf\fP
+fichier de configuration de NSS.
+.TP 
+\fI/lib/libnss_compat.so.\fP\fBX\fP
+implémente «\ compat\ ».
+.TP 
+\fI/lib/libnss_db.so.\fP\fBX\fP
+implémente «\ db\ ».
+.TP 
+\fI/lib/libnss_dns.so.\fP\fBX\fP
+implémente «\ dns\ ».
+.TP 
+\fI/lib/libnss_files.so.\fP\fBX\fP
+implémente «\ files\ ».
+.TP 
+\fI/lib/libnss_hesiod.so.\fP\fBX\fP
+implémente «\ hesoid\ ».
+.TP 
+\fI/lib/libnss_nis.so.\fP\fBX\fP
+implémente «\ nis\ ».
+.TP 
+\fI/lib/libnss_nisplus.so.\fP\fBX\fP
+implémente «\ nisplus\ ».
+.PD
+.RE
+.SH NOTES
+Au sein de chaque processus qui utilise \fBnsswitch.conf\fP, le fichier n'est
+lu en entier qu'une seule fois. Si le fichier est modifié par la suite, le
+processus continuera d'utiliser l'ancienne configuration.
+.LP
+À l'origine, il n'y avait qu'une seule source pour les renseignements de
+service, souvent sous forme d'un simple fichier de configuration (par
+exemple \fI/etc/passwd\fP). Cependant, puisque d'autres services de noms, comme
+NIS («\ Network Information Service\ ») et le DNS («\ Domain Name Service\ »),
+sont devenus populaires, une méthode plus flexible était nécessaire par
+rapport aux ordonnancements des recherches codés dans la bibliothèque\ C. Le
+mécanisme NSS («\ Name Service Switch\ »), qui était basé sur le mécanisme
+utilisé par Sun Microsystems dans la bibliothèque\ C de Solaris\ 2, a
+introduit une solution plus propre au problème.
+.SH "VOIR AUSSI"
+\fBgetent\fP(1), \fBnss\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

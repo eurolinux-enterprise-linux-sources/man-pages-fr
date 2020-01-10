@@ -1,0 +1,155 @@
+.\" Copyright (c) 2007 Silicon Graphics, Inc. All Rights Reserved
+.\" Written by Dave Chinner <dgc@sgi.com>
+.\"
+.\" %%%LICENSE_START(GPLv2_ONELINE)
+.\" May be distributed as per GNU General Public License version 2.
+.\" %%%LICENSE_END
+.\"
+.\" 2011-09-19: Added FALLOC_FL_PUNCH_HOLE
+.\" 2011-09-19: Substantial restructuring of the page
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FALLOCATE 2 "10 juin 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+fallocate \- Manipuler un espace de fichier
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP             /* Consultez feature_test_macros(7) */
+\fB#include <fcntl.h>\fP
+
+\fBint fallocate(int \fP\fIfd\fP\fB, int \fP\fImode\fP\fB, off_t \fP\fIoffset\fP\fB, off_t \fP\fIlen\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+C'est un appel système spécifique à Linux et non portable. Pour la méthode
+portable, spécifiée par POSIX.1, pour assurer que de l'espace est alloué
+pour un fichier, consultez \fBposix_fallocate\fP(3).
+
+\fBfallocate\fP() permet à l'appelant de manipuler directement l'espace disque
+alloué pour le fichier référencé par \fIfd\fP pour la plage d'octets débutant à
+\fIoffset\fP et de longueur \fIlen\fP octets.
+
+Le paramètre \fImode\fP définit l'opération à effectuer sur la plage
+donnée. Les sous\-sections suivantes apportent des précisions sur les
+opérations prises en charge.
+.SS "Allocation d'espace disque."
+L'opération par défaut (c'est\-à\-dire si \fImode\fP est zéro) de \fBfallocate\fP()
+alloue et initialise à zéro l'espace disque dans l'intervalle indiqué par
+\fIoffset\fP et \fIlen\fP. La taille du fichier (comme indiquée par \fBstat\fP(2))
+sera modifiée si \fIoffset\fP+\fIlen\fP est supérieur à la taille du fichier. Ce
+comportement par défaut ressemble beaucoup au comportement de la fonction de
+bibliothèque \fBposix_fallocate\fP(3), et est conçu comme une méthode
+d'implémentation optimisée de cette fonction.
+
+Après un appel réussi, les écritures suivantes dans l'intervalle indiqué par
+\fIoffset\fP et \fIlen\fP seront garanties sans échec dû à un manque d'espace
+disque.
+
+Si l'attribut \fBFALLOC_FL_KEEP_SIZE\fP est indiqué dans \fImode\fP, le
+comportement de l'appel est similaire, mais la taille du fichier ne sera pas
+modifiée si \fIoffset\fP+\fIlen\fP est supérieur à la taille du
+fichier. L'allocation préalable de blocs mis à zéro après la fin du fichier
+de cette façon permet d'optimiser la charge de travail d'ajout.
+.PP
+Parce que l'allocation est effectuée en fragments de taille de blocs,
+\fBfallocate\fP() peut allouer un espace de disque plus grand que celui qui a
+été indiqué.
+.SS "Désallocation d'espace de fichier"
+Indiquer le paramètre \fBFALLOC_FL_PUNCH_HOLE\fP (disponible depuis
+Linux\ 2.6.38) dans \fImode\fP désalloue l'espace (c'est\-à\-dire crée un trou)
+dans l'intervalle d'octets commençant à \fIoffset\fP et continuant pendant
+\fIlen\fP\ octets. Dans l'espace indiqué, les blocs partiels de systèmes de
+fichiers sont mis à zéro et les blocs complets de systèmes de fichiers sont
+retirés du fichier. Après un appel réussi, les lectures suivantes dans cet
+intervalle renverront des zéros.
+
+Le paramètre \fBFALLOC_FL_PUNCH_HOLE\fP doit être inclus avec
+\fBFALLOC_FL_KEEP_SIZE\fP dans \fImode\fP (avec un OU binaire)\ ; autrement dit,
+même en faisant des trous après la fin du fichier, la taille du fichier
+(comme indiquée par \fBstat\fP(2)) ne changera pas.
+
+Les systèmes de fichiers ne prennent pas tous \fBFALLOC_FL_PUNCH_HOLE\fP en
+charge\ ; si un système de fichiers n'accepte pas l'opération, une erreur est
+renvoyée.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBfallocate\fP() renvoie 0. En cas d'erreur, \-1 est renvoyé
+et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier valable ou n'est pas ouvert en
+écriture.
+.TP 
+\fBEFBIG\fP
+\fIoffset\fP+\fIlen\fP excède la taille maximum de fichier.
+.TP 
+\fBEINTR\fP
+Un signal a été capturé pendant l'exécution.
+.TP 
+\fBEINVAL\fP
+.\" FIXME (raise a kernel bug) Probably the len==0 case should be
+.\" a no-op, rather than an error. That would be consistent with
+.\" similar APIs for the len==0 case.
+.\" See "Re: [PATCH] fallocate.2: add FALLOC_FL_PUNCH_HOLE flag definition"
+.\" 21 Sep 2012
+.\" http://thread.gmane.org/gmane.linux.file-systems/48331/focus=1193526
+\fIoffset\fP était inférieur à 0, ou \fIlen\fP était inférieur ou égal à 0.
+.TP 
+\fBEIO\fP
+Une erreur d'entrée\-sortie s'est produite durant la lecture ou l'écriture
+sur un système de fichiers.
+.TP 
+\fBENODEV\fP
+\fIfd\fP ne fait pas référence à un fichier régulier ou un répertoire (si \fIfd\fP
+est un tube ou une FIFO, une erreur différente en résultera).
+.TP 
+\fBENOSPC\fP
+Il n'y a pas suffisamment d'espace disponible sur le périphérique où se
+trouve le fichier référencé par \fIfd\fP.
+.TP 
+\fBENOSYS\fP
+Ce noyau ne met pas en œuvre \fBfallocate\fP().
+.TP 
+\fBEOPNOTSUPP\fP
+Le système de fichiers contenant le fichier référencé par \fIfd\fP ne gère pas
+cette opération, ou le \fImode\fP n'est pas pris en charge par le système de
+fichiers contenant le fichier référencé par \fIfd\fP.
+.TP 
+\fBEPERM\fP
+Le fichier indiqué par \fIfd\fP est marqué immuable (consultez
+\fBchattr\fP(1)). Ou\ : \fImode\fP indique \fBFALLOC_FL_PUNCH_HOLE\fP et le fichier
+indiqué par \fIfd\fP est marqué en ajout uniquement (consulter \fBchattr\fP(1)).
+.TP 
+\fBESPIPE\fP
+\fIfd\fP fait référence à un tube ou une FIFO.
+.SH VERSIONS
+.\" See http://sourceware.org/bugzilla/show_bug.cgi?id=14964
+\fBfallocate\fP() est disponible dans Linux depuis le noyau 2.6.23. La glibc le
+prend en charge depuis la version 2.10. Les paramètres \fBFALLOC_FL_*\fP ne
+sont définis dans les en\-têtes de la glibc que depuis la version\ 2.18.
+.SH CONFORMITÉ
+\fBfallocate\fP() est spécifique à Linux.
+.SH "VOIR AUSSI"
+\fBfallocate\fP(1), \fBftruncate\fP(2), \fBposix_fadvise\fP(3), \fBposix_fallocate\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

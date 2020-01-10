@@ -1,0 +1,680 @@
+.\" t
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\" and Copyright (c) 2002, 2006 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" and Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 17:34:08 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Jan  7 01:41:27 1996 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified Sun Apr 14 12:02:29 1996 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified Sat Nov 13 16:28:23 1999 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified 10 Apr 2002, by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified  7 Jun 2002, by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Added information on real-time signals
+.\" Modified 13 Jun 2002, by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Noted that SIGSTKFLT is in fact unused
+.\" 2004-12-03, Modified mtk, added notes on RLIMIT_SIGPENDING
+.\" 2006-04-24, mtk, Added text on changing signal dispositions,
+.\"		signal mask, and pending signals.
+.\" 2008-07-04, mtk:
+.\"     Added section on system call restarting (SA_RESTART)
+.\"     Added section on stop/cont signals interrupting syscalls.
+.\" 2008-10-05, mtk: various additions
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SIGNAL 7 "1er mai 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+signal \- Panorama des signaux
+.SH DESCRIPTION
+Linux prend en charge à la fois les signaux POSIX classiques («\ signaux
+standards\ ») et les signaux POSIX temps\-réel.
+.SS "Dispositions de signaux"
+Chaque signal a une \fIdisposition\fP courante, qui détermine le comportement
+du processus lorsqu'il reçoit ce signal.
+
+Les symboles de la colonne «\ Action\ » indiquent l'action par défaut pour
+chaque signal, avec la signification suivante\ :
+.IP Term
+Par défaut, terminer le processus.
+.IP Ign
+Par défaut, ignorer le signal.
+.IP Core
+Par défaut, créer un fichier core et terminer le processus (consultez
+\fBcore\fP(5)).
+.IP Stop
+Par défaut, arrêter le processus.
+.IP Cont
+Par défaut, continuer le processus s'il est actuellement arrêté.
+.PP
+Un processus peut changer la disposition d'un signal avec \fBsigaction\fP(2) ou
+\fBsignal\fP(2) (la deuxième option est moins portable quand on définit un
+gestionnaire de signal\ ; consultez \fBsignal\fP(2)  pour plus de détails). Avec
+ces appels système, un processus peut choisir de se comporter de l'une des
+façons suivantes lorsqu'il reçoit ce signal\ : effectuer l'action par
+défaut, ignorer le signal, ou rattraper le signal avec un \fIgestionnaire de
+signal\fP, c'est\-à\-dire une fonction définie par le programme, qui est
+invoquée automatiquement lorsque le signal est distribué. (Par défaut, le
+gestionnaire de signaux est appelé sur la pile normale des processus. Il est
+possible de s'arranger pour que le gestionnaire de signaux utilise une autre
+pile\ ; consultez \fBsigaltstack\fP(2) pour une discussion sur comment faire
+ceci et quand ça peut être utile.)
+
+La disposition d'un signal est un attribut du processus\ : dans une
+application multithreadée, la disposition d'un signal particulier est la
+même pour tous les threads.
+
+Un fils créé par \fBfork\fP(2) hérite d'une copie des dispositions de signaux
+de son père. Lors d'un \fBexecve\fP(2), les dispositions des signaux pris en
+charge sont remises aux valeurs par défaut\ ; les dispositions des signaux
+ignorés ne sont pas modifiées.
+.SS "Envoyer un signal"
+Les appels système suivants permettent à l'appelant d'envoyer un signal\ :
+.TP  16
+\fBraise\fP(3)
+Envoie un signal au thread appelant.
+.TP 
+\fBkill\fP(2)
+Envoie un signal au processus indiqué, à tous les membres du groupe de
+processus indiqué, ou à tous les processus du système.
+.TP 
+\fBkillpg\fP(2)
+Envoie un signal à tous les membres du groupe de processus indiqué.
+.TP 
+\fBpthread_kill\fP(3)
+Envoie un signal au thread POSIX indiqué, dans le même processus que
+l'appelant.
+.TP 
+\fBtgkill\fP(2)
+Envoie un signal au thread indiqué, à l'intérieur d'un processus
+donné. (C'est l'appel système qui était utilisé pour implémenter
+\fBpthread_kill\fP(3))
+.TP 
+\fBsigqueue\fP(3)
+Envoie un signal temps\-réel, avec ses données jointes, au processus indiqué.
+.SS "Attente de la capture d'un signal"
+Les appels système suivants suspendent l'exécution du processus ou du thread
+appelant jusqu'à ce qu'un signal soit attrapé (ou qu'un signal non pris en
+charge termine le processus)\ :
+.TP  16
+\fBpause\fP(2)
+Suspend l'exécution jusqu'à ce que n'importe quel signal soit reçu.
+.TP 
+\fBsigsuspend\fP(2)
+Change temporairement le masque de signaux (voir ci\-dessous) et suspend
+l'exécution jusqu'à ce qu'un des signaux masqué soit reçu.
+.SS "Accepter un signal de façon synchrone"
+Au lieu de rattraper un signal de façon asynchrone avec un gestionnaire de
+signal, il est possible accepter un signal de façon synchrone, c'est\-à\-dire
+de bloquer l'exécution jusqu'à ce qu'un signal soit distribué. À ce moment,
+le noyau renvoie des informations concernant le signal à l'appelant. Il y a
+deux façon générale pour faire cela\ :
+.IP * 2
+\fBsigwaitinfo\fP(2), \fBsigtimedwait\fP(2) et \fBsigwait\fP(3) suspendent
+l'exécution jusqu'à ce qu'un des signaux dans l'ensemble indiqué soit
+distribué. Chacun de ces appels renvoie des informations concernant le
+signal distribué.
+.IP *
+\fBsignalfd\fP(2) renvoie un descripteur de fichier qui peut être utilisé pour
+lire des informations concernant les signaux qui sont distribué à
+l'appelant. Chaque \fBread\fP(2) dans ce descripteur de fichier est bloquant
+jusqu'à ce que des signaux de l'ensemble fournit à \fBsignalfd\fP(2) soit
+distribué à l'appelant. Le tampon renvoyé par \fBread\fP(2) contient une
+structure qui décrit le signal.
+.SS "Masque de signaux et signaux en attente"
+Un signal peut être \fIbloqué\fP, ce qui signifie qu'il ne sera pas reçu par le
+processus avant d'être débloqué. Entre sa création et sa réception, le
+signal est dit \fIen attente\fP.
+
+Chaque thread d'un processus a un \fImasque de signaux\fP indépendant, qui
+indique l'ensemble des signaux bloqués par le thread. Un thread peut
+modifier son masque de signaux avec \fBpthread_sigmask\fP(3). Dans une
+application traditionnelle, à un seul thread, \fBsigprocmask\fP(2) peut être
+utilisée pour modifier le masque de signaux.
+
+Un processus fils créé avec \fBfork\fP(2) hérite d'une copie du masque de
+signaux de son père\ ; le masque de signaux est conservé au travers d'un
+\fBexecve\fP(2).
+
+Un signal peut être créé (et donc mis en attente) pour un processus dans son
+ensemble (par exemple avec \fBkill\fP(2)), ou pour un thread en particulier
+(par exemple, certains signaux comme \fBSIGSEGV\fP et \fBSIGFPE\fP sont générés
+suite à une instruction particulière en langage machine, et sont dirigés
+vers un thread, de même que les signaux envoyés avec \fBpthread_kill\fP(3)). Un
+signal envoyé à un processus peut être traité par n'importe lequel des
+threads qui ne le bloquent pas. Si plus d'un thread ne bloque pas le signal,
+le noyau choisit l'un de ces threads arbitrairement, et lui envoie le
+signal.
+
+Un thread peut obtenir l'ensemble des signaux en attente avec
+\fBsigpending\fP(2). Cet ensemble est l'union des signaux en attente envoyés au
+processus, et de ceux en attente pour le thread appelant.
+
+Un fils créé avec \fBfork\fP(2) démarre avec un ensemble de signaux en attente
+vide\ ; l'ensemble de signaux en attente est conservé au travers d'un
+\fBexecve\fP(2).
+.SS "Signaux standards"
+Linux prend en charge les signaux standards indiqués ci\-dessous. Plusieurs
+d'entre eux dépendent de l'architecture, comme on le voit dans la colonne «\ Valeur\ ». Lorsque trois valeurs sont indiquées, la première correspond
+normalement aux architectures Alpha et Sparc, la seconde aux architectures
+x86, Arm, ainsi que la majorité des autres architectures, et la dernière aux
+Mips. (Les valeurs pour l'architecture Parisc \fIne\fP sont \fIpas\fP indiquées\ ;
+consultez les sources du noyau Linux pour la numérotation des signaux sur
+cette architecture.) Un «\ \-\ » dénote un signal absent pour l'architecture
+correspondante.
+
+Voici tout d'abord les signaux décrits dans le standard POSIX.1\-1990
+original\ :
+.TS
+l c c l
+____
+lB c c l.
+Signal	Valeur	Action	Commentaire
+SIGHUP	\01	Term	Déconnexion détectée sur le terminal
+			de contrôle ou mort du processus de
+			contrôle.
+SIGINT	\02	Term	Interruption depuis le clavier.
+SIGQUIT	\03	Core	Demande «\ Quitter\ » depuis le clavier.
+SIGILL	\04	Core	Instruction illégale.
+SIGABRT	\06	Core	Signal d'arrêt depuis \fBabort\fP(3).
+SIGFPE	\08	Core	Erreur mathématique virgule flottante.
+SIGKILL	\09	Term	Signal «\ KILL\ ».
+SIGSEGV	11	Core	Référence mémoire invalide.
+SIGPIPE	13	Term	Écriture dans un tube sans
+			lecteur.
+SIGALRM	14	Term	Temporisation \fBalarm\fP(2) écoulée.
+SIGTERM	15	Term	Signal de fin.
+SIGUSR1	30,10,16	Term	Signal utilisateur 1.
+SIGUSR2	31,12,17	Term	Signal utilisateur 2.
+SIGCHLD	20,17,18	Ign	Fils arrêté ou terminé.
+SIGCONT	19,18,25	Cont	Continuer si arrêté.
+SIGSTOP	17,19,23	Stop	Arrêt du processus.
+SIGTSTP	18,20,24	Stop	Stop invoqué depuis le terminal.
+SIGTTIN	21,21,26	Stop	Lecture sur le terminal en arrière\-plan.
+SIGTTOU	22,22,27	Stop	Écriture dans le terminal en arrière\-plan.
+.TE
+
+Les signaux \fBSIGKILL\fP et \fBSIGSTOP\fP ne peuvent ni capturés ni ignorés.
+
+Ensuite, les signaux non décrits par POSIX.1\-1990, mais présents dans les
+spécifications SUSv2 et POSIX.1\-2001\ :
+.TS
+l c c l
+____
+lB c c l.
+Signal	Valeur	Action	Commentaire
+SIGBUS	10,7,10	Core	Erreur de bus (mauvais accès mémoire).
+SIGPOLL		Term	Événement «\ pollable\ » (System\ V).
+			Synonyme de \fBSIGIO\fP.
+SIGPROF	27,27,29	Term	Expiration de la temporisation
+			pour le suivi.
+SIGSYS	12,31,12	Core	Mauvais argument de fonction (SVr4).
+SIGTRAP	5	Core	Point d'arrêt rencontré.
+SIGURG	16,23,21	Ign	Condition urgente sur socket (BSD\ 4.2).
+SIGVTALRM	26,26,28	Term	Alarme virtuelle (BSD\ 4.2).
+SIGXCPU	24,24,30	Core	Limite de temps CPU dépassée (BSD\ 4.2).
+SIGXFSZ	25,25,31	Core	Taille de fichier excessive (BSD\ 4.2).
+.TE
+
+Jusqu'à Linux\ 2.2 inclus, l'action par défaut pour \fBSIGSYS\fP, \fBSIGXCPU\fP,
+\fBSIGXFSZ\fP et (sur les architectures autres que Sparc ou Mips) \fBSIGBUS\fP
+était de terminer simplement le processus, sans fichier core. (Sur certains
+UNIX, l'action par défaut pour \fBSIGXCPU\fP et \fBSIGXFSZ\fP est de finir le
+processus sans fichier core). Linux\ 2.4 se conforme à POSIX.1\-2001 pour ces
+signaux et termine le processus avec un fichier core.
+
+Puis quelques signaux divers\ :
+.TS
+l c c l
+____
+lB c c l.
+Signal	Valeur	Action	Commentaire
+SIGIOT	6	Core	Arrêt IOT. Un synonyme de \fBSIGABRT\fP.
+SIGEMT	7,\-,7	Term
+SIGSTKFLT	\-,16,\-	Term	T{
+Erreur de pile sur coprocesseur (inutilisé).
+T}
+SIGIO	23,29,22	Term	E/S à nouveau possible(BSD\ 4.2).
+SIGCLD	\-,\-,18	Ign	Synonyme de \fBSIGCHLD\fP.
+SIGPWR	29,30,19	Term	Chute d'alimentation (System\ V).
+SIGINFO	29,\-,\-		Synonyme de \fBSIGPWR\fP.
+SIGLOST	\-,\-,\-	Term	Perte de verrou de fichier (inusité).
+SIGWINCH	28,28,20	Ign	Fenêtre redimensionnée (BSD\ 4.3, Sun).
+SIGUNUSED	\-,31,\-	Core	Synonyme de \fBSIGSYS\fP
+.TE
+
+(Le signal 29 est \fBSIGINFO\fP / \fBSIGPWR\fP sur Alpha mais \fBSIGLOST\fP sur
+Sparc).
+
+\fBSIGEMT\fP n'est pas spécifié par POSIX.1\-2001 mais apparaît néanmoins sur la
+plupart des UNIX, avec une action par défaut typique correspondant à une fin
+du processus avec fichier core.
+
+\fBSIGPWR\fP (non spécifié dans POSIX.1\-2001) est typiquement ignoré sur les
+autres UNIX où il apparaît.
+
+\fBSIGIO\fP (non sécifié par POSIX.1\-2001) est ignoré par défaut sur plusieurs
+autres systèmes UNIX.
+
+.\" parisc is the only exception: SIGSYS is 12, SIGUNUSED is 31
+Si défini, \fBSIGUNUSED\fP est synonyme de \fBSIGSYS\fP sur la plupart des
+architectures.
+.SS "Signaux temps\-réel"
+Linux prend en charge les signaux temps\-réel tels qu'ils ont été définis à
+l'origine dans les extensions temps\-réel POSIX.1b (et inclus à présent dans
+POSIX.1\-2001). L'intervalle des signaux temps\-réels gérés est défini par les
+macros \fBSIGRTMIN\fP et \fBSIGRTMAX\fP. POSIX.1\-2001 exige qu'une implémentation
+gère au moins \fB_POSIX_RTSIG_MAX\fP (8) signaux temps\-réels.
+.PP
+Le noyau Linux gère une gamme de 32 signaux temps\-réel, numérotés de 33 à
+64. Cependant, l'implémentation des threads POSIX de la glibc utilise en
+interne deux (pour l'implémentation NPTL) ou trois (pour l'implémentation
+LinuxThreads) signaux temps\-réel (consultez \fBpthreads\fP(7)) et ajuste la
+valeur de \fBSIGRTMIN\fP en conséquence (à 34 ou 35). Comme la gamme de signaux
+temps\-réel varie en fonction de l'implémentation des threads par la glibc
+(et cette implémentation peut changer à l'exécution en fonction du noyau et
+de la glibc) et que la gamme de signaux temps\-réel varie bien sûr également
+suivant les systèmes UNIX, les programmes ne devraient \fIjamais faire
+référence à des signaux temps\-réel en utilisant des numéros\fP, mais devraient
+toujours à la place utiliser des signaux temps\-réel avec la notation
+\fBSIGRTMIN\fP+n en vérifiant à l'exécution que \fBSIGRTMIN\fP+n ne dépasse pas
+\fBSIGRTMAX\fP.
+.PP
+Contrairement aux signaux standards, les signaux temps\-réel n'ont pas de
+signification prédéfinie\ : l'ensemble complet de ces signaux peut être
+utilisé à des fins spécifiques à l'application.
+.PP
+L'action par défaut pour un signal temps\-réel non capturé est de terminer le
+processus récepteur.
+.PP
+Les signaux temps\-réel se distinguent de leurs homologues classiques ainsi\ :
+.IP 1. 4
+Plusieurs instances d'un signal temps\-réel peuvent être empilées. Au
+contraire, si plusieurs instances d'un signal standard arrivent alors qu'il
+est bloqué, une seule instance sera mémorisée.
+.IP 2. 4
+Si le signal est envoyé en utilisant \fBsigqueue\fP(3), il peut être accompagné
+d'une valeur (un entier ou un pointeur). Si le processus récepteur
+positionne un gestionnaire en utilisant l'attribut \fBSA_SIGINFO\fP de l'appel
+\fBsigaction\fP(2) alors il peut accéder à la valeur transmise dans le champ
+\fIsi_value\fP de la structure \fIsiginfo_t\fP passée en second argument au
+gestionnaire. De plus, les champs \fIsi_pid\fP et \fIsi_uid\fP de cette structure
+fournissent le PID et l'UID réel du processus émetteur.
+.IP 3. 4
+Les signaux temps\-réel sont délivrés dans un ordre précis. Les divers
+signaux temps\-réel du même type sont délivrés dans l'ordre où ils ont été
+émis. Si différents signaux temps\-réel sont envoyés au processus, ils sont
+délivrés en commençant par le signal de numéro le moins élevé (le signal de
+plus fort numéro est celui de priorité la plus faible). Par contre, si
+plusieurs signaux standards sont en attente dans un processus, l'ordre dans
+lequel ils sont délivrés n'est pas défini.
+.PP
+Si des signaux standards et des signaux temps\-réel sont simultanément en
+attente pour un processus, Posix ne précise pas d'ordre de
+délivrance. Linux, comme beaucoup d'autres implémentations, donne priorité
+aux signaux temps\-réel dans ce cas.
+.PP
+D'après POSIX, une implémentation doit permettre l'empilement d'au moins
+\fB_POSIX_SIGQUEUE_MAX\fP (32) signaux temps\-réel pour un processus. Néanmoins,
+Linux fonctionne différemment. Jusqu'au noyau\ 2.6.7 inclus, Linux impose une
+limite pour l'ensemble des signaux empilés sur le système pour tous les
+processus. Cette limite peut être consultée, et modifiée (avec les
+privilèges adéquats) grâce au fichier \fI/proc/sys/kernel/rtsig\-max\fP. Un
+fichier associé, \fI/proc/sys/kernel/rtsig\-nr\fP, indique combien de signaux
+temps\-réel sont actuellement empilés. Dans Linux\ 2.6.8, ces interfaces
+\fI/proc\fP ont été remplacées par la limite de ressources
+\fBRLIMIT_SIGPENDING\fP, qui spécifie une limite par utilisateur pour les
+signaux empilés\ ; voir \fBsetrlimit\fP(2) pour plus de détails.
+.SS "Fonctions pour signaux sûr asynchrones"
+.PP
+Un gestionnaire de signal doit prendre beaucoup de précautions, puisqu'il
+peut interrompre à n'importe quel endroit l'exécution du programme. POSIX
+possède la notion de «\ fonctions sûres\ ». Si un signal interrompt
+l'exécution d'une fonction non sûre, et que le \fIgestionnaire\fP appelle une
+fonction non sûre, alors le comportement du programme n'est pas défini.
+
+POSIX.1\-2004 (également appelée «\ POSIX.1\-2001 Technical Corrigendum 2\ »)
+impose qu'une implémentation garantisse que les fonctions suivantes puissent
+être appelée sans risque à l'intérieur d'un gestionnaire de signal\ :
+
+.in +4
+.nf
+_Exit()
+_exit()
+abort()
+accept()
+access()
+aio_error()
+aio_return()
+aio_suspend()
+alarm()
+bind()
+cfgetispeed()
+cfgetospeed()
+cfsetispeed()
+cfsetospeed()
+chdir()
+chmod()
+chown()
+clock_gettime()
+close()
+connect()
+creat()
+dup()
+dup2()
+execle()
+execve()
+fchmod()
+fchown()
+fcntl()
+fdatasync()
+fork()
+fpathconf()
+fstat()
+fsync()
+ftruncate()
+getegid()
+geteuid()
+getgid()
+getgroups()
+getpeername()
+getpgrp()
+getpid()
+getppid()
+getsockname()
+getsockopt()
+getuid()
+kill()
+link()
+listen()
+lseek()
+lstat()
+mkdir()
+mkfifo()
+open()
+pathconf()
+pause()
+pipe()
+poll()
+posix_trace_event()
+pselect()
+raise()
+read()
+readlink()
+recv()
+recvfrom()
+recvmsg()
+rename()
+rmdir()
+select()
+sem_post()
+send()
+sendmsg()
+sendto()
+setgid()
+setpgid()
+setsid()
+setsockopt()
+setuid()
+shutdown()
+sigaction()
+sigaddset()
+sigdelset()
+sigemptyset()
+sigfillset()
+sigismember()
+signal()
+sigpause()
+sigpending()
+sigprocmask()
+sigqueue()
+sigset()
+sigsuspend()
+sleep()
+sockatmark()
+socket()
+socketpair()
+stat()
+symlink()
+sysconf()
+tcdrain()
+tcflow()
+tcflush()
+tcgetattr()
+tcgetpgrp()
+tcsendbreak()
+tcsetattr()
+tcsetpgrp()
+time()
+timer_getoverrun()
+timer_gettime()
+timer_settime()
+times()
+umask()
+uname()
+unlink()
+utime()
+wait()
+waitpid()
+write()
+.fi
+.in
+.PP
+POSIX.1\-2008 supprime fpathconf(), pathconf() et sysconf() de la liste
+ci\-dessus et ajoute les fonctions suivantes\ :
+.PP
+.in +4n
+.nf
+execl()
+execv()
+faccessat()
+fchmodat()
+fchownat()
+fexecve()
+fstatat()
+futimens()
+linkat()
+mkdirat()
+mkfifoat()
+mknod()
+mknodat()
+openat()
+readlinkat()
+renameat()
+symlinkat()
+unlinkat()
+utimensat()
+utimes()
+.fi
+.in
+.SS "Interruption des appels système et des fonctions de bibliothèque par des gestionnaires de signal"
+Si un gestionnaire de signal est invoqué pendant qu'un appel système ou une
+fonction de bibliothèque est bloqué, alors\ :
+.IP * 2
+soit l'appel est automatiquement redémarré après le retour du gestionnaire
+de signal\ ;
+.IP *
+soit l'appel échoue avec l'erreur \fBEINTR\fP.
+.PP
+Lequel de ces deux comportements se produira dépend de l'interface et de si
+le gestionnaire de signal a été mis en place avec l'attribut \fBSA_RESTART\fP
+(consultez \fBsigaction\fP(2)). Les détails varient selon les systèmes UNIX\ ;
+voici ceux pour Linux.
+
+.\" The following system calls use ERESTARTSYS,
+.\" so that they are restartable
+Si un appel bloqué à l'une des interfaces suivantes est interrompu par un
+gestionnaire de signal, l'appel sera automatiquement redémarré après le
+retour du gestionnaire de signal si l'attribut \fBSA_RESTART\fP a été indiqué\ ;
+autrement, l'appel échouera avec l'erreur \fBEINTR\fP\ :
+.RS 4
+.IP * 2
+Les appels \fBread\fP(2), \fBreadv\fP(2), \fBwrite\fP(2), \fBwritev\fP(2) et \fBioctl\fP(2)
+sur des périphériques «\ lents\ ». Un périphérique «\ lent\ » est un
+périphérique où un appel d'entrées\-sorties peut bloquer pendant un temps
+infini, par exemple un terminal, un tube ou une socket. (Selon cette
+définition, un disque n'est pas un périphérique lent.) Si un appel
+d'entrées\-sorties sur un périphérique lent a déjà transféré des données au
+moment où il est interrompu par un gestionnaire de signal, l'appel renverra
+un code de succès (normalement, le nombre d'octets transférés).
+.IP *
+\fBopen \fP(2), s'il peut bloquer (par exemple, lors de l'ouverture d'une
+FIFO\ ; consultez \fBfifo\fP(7)).
+.IP *
+\fBwait\fP(2), \fBwait3\fP(2), \fBwait4\fP(2), \fBwaitid\fP(2), et \fBwaitpid\fP(2).
+.IP *
+.\" If a timeout (setsockopt()) is in effect on the socket, then these
+.\" system calls switch to using EINTR.  Consequently, they and are not
+.\" automatically restarted, and they show the stop/cont behavior
+.\" described below.  (Verified from 2.6.26 source, and by experiment; mtk)
+Interfaces de sockets\ : \fBaccept\fP(2), \fBconnect\fP(2), \fBrecv\fP(2),
+\fBrecvfrom\fP(2), \fBrecvmsg\fP(2), \fBsend\fP(2), \fBsendto\fP(2) et \fBsendmsg\fP(2), à
+moins qu'une temporisation n'ai été placée sur la socket (voir ci\-dessous).
+.IP *
+Interfaces de verrouillage de fichiers\ : opération \fBF_SETLKW\fP de
+\fBflock\fP(2) et \fBfcntl\fP(2).
+.IP *
+Interfaces de files de messages POSIX\ : \fBmq_receive\fP(3),
+\fBmq_timedreceive\fP(3), \fBmq_send\fP(3) et \fBmq_timedsend\fP(3).
+.IP *
+Opération \fBFUTEX_WAIT\fP de \fBfutex\fP(2) (depuis Linux\ 2.6.22\ ; auparavant,
+échouait toujours avec l'erreur \fBEINTR\fP).
+.IP *
+Interfaces de sémaphores POSIX\ : \fBsem_wait\fP(3) et \fBsem_timedwait\fP(3)
+(depuis Linux\ 2.6.22\ ; auparavant, échouait toujours avec l'erreur
+\fBEINTR\fP).
+.RE
+.PP
+.\" These are the system calls that give EINTR or ERESTARTNOHAND
+.\" on interruption by a signal handler.
+Les interfaces suivantes ne sont jamais relancées après avoir été
+interrompues par un gestionnaire de signal, quelle que soit l'utilisation de
+\fBSA_RESTART\fP\ ; elles échouent toujours avec l'erreur \fBEINTR\fP lorsqu'elles
+sont interrompues par un gestionnaire de signal\ :
+.RS 4
+.IP * 2
+Les interfaces de socket, quand une temporisation a été définie sur la
+socket en utilisant \fBsetsockopt\fP(2)\ ; \fBaccept\fP(2), \fBrecv\fP(2),
+\fBrecvfrom\fP(2) et \fBrecvmsg\fP(2), si un délai de réception (\fBSO_RCVTIMEO\fP) a
+été défini\ ; \fBconnect\fP(2), \fBsend\fP(2), \fBsendto\fP(2) et \fBsendmsg\fP(2), si un
+délai de transmission (\fBSO_SNDTIMEO\fP) a été défini.
+.IP *
+Interfaces utilisées pour attendre des signaux\ : \fBpause\fP(2),
+\fBsigsuspend\fP(2), \fBsigtimedwait\fP(2) et \fBsigwaitinfo\fP(2).
+.IP *
+Interfaces de multiplexage de descripteurs de fichier\ : \fBepoll_wait\fP(2),
+\fBepoll_pwait\fP(2), \fBpoll\fP(2), \fBppoll\fP(2), \fBselect\fP(2) et \fBpselect\fP(2).
+.IP *
+.\" On some other systems, SA_RESTART does restart these system calls
+Interfaces IPC de System\ V\ : \fBmsgrcv\fP(2), \fBmsgsnd\fP(2), \fBsemop\fP(2) et
+\fBsemtimedop\fP(2).
+.IP *
+Interfaces de sommeil\ : \fBclock_nanosleep\fP(2), \fBnanosleep\fP(2) et
+\fBusleep\fP(3).
+.IP *
+\fBread\fP(2) sur un descripteur de fichier \fBinotify\fP(7).
+.IP *
+\fBio_getevents\fP(2).
+.RE
+.PP
+La fonction \fBsleep\fP(3) n'est également jamais relancée si elle est
+interrompue par un gestionnaire, mais elle renvoie un code de retour de
+succès, le nombre de secondes restantes pour le sommeil.
+.SS "Interruption des appels système et des fonctions de bibliothèque par des signaux d'arrêt"
+Sous Linux, même en l'absence de gestionnaires de signal, certaines
+interfaces en mode bloquant peuvent échouer avec l'erreur \fBEINTR\fP après que
+le processus a été arrêté par l'un des signaux d'arrêt et relancé avec le
+signal \fBSIGCONT\fP. Ce comportement n'est pas ratifié par POSIX.1 et
+n'apparaît pas sur d'autres systèmes.
+
+Les interfaces Linux qui affichent ce comportement sont\ :
+.RS 4
+.IP * 2
+Les interfaces de socket, quand une temporisation a été définie sur la
+socket en utilisant \fBsetsockopt\fP(2)\ ; \fBaccept\fP(2), \fBrecv\fP(2),
+\fBrecvfrom\fP(2) et \fBrecvmsg\fP(2), si un délai de réception (\fBSO_RCVTIMEO\fP) a
+été défini\ ; \fBconnect\fP(2), \fBsend\fP(2), \fBsendto\fP(2) et \fBsendmsg\fP(2), si un
+délai de transmission (\fBSO_SNDTIMEO\fP) a été défini.
+.IP * 2
+\fBepoll_wait\fP(2), \fBepoll_pwait\fP(2).
+.IP *
+\fBsemop\fP(2), \fBsemtimedop\fP(2).
+.IP *
+\fBsigtimedwait\fP(2), \fBsigwaitinfo\fP(2).
+.IP *
+\fBread\fP(2) sur un descripteur de fichier \fBinotify\fP(7).
+.IP *
+Linux\ 2.6.21 et antérieurs\ : opération \fBFUTEX_WAIT\fP de \fBfutex\fP(2),
+\fBsem_timedwait\fP(3), \fBsem_wait\fP(3).
+.IP *
+Linux\ 2.6.8 et antérieurs\ : \fBmsgrcv\fP(2), \fBmsgsnd\fP(2).
+.IP *
+Linux\ 2.4 et antérieurs\ : \fBnanosleep\fP(2).
+.RE
+.SH CONFORMITÉ
+.\" It must be a *very* long time since this was true:
+.\" .SH BUGS
+.\" .B SIGIO
+.\" and
+.\" .B SIGLOST
+.\" have the same value.
+.\" The latter is commented out in the kernel source, but
+.\" the build process of some software still thinks that
+.\" signal 29 is
+.\" .BR SIGLOST .
+POSIX.1, sauf indication contraire.
+.SH "VOIR AUSSI"
+\fBkill\fP(1), \fBgetrlimit\fP(2), \fBkill\fP(2), \fBkillpg\fP(2),
+\fBrt_sigqueueinfo\fP(2), \fBsetitimer\fP(2), \fBsetrlimit\fP(2), \fBsgetmask\fP(2),
+\fBsigaction\fP(2), \fBsigaltstack\fP(2), \fBsignal\fP(2), \fBsignalfd\fP(2),
+\fBsigpending\fP(2), \fBsigprocmask\fP(2), \fBsigsuspend\fP(2), \fBsigwaitinfo\fP(2),
+\fBabort\fP(3), \fBbsd_signal\fP(3), \fBlongjmp\fP(3), \fBraise\fP(3),
+\fBpthread_sigqueue\fP(3), \fBsigqueue\fP(3), \fBsigset\fP(3), \fBsigsetops\fP(3),
+\fBsigvec\fP(3), \fBsigwait\fP(3), \fBstrsignal\fP(3), \fBsysv_signal\fP(3), \fBcore\fP(5),
+\fBproc\fP(5), \fBpthreads\fP(7), \fBsigevent\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

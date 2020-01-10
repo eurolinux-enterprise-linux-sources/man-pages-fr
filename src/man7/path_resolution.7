@@ -1,0 +1,216 @@
+.\" Copyright (C) 2003 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PATH_RESOLUTION 7 "5 décembre 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+path_resolution \- Trouver le fichier auquel un chemin fait référence
+.SH DESCRIPTION
+Certains appels système UNIX/Linux ont pour paramètre un ou plusieurs noms
+de fichiers. Un nom de fichier (ou chemin) est résolu de la manière
+suivante.
+.SS "Étape 1\ : Démarrer le processus de résolution"
+Si le chemin débute avec le caractère «\ /\ », le répertoire de recherche de
+départ est le répertoire racine du processus appelant. (Un processus hérite
+son répertoire racine de son père. Habituellement, c'est le répertoire
+racine de la hiérarchie des fichiers. Un processus peut avoir un répertoire
+racine différent avec l'utilisation de l'appel système \fBchroot\fP(2). Un
+processus peut récupérer un espace noms de montage privé entier dans le cas
+où lui \(em\ ou un de ses parents\ \(em a été démarré par une invocation de
+l'appel système \fBclone\fP(2) avec l'attribut \fBCLONE_NEWNS\fP positionné.) Cela
+gère la partie «\ /\ » du chemin.
+
+Si le chemin ne débute pas par le caractère «\ /\ », le répertoire de
+recherche de départ du processus de résolution est le répertoire courant du
+processus. (Lui aussi est hérité du père. Il peut être modifié avec l'appel
+système \fBchdir\fP(2).)
+
+Les chemins débutant avec le caractère «\ /\ » sont appelés chemins
+absolus. Les chemins ne débutant pas avec le caractère «\ /\ » sont appelés
+chemins relatifs.
+.SS "Étape 2\ : Se promener le long du chemin"
+Le répertoire de recherche courant est le répertoire de recherche de
+départ. On appellera composant d'un chemin une sous\-chaîne délimitée par des
+caractères «\ /\ ». Chaque composant du chemin qui n'est pas le composant
+final est recherché dans le répertoire de recherche courant.
+
+Si le processus n'a pas les permissions nécessaires pour effectuer la
+recherche dans le répertoire de recherche courant, une erreur \fBEACCES\fP est
+renvoyée («\ Permission denied\ »\ : «\ Permission non accordée\ »).
+
+Si le composant n'est pas trouvé, une erreur \fBENOENT\fP est renvoyée («\ No
+such file or directory\ »\ : «\ Aucun fichier ou répertoire de ce type\ »).
+
+Si le composant est trouvé mais que ce n'est ni un répertoire, ni un lien
+symbolique, une erreur \fBENOTDIR\fP est renvoyée («\ Not a directory\ »\ :
+«\ N'est pas un répertoire\ »).
+
+Si le composant est trouvé et que c'est un répertoire, le répertoire de
+recherche courant devient ce répertoire et on passe au composant suivant.
+
+.\"
+.\" presently: max recursion depth during symlink resolution: 5
+.\" max total number of symbolic links followed: 40
+.\" _POSIX_SYMLOOP_MAX is 8
+Si le composant est trouvé et que c'est un lien symbolique, on résout
+d'abord ce lien (avec le répertoire de recherche courant comme répertoire de
+recherche de départ). Si une erreur survient, cette erreur est renvoyée. Si
+le résultat de la résolution n'est pas un répertoire, une erreur \fBENOTDIR\fP
+est renvoyée. Si la résolution du lien symbolique est couronnée de succès et
+renvoie un répertoire, le répertoire de recherche courant devient ce
+répertoire et on passe au composant suivant. Veuillez noter que le processus
+de résolution implique une récursivité. Afin de protéger le noyau d'un
+débordement de pile et également d'un déni de service, il y a des limites à
+la profondeur maximum de récursivité et aux nombres maximum de liens
+symboliques suivis. Une erreur \fBELOOP\fP est renvoyée lors ces maxima sont
+atteints («\ Too many levels of symbolic links\ »\ : «\ Trop de niveaux de liens
+symboliques\ »).
+.SS "Étape 3\ : Trouver l'entrée finale"
+La recherche du dernier composant du nom de chemin s'effectue de la même
+manière que les autres composants, comme décrit dans l'étape précédente,
+avec deux différences\ : (i) le composant final n'a pas besoin d'être un
+répertoire (du moins tant que le processus de résolution du chemin est
+concerné \(em il peut être ou ne pas être un répertoire, suivant les
+exigences de l'appel système concerné), et (ii) ce n'est peut\-être pas une
+erreur si le composant n'est pas trouvé \(em peut\-être vient on juste de le
+créer. Les détails du traitement du composant final sont décrits dans les
+pages de manuel des appels système concernés.
+.SS ". et .."
+Par convention, chaque répertoire possède les entrées \fI.\fP et \fI..\fP, qui se
+rapportent, respectivement, au répertoire lui\-même et à son répertoire
+parent.
+
+Le processus de résolution de chemin considère que ces entrées ont leurs
+sens conventionnels, sans considération de leur existence ou non sur le
+système de fichiers.
+
+On ne peut plus sortir passée la racine\ : \fI/..\fP est identique à \fI/\fP.
+.SS "Points de montage"
+Après une commande \fBmount\fP \fIpériphérique chemin\fP, le nom de chemin
+\fIchemin\fP fait référence à la racine de la hiérarchie du système de fichiers
+sur le \fIpériphérique\fP, et plus du tout ce qu'il référençait précédemment.
+
+On peut sortir d'un système de fichiers monté\ : \fIchemin/..\fP fait référence
+au répertoire parent de \fIchemin\fP, en dehors de la hiérarchie du système de
+fichiers sur \fIpériphérique\fP.
+.SS "Barres obliques de fin"
+Si un nom de chemin finit avec un «\ /\ », cela force la résolution du
+composant qui le précède comme décrit dans l'étape 2 \(em le composant doit
+exister et être résolu comme répertoire. Autrement, un «\ /\ » final est
+ignoré. (Ou bien, de manière équivalente, un nom de chemin avec un «\ /\ »
+final est équivalent au nom de chemin obtenu en ajoutant «\ .\ » à la fin.)
+.SS "Lien symbolique final"
+Si le dernier composant d'un nom de chemin est un lien symbolique, cela
+dépend de l'appel système si le fichier référencé sera le lien symbolique ou
+bien le résultat de la résolution de chemin sur son contenu. Par exemple,
+l'appel système \fBlstat\fP(2) agit sur le lien symbolique alors que \fBstat\fP(2)
+agit sur le fichier pointé par le lien.
+.SS "Limite de longueur"
+Il y a une longueur maximum pour les noms de chemins. Si le chemin (ou un
+chemin intermédiaire obtenu en résolvant un lien symbolique) est trop long,
+une erreur \fBENAMETOOLONG\fP est renvoyée («\ Filename too long\ »\ : «\ Nom de
+fichier trop long\ »).
+.SS "Nom de chemin vide"
+Dans l'UNIX d'origine, un nom de chemin vide faisait référence au répertoire
+courant. Aujourd'hui, POSIX décrète qu'un nom de fichier vide ne doit pas
+être résolu avec succès. Linux renvoie \fBENOENT\fP dans ce cas.
+.SS Permissions
+Les bits de permissions d'un fichier consistent en trois groupes de trois
+bits, cf.\& \fBchmod\fP(1) et \fBstat\fP(2). Le premier de ces groupes est utilisé
+lorsque l'UID effectif du processus appelant est égal à l'UID réel (le
+propriétaire) du fichier. Le deuxième de ces groupes est utilisé lorsque le
+GID du fichier est soit égal au GID effectif du processus appelant, soit est
+un des GID supplémentaires du processus appelant (comme configuré avec
+\fBsetgroups\fP(2)). Lorsqu'aucun ne correspond, le troisième groupe est
+utilisé.
+
+Des trois bits utilisés, le premier détermine la permission de lecture, le
+deuxième la permission d'écriture et le dernier la permission d'exécution
+dans le cas d'un fichier ordinaire ou la permission de recherche dans le cas
+d'un répertoire.
+
+Linux utilise le fsuid à la place de l'UID effectif lors de la vérification
+des permissions. D'ordinaire, le fsuid est égal à l'UID effectif, mais le
+fsuid peut être modifié avec l'appel système \fBsetfsuid\fP(2).
+
+(Ici, «\ fsuid\ » signifie quelque chose comme «\ UID système de fichiers\ »
+(«\ file system user ID\ »). Le concept était requis pour l'implémentation
+d'un serveur NFS en espace utilisateur au moment où les processus pouvaient
+envoyer un signal à un processus qui avait le même UID effectif. Il est
+aujourd'hui obsolète. Personne ne devrait plus utiliser \fBsetfsuid\fP(2).)
+
+.\" FIXME say something about file system mounted read-only ?
+De la même manière, Linux utilise le fsgid à la place du GID
+effectif. Consultez \fBsetfsgid\fP(2).
+.SS "Contourner les vérifications de permissions\ : superutilisateur et capacités"
+.\" (but for exec at least one x bit must be set) -- AEB
+.\" but there is variation across systems on this point: for
+.\" example, HP-UX and Tru64 are as described by AEB.  However,
+.\" on some implementations (e.g., Solaris, FreeBSD),
+.\" access(X_OK) by superuser will report success, regardless
+.\" of the file's execute permission bits. -- MTK (Oct 05)
+Sur un système UNIX traditionnel, le superutilisateur (\fIroot\fP,
+d'identifiant 0) est tout\-puissant, et shunte toutes les restrictions de
+permissions lorsqu'il accède à des fichiers.
+
+Sous Linux, les privilèges du superutilisateur sont divisés en capacités
+(consultez \fBcapabilities\fP(7)). Deux de ces capacités sont liées aux
+vérifications d'accès aux fichiers\ : \fBCAP_DAC_OVERRIDE\fP et
+\fBCAP_DAC_READ_SEARCH\fP. (Un processus a ces capacités si son fsuid est 0.)
+
+La capacité \fBCAP_DAC_OVERRIDE\fP écrase toutes les vérifications de
+permission mais n'assurera la permission d'exécution que si au moins un des
+trois bits d'exécution est à 1.
+
+.\" FIXME say something about immutable files
+.\" FIXME say something about ACLs
+La capacité \fBCAP_DAC_READ_SEARCH\fP assurera la permission de lecture et de
+recherche sur les répertoires, et la permission de lecture sur les fichiers
+ordinaires.
+.SH "VOIR AUSSI"
+\fBreadlink\fP(2), \fBcapabilities\fP(7), \fBcredentials\fP(7), \fBsymlink\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2004-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

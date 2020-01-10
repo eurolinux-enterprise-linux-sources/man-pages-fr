@@ -1,0 +1,208 @@
+.\" Copyright 2012 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" See also https://lwn.net/Articles/519085/
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETAUXVAL 3 "7 novembre 2012" GNU "Manuel du programmeur Linux"
+.SH NOM
+getauxval \- Récupérer une valeur du vecteur auxiliaire
+.SH SYNOPSIS
+.nf
+\fB#include <sys/auxv.h>\fP
+.sp
+\fBunsigned long getauxval(unsigned long \fP\fItype\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBgetauxval\fP() récupère des valeurs du vecteur auxiliaire, un
+mécanisme que le chargeur de binaires ELF du noyau utilise pour passer
+certains renseignements à l'espace utilisateur quand un programme est
+exécuté.
+
+Toutes les entrées du vecteur auxiliaire sont des paires de valeurs\ : un
+type qui identifie ce que l'entrée représente, et une valeur pour ce
+type. En fonction de l'argument \fItype\fP, \fBgetauxval\fP() renvoie la valeur
+correspondante.
+
+Les valeurs renvoyées pour tous les types sont données dans la liste
+suivante. Les différentes valeurs de \fItype\fP ne sont pas toutes présentes
+suivant l'architecture.
+.TP 
+\fBAT_BASE\fP
+L'adresse de base de l'interpréteur du programme (l'éditeur de liens
+dynamique en général).
+.TP 
+\fBAT_BASE_PLATFORM\fP
+Une chaîne identifiant la plateforme réelle\ ; peut être différente de
+\fBAT_PLATFORM\fP (PowerPC seulement).
+.TP 
+\fBAT_CLKTCK\fP
+La fréquence utilisée par \fBtimes\fP(2) pour compter. Cette valeur peut aussi
+être obtenue avec \fIsysconf(_SC_CLK_TCK)\fP.
+.TP 
+\fBAT_DCACHEBSIZE\fP
+La taille du bloc de cache de données.
+.TP 
+\fBAT_EGID\fP
+Le GID effectif du thread.
+.TP 
+\fBAT_ENTRY\fP
+L'adresse d'entrée de l'exécutable.
+.TP 
+\fBAT_EUID\fP
+L'UID effectif du thread.
+.TP 
+\fBAT_EXECFD\fP
+Le descripteur de fichier du programme.
+.TP 
+\fBAT_EXECFN\fP
+Le nom de chemin utilisé pour exécuter le programme.
+.TP 
+\fBAT_FLAGS\fP
+Les attributs (inutilisé).
+.TP 
+\fBAT_FPUCW\fP
+Le mot de contrôle FPU utilisé (architecture SuperH seulement). Cela donne
+quelques renseignements sur l'initialisation FPU réalisée par le noyau.
+.TP 
+\fBAT_GID\fP
+Le GID réel du thread.
+.TP 
+\fBAT_HWCAP\fP
+Un pointeur vers un masque multioctet de bits dont les réglages indiquent
+des capacités processeurs détaillées. Le contenu du masque de bits dépend du
+matériel (consultez par exemple le fichier
+\fIarch/x86/include/asm/cpufeature.h\fP des sources du noyau pour obtenir des
+précisions sur l'architecture x86). Une version lisible des mêmes
+renseignements est disponible dans \fI/proc/cpuinfo\fP.
+.TP 
+\fBAT_ICACHEBSIZE\fP
+.\" .TP
+.\" .BR AT_IGNORE
+.\" .TP
+.\" .BR AT_IGNOREPPC
+.\" .TP
+.\" .BR AT_NOTELF
+La taille du bloc de cache d'instructions.
+.TP 
+\fBAT_PAGESZ\fP
+La taille de page du système (la même valeur que celle renvoyée par
+\fIsysconf(_SC_PAGESIZE)\fP).
+.TP 
+\fBAT_PHDR\fP
+L'adresse des en\-têtes du programme de l'exécutable.
+.TP 
+\fBAT_PHENT\fP
+La taille de l'entrée des en\-têtes du programme.
+.TP 
+\fBAT_PHNUM\fP
+Le nombre d'en\-têtes du programme.
+.TP 
+\fBAT_PLATFORM\fP
+Un pointeur vers une chaîne qui identifie la plate\-forme matérielle sur
+laquelle le programme est exécuté. L'éditeur de liens dynamique utilise cela
+dans l'interprétation des valeurs \fIrpath\fP.
+.TP 
+\fBAT_RANDOM\fP
+L'adresse de seize octets contenant une valeur aléatoire.
+.TP 
+\fBAT_SECURE\fP
+Une valeur non nulle si l'exécutable devrait être traité de façon
+sécurisée. Le plus souvent, une valeur non nulle indique que le processus
+exécute un programme Set\-UID ou Set\-GID\ ; sinon, une valeur non nulle
+pourrait être provoquée par un module de sécurité Linux. Quand cette valeur
+est non nulle, l'éditeur de liens dynamique désactive l'utilisation de
+certaines variables d'environnement (consultez \fBld\-linux.so\fP(8)) et glibc
+modifie d'autres facettes de son comportement (consultez aussi
+\fBsecure_getenv\fP(3)).
+.TP 
+\fBAT_SYSINFO\fP
+Le point d'entrée vers la fonction d'appel système dans le VDSO. N'est ni
+présent ni nécessaire sur toutes les architectures (par exemple absent sur
+x86\-64).
+.TP 
+\fBAT_SYSINFO_EHDR\fP
+L'adresse d'une page contenant le VDSO («\ Virtual Dynamic Shared Object\ »)
+que le noyau crée pour fournir des implémentations rapides de certains
+appels systèmes.
+.TP 
+\fBAT_UCACHEBSIZE\fP
+La taille du bloc de cache unifié.
+.TP 
+\fBAT_UID\fP
+L'UID réel du thread.
+.SH "VALEUR RENVOYÉE"
+Si elle réussit, \fBgetauxval\fP() renvoie la valeur correspondant au
+\fItype\fP. Si \fItype\fP n'est pas trouvé, 0 est renvoyé.
+.SH ERREURS
+Aucune erreur n'est diagnostiquée.
+.SH VERSIONS
+La fonction \fBgetauxval\fP() est disponible depuis la glibc\ 2.16.
+.SH CONFORMITÉ
+Cette fonction est une extension non normalisée de la glibc.
+.SH NOTES
+Le principal utilisateur des renseignements du vecteur auxiliaire est
+l'éditeur de liens dynamique \fBld\-linux.so\fP(8). Le vecteur auxiliaire est un
+raccourci pratique et efficace qui permet au noyau de communiquer un certain
+jeu de renseignements standards dont l'éditeur de liens a souvent ou
+toujours besoin. Dans certains cas, les mêmes renseignements pourraient être
+obtenus à l'aide d'appels système, mais l'utilisation du vecteur auxiliaire
+est moins coûteuse.
+
+Le vecteur auxiliaire réside juste au\-dessus de la liste d'arguments et de
+l'environnement dans l'espace d'adresse du processus. Le vecteur auxiliaire
+fourni à un programme peut être affiché en définissant la variable
+d'environnement \fBLD_SHOW_AUXV\fP lors de l'exécution d'un programme\ :
+
+    $ LD_SHOW_AUXV=1 sleep 1
+
+Le vecteur auxiliaire de n'importe quel processus peut (en fonction des
+droits du fichier) être obtenu dans \fI/proc/PID/auxv\fP. Consultez \fBproc\fP(5)
+pour obtenir de plus amples renseignements.
+.SH "VOIR AUSSI"
+\fBsecure_getenv\fP(3), \fBld\-linux.so\fP(8)
+
+Le fichier \fIDocumentation/ABI/stable/vdso\fP des sources du noyau
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,316 @@
+.\" t
+.\" Copyright (c) 1983, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     $Id: socket.2,v 1.4 1999/05/13 11:33:42 freitag Exp $
+.\"
+.\" Modified 1993-07-24 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1996-10-22 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1998, 1999 by Andi Kleen <ak@muc.de>
+.\" Modified 2002-07-17 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2004-06-17 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SOCKET 2 "19 janvier 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+socket \- Créer un point de communication
+.SH SYNOPSIS
+\fB#include <sys/types.h>\fP /* Consultez NOTES */
+.br
+\fB#include <sys/socket.h>\fP
+.sp
+\fBint socket(int \fP\fIdomain\fP\fB, int \fP\fItype\fP\fB, int \fP\fIprotocol\fP\fB);\fP
+.SH DESCRIPTION
+\fBsocket\fP() crée un point de communication, et renvoie un descripteur.
+.PP
+Le paramètre \fIdomain\fP indique le domaine de communication pour le dialogue\ ; ceci sélectionne la famille de protocole à employer. Elles sont définies
+dans le fichier \fI<sys/socket.h>\fP. Les formats actuellement proposés
+sont\ :
+.TS
+tab(:);
+l l l.
+Nom:Utilisation:Page
+T{
+\fBAF_UNIX\fP, \fBAF_LOCAL\fP
+T}:T{
+Communication locale
+T}:T{
+\fBunix\fP(7)
+T}
+T{
+\fBAF_INET\fP
+T}:Protocoles Internet IPv4:T{
+\fBip\fP(7)
+T}
+T{
+\fBAF_INET6\fP
+T}:Protocoles Internet IPv6:T{
+\fBipv6\fP(7)
+T}
+T{
+\fBAF_IPX\fP
+T}:IPX \- Protocoles Novell:
+T{
+\fBAF_NETLINK\fP
+T}:T{
+Interface utilisateur noyau
+T}:T{
+\fBnetlink\fP(7)
+T}
+T{
+\fBAF_X25\fP
+T}:Protocole ITU\-T X.25 / ISO\-8208:T{
+\fBx25\fP(7)
+T}
+T{
+\fBAF_AX25\fP
+T}:T{
+Protocole AX.25 radio amateur
+T}:
+T{
+\fBAF_ATMPVC\fP
+T}:Accès direct ATM PVCs:
+T{
+\fBAF_APPLETALK\fP
+T}:Appletalk:T{
+\fBddp\fP(7)
+T}
+T{
+\fBAF_PACKET\fP
+T}:T{
+Interface paquet bas\-niveau
+T}:T{
+\fBpacket\fP(7)
+T}
+.TE
+.PP
+La socket a le \fItype\fP indiqué, ce qui indique la sémantique des
+communications. Les types définis actuellement sont\ :
+.TP  16
+\fBSOCK_STREAM\fP
+Support de dialogue garantissant l'intégrité, fournissant un flux de données
+binaires, et intégrant un mécanisme pour les transmissions de données
+hors\-bande.
+.TP 
+\fBSOCK_DGRAM\fP
+Transmissions sans connexion, non garantie, de datagrammes de longueur
+maximale fixe.
+.TP 
+\fBSOCK_SEQPACKET\fP
+Dialogue garantissant l'intégrité, pour le transport de datagrammes de
+longueur fixe. Le lecteur doit lire le paquet de données complet à chaque
+appel système récupérant l'entrée.
+.TP 
+\fBSOCK_RAW\fP
+Accès direct aux données réseau.
+.TP 
+\fBSOCK_RDM\fP
+Transmission fiable de datagrammes, sans garantie de l'ordre de délivrance.
+.TP 
+\fBSOCK_PACKET\fP
+Obsolète, à ne pas utiliser dans les programmes actuels. Consultez
+\fBpacket\fP(7).
+.PP
+Certains types de sockets peuvent ne pas être implémentés par toutes les
+familles de protocoles. Par exemple, \fBSOCK_SEQPACKET\fP n'est pas implémenté
+pour \fBAF_INET\fP.
+.PP
+Depuis Linux 2.6.27, le paramètre \fItype\fP a un autre objectif\ : en plus
+d'indiquer le type de socket, il peut inclure les valeurs suivantes en les
+combinant par un OU binaire, pour modifier le comportement de \fBsocket\fP()\ :
+.TP  16
+\fBSOCK_NONBLOCK\fP
+Placer l'attribut d'état de fichier \fBO_NONBLOCK\fP sur le nouveau descripteur
+de fichier ouvert. Utiliser cet attribut économise des appels
+supplémentaires à \fBfcntl\fP(2) pour obtenir le même résultat.
+.TP 
+\fBSOCK_CLOEXEC\fP
+Placer l'attribut «\ close\-on\-exec\ » (\fBFD_CLOEXEC\fP) sur le nouveau
+descripteur de fichier. Consultez la description de l'attribut \fBO_CLOEXEC\fP
+dans \fBopen\fP(2) pour savoir pourquoi cela peut être utile.
+.PP
+Le protocole à utiliser sur la socket est indiqué par l'argument
+\fIprotocol\fP. Normalement, il n'y a qu'un seul protocole par type de socket
+pour une famille donnée, auquel cas l'argument \fIprotocol\fP peut être
+nul. Néanmoins, rien ne s'oppose à ce que plusieurs protocoles existent,
+auquel cas il est nécessaire de le spécifier. Le numéro de protocole dépend
+du domaine de communication de la socket\ ; consultez
+\fBprotocols\fP(5). Consultez \fBgetprotoent\fP(3) pour savoir comment associer un
+nom de protocole à un numéro.
+.PP
+Une socket de type \fBSOCK_STREAM\fP est un flux d'octets full\-duplex,
+similaire aux tubes (pipes). Elle ne préserve pas les limites
+d'enregistrements. Une socket SOCK_STREAM doit être dans un état \fIconnecté\fP
+avant que des données puisse y être lues ou écrites. Une connexion sur une
+autre socket est établie par l'appel système \fBconnect\fP(2). Une fois
+connectée, les données y sont transmises par \fBread\fP(2) et \fBwrite\fP(2) ou
+par des variantes de \fBsend\fP(2) et \fBrecv\fP(2). Quand une session se termine,
+on referme la socket avec \fBclose\fP(2). Les données hors\-bande sont envoyées
+ou reçues en utilisant \fBsend\fP(2) et \fBrecv\fP(2).
+.PP
+Les protocoles de communication qui implémentent les sockets \fBSOCK_STREAM\fP
+garantissent qu'aucune donnée n'est perdue ou dupliquée. Si un bloc de
+données, pour lequel le correspondant a suffisamment de place dans son
+tampon, n'est pas transmis correctement dans un délai raisonnable, la
+connexion est considérée comme inutilisable. Si l'option \fBSO_KEEPALIVE\fP est
+activée sur la socket, le protocole vérifie, d'une manière qui lui est
+spécifique, si le correspondant est toujours actif. Un signal \fBSIGPIPE\fP est
+envoyé au processus tentant d'écrire sur une socket inutilisable, forçant
+les programmes ne gérant pas ce signal à se terminer. Les sockets de type
+\fBSOCK_SEQPACKET\fP emploient les mêmes appels système que celles de types
+\fBSOCK_STREAM\fP, à la différence que la fonction \fBread\fP(2) ne renverra que
+le nombre d'octets requis, et toute autre donnée restante dans le paquet
+sera éliminée. De plus, les frontières des messages seront préservées.
+.PP
+Les sockets de type \fBSOCK_DGRAM\fP ou \fBSOCK_RAW\fP permettent l'envoi de
+datagrammes aux correspondants indiqués dans l'appel système
+\fBsendto\fP(2). Les datagrammes sont généralement lus par la fonction
+\fBrecvfrom\fP(2), qui fournit également l'adresse du correspondant.
+.PP
+Les sockets \fBSOCK_PACKET\fP sont obsolètes. Elles servent à recevoir les
+paquets bruts directement depuis le gestionnaire de périphérique. Utilisez
+plutôt \fBpacket\fP(7).
+.PP
+Un appel à \fBfcntl\fP(2) avec l'argument \fBF_SETOWN\fP permet de préciser un
+processus ou un groupe de processus qui recevront un signal \fBSIGURG\fP lors
+de l'arrivée de données hors\-bande, ou le signal \fBSIGPIPE\fP lorsqu'une
+connexion sur une socket \fBSOCK_STREAM\fP se termine inopinément. Cette
+fonction permet également de définir le processus ou groupe de processus qui
+recevront une notification asynchrone des événements d'entrées\-sorties par
+le signal \fBSIGIO\fP. L'utilisation de \fBF_SETOWN\fP est équivalent à un appel
+\fBioctl\fP(2) avec l'argument \fBFIOSETOWN\fP ou \fBSIOCSPGRP\fP.
+.PP
+Lorsque le réseau indique une condition d'erreur au module du protocole (par
+exemple avec un message ICMP pour IP), un drapeau signale une erreur en
+attente sur la socket. L'opération suivante sur cette socket renverra ce
+code d'erreur. Pour certains protocoles, il est possible d'activer une file
+d'attente d'erreurs par socket. Pour plus de détails, consultez
+\fBIP_RECVERR\fP dans \fBip\fP(7).
+.PP
+Les opérations sur les sockets sont contrôlées par des \fIoptions\fP du niveau
+socket. Ces options sont définies dans \fI<sys/socket.h>\fP. Les
+fonctions \fBsetsockopt\fP(2) et \fBgetsockopt\fP(2) sont utilisées respectivement
+pour définir ou lire les options.
+.SH "VALEUR RENVOYÉE"
+\fBsocket\fP() renvoie un descripteur référençant la socket créée en cas de
+réussite. En cas d'échec \-1 est renvoyé, et \fIerrno\fP contient le code
+d'erreur.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+La création d'une socket avec le type et le protocole indiqués n'est pas
+autorisée.
+.TP 
+\fBEAFNOSUPPORT\fP
+L'implémentation ne supporte pas la famille d'adresses indiquée.
+.TP 
+\fBEINVAL\fP
+Protocole inconnu, ou famille de protocole inexistante.
+.TP 
+\fBEINVAL\fP
+.\" Since Linux 2.6.27
+Attributs incorrects dans \fItype\fP.
+.TP 
+\fBEMFILE\fP
+La table des fichiers est pleine.
+.TP 
+\fBENFILE\fP
+La limite du nombre total de fichiers ouverts sur le système a été atteinte.
+.TP 
+\fBENOBUFS\fP ou \fBENOMEM\fP
+Pas suffisamment d'espace pour allouer les tampons nécessaires. La socket ne
+peut être créée tant que suffisamment de ressources ne sont pas libérées.
+.TP 
+\fBEPROTONOSUPPORT\fP
+Le type de protocole, ou le protocole lui\-même n'est pas disponible dans ce
+domaine de communication.
+.PP
+D'autres erreurs peuvent être dues aux modules de protocoles sous\-jacents.
+.SH CONFORMITÉ
+BSD\ 4.4, POSIX.1\-2001.
+
+Les attributs \fBSOCK_NONBLOCK\fP et \fBSOCK_CLOEXEC\fP sont spécifiques à Linux.
+
+La fonction \fBsocket\fP() est apparue dans BSD\ 4.2. Elle est généralement
+portable de/vers les systèmes non\-BSD supportant des clones des sockets BSD
+(y compris les variantes de System\ V).
+.SH NOTES
+POSIX.1\-2001 ne requiert pas l'inclusion de \fI<sys/types.h>\fP, et cet
+en\(hytête n'est pas nécessaire sous Linux. Cependant, il doit être inclus
+sous certaines implémentations historiques (BSD), et les applications
+portables devraient probablement l'utiliser.
+
+Les constantes explicites utilisées sous BSD\ 4.x pour les familles de
+protocoles sont \fBPF_UNIX\fP, \fBPF_INET\fP, etc. alors que \fBAF_UNIX\fP,
+\fBAF_INET\fP, etc. sont utilisées pour les familles d'adresses. Toutefois,
+même la page de manuel de BSD indiquait «\ La famille de protocoles est
+généralement la même que la famille d'adresses\ », et les standards
+ultérieurs utilisent AF_* partout.
+.SH EXEMPLE
+Un exemple d'utilisation de \fBsocket\fP() se trouve dans la page de manuel de
+\fBgetaddrinfo\fP(3).
+.SH "VOIR AUSSI"
+\fBaccept\fP(2), \fBbind\fP(2), \fBconnect\fP(2), \fBfcntl\fP(2), \fBgetpeername\fP(2),
+\fBgetsockname\fP(2), \fBgetsockopt\fP(2), \fBioctl\fP(2), \fBlisten\fP(2), \fBread\fP(2),
+\fBrecv\fP(2), \fBselect\fP(2), \fBsend\fP(2), \fBshutdown\fP(2), \fBsocketpair\fP(2),
+\fBwrite\fP(2), \fBgetprotoent\fP(3), \fBip\fP(7), \fBsocket\fP(7), \fBtcp\fP(7),
+\fBudp\fP(7), \fBunix\fP(7)
+
+«\ An Introductory 4.3BSD Interprocess Communication Tutorial\ » et «\ BSB
+Interprocess Communication Tutorial\ », réimprimés dans \fIUNIX Programmer's
+Supplementary Documents Volume 1\fP.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

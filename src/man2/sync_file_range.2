@@ -1,0 +1,197 @@
+.\" Copyright (c) 2006 Andrew Morton <akpm@osdl.org>
+.\" and Copyright 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 2006-07-05 Initial creation, Michael Kerrisk based on
+.\"     Andrew Morton's comments in fs/sync.c
+.\" 2010-10-09, mtk, Document sync_file_range2()
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYNC_FILE_RANGE 2 "1er avril 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+sync_file_range \- Synchroniser un segment de fichier avec le disque
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP         /* Consultez feature_test_macros(7) */
+\fB#include <fcntl.h>\fP
+
+\fBint sync_file_range(int \fP\fIfd\fP\fB, off64_t \fP\fIoffset\fP\fB, off64_t \fP\fInbytes\fP\fB,\fP
+\fB                    unsigned int \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBsync_file_range\fP() permet d'avoir un contrôle fin de la synchronisation
+d'un fichier ouvert, référencé par le descripteur de fichier \fIfd\fP, sur le
+disque.
+
+\fIoffset\fP est le premier octet de la zone du fichier à
+synchroniser. \fInbytes\fP indique la taille, en octets, de la zone à
+synchroniser\ ; si \fInbytes\fP est nul, toute la zone entre \fIoffset\fP et la
+fin du fichier est synchronisée. La synchronisation se fait par multiples de
+la taille de page\ : \fIoffset\fP est arrondi par défaut à la frontière d'une
+page, et \fI(offset+nbytes\-1)\fP est arrondi par excès.
+
+L'argument \fIflags\fP contient une ou plusieurs des valeurs suivantes\ :
+.TP 
+\fBSYNC_FILE_RANGE_WAIT_BEFORE\fP
+Attendre l'écriture de toutes les pages de la zone indiquée qui ont déjà été
+envoyées au pilote de périphérique pour écriture, avant d'effectuer cette
+écriture.
+.TP 
+\fBSYNC_FILE_RANGE_WRITE\fP
+Commencer l'écriture physique de toutes les pages modifiées de la plage
+indiquée pour lesquelles l'écriture n'a pas encore été demandée. Veuillez
+noter que cela peut bloquer si vous tentez d'écrire plus que la taille de la
+file demandée.
+.TP 
+\fBSYNC_FILE_RANGE_WAIT_AFTER\fP
+Attendre l'écriture physique de toutes les pages de la plage après toute
+demande d'écriture.
+.PP
+Indiquer 0 comme \fIflags\fP est possible, dans ce cas l'appel système n'a pas
+d'effet.
+.SS Avertissement
+Cet appel système est extrêmement dangereux et ne devrait pas être utilisé
+dans des programmes portables. Aucune de ces opérations n'entraîne
+l'écriture physique des métadonnées du fichier. Par conséquent, à moins que
+l'application n'effectue strictement que des écrasements de blocs disque
+déjà instantiés, il n'y a aucune garantie que les données soient disponibles
+après un plantage.Il n'y a pas d'interface utilisateur pour savoir si une
+écriture consiste uniquement en un écrasement. Sur un système de fichiers
+avec une sémantique de copie sur écriture (\fIcopy\-on\-write\fP), tel que
+\fIbtrfs\fP, un écrasement de blocs existants est impossible. Pour écrire sur
+un espace déjà alloué, beaucoup de systèmes de fichiers nécessitent aussi
+des appels à l'allocateur de blocs, qui dans le cas de cet appel, ne seront
+pas synchronisés sur le disque. Cet appel système ne vide pas les caches
+d'écriture du disque, ainsi aucune garantie d'intégrité n'est possible sur
+des systèmes dont les caches de disque en écriture sont volatiles.
+.SS "Quelques détails"
+\fBSYNC_FILE_RANGE_WAIT_BEFORE\fP et \fBSYNC_FILE_RANGE_WAIT_AFTER\fP détectent
+les erreurs d'entrées\-sorties ou la condition \fBENOSPC\fP, et les signalent à
+l'appelant.
+
+Des combinaisons utiles pour \fIflags\fP sont\ :
+.TP 
+\fBSYNC_FILE_RANGE_WAIT_BEFORE | SYNC_FILE_RANGE_WRITE\fP
+S'assurer de l'écriture physique de toutes les pages de la plage spécifiée
+qui étaient modifiées lorsque \fBsync_file_range\fP() a été appelé. C'est
+l'opération «\ démarrer l'écriture pour l'intégrité des données\ ».
+.TP 
+\fBSYNC_FILE_RANGE_WRITE\fP
+Commencer l'écriture physique de toutes les pages modifiées de la plage
+indiquée pour lesquelles l'écriture n'a pas encore été demandée. C'est une
+opération «\ vidage vers le disque\ » asynchrone. Elle n'est pas convenable
+pour les opérations d'intégrité de données.
+.TP 
+\fBSYNC_FILE_RANGE_WAIT_BEFORE\fP (ou \fBSYNC_FILE_RANGE_WAIT_AFTER\fP)
+Attendre la fin de l'écriture physique de toutes les pages de la plage
+indiquée. Cela peut être utilisé après une opération
+\fBSYNC_FILE_RANGE_WAIT_BEFORE | SYNC_FILE_RANGE_WRITE\fP pour attendre la fin
+de cette opération et obtenir son résultat.
+.TP 
+\fBSYNC_FILE_RANGE_WAIT_BEFORE | SYNC_FILE_RANGE_WRITE | SYNC_FILE_RANGE_WAIT_AFTER\fP
+C'est une opération «\ écriture pour intégrité des données\ » qui s'assure
+que toutes les pages modifiées dans la plage spécifiée lors de l'appel à
+\fBsync_file_range\fP() sont bien envoyées sur le disque.
+.SH "VALEUR RENVOYÉE"
+S'il réussit \fBsync_file_range\fP() renvoie 0, sinon il renvoie \-1 et remplit
+\fIerrno\fP avec le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+\fIfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBEINVAL\fP
+\fIflags\fP contient un bit invalide, ou \fIoffset\fP ou \fInbytes\fP est invalide.
+.TP 
+\fBEIO\fP
+Erreur d'entrée\-sortie.
+.TP 
+\fBENOMEM\fP
+Plus de mémoire disponible.
+.TP 
+\fBENOSPC\fP
+Plus de place disque disponible.
+.TP 
+\fBESPIPE\fP
+.\" FIXME . (bug?) Actually, how can 'fd' refer to a symbolic link (S_ISLNK)?
+.\" (In user space at least) it isn't possible to obtain a file descriptor
+.\" for a symbolic link.
+\fIfd\fP correspond à autre chose qu'un fichier ordinaire, un périphérique
+bloc, un répertoire, ou un lien symbolique.
+.SH VERSIONS
+\fBsync_file_range\fP() est apparu dans Linux 2.6.17.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux et ne devrait pas être utilisé dans
+des applications conçues pour être portable.
+.SH NOTES
+.\" See kernel commit edd5cd4a9424f22b0fa08bef5e299d41befd5622
+Certaines architectures (par exemple PowerPC et ARM) nécessitent que les
+paramètres 64\ bits soient alignés dans une paire de registres adéquate. Sur
+ces architectures, la signature d'appel de \fBsync_file_range\fP() indiquée
+dans le SYNOPSIS imposerait le gaspillage d'un registre remplissage entre
+les paramètres \fIfd\fP et \fIoffset\fP (consultez \fBsyscall\fP(2)  pour plus de
+détails). Pour cette raison, ces architectures définissent un appel système
+différent qui réordonne correctement les paramètres\ :
+.PP
+.in +4n
+.nf
+\fBint sync_file_range2(int \fP\fIfd\fP\fB, unsigned int \fP\fIflags\fP\fB,\fP
+\fB                     off64_t \fP\fIoffset\fP\fB, off64_t \fP\fInbytes\fP\fB);\fP
+.fi
+.in
+.PP
+À part cela, le comportement de cet appel système est strictement identique
+à celui de \fBsync_file_range\fP().
+
+Un appel système avec cette signature est d'abord apparu sur l'architecture
+ARM dans Linux\ 2.6.20, avec comme nom \fBarm_sync_file_range\fP(). Il a été
+renommé dans Linux\ 2.6.22, quand un appel système analogue a été ajouté pour
+PowerPC. Sur des architectures où la glibc est prise en charge, elle
+remplace de manière transparente \fBsync_file_range2\fP() sous le nom
+\fBsync_file_range\fP().
+.SH "VOIR AUSSI"
+\fBfdatasync\fP(2), \fBfsync\fP(2), \fBmsync\fP(2), \fBsync\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

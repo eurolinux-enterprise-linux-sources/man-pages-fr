@@ -1,0 +1,206 @@
+.\" Copyright (c) 2000 Andries Brouwer <aeb@cwi.nl>
+.\" and Copyright (c) 2007 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" and Copyright (c) 2008, Linux Foundation, written by Michael Kerrisk
+.\"      <mtk.manpages@gmail.com>
+.\" based on work by Rik Faith <faith@cs.unc.edu>
+.\" and Mike Battersby <mike@starbug.apana.org.au>.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 2004-11-19, mtk:
+.\" added pointer to sigaction.2 for details of ignoring SIGCHLD
+.\" 2007-06-03, mtk: strengthened portability warning, and rewrote
+.\"     various sections.
+.\" 2008-07-11, mtk: rewrote and expanded portability discussion.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SIGNAL 2 "19 avril 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+signal \- Gestion de signaux ANSI C
+.SH SYNOPSIS
+\fB#include <signal.h>\fP
+.sp
+\fBtypedef void (*sighandler_t)(int);\fP
+.sp
+\fBsighandler_t signal(int \fP\fIsignum\fP\fB, sighandler_t \fP\fIhandler\fP\fB);\fP
+.SH DESCRIPTION
+Le comportement de \fBsignal\fP() varie selon les versions d'UNIX, et a aussi
+varié au cours du temps dans les différentes versions de Linux. \fBÉvitez de
+l'utiliser\fP\ : utilisez plutôt \fBsigaction\fP(2). Consultez la section
+\fIPortabilité\fP plus bas.
+
+\fBsignal\fP() installe le gestionnaire \fIhandler\fP pour le signal
+\fIsignum\fP. \fIhandler\fP peut être \fBSIG_IGN\fP, \fBSIG_DFL\fP ou l'adresse d'une
+fonction définie par le programmeur (un «\ gestionnaire de signal\ »).
+
+Lors de l'arrivée d'un signal correspondant au numéro \fIsignum\fP, l'un des
+événements suivants se produit\ :
+.TP  3
+*
+Si le gestionnaire vaut \fBSIG_IGN\fP, le signal est ignoré.
+.TP 
+*
+Si le gestionnaire est \fBSIG_DFL\fP, l'action par défaut associée à ce signal
+est entreprise (consultez \fBsignal\fP(7)).
+.TP 
+*
+Si le gestionnaire est une fonction, alors tout d'abord le gestionnaire est
+reconfiguré à  \fBSIG_DFL\fP, ou le signal est bloqué (voir la section
+\fIPortabilité\fP ci\(hydessous), puis \fIhandler\fP est appelée avec l'argument
+\fIsignum\fP. Si l'invocation du gestionnaire a bloqué le signal, le signal est
+débloqué au retour du gestionnaire.
+.PP
+Les signaux \fBSIGKILL\fP et \fBSIGSTOP\fP ne peuvent être ni ignorés, ni
+interceptés.
+.SH "VALEUR RENVOYÉE"
+\fBsignal\fP() renvoie la valeur précédente du gestionnaire de signaux, ou
+\fBSIG_ERR\fP en cas d'erreur. En cas d'erreur, \fIerrno\fP contient le code
+d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+\fIsignum\fP est invalide.
+.SH CONFORMITÉ
+C89, C99, POSIX.1\-2001.
+.SH NOTES
+Les effets de \fBsignal\fP() dans un processus multithreadé sont indéterminés.
+.PP
+Comme spécifié par POSIX, le comportement d'un processus est indéfini après
+la réception d'un signal \fBSIGFPE\fP, \fBSIGILL\fP, ou \fBSIGSEGV\fP qui n'a pas été
+engendré par une fonction \fBkill\fP(2) ou \fBraise\fP(3). La division entière par
+zéro a un résultat indéfini, sur certaines architectures elle déclenche un
+signal \fBSIGFPE\fP. De même, diviser l'entier le plus négatif par \-1 peut
+déclencher \fBSIGFPE\fP.
+.PP
+Consultez \fBsigaction\fP(2) pour des détails sur ce qui se passe quand on
+place \fBSIGCHLD\fP à \fBSIG_IGN\fP.
+.PP
+Consultez \fBsignal\fP(7) pour une liste de fonctions sûres pour les signaux
+asynchrones qui peuvent être appelées dans les gestionnaires de signaux.
+.PP
+.\" libc4 and libc5 define
+.\" .IR SignalHandler ;
+L'utilisation du type \fIsighandler_t\fP est une extension GNU, exposée si
+\fB_GNU_SOURCE\fP est définie. La glibc définit aussi \fIsig_t\fP (dérivé de BSD)
+si \fB_GNU_SOURCE\fP est définie. Sans cette définition de ce type, la
+déclaration de \fBsignal\fP() est plus difficile à lire\ :
+.in +4n
+.nf
+
+\fBvoid ( *\fP\fIsignal\fP\fB(int \fP\fIsignum\fP\fB, void (*\fP\fIhandler\fP\fB)(int)) ) (int);\fP
+.fi
+.in
+.SS Portabilité
+La seule utilisation portable de \fBsignal\fP() est de de configurer le
+gestionnaire du signal à \fBSIG_DFL\fP ou \fBSIG_IGN\fP. La sémantique associée à
+l'utilisation de \fBsignal\fP() pour définir un gestionnaire de signal dépend
+suivant les systèmes (et POSIX.1 autorise explicitement ces écarts)\ ; \fBne
+l'utiliser pas pour cela.\fP
+
+POSIX.1 a résolu ce problème de portabilité est spécifiant \fBsigaction\fP(2),
+qui fournit un contrôle explicite de la sémantique quand un gestionnaire de
+signal est appelé\ ; utilisez cette interface plutôt que \fBsignal\fP().
+
+Dans les systèmes UNIX d'origine, quand un gestionnaire défini par
+\fBsignal\fP() était appelé lors de la distribution d'un signal, le
+gestionnaire du signal était remis à \fBSIG_DFL\fP, et le système ne bloquait
+pas la distribution des instances suivantes du signal. Cela revenait à
+appeler \fBsigaction\fP(2) avec les attribut suivants\ :
+
+    sa.sa_flags = SA_RESETHAND | SA_NODEFER;
+
+System\ V fournit également cette sémantique pour \fBsignal\fP(). Cela posait
+problème parce qu'un signal pouvait être distribué avant que le gestionnaire
+ait le temps de se réactiver. De plus, la distribution rapide d'un même
+signal pouvait causer des appels récursif au gestionnaire.
+
+BSD a amélioré la situation, mais a malheureusement également modifié la
+sémantique de l'interface de \fBsignal\fP() en procédant de cette façon. Sous
+BSD, lorsqu'un gestionnaire de signal est appelé, la disposition du signal
+n'est pas réinitialisée, et les instances suivantes du signal ne peuvent
+être distribuées tant que le gestionnaire s'exécute. En outre, certains
+appels système bloquants sont automatiquement relancés s'ils sont
+interrompus par le gestionnaire de signal (consultez \fBsignal\fP(7)). La
+sémantique BSD est équivalente à un appel de \fBsigaction\fP(2) avec les
+attributs suivants\ :
+
+    sa.sa_flags = SA_RESTART;
+
+La situation sous Linux est la suivante\ :
+.IP * 2
+L'appel système \fBsignal\fP() du noyau fournit la sémantique System\ V.
+.IP *
+Par défaut, dans la glibc\ 2 et les suivantes, la fonction de bibliothèque
+\fBsignal\fP() n'appelle pas l'appel système. À la place, elle appelle
+\fBsigaction\fP(2) est fournissant un attribut qui fournit la sémantique
+BSD. Ce comportement par défaut est fourni tant que la macro de test de
+fonctionnalités \fB_BSD_SOURCE\fP est définie. Par défaut, \fB_BSD_SOURCE\fP est
+définie\ ; elle est également implicitement définie si on défini
+\fB_GNU_SOURCE\fP, et peut également être définie explicitement.
+.sp
+.\"
+.\" System V semantics are also provided if one uses the separate
+.\" .BR sysv_signal (3)
+.\" function.
+Dans la glibc\ 2 et les suivantes, si la macro de test de fonctionnalités
+\fB_BSD_SOURCE\fP n'est pas définie, alors \fBsignal\fP() fourni la sémantique
+System\ V. (la définition implicite de \fB_BSD_SOURCE\fP par défaut n'est pas
+fournie si on appelle \fBgcc\fP(1) dans un de ses modes demandant le respect
+d'une norme (\fI\-std=xxx\fP ou \fI\-ansi\fP) ou si on définie certaines autres
+macro de test de fonctionnalités comme \fB_POSIX_SOURCE\fP, \fB_XOPEN_SOURCE\fP ou
+\fB_SVID_SOURCE\fP\ ; consultez \fBfeature_test_macros\fP(7).)
+.IP *
+La fonction \fBsignal\fP() de la libc4 et de la libc5 Linux fournissent la
+sémantique System\ V. Si on inclue \fI<bsd/signal.h>\fP sur une libc5 au
+lieu de \fI<signal.h>\fP, alors \fBsignal\fP() fournie la sémantique BSD.
+.SH "VOIR AUSSI"
+\fBkill\fP(1), \fBalarm\fP(2), \fBkill\fP(2), \fBkillpg\fP(2), \fBpause\fP(2),
+\fBsigaction\fP(2), \fBsignalfd\fP(2), \fBsigpending\fP(2), \fBsigprocmask\fP(2),
+\fBsigsuspend\fP(2), \fBbsd_signal\fP(3), \fBraise\fP(3), \fBsiginterrupt\fP(3),
+\fBsigqueue\fP(3), \fBsigsetops\fP(3), \fBsigvec\fP(3), \fBsysv_signal\fP(3),
+\fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

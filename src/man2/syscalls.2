@@ -1,0 +1,755 @@
+.\" Copyright (C) 2007 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" with some input from Stepan Kasal <kasal@ucw.cz>
+.\"
+.\" Some content retained from an earlier version of this page:
+.\" Copyright (C) 1998 Andries Brouwer (aeb@cwi.nl)
+.\" Modifications for 2.2 and 2.4 Copyright (C) 2002 Ian Redfern
+.\" <redferni@logica.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYSCALLS 2 "17 avril 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+syscalls \- Appels système de Linux
+.SH SYNOPSIS
+Appels système de Linux.
+.SH DESCRIPTION
+L'appel système est l'interface fondamentale entre une application et le
+noyau Linux.
+.SS "Appels système et fonctions de bibliothèque"
+Les appels système ne sont en général pas appelé directement, mais à partir
+de fonctions de la glibc (ou d'une autre bibliothèque). Pour avoir des
+détails pour l'appel direct d'un appel système, consultez
+\fBintro\fP(2). Souvent, mais pas toujours, le nom de la fonction de la
+bibliothèque est le même que celui de l'appel système à invoquer. Par
+exemple, la fonction \fBtruncate\fP() de la glibc invoque l'appel système
+«\ truncate\ » sous\-jacent.
+
+Souvent, la fonction enveloppe de la glibc est très petite, ne faisant que
+très peu en plus de placer les paramètres dans les bons registres avant
+d'appeler l'appel système puis de positionner \fIerrno\fP comme il faut une
+fois que l'appel système a rendu la main. (Ce sont les mêmes étapes qui sont
+effectuées par \fBsyscall\fP(2), qui peut être utilisé pour les appels système
+pour lesquels il n'y a pas de fonction enveloppe de fournies.) Note\ : les
+appels système indiquent un échec en renvoyant un numéro d'erreur négatif à
+l'appelant\ ; quand ça arrive, la fonction enveloppe prend l'opposé du numéro
+d'erreur (pour le rendre positif), le copie dans \fIerrno\fP et renvoie \-1 pour
+l'appelant de la fonction enveloppe.
+
+Des fois, cependant, la fonction réalise certaines opérations avant
+d'invoquer l'appel système. Par exemple, de nos jour il y a deux appels
+système \fBtruncate\fP(2) et \fBtruncate64\fP(2) (pour les raisons données
+ci\-dessous) et la fonction \fBtruncate\fP() de la glibc vérifie quels appels
+système sont fournis par le noyau et détermine lequel doit être utilisé.
+.SS "Liste des appels système"
+Voici une liste des appels système Linux. Dans cette liste, la colonne
+\fINoyau\fP indique la version du noyau pour laquelle ils sont apparus, s'ils
+sont apparu après la version\ 2.2 de Linux. Remarquez les points suivants.
+.IP * 3
+Si aucune version de noyau n'est indiquée, l'appel système est apparu dans
+le noyau 1.0 ou auparavant.
+.IP *
+Quand un appel système est marqué «\ 1.2\ », cela signifie que l'appel système
+est probablement apparu dans une version 1.1.x du noyau et est apparu la
+première fois dans un noyau stable dans la version 1.2. (Le développement du
+noyau 1.2 a débuté à partir d'une branche de la version 1.0.6 du noyau, au
+travers de la série «\ non stable\ » des noyaux 1.1.x.)
+.IP *
+.\" Was kernel 2.0 started from a branch of 1.2.10?
+.\" At least from the timestamps of the tarballs of
+.\" of 1.2.10 and 1.3.0, that's how it looks, but in
+.\" fact the diff doesn't seem very clear, the
+.\" 1.3.0 .tar.bz is much bigger (2.0 MB) than the
+.\" 1.2.10 .tar.bz2 (1.8 MB), and AEB points out the
+.\" timestamps of some files in 1.3.0 seem to be older
+.\" than those in 1.2.10.  All of this suggests
+.\" that there might not have been a clean branch point.
+Quand un appel système est marqué «\ 2.0\ », cela signifie que l'appel système
+est probablement apparu dans une version 1.3.x du noyau et est apparu la
+première fois dans un noyau stable dans la version 2.0. (Le développement du
+noyau 2.0 a débuté à partir d'une branche de la version 1.2.x du noyau, vers
+la version 1.2.10, au travers de la série «\ non stable\ » des noyaux 1.3.x.)
+.IP *
+Quand un appel système est marqué «\ 2.2\ », cela signifie que l'appel système
+est probablement apparu dans une version 2.1.x du noyau et est apparu la
+première fois dans un noyau stable dans la version 2.2.0. (Le développement
+du noyau 2.2 a débuté à partir d'une branche de la version 2.0.21 du noyau,
+au travers de la série «\ non stable\ » des noyaux 2.1.x.)
+.IP *
+Quand un appel système est marqué «\ 2.4\ », cela signifie que l'appel système
+est probablement apparu dans une version 2.3.x du noyau et est apparu la
+première fois dans un noyau stable dans la version 2.4.0. (Le développement
+du noyau 2.4 a débuté à partir d'une branche de la version 2.2.8 du noyau,
+au travers de la série «\ non stable\ » des noyaux 2.3.x.)
+.IP *
+Quand un appel système est marqué «\ 2.6\ », cela signifie que l'appel système
+est probablement apparu dans une version 2.5.x du noyau et est apparu la
+première fois dans un noyau stable dans la version 2.6.0. (Le développement
+du noyau 2.6 a débuté à partir d'une branche de la version 2.4.15 du noyau,
+au travers de la série «\ non stable\ » des noyaux 2.5.x.)
+.IP *
+A partir du noyau 2.6.0, le mode de développement a changé et de nouveaux
+appels système pourraient apparaître à chaque version 2.6.x. Dans ce cas, le
+numéro de version exact où l'appel système est apparu est indiqué. Cette
+convention continue de s'appliquer à la série des noyaux 3.x, qui ont
+succédé au noyau 2.6.39.
+.IP *
+Dans certains cas, un appel système a été ajouté à un noyau de la série
+stable après l'embranchement provenant de la série stable précédente, puis a
+été porté dans la série stable précédente du noyau. Par exemple certains
+appels système apparus dans 2.6.x ont été portés dans une version 2.4.x
+postérieure à la version 2.4.15. Dans ce cas, les deux versions des deux
+séries majeures du noyau dans lesquelles l'appel système est apparu sont
+mentionnées.
+.PP
+.\"
+.\" Looking at scripts/checksyscalls.sh in the kernel source is
+.\" instructive about x86 specifics.
+.\"
+La liste des appels système qui sont disponibles dans la version\ 3.9 (ou
+dans certains cas pour certaines versions plus anciennes du noyau) est la
+suivante\ :
+.ad l
+.TS
+l l l
+---
+l l l.
+\fBAppel système\fP	\fBNoyau\fP	\fBNotes\fP
+
+\fB_llseek\fP(2)	1.2
+\fB_newselect\fP(2)	2.0
+\fB_sysctl\fP(2)	2.0
+\fBaccept\fP(2)	2.0	Voir notes de \fBsocketcall\fP(2)
+\fBaccept4\fP(2)	2.6.28
+\fBaccess\fP(2)	1.0
+\fBacct\fP(2)	1.0
+\fBadd_key\fP(2)	2.6.11
+\fBadjtimex\fP(2)	1.0
+\fBalarm\fP(2)	1.0
+\fBalloc_hugepages\fP(2)	2.5.36	Retiré dans 2.5.44
+\fBbdflush\fP(2)	1.2	T{
+Obsolète (ne fait rien)
+.br
+depuis 2.6
+T}
+\fBbind\fP(2)	2.0	Voir notes de \fBsocketcall\fP(2)
+\fBbrk\fP(2)	1.0
+\fBcacheflush\fP(2)	1.2	Pas sur x86
+\fBcapget\fP(2)	2.2
+\fBcapset\fP(2)	2.2
+\fBchdir\fP(2)	1.0
+\fBchmod\fP(2)	1.0
+\fBchown\fP(2)	2.2	T{
+Consultez \fBchown\fP(2) pour de
+.br
+plus amples renseignements sur
+les versions
+T}
+\fBchown32\fP(2)	2.4
+\fBchroot\fP(2)	1.0
+\fBclock_adjtime\fP(2)	2.6.39
+\fBclock_getres\fP(2)	2.6
+\fBclock_gettime\fP(2)	2.6
+\fBclock_nanosleep\fP(2)	2.6
+\fBclock_settime\fP(2)	2.6
+\fBclone\fP(2)	1.0
+\fBclose\fP(2)	1.0
+\fBconnect\fP(2)	2.0	Voir notes de \fBsocketcall\fP(2)
+\fBcreat\fP(2)	1.0
+\fBcreate_module\fP(2)		Retiré dans 2.6
+\fBdelete_module\fP(2)	1.0
+\fBdup\fP(2)	1.0
+\fBdup2\fP(2)	1.0
+\fBdup3\fP(2)	2.6.27
+\fBepoll_create\fP(2)	2.6
+\fBepoll_create1\fP(2)	2.6.27
+\fBepoll_ctl\fP(2)	2.6
+\fBepoll_pwait\fP(2)	2.6.19
+\fBepoll_wait\fP(2)	2.6
+\fBeventfd\fP(2)	2.6.22
+\fBeventfd2\fP(2)	2.6.27
+\fBexecve\fP(2)	1.0
+\fBexit\fP(2)	1.0
+\fBexit_group\fP(2)	2.6
+\fBfaccessat\fP(2)	2.6.16
+\fBfadvise64\fP(2)	2.6
+.\" Implements \fBposix_fadvise\fP(2)
+\fBfadvise64_64\fP(2)	2.6
+\fBfallocate\fP(2)	2.6.23
+\fBfanotify_init\fP(2)	2.6.37
+\fBfanotify_mark\fP(2)	2.6.37
+.\" The fanotify calls were added in Linux 2.6.36,
+.\" but disabled while the API was finalized.
+\fBfchdir\fP(2)	1.0
+\fBfchmod\fP(2)	1.0
+\fBfchmodat\fP(2)	2.6.16
+\fBfchown\fP(2)	1.0
+\fBfchown32\fP(2)	2.4
+\fBfchownat\fP(2)	2.6.16
+\fBfcntl\fP(2)	1.0
+\fBfcntl64\fP(2)	2.4
+\fBfdatasync\fP(2)	2.0
+\fBfgetxattr\fP(2)	2.6\ ; 2.4.18
+\fBfinit_module\fP(2)	3.8
+\fBflistxattr\fP(2)	2.6\ ; 2.4.18
+\fBflock\fP(2)	2.0
+\fBfork\fP(2)	1.0
+\fBfree_hugepages\fP(2)	2.5.36	Supprimé dans 2.5.44
+\fBfremovexattr\fP(2)	2.6\ ; 2.4.18
+\fBfsetxattr\fP(2)	2.6\ ; 2.4.18
+\fBfstat\fP(2)	1.0
+\fBfstat64\fP(2)	2.4
+\fBfstatat64\fP(2)	2.6.16
+\fBfstatfs\fP(2)	1.0
+\fBfstatfs64\fP(2)	2.6
+\fBfsync\fP(2)	1.0	1.0
+\fBftruncate\fP(2)	1.0
+\fBftruncate64\fP(2)	2.4
+\fBfutex\fP(2)	2.6
+\fBfutimesat\fP(2)	2.6.16
+\fBget_kernel_syms\fP(2)		Retiré dans 2.6
+\fBget_mempolicy\fP(2)	2.6.6
+\fBget_robust_list\fP(2)	2.6.17
+\fBget_thread_area\fP(2)	2.6
+\fBgetcpu\fP(2)	2.6.19
+\fBgetcwd\fP(2)	2.2
+\fBgetdents\fP(2)	2.0
+\fBgetdents64\fP(2)	2.4
+\fBgetegid\fP(2)	1.0
+\fBgetegid32\fP(2)	2.4
+\fBgeteuid\fP(2)	1.0
+\fBgeteuid32\fP(2)	2.4
+\fBgetgid\fP(2)	1.0
+\fBgetgid32\fP(2)	2.4
+\fBgetgroups\fP(2)	1.0
+\fBgetgroups32\fP(2)	2.4
+\fBgetitimer\fP(2)	1.0
+\fBgetpeername\fP(2)	2.0	Voir notes de \fBsocketcall\fP(2)
+\fBgetpagesize\fP(2)	2.0	Pas sur x86
+\fBgetpgid\fP(2)	1.0
+\fBgetpgrp\fP(2)	1.0
+\fBgetpid\fP(2)	1.0
+\fBgetppid\fP(2)	1.0
+\fBgetpriority\fP(2)	1.0
+\fBgetresgid\fP(2)	2.2
+\fBgetresgid32\fP(2)	2.4
+\fBgetresuid\fP(2)	2.2
+\fBgetresuid32\fP(2)	2.4
+\fBgetrlimit\fP(2)	1.0
+\fBgetrusage\fP(2)	1.0
+\fBgetsid\fP(2)	2.0
+\fBgetsockname\fP(2)	2.0	Voir notes de \fBsocketcall\fP(2)
+\fBgetsockopt\fP(2)	2.0	Voir notes de \fBsocketcall\fP(2)
+\fBgettid\fP(2)	2.4.11
+\fBgettimeofday\fP(2)	1.0
+\fBgetuid\fP(2)	1.0
+\fBgetuid32\fP(2)	2.4
+.\" \fBgetunwind\fP(2)	2.4.8	ia64; DEPRECATED
+\fBgetxattr\fP(2)	2.6\ ; 2.4.18
+\fBinit_module\fP(2)	1.0
+\fBinotify_add_watch\fP(2)	2.6.13
+\fBinotify_init\fP(2)	2.6.13
+\fBinotify_init1\fP(2)	2.6.27
+\fBinotify_rm_watch\fP(2)	2.6.13
+\fBio_cancel\fP(2)	2.6
+\fBio_destroy\fP(2)	2.6
+\fBio_getevents\fP(2)	2.6
+\fBio_setup\fP(2)	2.6
+\fBio_submit\fP(2)	2.6
+\fBioctl\fP(2)	1.0
+\fBioperm\fP(2)	1.0
+\fBiopl\fP(2)	1.0
+\fBioprio_get\fP(2)	2.6.13
+\fBioprio_set\fP(2)	2.6.13
+\fBipc\fP(2)	1.0
+.\" Implements System V IPC calls
+\fBkcmp\fP(2)	3.5
+\fBkern_features\fP(2)	3.7	Sparc64
+\fBkexec_load\fP(2)	2.6.13
+.\" The entry in the syscall table was reserved starting in 2.6.7
+.\" Was named sys_kexec_load() from 2.6.7 to 2.6.16
+\fBkeyctl\fP(2)	2.6.11
+\fBkill\fP(2)	1.0
+\fBlchown\fP(2)	1.0	T{
+Consultez \fBchown\fP(2) pour de
+.br
+plus amples renseignements sur
+les versions
+T}
+\fBlchown32\fP(2)	2.4
+\fBlgetxattr\fP(2)	2.6\ ; 2.4.18
+\fBlink\fP(2)	1.0
+\fBlinkat\fP(2)	2.6.16
+\fBlisten\fP(2)	2.0	Voir notes de \fBsocketcall\fP(2)
+\fBlistxattr\fP(2)	2.6\ ; 2.4.18
+\fBllistxattr\fP(2)	2.6; 2.4.18
+\fBlookup_dcookie\fP(2)	2.6
+\fBlremovexattr\fP(2)	2.6\ ; 2.4.18
+\fBlseek\fP(2)	1.0
+\fBlsetxattr\fP(2)	2.6\ ; 2.4.18
+\fBlstat\fP(2)	1.0
+\fBlstat64\fP(2)	2.4
+\fBmadvise\fP(2)	2.4
+\fBmadvise1\fP(2)	2.4
+\fBmbind\fP(2)	2.6.6
+.\" \fBmemory_ordering\fP(2)	???	Sparc64
+\fBmigrate_pages\fP(2)	2.6.16
+\fBmincore\fP(2)	2.4
+\fBmkdir\fP(2)	1.0
+\fBmkdirat\fP(2)	2.6.16
+\fBmknod\fP(2)	1.0
+\fBmknodat\fP(2)	2.6.16
+\fBmlock\fP(2)	2.0
+\fBmlockall\fP(2)	2.0
+\fBmmap\fP(2)	1.0
+\fBmmap2\fP(2)	2.4
+\fBmodify_ldt\fP(2)	1.0
+\fBmount\fP(2)	1.0
+\fBmove_pages\fP(2)	2.6.18
+\fBmprotect\fP(2)	1.0
+\fBmq_getsetattr\fP(2)	2.6.6
+.\" Implements \fBmq_getattr\fP(3) and \fBmq_setattr\fP(3)
+\fBmq_notify\fP(2)	2.6.6
+\fBmq_open\fP(2)	2.6.6
+\fBmq_timedreceive\fP(2)	2.6.6
+\fBmq_timedsend\fP(2)	2.6.6
+\fBmq_unlink\fP(2)	2.6.6
+\fBmremap\fP(2)	2.0
+\fBmsgctl\fP(2)	2.0	Voir notes de \fBipc\fP(2)
+\fBmsgget\fP(2)	2.0	Voir notes de \fBipc\fP(2)
+\fBmsgrcv\fP(2)	2.0	Voir notes de \fBipc\fP(2)
+\fBmsgsnd\fP(2)	2.0	Voir notes de \fBipc\fP(2)
+\fBmsync\fP(2)	2.0
+.\" \fBmultiplexer\fP(2)	??	__NR_multiplexer reserved on
+.\"		PowerPC, but unimplemented?
+\fBmunlock\fP(2)	2.0
+\fBmunlockall\fP(2)	2.0
+\fBmunmap\fP(2)	1.0
+\fBname_to_handle_at\fP(2)	2.6.39
+\fBnanosleep\fP(2)	2.0
+\fBnfsservctl\fP(2)	2.2	Retiré dans 3.1
+\fBnice\fP(2)	1.0
+\fBoldfstat\fP(2)	1.0
+\fBoldlstat\fP(2)	1.0
+\fBoldolduname\fP(2)	1.0
+\fBoldstat\fP(2)	1.0
+\fBolduname\fP(2)	1.0
+\fBopen\fP(2)	1.0
+\fBopen_by_handle_at\fP(2)	2.6.39
+\fBopenat\fP(2)	2.6.16
+\fBpause\fP(2)	1.0
+\fBpciconfig_iobase\fP(2)	2.2.15; 2.4	Pas sur x86
+.\" Alpha, PowerPC, ARM; not x86
+\fBpciconfig_read\fP(2)	2.0.26; 2.2	Pas sur x86
+.\" , PowerPC, ARM; not x86
+\fBpciconfig_write\fP(2)	2.0.26; 2.2	Pas sur x86
+.\" , PowerPC, ARM; not x86
+\fBperf_event_open\fP(2)	2.6.31	T{
+Anc. perf_counter_open()
+.br
+en 2.6.31\ ; renommé en 2.6.32
+T}
+\fBpersonality\fP(2)	1.2
+\fBperfctr\fP(2)	2.2	Sparc\ ; retiré en 2.6.34
+.\"	commit c7d5a0050773e98d1094eaa9f2a1a793fafac300 removed perfctr()
+\fBperfmonctl\fP(2)	2.4	ia64
+\fBpipe\fP(2)	1.0
+\fBpipe2\fP(2)	2.6.27
+\fBpivot_root\fP(2)	2.4
+\fBpoll\fP(2)	2.0.36; 2.2
+\fBppc_rtas\fP(2)		PowerPC uniquement
+\fBppoll\fP(2)	2.6.16
+\fBprctl\fP(2)	2.2
+\fBpread64\fP(2)		T{
+«\ pread\ » ajouté en 2.2,
+.br
+renommé «\ pread64\ » en 2.6
+T}
+\fBpreadv\fP(2)	2.6.30
+\fBprlimit\fP(2)	2.6.36
+\fBprocess_vm_readv\fP(2)	3.2
+\fBprocess_vm_writev\fP(2)	3.2
+\fBpselect6\fP(2)	2.6.16
+.\" Implements \fBpselect\fP(2)
+\fBptrace\fP(2)	1.0
+\fBpwrite64\fP(2)		T{
+«\ pwrite\ » ajouté en 2.2,
+.br
+renommé «\ pwrite64\ » en 2.6
+T}
+\fBpwritev\fP(2)	2.6.30
+\fBquery_module\fP(2)	2.2	Retiré dans 2.6
+\fBquotactl\fP(2)	1.0
+\fBread\fP(2)	1.0
+\fBreadahead\fP(2)	2.4.13
+\fBreaddir\fP(2)	1.0
+.\" Supersedes \fBgetdents\fP(2)
+\fBreadlink\fP(2)	1.0
+\fBreadlinkat\fP(2)	2.6.16
+\fBreadv\fP(2)	2.0
+\fBreboot\fP(2)	1.0
+\fBrecv\fP(2)	2.0	Voir notes de \fBsocketcall\fP(2)
+\fBrecvfrom\fP(2)	2.0	Voir notes de \fBsocketcall\fP(2)
+\fBrecvmsg\fP(2)	2.0	Voir notes de \fBsocketcall\fP(2)
+\fBrecvmmsg\fP(2)	2.6.33
+\fBremap_file_pages\fP(2)	2.6
+\fBremovexattr\fP(2)	2.6; 2.4.18
+\fBrename\fP(2)	1.0
+\fBrenameat\fP(2)	2.6.16
+\fBrequest_key\fP(2)	2.6.11
+\fBrestart_syscall\fP(2)	2.6
+\fBrmdir\fP(2)	1.0
+\fBrt_sigaction\fP(2)	2.2
+\fBrt_sigpending\fP(2)	2.2
+\fBrt_sigprocmask\fP(2)	2.2
+\fBrt_sigqueueinfo\fP(2)	2.2
+\fBrt_sigreturn\fP(2)	2.2
+\fBrt_sigsuspend\fP(2)	2.2
+\fBrt_sigtimedwait\fP(2)	2.2
+\fBrt_tgsigqueueinfo\fP(2)	2.6.31
+\fBs390_runtime_instr\fP(2)	3.7	s390 uniquement
+\fBsched_get_priority_max\fP(2)	2.0
+\fBsched_get_priority_min\fP(2)	2.0
+\fBsched_getaffinity\fP(2)	2.6
+\fBsched_getparam\fP(2)	2.0
+\fBsched_getscheduler\fP(2)	2.0
+\fBsched_rr_get_interval\fP(2)	2.0
+\fBsched_setaffinity\fP(2)	2.6
+\fBsched_setparam\fP(2)	2.0
+\fBsched_setscheduler\fP(2)	2.0
+\fBsched_yield\fP(2)	2.0
+\fBselect\fP(2)	1.0
+\fBsemctl\fP(2)	2.0	Voir notes de \fBipc\fP(2)
+\fBsemget\fP(2)	2.0	Voir notes de \fBipc\fP(2)
+\fBsemop\fP(2)	2.0	Voir notes de \fBipc\fP(2)
+\fBsemtimedop\fP(2)	2.6\ ; 2.4.22
+\fBsend\fP(2)	2.0	Voir notes de \fBsocketcall\fP(2)
+\fBsendfile\fP(2)	2.2
+\fBsendfile64\fP(2)	2.6\ ; 2.4.19
+\fBsendmmsg\fP(2)	3.0
+\fBsendmsg\fP(2)	2.0	Voir notes de \fBsocketcall\fP(2)
+\fBsendto\fP(2)	2.0	Voir notes de \fBsocketcall\fP(2)
+\fBset_mempolicy\fP(2)	2.6.6
+\fBset_robust_list\fP(2)	2.6.17
+\fBset_thread_area\fP(2)	2.6
+\fBset_tid_address\fP(2)	2.6
+.\" See http://lkml.org/lkml/2005/8/1/83
+.\" "[PATCH] remove sys_set_zone_reclaim()"
+\fBsetdomainname\fP(2)	1.0
+\fBsetfsgid\fP(2)	1.2
+\fBsetfsgid32\fP(2)	2.4
+\fBsetfsuid\fP(2)	1.2
+\fBsetfsuid32\fP(2)	2.4
+\fBsetgid\fP(2)	1.0
+\fBsetgid32\fP(2)	2.4
+\fBsetgroups\fP(2)	1.0
+\fBsetgroups32\fP(2)	2.4
+\fBsethostname\fP(2)	1.0
+\fBsetitimer\fP(2)	1.0
+\fBsetns\fP(2)	3.0
+\fBsetpgid\fP(2)	1.0
+\fBsetpriority\fP(2)	1.0
+\fBsetregid\fP(2)	1.0
+\fBsetregid32\fP(2)	2.4
+\fBsetresgid\fP(2)	2.2
+\fBsetresgid32\fP(2)	2.4
+\fBsetresuid\fP(2)	2.2
+\fBsetresuid32\fP(2)	2.4
+\fBsetreuid\fP(2)	1.0
+\fBsetreuid32\fP(2)	2.4
+\fBsetrlimit\fP(2)	1.0
+\fBsetsid\fP(2)	1.0
+\fBsetsockopt\fP(2)	2.0	Voir notes de \fBsocketcall\fP(2)
+\fBsettimeofday\fP(2)	1.0
+\fBsetuid\fP(2)	1.0
+\fBsetuid32\fP(2)	2.4
+\fBsetup\fP(2)		Retiré dans 2.2
+\fBsetxattr\fP(2)	2.6\ ; 2.4.18
+\fBsgetmask\fP(2)	1.0
+\fBshmat\fP(2)	2.0	Voir notes de \fBipc\fP(2)
+\fBshmctl\fP(2)	2.0	Voir notes de \fBipc\fP(2)
+\fBshmdt\fP(2)	2.0	Voir notes de \fBipc\fP(2)
+\fBshmget\fP(2)	2.0	Voir notes de \fBipc\fP(2)
+\fBshutdown\fP(2)	2.0	Voir notes de \fBsocketcall\fP(2)
+\fBsigaction\fP(2)	1.0
+\fBsigaltstack\fP(2)	2.2
+\fBsignal\fP(2)	1.0
+\fBsignalfd\fP(2)	2.6.22
+\fBsignalfd4\fP(2)	2.6.27
+\fBsigpending\fP(2)	1.0
+\fBsigprocmask\fP(2)	1.0
+\fBsigreturn\fP(2)	1.0
+\fBsigsuspend\fP(2)	1.0
+\fBsocket\fP(2)	2.0	Voir notes de \fBsocketcall\fP(2)
+\fBsocketcall\fP(2)	1.0
+.\" Implements BSD socket calls
+\fBsocketpair\fP(2)	2.0	Voir notes de \fBsocketcall\fP(2)
+\fBsplice\fP(2)	2.6.17
+\fBspu_create\fP(2)	2.6.16	PowerPC uniquement
+\fBspu_run\fP(2)	2.6.16	PowerPC uniquement
+\fBssetmask\fP(2)	1.0
+\fBstat\fP(2)	1.0
+\fBstat64\fP(2)	2.4
+\fBstatfs\fP(2)	1.0
+\fBstatfs64\fP(2)	2.6
+\fBstime\fP(2)	1.0
+\fBsubpage_prot\fP(2)	2.6.25	PowerPC si
+		CONFIG_PPC_64K_PAGES
+\fBswapoff\fP(2)	1.0
+\fBswapon\fP(2)	1.0
+\fBsymlink\fP(2)	1.0
+\fBsymlinkat\fP(2)	2.6.16
+\fBsync\fP(2)	1.0
+\fBsync_file_range\fP(2)	2.6.17
+\fBsync_file_range2\fP(2)	2.6.22	T{
+Comme \fBsync_file_range\fP(2)
+dépendant de l'architecture
+T}
+.\" PowerPC, ARM, tile
+.\" First appeared on ARM, as arm_sync_file_range(), but later renamed
+.\" \fBsys_debug_setcontext\fP(2)	???	PowerPC if CONFIG_PPC32
+\fBsyncfs\fP(2)	2.6.39
+\fBsysfs\fP(2)	1.2
+\fBsysinfo\fP(2)	1.0
+\fBsyslog\fP(2)	1.0
+.\" glibc interface is \fBklogctl\fP(3)
+\fBtee\fP(2)	2.6.17
+\fBtgkill\fP(2)	2.6
+\fBtime\fP(2)	1.0
+\fBtimer_create\fP(2)	2.6
+\fBtimer_delete\fP(2)	2.6
+\fBtimer_getoverrun\fP(2)	2.6
+\fBtimer_gettime\fP(2)	2.6
+\fBtimer_settime\fP(2)	2.6
+\fBtimerfd_create\fP(2)	2.6.25
+\fBtimerfd_gettime\fP(2)	2.6.25
+\fBtimerfd_settime\fP(2)	2.6.25
+\fBtimes\fP(2)	1.0
+\fBtkill\fP(2)	2.6\ ; 2.4.22
+\fBtruncate\fP(2)	1.0
+\fBtruncate64\fP(2)	2.4
+\fBugetrlimit\fP(2)	2.4
+\fBumask\fP(2)	1.0
+\fBumount\fP(2)	1.0
+.\" sys_oldumount() -- __NR_umount
+\fBumount2\fP(2)	2.2
+.\" sys_umount() -- __NR_umount2
+\fBuname\fP(2)	1.0
+\fBunlink\fP(2)	1.0
+\fBunlinkat\fP(2)	2.6.16
+\fBunshare\fP(2)	2.6.16
+\fBuselib\fP(2)	1.0
+\fBustat\fP(2)	1.0
+\fButime\fP(2)	1.0
+\fButimensat\fP(2)	2.6.22
+\fButimes\fP(2)	2.2
+\fButrap_install\fP(2)	2.2	Sparc
+\fBvfork\fP(2)	2.2
+\fBvhangup\fP(2)	1.0
+\fBvm86old\fP(2)	1.0	T{
+Précédemment «\ vm86\ », renommé en
+2.0.28/2.2
+T}
+\fBvm86\fP(2)	2.0.28; 2.2
+\fBvmsplice\fP(2)	2.6.17
+\fBwait4\fP(2)	1.0
+\fBwaitid\fP(2)	2.6.10
+\fBwaitpid\fP(2)	1.0
+\fBwrite\fP(2)	1.0
+\fBwritev\fP(2)	2.0
+.TE
+.ad
+.PP
+Sur de nombreuses plates\-formes, y compris les x86\-32, les appels des
+sockets sont multiplexés (par des fonctions de la glibc) à travers
+\fBsocketcall\fP(2) et de même les IPC System\ V via \fBipc\fP(2).
+
+.\" __NR_afs_syscall is 53 on Linux 2.6.22/i386
+.\" __NR_break is 17 on Linux 2.6.22/i386
+.\" __NR_ftime is 35 on Linux 2.6.22/i386
+.\" __NR_getpmsg is 188 on Linux 2.6.22/i386
+.\" __NR_gtty is 32 on Linux 2.6.22/i386
+.\" __NR_idle is 112 on Linux 2.6.22/i386
+.\" __NR_lock is 53 on Linux 2.6.22/i386
+.\" __NR_madvise1 is 219 on Linux 2.6.22/i386
+.\" __NR_mpx is 66 on Linux 2.6.22/i386
+.\" Slot has been reused
+.\" __NR_prof is 44 on Linux 2.6.22/i386
+.\" __NR_profil is 98 on Linux 2.6.22/i386
+.\" __NR_putpmsg is 189 on Linux 2.6.22/i386
+.\" __NR_security is 223 on Linux 2.4/i386
+.\" __NR_security is 223 on Linux 2.4/i386; absent on 2.6/i386, present
+.\" on a couple of 2.6 architectures
+.\" __NR_stty is 31 on Linux 2.6.22/i386
+.\" The security call is for future use.
+.\" __NR_tuxcall is 184 on x86_64, also on PPC and alpha
+.\" __NR_ulimit is 58 on Linux 2.6.22/i386
+.\" __NR_vserver is 273 on Linux 2.6.22/i386
+Même si des entrées ont été réservées dans la table des appels système, les
+appels système suivants ne sont pas implémentés\ : \fBafs_syscall\fP(2),
+\fBbreak\fP(2), \fBftime\fP(2), \fBgetpmsg\fP(2), \fBgtty\fP(2), \fBidle\fP(2), \fBlock\fP(2),
+\fBmadvise1\fP(2), \fBmpx\fP(2), \fBphys\fP(2), \fBprof\fP(2), \fBprofil\fP(2),
+\fBputpmsg\fP(2), \fBsecurity\fP(2), \fBstty\fP(2), \fBtuxcall\fP(2), \fBulimit\fP(2) et
+\fBvserver\fP(2) (voir aussi \fBunimplemented\fP(2)). Toutefois, \fBftime\fP(3),
+\fBprofil\fP(3) et \fBulimit\fP(3) sont disponibles sous forme de fonctions de
+bibliothèque. L'entrée pour \fBphys\fP(2) est utilisée pour \fBumount\fP(2) depuis
+le 2.1.116, \fBphys\fP(2) ne sera jamais implémenté. Les appels \fBgetpmsg\fP(2)
+et \fBputpmsg\fP(2) sont pour les noyaux modifiés qui supportent les FLUX et ne
+seront peut\-être jamais dans le noyau standard.
+
+\fBset_zone_reclaim\fP(2) a existé brièvement\ : ajouté dans Linux\ 2.6.13, et
+retiré en 2.6.16. Cet appel système n'a jamais été disponible dans l'espace
+utilisateur.
+.SH NOTES
+.PP
+En général, le code implémentant l'appel système ayant le numéro __NR_xxx
+dans le fichier \fI/usr/include/asm/unistd.h\fP se trouve dans la routine
+\fIsys_xxx\fP() du noyau Linux. (La table de distribution pour la version i386
+se trouve dans \fI/usr/src/linux/arch/i386/kernel/entry.S\fP.) Il y a néanmoins
+plusieurs exceptions, principalement lorsque d'anciens appels système ont
+été remplacés par des nouveaux. Ces cas n'ont pas été traités de manière
+homogène. Sur les plate\-formes avec une émulation de système propriétaire,
+comme parisc, sparc, sparc64 et alpha, il existe de nombreux appels
+supplémentaires\ ; mips64 contient aussi un jeu complet d'appels système
+32\-bits.
+
+Avec le temps, des changements dans les interfaces de certains appels
+système ont été nécessaires. Une raison pour ces changements a été
+l'augmentation de la taille des structures ou des valeurs scalaires passées
+aux appels système. À cause de ces changements, il y a maintenant plusieurs
+implémentations de certains appels système (par exemple \fBtruncate\fP(2) et
+\fBtruncate64\fP(2)). Ces différentes versions ne sont pas compatibles au
+niveau binaire, mais les applications ne sont généralement pas impactées par
+ceci\ : la magie de la glibc fait en sorte que les binaires existants
+utilisent la version des appels système qui existaient au moment où le
+binaire a été créé. Ainsi la compatibilité de l'ABI est préservée. Voici des
+exemples d'appels système qui existent dans plusieurs versions\ :
+.IP * 3
+.\" e.g., on 2.6.22/i386: __NR_oldstat 18, __NR_stat 106, __NR_stat64 195
+.\" The stat system calls deal with three different data structures,
+.\" defined in include/asm-i386/stat.h: __old_kernel_stat, stat, stat64
+À ce jour, il y a trois versions de \fBstat\fP(2)\ : \fIsys_stat\fP() (entrée
+\fI__NR_oldstat\fP), \fIsys_newstat\fP() (entrée \fI__NR_stat\fP) et \fIsys_stat64\fP()
+(entrée \fI__NR_stat64\fP), la dernière étant celle utilisée actuellement. La
+même histoire s'applique à \fBlstat\fP(2) et \fBfstat\fP(2).
+.IP *
+De même, les définitions \fI__NR_oldolduname\fP, \fI__NR_olduname\fP et
+\fI__NR_uname\fP concernent les routines \fIsys_olduname\fP(), \fIsys_uname\fP() et
+\fIsys_newuname\fP().
+.IP *
+Dans Linux 2.0, une nouvelle version de \fBvm86\fP(2) est apparue, l'ancienne
+et la nouvelle routine du noyau étant appelées \fIsys_vm86old\fP() et
+\fIsys_vm86\fP().
+.IP *
+Dans Linux 2.4, une nouvelle version de \fBgetrlimit\fP(2) est apparue,
+l'ancienne et la nouvelle routine du noyau étant appelées
+\fIsys_old_getrlimit\fP() (entrée \fI__NR_getrlimit\fP) et \fIsys_getrlimit\fP()
+(entrée \fI__NR_ugetrlimit\fP).
+.IP *
+.\" 64-bit off_t changes: ftruncate64, *stat64,
+.\" fcntl64 (because of the flock structure), getdents64, *statfs64
+Linux 2.4 a augmenté la taille des identifiants d'utilisateur et de groupe
+de 16 bits à 32 bits. Pour permettre ce changement, un jeu d'appels système
+ont été ajoutés (par exemple, \fBchown32\fP(2), \fBgetuid32\fP(2),
+\fBgetgroups32\fP(2), \fBsetresuid32\fP(2)), surchargeant les précédents appels
+système du même nom sans le suffixe «\ 32\ ».
+.IP *
+Linux 2.4 a ajouté la gestion des gros fichiers pour les applications sur
+architecture 32\ bits (c'est\-à\-dire la gestion des fichiers dont la taille et
+les décalages dans le fichier ne peuvent pas être représentés sur des
+32\ bits). Pour gérer ce changement, des appels système, qui utilisent des
+déplacements dans des fichiers ou des tailles de fichiers, ont dû être
+remplacés. Ainsi, les appels système suivants ont été ajoutés\ :
+\fBfcntl64\fP(2), \fBftruncate64\fP(2), \fBgetdents64\fP(2), \fBstat64\fP(2),
+\fBstatfs64\fP(2) et les appels système analogues qui fonctionnent avec des
+descripteurs de fichier ou des liens symboliques. Ces appels système
+remplacent les anciens appels système qui, sauf pour les appels «\ stats\ »,
+ont le même nom sans le suffixe «\ 64\ ».
+
+Sur les plates\-formes récentes qui n'ont que des accès aux fichiers 64\-bits
+et des UID 32\-bits (ex. alpha, ia64, s390x) il n'y a pas d'appel *64 ou
+*32. Quand les appels *64 et *32 existent, les autres versions sont
+obsolètes.
+.IP *
+Les appels \fIrt_sig*\fP ont été ajoutés dans le noyau 2.2 pour gérer l'ajout
+des signaux temps\-réel (consultez \fBsignal\fP(7)). Ces appels système
+remplacent les appels précédents du même nom sans le préfixe «\ rt_\ ».
+.IP *
+.\" (used by libc 6)
+.\" .PP
+.\" Two system call numbers,
+.\" .IR __NR__llseek
+.\" and
+.\" .IR __NR__sysctl
+.\" have an additional underscore absent in
+.\" .IR sys_llseek ()
+.\" and
+.\" .IR sys_sysctl ().
+.\"
+.\" In kernel 2.1.81,
+.\" .BR lchown (2)
+.\" and
+.\" .BR chown (2)
+.\" were swapped; that is,
+.\" .BR lchown (2)
+.\" was added with the semantics that were then current for
+.\" .BR chown (2),
+.\" and the semantics of the latter call were changed to what
+.\" they are today.
+Les appels système \fBselect\fP(2) et \fBmmap\fP(2) utilisent 5 paramètres ou
+plus, ce qui a posé des problèmes avec les méthodes classiques de passage de
+paramètres sur i386. Ainsi, alors que les autres architectures disposent de
+\fIsys_select\fP() et \fIsys_mmap\fP() correspondant à \fI__NR_select\fP et
+\fI__NR_mmap\fP, on trouve sur les i386 \fIold_select\fP() et \fIold_mmap\fP() à leur
+place. Ce sont des routines utilisant un pointeur sur un bloc de
+paramètres. De nos jours, passer 5 paramètres n'est plus un problème, et il
+existe donc un \fI__NR__newselect\fP correspondant directement à
+\fIsys_select\fP()\ ; il en est de même pour \fI__NR_mmap2\fP.
+.SH "VOIR AUSSI"
+\fBsyscall\fP(2), \fBunimplemented\fP(2), \fBlibc\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

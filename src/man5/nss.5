@@ -1,0 +1,107 @@
+.\" Copyright (C) 2006 Red Hat, Inc. All rights reserved.
+.\" Author: Ulrich Drepper <drepper@redhat.com>
+.\"
+.\" %%%LICENSE_START(GPLv2_MISC)
+.\" This copyrighted material is made available to anyone wishing to use,
+.\" modify, copy, or redistribute it subject to the terms and conditions of the
+.\" GNU General Public License v.2.
+.\"
+.\" This program is distributed in the hope that it will be useful, but WITHOUT
+.\" ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+.\" FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+.\" more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH NSS 5 "13 février 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+nss \- Fichier de configuration du service de noms («\ Name Service Switch\ »)
+.SH DESCRIPTION
+Toute requête qui récupère des données depuis une base de données du système
+comme celle des mots de passe ou des groupes est traitée par le service de
+noms implémenté par la bibliothèque\ C de GNU. Les différents services de
+noms sont codés dans des modules indépendants, ceux\-ci étant tous très
+différents les uns des autres.
+.PP
+Les implémentations par défaut de la bibliothèque\ C de GNU sont
+conservatives et évitent d'utiliser des données peu sûres. Cependant, une
+telle approche peut être très coûteuse dans certains cas, particulièrement
+lorsque la taille des bases est conséquente. Certains modules permettent à
+l'administrateur de prendre des raccourcis lors des requêtes s'ils sont
+sûrs. C'est alors de la responsabilité de l'administrateur de s'assurer que
+cette supposition est correcte.
+.PP
+D'autres modules ont leur implémentation modifiée avec le temps. Si une
+implémentation avait pour habitude de sacrifier la vitesse au profit de la
+consommation de mémoire, cela pourrait causer des problèmes si la préférence
+est modifiée.
+.PP
+Le fichier \fI/etc/default/nss\fP contient plusieurs assignements de
+variable. Chaque variable contrôle le comportement d'un ou plusieurs modules
+NSS. Les espaces sont ignorées, de même que les lignes commençant par «\ #\ »,
+considérées comme des commentaires.
+.PP
+Les variables reconnues aujourd'hui sont les suivantes.
+.TP 
+\fBNETID_AUTHORITATIVE =\fP \fITRUE\fP|\fIFALSE\fP
+Si définie à TRUE, le moteur NIS pour la fonction \fBinitgroups\fP(3) acceptera
+les renseignements de la carte NIS \fInetid.byname\fP comme faisant
+autorité. Cela peut accélérer significativement la fonction si la carte
+\fIgroup.byname\fP est conséquente. Le contenu de la carte \fInetid.byname\fP est
+utilisé \fBtel quel\fP. L'administrateur système doit s'assurer qu'elle est
+créée correctement.
+.TP 
+\fBSERVICES_AUTHORITATIVE =\fP \fITRUE\fP|\fIFALSE\fP
+Si définie à TRUE, le moteur NIS pour les fonctions \fBgetservbyname\fP(3) et
+\fBgetservbyname_r\fP(3) supposera que la carte \fIservices.byservicename\fP
+existe et fait autorité, en particulier qu'elle contient à la fois les clefs
+avec et sans /proto pour les noms et les alias de service. L'administrateur
+système doit s'assurer qu'elle est créée correctement.
+.TP 
+\fBSETENT_BATCH_READ =\fP \fITRUE\fP|\fIFALSE\fP
+Si définie à TRUE, le moteur NIS pour les fonctions \fBsetpwent\fP(3) et
+\fBsetgrent\fP(3) lira la base de données complète en une fois puis distribuera
+les requêtes une par une à partir de la mémoire avec tous les appels
+\fBgetpwent\fP(3) ou \fBgetgrent\fP(3) respectifs correspondants. Sinon chaque
+appel \fBgetpwent\fP(3) ou \fBgetgrent\fP(3) pourrait déclencher une communication
+réseau avec le serveur pour obtenir l'entrée suivante.
+.SH FICHIERS
+\fI/etc/default/nss\fP
+.SH EXEMPLE
+Le fichier de configuration par défaut correpond à\ :
+
+.nf
+.\" .SH AUTHOR
+.\" Ulrich Drepper <drepper@redhat.com>
+.\"
+NETID_AUTHORITATIVE=FALSE
+SERVICES_AUTHORITATIVE=FALSE
+SETENT_BATCH_READ=FALSE
+.SH "VOIR AUSSI"
+\fInsswitch.conf\fP
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

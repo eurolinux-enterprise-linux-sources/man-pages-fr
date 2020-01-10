@@ -1,0 +1,85 @@
+.\" Copyright (c) 2009 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_KILL_OTHER_THREADS_NP 3 "9 septembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_kill_other_threads_np \- Terminer tous les autres threads du
+processus
+.SH SYNOPSIS
+.nf
+\fB#include <pthread.h>\fP
+
+\fBvoid pthread_kill_other_threads_np(void);\fP
+.fi
+.SH DESCRIPTION
+.\" .SH VERSIONS
+.\" Available since glibc 2.0
+\fBpthread_kill_other_threads_np\fP()  n'a d'effet qu'avec l'implémentation
+LinuxThreads. Avec cette implémentation, l'appel de cette fonction entraîne
+l'arrêt de tous les threads de l'application, à l'exception du thread
+appelant. L'état et le mode d'annulation des threads à terminer seront
+ignorés, et les gestionnaires de nettoyage de ces threads ne seront pas
+appelés.
+.SH CONFORMITÉ
+Cette fonction est une extension GNU non standard\ ; c'est la raison du
+suffixe «\ _np\ » (non portable) dans son nom.
+.SH NOTES
+La fonction \fBpthread_kill_other_threads_np\fP() est prévue pour être appelée
+juste avant qu'un thread n'appelle \fBexecve\fP(2) ou une fonction
+similaire. Le but de cette fonction est de contourner une limitation de
+l'implémentation obsolète LinuxThreads, où les autres threads d'une
+application ne sont pas automatiquement terminés (comme le requiert
+POSIX.1\-2001) pendant \fBexecve\fP(2).
+
+Dans l'implémentation NPTL, \fBpthread_kill_other_threads_np\fP() existe, mais
+ne fait rien ; il n'y a rien à faire, car l'implémentation fait ce qu'il
+faut pendant \fBexecve\fP(2).
+.SH "VOIR AUSSI"
+\fBexecve\fP(2), \fBpthread_cancel\fP(3), \fBpthread_setcancelstate\fP(3),
+\fBpthread_setcanceltype\fP(3), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Denis Barbier (2010).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

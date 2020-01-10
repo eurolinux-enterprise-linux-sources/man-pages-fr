@@ -1,0 +1,84 @@
+.\" Copyright (c) 2008 Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_TESTCANCEL 3 "14 avril 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_testcancel \- Demander la délivrance de toute requête d'annulation en
+cours
+.SH SYNOPSIS
+.nf
+\fB#include <pthread.h>\fP
+
+\fBvoid pthread_testcancel(void);\fP
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.fi
+.SH DESCRIPTION
+Appeler \fBpthread_testcancel\fP() crée un point d'annulation à l'intérieur du
+thread appelant, si bien qu'un thread qui ne contient normalement pas de
+points d'annulation sera en mesure de répondre à une requête d'annulation.
+
+Si la possibilité d'annulation est désactivée (avec
+\fBpthread_setcancelstate\fP(3)), ou si aucune requête d'annulation est en
+cours, un appel à \fBpthread_testcancel\fP() n'aura aucun effet.
+.SH "VALEUR RENVOYÉE"
+Cette fonction ne renvoie aucune valeur. Si le thread appelant est annulé en
+conséquence d'un appel à cette fonction, alors cette fonction ne retourne
+pas.
+.SH ERREURS
+.\" SH VERSIONS
+.\" Available since glibc 2.0
+Cette fonction réussit toujours.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH EXEMPLE
+Consultez \fBpthread_cleanup_push\fP(3).
+.SH "VOIR AUSSI"
+\fBpthread_cancel\fP(3), \fBpthread_cleanup_push\fP(3),
+\fBpthread_setcancelstate\fP(3), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Denis Barbier (2010).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,130 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 19:26:03 1993 by Rik Faith (faith@cs.unc.edu)
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETPROTOENT 3 "19 août 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+getprotoent, getprotobyname, getprotobynumber, setprotoent, endprotoent \-
+Accéder aux protocoles
+.SH SYNOPSIS
+.nf
+\fB#include <netdb.h>\fP
+.sp
+\fBstruct protoent *getprotoent(void);\fP
+.sp
+\fBstruct protoent *getprotobyname(const char *\fP\fIname\fP\fB);\fP
+.sp
+\fBstruct protoent *getprotobynumber(int \fP\fIproto\fP\fB);\fP
+.sp
+\fBvoid setprotoent(int \fP\fIstayopen\fP\fB);\fP
+.sp
+\fBvoid endprotoent(void);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBgetprotoent\fP() lit l'entrée suivante de la base de données de
+protocoles (consultez \fBprotocols\fP(5)) et renvoie une structure \fIprotoent\fP
+contenant les champs de l'entrée. Une connexion à la base de données est
+créée si nécessaire.
+.PP
+La fonction \fBgetprotobyname\fP() renvoie une structure \fIprotoent\fP de
+l'entrée depuis la base qui correspond au protocole \fIname\fP. Une connexion à
+la base est créée si nécessaire.
+.PP
+\fBgetprotobynumber\fP() renvoie une structure \fIprotoent\fP de l'entrée depuis
+la base qui correspond au numéro de protocol \fInumber\fP. Une connexion est
+créée si nécessaire.
+.PP
+La fonction \fBsetprotoent\fP() ouvre une connexion à une base de données et
+définit l'entrée suivante à la premier entrée. Si \fIstayopen\fP est non nul,
+alors la connexion à la base ne sera pas fermée entre deux appels aux
+fonctions \fBgetproto*\fP().
+.PP
+La fonction \fBendprotoent\fP() ferme la connexion à la base de données.
+.PP
+La structure \fIprotoent\fP est définie dans \fI<netdb.h>\fP ainsi\ :
+.sp
+.in +4n
+.nf
+struct protoent {
+    char  *p_name;       /* Nom officiel du protocole */
+    char **p_aliases;    /* Liste d'alias */
+    int    p_proto;      /* Numéro du protocole */
+}
+.fi
+.in
+.PP
+Les membres de la structure \fIprotoent\fP sont\ :
+.TP 
+\fIp_name\fP
+Le nom officiel du protocole.
+.TP 
+\fIp_aliases\fP
+Une liste, terminée par NULL, d'autres noms pour le protocole.
+.TP 
+\fIp_proto\fP
+Le numéro du protocole.
+.SH "VALEUR RENVOYÉE"
+\fBgetprotoent\fP(), \fBgetprotobyname\fP() et \fBgetprotobynumber\fP() renvoient une
+structure \fIprotoent\fP, ou un pointeur NULL si une erreur se produit, ou si
+la fin du fichier est atteinte.
+.SH FICHIERS
+.PD 0
+.TP 
+\fI/etc/protocols\fP
+Base de donnée des protocoles
+.PD
+.SH CONFORMITÉ
+BSD\ 4.3, POSIX.1\-2001.
+.SH "VOIR AUSSI"
+\fBgetnetent\fP(3), \fBgetprotoent_r\fP(3), \fBgetservent\fP(3), \fBprotocols\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

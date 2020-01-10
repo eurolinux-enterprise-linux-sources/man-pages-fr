@@ -1,0 +1,90 @@
+.\" This manpage is Copyright (C) 1992 Drew Eckhardt;
+.\"             and Copyright (C) 1993 Michael Haardt, Ian Jackson.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Wed Jul 21 19:42:57 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Sun Jul 21 21:25:26 1996 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified Wed Nov  6 03:46:05 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ALARM 2 "18 avril 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+alarm \- Programmer un réveil pour l'émission d'un signal
+.SH SYNOPSIS
+.nf
+\fB#include <unistd.h>\fP
+.sp
+\fBunsigned int alarm(unsigned int \fP\fInb_sec\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBalarm\fP() programme une temporisation pour qu'elle envoie un signal
+\fBSIGALRM\fP au processus appelant dans \fInb_sec\fP secondes.
+
+Si \fIseconds\fP vaut zéro, toute alarme en attente est annulée.
+
+Dans tous les cas, l'appel \fBalarm\fP() annule l'éventuelle programmation
+précédente.
+.SH "VALEUR RENVOYÉE"
+\fBalarm\fP() renvoie le nombre de secondes qu'il restait de la programmation
+précédente (annulée), ou zéro si aucune alarme n'avait été planifiée
+auparavant.
+.SH CONFORMITÉ
+SVr4, POSIX.1\-2001, BSD\ 4.3.
+.SH NOTES
+Les fonctions \fBalarm\fP() et \fBsetitimer\fP(2) partagent la même temporisation,
+aussi l'appel de l'une interfère avec l'utilisation de l'autre.
+.PP
+\fBsleep\fP(3) peut être implémenté en utilisant \fBSIGALRM\fP, aussi il est
+déconseillé de mélanger les appels \fBalarm\fP() et \fBsleep\fP(3).
+
+Les délais dûs au multitâche peuvent, comme toujours, retarder le
+déclenchement d'une alarme d'une durée arbitraire.
+.SH "VOIR AUSSI"
+\fBgettimeofday\fP(2), \fBpause\fP(2), \fBselect\fP(2), \fBsetitimer\fP(2),
+\fBsigaction\fP(2), \fBsignal\fP(2), \fBsleep\fP(3), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

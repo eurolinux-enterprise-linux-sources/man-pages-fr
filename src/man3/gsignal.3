@@ -1,0 +1,96 @@
+.\" Copyright (C) 2002 Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" This replaces an earlier man page written by Walter Harms
+.\" <walter.harms@informatik.uni-oldenburg.de>.
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GSIGNAL 3 "26 juillet 2007" "" "Manuel du programmeur Linux"
+.SH NOM
+gsignal, ssignal \- Gestion de signaux
+.SH SYNOPSIS
+.nf
+\fB#include <signal.h>\fP
+.sp
+\fBtypedef void (*sighandler_t)(int);\fP
+.sp
+\fBint gsignal(int \fP\fIsignum\fP\fB);\fP
+.sp
+\fBsighandler_t ssignal(int \fP\fIsignum\fP\fB, sighandler_t \fP\fIaction\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBgsignal\fP(), \fBssignal\fP()\ : _SVID_SOURCE
+.SH DESCRIPTION
+N'utilisez pas ces fonctions sous Linux. À cause d'une ancienne méprise,
+elles sont en réalité des synonymes de \fBraise\fP(3) et \fBsignal\fP(2),
+respectivement.
+.LP
+Ailleurs, sur des systèmes System\ V, ces fonctions implémentent une gestion
+des signaux entièrement indépendante des appels système classiques
+\fBsignal\fP(2) et \fBkill\fP(2). La fonction \fBssignal\fP() définit l'action à
+entreprendre quand le signal numéro \fIsignum\fP est envoyé au processus à
+l'aide de la fonction \fBgsignal\fP(), et renvoie l'action précédente, comme
+\fBSIG_DFL\fP. La fonction \fBgsignal\fP() agit ainsi\ : si aucune action (ou
+l'action \fBSIG_DFL\fP) n'est indiquée pour \fIsignum\fP, alors elle ne fait rien
+et renvoie zéro. Si l'action \fBSIG_IGN\fP est indiquée pour \fIsignum\fP, alors
+elle ne fait rien et renvoie 1. Sinon, elle replace l'action à \fBSIG_DFL\fP et
+appelle le gestionnaire concerné, avec l'argument \fIsignum\fP, et renvoie la
+valeur de retour de cette fonction. L'intervalle de valeurs possibles de
+\fIsignum\fP varie (souvent [1, 15] ou [1, 17]).
+.SH CONFORMITÉ
+Ces fonctions sont disponibles sous AIX, DG/UX, HP\-UX, SCO, Solaris,
+Tru64. Elles sont considérées comme obsolètes sur la plupart de ces systèmes
+et sont erronées avec les bibliothèques libc Linux et glibc. Certains
+systèmes ont \fBgsignal_r\fP() et \fBssignal_r\fP().
+.SH "VOIR AUSSI"
+\fBkill\fP(2), \fBsignal\fP(2), \fBraise\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

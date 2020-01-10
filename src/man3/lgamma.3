@@ -1,0 +1,150 @@
+.\" Copyright 2002 Walter Harms (walter.harms@informatik.uni-oldenburg.de)
+.\" and Copyright 2008, Linux Foundation, written by Michael Kerrisk
+.\"     <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\" based on glibc infopages
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LGAMMA 3 "11 septembre 2010" "" "Manuel du programmeur Linux"
+.SH NOM
+lgamma, lgammaf, lgammal, lgamma_r, lgammaf_r, lgammal_r, signgam \-
+Logarithme de la fonction Gamma
+.SH SYNOPSIS
+.nf
+\fB#include <math.h>\fP
+.sp
+\fBdouble lgamma(double \fP\fIx\fP\fB);\fP
+.br
+\fBfloat lgammaf(float \fP\fIx\fP\fB);\fP
+.br
+\fBlong double lgammal(long double \fP\fIx\fP\fB);\fP
+.sp
+\fBdouble lgamma_r(double \fP\fIx\fP\fB, int *\fP\fIsignp\fP\fB);\fP
+.br
+\fBfloat lgammaf_r(float \fP\fIx\fP\fB, int *\fP\fIsignp\fP\fB);\fP
+.br
+\fBlong double lgammal_r(long double \fP\fIx\fP\fB, int *\fP\fIsignp\fP\fB);\fP
+.sp
+\fBextern int \fP\fIsigngam\fP\fB;\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lm\fP.
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBlgamma\fP()\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE || _ISOC99_SOURCE ||
+_POSIX_C_SOURCE\ >=\ 200112L
+.br
+ou \fIcc\ \-std=c99\fP
+.RE
+.br
+\fBlgammaf\fP(), \fBlgammal\fP()\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 600 || _ISOC99_SOURCE
+|| _POSIX_C_SOURCE\ >=\ 200112L
+.br
+ou \fIcc\ \-std=c99\fP
+.RE
+\fBlgamma_r\fP(), \fBlgammaf_r\fP(), \fBlgammal_r\fP()\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE
+.RE
+\fIsigngam\fP\ :
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE
+.RE
+.ad b
+.SH DESCRIPTION
+Pour la définition de la fonction Gamma, consultez \fBtgamma\fP(3).
+.PP
+La fonction \fBlgamma\fP() renvoie le logarithme népérien (ou naturel) de la
+valeur absolue de la fonction Gamma. Le signe de la fonction Gamma est
+stocké dans la variable entière externe \fIsigngam\fP déclaré dans
+\fI<math.h>\fP. Il vaut 1 si la fonction Gamma est positive ou nulle,
+\-1 si elle est négative.
+.PP
+Comme l'utilisation de la variable statique \fIsigngam\fP n'est pas sûre en
+multithread, les fonctions \fBlgamma_r\fP() etc. ont été introduites, elles
+renvoient le signe dans le paramètre \fIsignp\fP.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient le logarithme népérien (ou
+logarithme naturel) de Gamma(x).
+
+Si \fIx\fP est un NaN, la valeur renvoyée est un NaN.
+
+Si \fIx\fP vaut 1 ou 2, +0 est renvoyé.
+
+Si \fIx\fP est une valeur infinie positive ou négative, une valeur infinie
+positive est renvoyée.
+
+Si \fIx\fP est un nombre entier non\-positif, une erreur de pôle se produit et
+les fonctions renvoient +\fBHUGE_VAL\fP, +\fBHUGE_VALF\fP ou +\fBHUGE_VALL\fP,
+respectivement.
+
+.\" e.g., lgamma(DBL_MAX)
+En cas de dépassement pour le résultat, une erreur d'intervalle se produit
+et les fonctions renvoient \fBHUGE_VAL\fP, \fBHUGE_VALF\fP ou \fBHUGE_VALL\fP,
+resp. avec le bon signe mathématique.
+.SH ERREURS
+Consultez \fBmath_error\fP(7) pour savoir comment déterminer qu'une erreur est
+survenue lors de l'appel de ces fonctions.
+.PP
+Les erreurs suivantes peuvent se produire\ :
+.TP 
+Erreur de pôle\ : \fIx\fP est un nombre entier non\-positif
+\fIerrno\fP est configuré à la valeur \fBERANGE\fP (mais consultez la section des
+BOGUES). Une exception de virgule flottante division par zéro
+(\fBFE_DIVBYZERO\fP) est déclenchée.
+.TP 
+Erreur d'intervalle\ : dépassement pour le résultat
+.\" glibc (as at 2.8) also supports an inexact
+.\" exception for various cases.
+\fIerrno\fP est configurée à \fBERANGE\fP. Une exception de dépassement en virgule
+flottante (\fBFE_OVERFLOW\fP) est levée.
+.SH CONFORMITÉ
+Les fonctions \fBlgamma\fP() sont spécifiées dans C99 et
+POSIX.1\-2001. \fIsigngam\fP est spécifiée dans POSIX.1\-2001, mais pas dans
+C99. Les fonctions \fBlgamma_r\fP() ne sont pas standardisées mais elles sont
+présentes sur de nombreux systèmes.
+.SH BOGUES
+.\" http://sources.redhat.com/bugzilla/show_bug.cgi?id=6777
+Dans la glibc\ 2.9 et précédentes, lorsqu'une erreur de pôle se produit,
+\fIerrno\fP est définie à \fBEDOM\fP au lieu de \fBERANGE\fP comme défini dans
+POSIX. C'est corrigé depuis la glibc\ 2.10.
+.SH "VOIR AUSSI"
+\fBtgamma\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

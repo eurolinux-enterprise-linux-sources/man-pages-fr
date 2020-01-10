@@ -1,0 +1,213 @@
+.\" This man page is Copyright (C) 1999 Andi Kleen <ak@muc.de>.
+.\"
+.\" %%%LICENSE_START(VERBATIM_ONE_PARA)
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" %%%LICENSE_END
+.\"
+.\" $Id: udp.7,v 1.7 2000/01/22 01:55:05 freitag Exp $
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH UDP 7 "21 juin 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+udp \- Protocole UDP pour IPv4
+.SH SYNOPSIS
+\fB#include <sys/socket.h>\fP
+.br
+\fB#include <netinet/in.h>\fP
+.sp
+\fBudp_socket = socket(AF_INET, SOCK_DGRAM, 0);\fP
+.SH DESCRIPTION
+Il s'agit d'une implémentation de l'User Datagram Protocol décrit dans la
+RFC\ 768. Elle implémente un service de paquets datagrammes non\-fiable, sans
+connexion. Les paquets peuvent être réordonnés ou dupliqués avant leur
+arrivée. UDP crée et vérifie des sommes de contrôle pour détecter les
+erreurs de transmission.
+
+Lorsqu'une socket UDP est créée, ses adresses locales et distantes sont
+indéterminées. Les datagrammes peuvent être envoyés immédiatement en
+utilisant \fBsendto\fP(2) ou \fBsendmsg\fP(2) avec une adresse de destination
+valide en argument. Lorsque \fBconnect\fP(2) est appelé sur une socket,
+l'adresse de destination par défaut est définie, et les datagrammes pourront
+être envoyés avec \fBsend\fP(2) ou \fBwrite\fP(2) sans spécifier d'adresse de
+destination. Il restera possible d'envoyer des données à d'autres
+destinations en passant l'adresse à \fBsendto\fP(2) ou \fBsendmsg\fP(2). Afin de
+recevoir les paquets, une socket doit être attachée à une adresse locale en
+utilisant \fBbind\fP(2). Sinon la couche socket affectera automatiquement un
+port local libre, hors de l'intervalle défini par
+\fI/proc/sys/net/ipv4/ip_local_port_range\fP et attacher la socket à l'adresse
+\fBINADDR_ANY\fP.
+
+Les opérations de réception ne renvoient qu'un seul paquet à la fois. Si le
+paquet est plus petit que le tampon transmis, il n'y aura pas plus de
+données renvoyées. S'il est plus grand, le paquet sera tronqué et le drapeau
+\fBMSG_TRUNC\fP sera activé. \fBMSG_WAITALL\fP n'est pas pris en charge.
+
+Les options IP peuvent être envoyées ou lues en utilisant les options des
+sockets décrites dans \fBip\fP(7). Elles ne sont traitées par le noyau que
+lorsque le paramètre \fI/proc\fP approprié est activé (mais sont quand même
+fournies à l'utilisateur quant il est inhibé). Consultez \fBip\fP(7).
+
+Quand l'attribut \fBMSG_DONTROUTE\fP est actif à l'émission, l'adresse de
+destination doit représenter une adresse d'interface locale, et le paquet
+n'est envoyé qu'à cette interface.
+
+Par défaut, l'UDP sous Linux utilise la détection de MTU («\ Maximum
+Transmission Unit\ ») par chemin. Cela signifie que le noyau garde en
+mémoire le MTU vers une adresse IP particulière, et renvoie \fBEMSGSIZE\fP
+lorsqu'une écriture sur une socket UDP dépasse cette taille. Dans ce cas,
+l'application doit réduire la taille du paquet. La détection de MTU par
+chemin peut être désactivée avec l'option de socket \fBIP_MTU_DISCOVER\fP ou le
+fichier \fI/proc/sys/net/ipv4/ip_no_pmtu_disc\fP\ ; consultez \fBip\fP(7) pour plus
+de détails. Lorsque cette option est désactivée, UDP fragmente les paquets
+sortants dont la taille dépasse le MTU de l'interface. Ceci est cependant
+découragé, pour des raisons de performance et de fiabilité.
+.SS "Format d'adresse"
+UDP utilise le format d'adresse IPv4 \fIsockaddr_in\fP comme indiqué dans
+\fBip\fP(7).
+.SS "Traitement des erreurs"
+Toutes les erreurs fatales seront transmises à l'utilisateur comme un retour
+d'erreur même lorsque la socket n'est pas connectée. Ceci inclut les erreurs
+asynchrones reçues du réseau. Vous pouvez ainsi recevoir une erreur due à un
+paquet précédemment envoyé sur la même socket. Ce comportement diffère de
+celui de nombreuses autres implémentations des sockets BSD, qui ne
+transmettent pas d'erreur si la socket n'est pas connectée. Le comportement
+de Linux correspond à la \fBRFC\ 1122\fP.
+
+Pour assurer la compatibilité avec du code ancien, on pouvait sous Linux\ 2.0
+et 2.2 définir l'option \fBSOL_SOCKET\fP \fBSO_BSDCOMPAT\fP pour ne recevoir les
+erreurs distantes que si la socket a été connectée (sauf pour \fBEPROTO\fP et
+\fBEMSGSIZE\fP). Les erreurs locales sont toujours transmises. La gestion de
+cette option a été supprimée dans les noyaux plus récents\ ; consultez
+\fBsocket\fP(7) pour plus d'informations.
+
+Lorsque l'option \fBIP_RECVERR\fP est active, toutes les erreurs sont stockées
+dans la file d'erreur de la socket et peuvent être lues avec \fBrecvmsg\fP(2)
+en activant son option \fBMSG_ERRQUEUE\fP.
+.SS "Interfaces /proc"
+La configuration des paramètres système pour UDP sont accessible par les
+fichiers du répertoire \fI/proc/sys/net/ipv4/\fP.
+.TP 
+\fIudp_mem\fP (depuis Linux\ 2.6.25)
+C'est un vecteur de trois entiers qui contrôle le nombre de pages permises
+pour la queue de toutes les sockets UDP.
+.RS
+.TP  10
+\fImin\fP
+En dessous de ce nombre de pages, UDP ne se soucie pas de son appétit en
+mémoire. Quand la quantité de mémoire allouée par UDP dépasse cette valeur,
+UDP commence à limiter son utilisation mémoire.
+.TP 
+\fIpressure\fP
+Cette valeur a été introduite pour suivre le format de \fItcp_mem\fP (voir
+\fBtcp\fP(7)).
+.TP 
+\fImax\fP
+Nombre de pages permises pour la queue de toutes les sockets UDP.
+.RE
+.IP
+Les valeurs par défaut pour ces trois éléments sont calculées au démarrage à
+partir de la quantité de mémoire disponible.
+.TP 
+\fIudp_rmem_min\fP (entier\ ; PAGE_SIZE par défaut\ ; depuis Linux\ 2.6.25)
+Taille minimale, en octets, des tampons de réception utilisés par les
+sockets UDP dans le mode de modération. Chaque socket UDP peut utiliser
+cette taille pour recevoir des données, même si le nombre total de pages
+pour les sockets UDP dépasse le seuil \fIudp_mem\fP.
+.TP 
+\fIudp_wmem_min\fP (entier\ ; PAGE_SIZE par défaut\ ; depuis Linux\ 2.6.25)
+Taille minimale, en octets, du tampon d'émission utilisé par les sockets UDP
+dans le mode de modération. Chaque socket UDP peut utiliser cette taille
+pour envoyer des données, même si le nombre total de pages pour les sockets
+UDP dépasse le seuil \fIudp_mem\fP.
+.SS "Options de sockets"
+Pour lire ou écrire une option de socket UDP, appeler \fBgetsockopt\fP(2) pour
+la lecture ou \fBsetsockopt\fP(2) pour l'écriture, avec l'argument de niveau
+d'option valant \fBIPPROTO_UDP\fP. Sauf mention contraire, \fIoptval\fP est un
+pointeur vers un \fIint\fP.
+.TP 
+\fBUDP_CORK\fP (depuis Linux\ 2.5.44)
+.\" FIXME document UDP_ENCAP (new in kernel 2.5.67)
+.\" From include/linux/udp.h:
+.\" /* UDP encapsulation types */
+.\" #define UDP_ENCAP_ESPINUDP_NON_IKE      1 /* draft-ietf-ipsec-nat-t-ike-00/01 */
+.\" #define UDP_ENCAP_ESPINUDP      2 /* draft-ietf-ipsec-udp-encaps-06 */
+.\" #define UDP_ENCAP_L2TPINUDP     3 /* rfc2661 */
+Si cette option est active, toutes les données en sortie sur cette socket
+sont accumulées dans un unique datagramme qui est émis dès que l'option est
+désactivée. Cette option ne doit pas être utilisée dans des programmes
+destinés à être portables.
+.SS Ioctls
+Ces ioctls sont accessibles à travers l'appel système \fBioctl\fP(2). La
+syntaxe correcte est\ :
+.PP
+.RS
+.nf
+\fBint\fP\fI value\fP\fB;\fP
+\fIerror\fP\fB = ioctl(\fP\fIudp_socket\fP\fB, \fP\fIioctl_type\fP\fB, &\fP\fIvalue\fP\fB);\fP
+.fi
+.RE
+.TP 
+\fBFIONREAD\fP (\fBSIOCINQ\fP)
+.\" See http://www.securiteam.com/unixfocus/5KP0I15IKO.html
+.\" "GNUnet DoS (UDP Socket Unreachable)", 14 May 2006
+Prend en argument un pointeur sur un entier. Y écrit la taille en octets du
+prochain datagramme en attente, ou 0 si aucun datagramme  n'est
+disponible. \fBAttention\ :\fP en utilisant \fBFIONREAD\fP, il est impossible de
+distinguer le cas où aucun datagramme n'est en attente du cas où le prochain
+datagramme en attente contient 0\ octet de données. Il est préférable
+d'utiliser \fBselect\fP(2), \fBpoll\fP(2), ou \fBepoll\fP(7)  pour différencier ces
+cas.
+.TP 
+\fBTIOCOUTQ\fP (\fBSIOCOUTQ\fP)
+Renvoie le nombre d'octets de données dans la file d'émission
+locale. Seulement sur Linux\ 2.4 et ultérieurs.
+.PP
+De plus, les ioctls documentés dans \fBip\fP(7) et \fBsocket\fP(7) sont pris en
+charge.
+.SH ERREURS
+Toutes les erreurs documentées pour \fBsocket\fP(7) ou \fBip\fP(7) peuvent être
+renvoyées lors d'une émission ou d'une réception sur une socket UDP.
+.TP 
+\fBECONNREFUSED\fP
+Aucun correspondant sur l'adresse destination associée à la socket. Ceci
+peut être causé par l'émission antérieure d'un paquet sur la socket.
+.SH VERSIONS
+.\" .SH CREDITS
+.\" This man page was written by Andi Kleen.
+\fBIP_RECVERR\fP est une nouveauté de Linux\ 2.2.
+.SH "VOIR AUSSI"
+\fBip\fP(7), \fBraw\fP(7), \fBsocket\fP(7), \fBudplite\fP(7)
+
+RFC\ 768 pour le protocole UDP.
+.br
+RFC\ 1122 pour les nécessités de l'hôte.
+.br
+RFC\ 1191 pour une description de la recherche du MTU du chemin.
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

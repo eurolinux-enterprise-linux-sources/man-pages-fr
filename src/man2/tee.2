@@ -1,0 +1,180 @@
+.\" This manpage is Copyright (C) 2006 Jens Axboe
+.\" and Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TEE 2 "4 mai 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+tee \- Dupliquer le contenu d'un tube
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP         /* Consultez feature_test_macros(7) */
+\fB#include <fcntl.h>\fP
+
+\fBssize_t tee(int \fP\fIfd_in\fP\fB, int \fP\fIfd_out\fP\fB, size_t \fP\fIlen\fP\fB, unsigned int \fP\fIflags\fP\fB);\fP
+.fi
+.\" Return type was long before glibc 2.7
+.SH DESCRIPTION
+.\" Example programs http://brick.kernel.dk/snaps
+.\"
+.\"
+.\" add a "tee(in, out1, out2)" system call that duplicates the pages
+.\" (again, incrementing their reference count, not copying the data) from
+.\" one pipe to two other pipes.
+\fBtee\fP() duplique jusqu'à \fIlen\fP octets de données du tube auquel le
+descripteur de fichier \fIfd_in\fP fait référence vers le tube référencé par
+\fIfd_out\fP. Il ne consomme pas les données qui sont dupliquées depuis
+\fIfd_in\fP\ ; ces données peuvent donc être copiées par un futur appel à
+\fBsplice\fP(2).
+
+\fIflags\fP est un ensemble de paramètres modificateurs, dont l'espace de
+nommage est partagé avec \fBsplice\fP(2) et \fBvmsplice\fP(2)\ :
+.TP  1.9i
+\fBSPLICE_F_MOVE\fP
+N'a pas d'effet pour \fBtee\fP() actuellement\ ; consultez \fBsplice\fP(2).
+.TP 
+\fBSPLICE_F_NONBLOCK\fP
+Ne pas bloquer pendant les entrées\-sorties\ ; consultez \fBsplice\fP(2) pour
+plus de détails.
+.TP 
+\fBSPLICE_F_MORE\fP
+N'a pas d'effet pour \fBtee\fP() actuellement, mais pourrait être implémenté un
+jour\ ; consultez \fBsplice\fP(2).
+.TP 
+\fBSPLICE_F_GIFT\fP
+Inutilisé pour \fBtee\fP()\ ; consultez \fBvmsplice\fP(2).
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBtee\fP() renvoie le nombre d'octets dupliqués entre les
+tubes d'entrée et de sortie. La valeur de retour 0 signifie qu'il n'y avait
+aucune donnée à transférer, et que bloquer n'aurait pas de sens car il n'y a
+aucun écrivain connecté à l'extrémité d'écriture du tube référencé par
+\fIfd_in\fP.
+
+En cas d'erreur, \fBtee\fP() renvoie \-1 et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+\fIfd_in\fP ou \fIfd_out\fP ne correspond pas à un tube\ ; ou bien \fIfd_in\fP et
+\fIfd_out\fP font référence au même tube.
+.TP 
+\fBENOMEM\fP
+Plus de mémoire disponible.
+.SH VERSIONS
+L'appel système \fBtee\fP() est apparu dans Linux\ 2.6.17, la glibc le gère
+depuis la version\ 2.5.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux.
+.SH NOTES
+Conceptuellement, \fBtee\fP() copie les données entre deux tubes. En fait, il
+n'y a pas de réelle copie de données\ : \fBtee\fP() attache les données au tube
+de sortie en prenant une référence sur les données en entrée.
+.SH EXEMPLE
+L'exemple suivant implémente une version basique du programme \fBtee\fP(1) en
+utilisant l'appel système \fBtee\fP().
+.nf
+
+#define _GNU_SOURCE
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <limits.h>
+
+int
+main(int argc, char *argv[])
+{
+    int fd;
+    int len, slen;
+
+    if (argc != 2) {
+        fprintf(stderr, "Utilisation : %s <fichier>\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    fd = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd == \-1) {
+        perror("open");
+        exit(EXIT_FAILURE);
+    }
+
+    do {
+        /*
+         * Duplique l'entrée standard dans la sortie standard.
+         */
+        len = tee(STDIN_FILENO, STDOUT_FILENO,
+                  INT_MAX, SPLICE_F_NONBLOCK);
+
+        if (len < 0) {
+            if (errno == EAGAIN)
+                continue;
+            perror("tee");
+            exit(EXIT_FAILURE);
+        } else
+            if (len == 0)
+                break;
+
+        /*
+         * Consomme l'entrée standard en la raccordant à un fichier.
+         */
+        while (len > 0) {
+            slen = splice(STDIN_FILENO, NULL, fd, NULL,
+                          len, SPLICE_F_MOVE);
+            if (slen < 0) {
+                perror("splice");
+                break;
+            }
+            len \-= slen;
+        }
+    } while (1);
+
+    close(fd);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBsplice\fP(2), \fBvmsplice\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

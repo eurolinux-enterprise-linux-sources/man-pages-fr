@@ -1,0 +1,165 @@
+.\" Copyright (c) 2000 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STRFMON 3 "5 décembre 2000" Linux "Manuel du programmeur Linux"
+.SH NOM
+strfmon \- Convertir des valeurs monétaires en chaînes de caractères
+.SH SYNOPSIS
+\fB#include <monetary.h>\fP
+.sp
+\fBssize_t strfmon(char *\fP\fIs\fP\fB, size_t \fP\fImax\fP\fB, const char
+*\fP\fIformat\fP\fB,\fP \fB...);\fP
+.SH DESCRIPTION
+La fonction \fBstrfmon\fP() met en forme les valeurs transmises, en fonction
+des spécifications de la chaîne de \fIformat\fP et place le résultat dans la
+chaîne de caractère \fIs\fP de taille \fImax\fP.
+.PP
+Les caractères ordinaires de \fIformat\fP sont copié dans \fIs\fP sans
+conversion. Les indicateurs de conversion sont introduits par un caractère
+«\ %\ ». Immédiatement à sa suite, il peut y avoir zéro ou plusieurs
+drapeaux parmi les suivants\ :
+.TP 
+\fB=\fP\fIf\fP
+Le caractère unique \fIf\fP sert comme caractère numérique de remplissage (à
+utiliser avec une précision à gauche, voir plus bas). Sans indication, il
+s'agit du caractère espace.
+.TP 
+\fB^\fP
+Ne pas utiliser les caractères de regroupement (par milliers par exemple)
+qui peuvent être définis pour la localisation en cours. Par défaut, le
+groupement est actif.
+.TP 
+\fB(\fP or \fB+\fP
+L'attribut «\ (\ » indique que les valeurs négatives doivent être encadrées
+entre parenthèses. L'attribut «\ +\ » indique que le signe doit être traité
+de la manière par défaut, c'est\-à\-dire les valeurs précédées de l'indication
+locale de signe. Par exemple, rien pour les valeurs positives et «\ \-\ »
+pour les négatives.
+.TP 
+\fB!\fP
+Omettre le signe monétaire.
+.TP 
+\fB\-\fP
+Justifier tous les champs à gauche. Par défaut, la justification est à
+droite.
+.LP
+Ensuite, peut venir un champ de largeur\ : un chiffre décimal indiquant la
+largeur minimale en octets. Par défaut, elle vaut 0. Un résultat plus petit
+que cette largeur est complété avec des espaces (à gauche à moins que la
+justification soit à gauche).
+.LP
+Ensuite, il peut y avoir une précision à gauche de la forme «\ #\ » suivi
+par une chaîne de chiffres décimaux. Si le nombre de chiffres à gauche de la
+virgule est inférieur à cette valeur, la représentation est complétée à
+gauche avec le caractère de remplissage. Les caractères de groupement ne
+sont pas comptés dans la largeur du champ.
+.LP
+Ensuite, il peut y avoir une précision à droite de la forme «\ .\ » suivi
+par une chaîne de chiffres décimaux. La valeur est arrondie à ce nombre de
+décimales avant d'être mise en forme. La valeur par défaut est précisée dans
+les champs \fIfrac_digits\fP et \fIint_frac_digits\fP de la localisation en
+cours. Si la précision à droite est 0, aucun symbole décimal n'est affiché
+(le symbole décimal est déterminé par \fBLC_MONETARY\fP, et peut différer de
+celui indiqué dans \fBLC_NUMERIC\fP).
+.LP
+Finalement, la spécification de conversion doit se terminer par un caractère
+de conversion. Les trois caractères disponibles sont\ :
+.TP 
+\fB%\fP
+(Dans ce cas, la spécification entière doit être exactement «\ %%\ »). Placer un caractère «\ %\ » dans la chaîne de résultat.
+.TP 
+\fBi\fP
+Un argument de type \fIdouble\fP est converti en utilisant les formats
+internationaux des monnaies dans la localisation en cours.
+.TP 
+\fBn\fP
+Un argument de type \fIdouble\fP est converti en utilisant les formats
+nationaux des monnaies dans la localisation en cours.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBstrfmon\fP() renvoie le nombre de caractères placés dans la
+chaîne \fIs\fP, sans compter le caractère nul final, à condition que tout
+tienne dans le tampon fourni. Sinon, il rempli \fIerrno\fP avec la valeur
+\fBE2BIG\fP et renvoie \-1. Le contenu de la chaîne est indéfini dans ce cas.
+.SH CONFORMITÉ
+Pas dans POSIX.1\-2001. Présente sur plusieurs autres systèmes.
+.SH EXEMPLE
+L'appel
+.in +4n
+.nf
+
+strfmon(buf, sizeof(buf), "[%^=*#6n] [%=*#6i]",
+        1234.567, 1234.567);
+
+.fi
+.in
+affiche
+.in +4n
+
+[ fl **1234,57] [ NLG **1 234,57]
+
+.in
+Dans la localisation hollandaise (fl étant «\ florijnen\ » et NLG «\ Netherlands Guilders\ »). Le caractère de groupement est horrible car il
+prend autant de place qu'un chiffre, alors qu'il ne devrait occuper qu'un
+demi\-espace, ce qui peut induire en erreur. Étonnamment, le «\ fl\ » est
+précédé et suivi par un espace, et «\ NLG\ » est précédé par un espace et
+suivi par deux. Il s'agit peut\-être d'un bogue dans le fichier de
+localisation. Les localisations italienne, australienne, suisse, et
+portugaise donnent
+.in +4n
+
+[ L. **1235] [ ITL **1.235]
+.br
+[ $**1234.57] [ AUD **1,234.57]
+.br
+[Fr. **1234,57] [CHF **1.234,57]
+.br
+[ **1234$57Esc] [ **1.234$57PTE ]
+.in
+.SH "VOIR AUSSI"
+\fBsetlocale\fP(3), \fBsprintf\fP(3), \fBlocale\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

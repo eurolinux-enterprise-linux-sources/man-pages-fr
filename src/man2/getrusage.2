@@ -1,0 +1,243 @@
+.\" Copyright (c) 1992 Drew Eckhardt, March 28, 1992
+.\" and Copyright (c) 2002 Michael Kerrisk
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 2004-11-16 -- mtk: the getrlimit.2 page, which formerly included
+.\" coverage of getrusage(2), has been split, so that the latter is
+.\" now covered in its own getrusage.2.  For older details of change
+.\" history, etc., see getrlimit.2
+.\"
+.\" Modified 2004-11-16, mtk, Noted that the nonconformance
+.\"	when SIGCHLD is being ignored is fixed in 2.6.9.
+.\" 2008-02-22, Sripathi Kodi <sripathik@in.ibm.com>: Document RUSAGE_THREAD
+.\" 2008-05-25, mtk, clarify RUSAGE_CHILDREN + other clean-ups.
+.\" 2010-05-24, Mark Hills <mark@pogo.org.uk>: Description of fields,
+.\"     document ru_maxrss
+.\" 2010-05-24, mtk, enhanced description of various fields
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETRUSAGE 2 "26 septembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+getrusage \- Lire l'utilisation des ressources
+.SH SYNOPSIS
+\fB#include <sys/time.h>\fP
+.br
+\fB#include <sys/resource.h>\fP
+.sp
+\fBint getrusage(int \fP\fIwho\fP\fB, struct rusage *\fP\fIusage\fP\fB);\fP
+.SH DESCRIPTION
+.PP
+\fBgetrusage\fP() renvoie la mesure de l'utilisation des ressources pour
+\fIwho\fP, qui peut valoir une des valeurs suivantes\ :
+.TP 
+\fBRUSAGE_SELF\fP
+Renvoyer les statistiques d'utilisation des ressources pour le processus
+appelant, ce qui correspond à la somme des ressources utilisées par tous les
+processus légers (\fIthreads\fP) du processus.
+.TP 
+\fBRUSAGE_CHILDREN\fP
+Renvoyer les statistiques d'utilisation des ressources pour tous les
+processus fils du processus appelant qui se sont terminés et dont la fin a
+été attendue (avec \fBwait\fP(2)). Ces statistiques incluront les ressources
+utilisées par les petits\-enfants, et autres descendants déjà retirés si tous
+les descendants en question ont attendu la fin de leurs enfants.
+.TP 
+\fBRUSAGE_THREAD\fP (depuis Linux 2.6.26)
+Renvoyer les statistiques d'utilisation des ressources du processus léger
+appelant.
+.PP
+L'utilisation des ressources est renvoyée dans la structure pointée par
+\fIusage\fP, qui est de la forme suivante\ :
+.PP
+.in +4n
+.nf
+struct rusage {
+  struct timeval ru_utime; /* Temps CPU utilisateur écoulé     */
+  struct timeval ru_stime; /* Temps CPU système écoulé         */
+  long  ru_maxrss;         /* Taille résidente maximale        */
+  long  ru_ixrss;          /* Taille de mémoire partagée       */
+  long  ru_idrss;          /* Taille des données non partagées */
+  long  ru_isrss;          /* Taille de pile                   */
+  long  ru_minflt;         /* Demandes de pages (soft)         */
+  long  ru_majflt;         /* Nombre de fautes de pages (hard) */
+  long  ru_nswap;          /* Nombre de swaps                  */
+  long  ru_inblock;        /* Nombre de lectures de blocs      */
+  long  ru_oublock;        /* Nombre d'écritures de blocs      */
+  long  ru_msgsnd;         /* Nombre de messages IPC émis      */
+  long  ru_msgrcv;         /* Nombre de messages IPC reçus     */
+  long  ru_nsignals;       /* Nombre de signaux reçus          */
+  long  ru_nvcsw;          /* Chgmnts de contexte volontaires  */
+  long  ru_nivcsw;         /* Chgmnts de contexte involontaires*/
+};
+.fi
+.in
+.PP
+Tous les champs ne sont pas complètement remplis\ ; les champs non maintenus
+sont mis à zéro par le noyau (les champs non maintenus sont fournis pour
+assurer la compatibilité avec d'autres systèmes, et parce qu'ils pourraient
+un jour être supportés par Linux). Ces champs ont la signification
+suivante\ :
+.TP 
+\fIru_utime\fP
+Temps total passé en mode utilisateur, mis dans une structure \fItimeval\fP
+(secondes et microsecondes).
+.TP 
+\fIru_stime\fP
+Temps total passé en mode noyau, mis dans une structure \fItimeval\fP (secondes
+et microsecondes).
+.TP 
+\fIru_maxrss\fP (depuis Linux 2.6.32)
+Taille maximale de mémoire résidente utilisée (en kilooctets). Pour
+\fBRUSAGE_CHILDREN\fP, il s'agit de la taille résidente du fils le plus grand,
+et non de la taille résidente maximale du processus.
+.TP 
+\fIru_ixrss\fP (non maintenu)
+.\" On some systems,
+.\" this is the integral of the text segment memory consumption,
+.\" expressed in kilobyte-seconds.
+Ce champ n'est actuellement pas utilisé par Linux.
+.TP 
+\fIru_idrss\fP (non maintenu)
+.\" On some systems, this is the integral of the data segment memory consumption,
+.\" expressed in kilobyte-seconds.
+Ce champ n'est actuellement pas utilisé par Linux.
+.TP 
+\fIru_isrss\fP (non maintenu)
+.\" On some systems, this is the integral of the stack memory consumption,
+.\" expressed in kilobyte-seconds.
+Ce champ n'est actuellement pas utilisé par Linux.
+.TP 
+\fIru_minflt\fP
+Le nombre d'erreurs de pagination (\fIpage fault\fP) sans activité
+d'entrées\-sorties. Ici, cette activité est empêchée en réclamant une page
+qui se trouve dans la liste des pages qui attendent d'être réallouées.
+.TP 
+\fIru_majflt\fP
+Le nombre d'erreurs de pagination avec activité d'entrées\-sorties.
+.TP 
+\fIru_nswap\fP (non maintenu)
+.\" On some systems, this is the number of swaps out of physical memory.
+Ce champ n'est actuellement pas utilisé par Linux.
+.TP 
+\fIru_inblock\fP (depuis Linux 2.6.22)
+Le nombre de fois où le système de fichiers a dû traiter des entrées.
+.TP 
+\fIru_oublock\fP (depuis Linux 2.6.22)
+Le nombre de fois où le système de fichiers a dû traiter des sorties.
+.TP 
+\fIru_msgsnd\fP (non maintenu)
+.\" On FreeBSD 6.2, this appears to measure messages sent over sockets
+.\" On some systems,
+.\" this field records the number of messages sent over sockets.
+Ce champ n'est actuellement pas utilisé par Linux.
+.TP 
+\fIru_msgrcv\fP (non maintenu)
+.\" On FreeBSD 6.2, this appears to measure messages received over sockets
+.\" On some systems,
+.\" this field records the number of messages received over sockets.
+Ce champ n'est actuellement pas utilisé par Linux.
+.TP 
+\fIru_nsignals\fP (non maintenu)
+.\" On some systems, this field records the number of signals received.
+Ce champ n'est actuellement pas utilisé par Linux.
+.TP 
+\fIru_nvcsw\fP (depuis Linux 2.6)
+Le nombre de changements de contexte provoqués par un processus qui
+abandonne volontairement le processeur avant la fin de la tranche de temps
+qui lui est dévolue (habituellement pour attendre la disponibilité d'une
+ressource).
+.TP 
+\fIru_nivcsw\fP (depuis Linux 2.6)
+Le nombre de changements de contexte provoqués par un processus de plus
+grande priorité qui devient disponible à l'exécution, ou parce que le
+processus actuel a dépassé le temps limite qui lui était alloué.
+.PP
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fIusage\fP pointe en dehors de l'espace d'adressage disponible.
+.TP 
+\fBEINVAL\fP
+\fIwho\fP est invalide.
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3. POSIX.1\-2001 spécifie \fBgetrusage\fP(), mais spécifie
+seulement les champs \fIru_utime\fP et \fIru_stime\fP.
+
+\fBRUSAGE_THREAD\fP est spécifique à Linux.
+.SH NOTES
+Les mesures de l'utilisation des ressources sont conservées au travers d'un
+\fBexecve\fP(2).
+
+L'inclusion de \fI<sys/time.h>\fP n'est plus obligatoire mais améliore
+la portabilité. (En fait, \fIstruct timeval\fP est définie dans
+\fI<sys/time.h>\fP).
+.PP
+.\" See the description of getrusage() in XSH.
+.\" A similar statement was also in SUSv2.
+Sous Linux avant la version 2.6.9, si le traitement de \fBSIGCHLD\fP est
+configuré avec \fBSIG_IGN\fP, les statistiques d'utilisation des processus
+enfants sont automatiquement incluses dans les valeurs renvoyées par
+\fBRUSAGE_CHILDREN\fP, bien que POSIX.1\-2001 interdise explicitement
+cela. Cette non conformité est corrigée sous Linux 2.6.9 et ultérieurs.
+.LP
+La définition de la structure fournie au début de cette page provient de
+4.3BSD Reno.
+
+Des systèmes anciens fournissent une fonction \fBvlimit\fP() qui remplit le
+même rôle que \fBgetrusage\fP(). Pour des raisons de compatibilité ascendante,
+la glibc fournit aussi une fonction \fBvlimit\fP(), mais toutes les nouvelles
+applications devraient utiliser \fBgetrusage\fP().
+
+Consultez aussi la description de \fI/proc/PID/stat\fP dans \fBproc\fP(5).
+.SH "VOIR AUSSI"
+\fBclock_gettime\fP(2), \fBgetrlimit\fP(2), \fBtimes\fP(2), \fBwait\fP(2), \fBwait4\fP(2),
+\fBclock\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

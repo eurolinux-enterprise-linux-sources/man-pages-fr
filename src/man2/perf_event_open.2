@@ -1,0 +1,1677 @@
+.\" Copyright (c) 2012, Vincent Weaver
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" This document is based on the perf_event.h header file, the
+.\" tools/perf/design.txt file, and a lot of bitter experience.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PERF_EVENT_OPEN 2 "2 juillet 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+perf_event_open \- Définir la surveillance des performances
+.SH SYNOPSIS
+.nf
+\fB#include <linux/perf_event.h>\fP
+\fB#include <linux/hw_breakpoint.h>\fP
+.sp
+\fBint perf_event_open(struct perf_event_attr *\fP\fIattr\fP\fB,\fP
+\fB                    pid_t \fP\fIpid\fP\fB, int \fP\fIcpu\fP\fB, int \fP\fIgroup_fd\fP\fB,\fP
+\fB                    unsigned long \fP\fIflags\fP\fB);\fP
+.fi
+
+\fIRemarque\fP\ : il n'existe pas de fonction glibc autour de cet appel
+système\ ; consultez \fBNOTES\fP.
+.SH DESCRIPTION
+À partir d'une liste de paramètres, \fBperf_event_open\fP() renvoie un
+descripteur de fichier, pour une utilisation dans les appels système
+suivants (\fBread\fP(2), \fBmmap\fP(2), \fBprctl\fP(2), \fBfcntl\fP(2),\ etc.).
+.PP
+Un appel de \fBperf_event_open\fP() crée un descripteur de fichier qui permet
+de mesurer les renseignements de performance. Tous les descripteurs de
+fichier correspondent chacun à un événement mesuré\ ; ils peuvent être
+regroupés pour mesurer plusieurs événements simultanément.
+.PP
+Les événements peuvent être activés et désactivés de deux façons\ : à l'aide
+de \fBioctl\fP(2) ou de \fBprctl\fP(2). Quand un événement est désactivé, il ne
+décompte ni ne génère de dépassement, mais continue vraiment d'exister et
+maintient sa valeur de décompte.
+.PP
+Les événements existent en deux saveurs\ : de comptage et
+d'échantillonnage. Un événement de \fIcomptage\fP sert à comptabiliser le
+nombre total d'événements qui se produisent. En général, les résultats d'un
+événement de comptage sont recueillis avec un appel \fBread\fP(2). Un événement
+d'\fIéchantillonnage\fP écrit périodiquement les mesures dans un tampon qui
+peut ensuite être accédé à l'aide de \fBmmap\fP(2).
+.SS Arguments
+.P
+L'argument \fIpid\fP permet aux événements d'être attachés aux processus de
+différentes façons. Si \fIpid\fP est 0, les mesures concernent le thread
+actuel, si \fIpid\fP est strictement supérieur à 0, le processus indiqué par
+\fIpid\fP est mesuré, et si \fIpid\fP est \-1, tous les processus sont comptés.
+
+L'argument \fIcpu\fP permet à la mesure d'être spécifique à un processeur. Si
+\fIcpu\fP est supérieur ou égal à 0, les mesures sont limitées au processeur
+indiqué\ ; si \fIcpu\fP est \-1, les événements sont mesurés sur tous les
+processeurs.
+.P
+Remarquez que la combinaison de \fIpid\fP == \-1 et \fIcpu\fP == \-1 est impossible.
+.P
+Un réglage de \fIpid\fP > 0 et \fIcpu\fP == \-1 mesure par processus et suit ce
+processus quelque soit le processeur sur lequel il est programmé. Les
+événements par processus peuvent être créés par n'importe quel utilisateur.
+.P
+Un réglage de \fIpid\fP == \-1 et \fIcpu\fP >= 0 est par processeur et mesure
+tous les processus sur le processeur indiqué. Les événements par processeur
+ont besoin de la capacité \fBCAP_SYS_ADMIN\fP ou d'une valeur
+\fI/proc/sys/kernel/perf_event_paranoid\fP strictement inférieure à 1.
+.P
+L'argument \fIgroup_fd\fP permet aux groupes d'événements d'être créés. Un
+groupe d'événements a un événement qui est le leader de groupe. Le leader
+est d'abord créé, avec \fIgroup_fd\fP\ =\ \-1. Les autres membres du groupe sont
+créés par les appels \fBperf_event_open\fP() suivants, avec \fIgroup_fd\fP défini
+au descripteur de fichier du leader de groupe (un événement unique créé avec
+\fIgroup_fd\fP\ =\ \-1 est considéré comme formant un groupe d'un seul membre). Un
+événement de groupe est programmé dans le processeur comme un bloc\ : il ne
+sera mis dans le processeur que si tous les événements du groupe peuvent
+être mis dans le processeur. Cela veut dire que les valeurs des événements
+de tous les membre peuvent être comparées, ajoutées, divisées (pour obtenir
+des rapports),\ etc. ensemble de manière significative, puisqu'elles ont
+compté les événements pendant les mêmes instructions exécutées.
+.P
+L'argument \fIflags\fP est constitué d’un \fIOU\fP binaire entre une ou plusieurs
+des valeurs suivantes.
+.TP 
+\fBPERF_FLAG_FD_NO_GROUP\fP
+.\" FIXME The following sentence is unclear
+.\" FIXME So, why is it useful?
+Cet attribut permet de créer un événement comme faisant partie d'un groupe
+mais n'ayant aucun leader de groupe. Son utilité est a préciser.
+.TP 
+\fBPERF_FLAG_FD_OUTPUT\fP
+Cet attribut reroute la sortie d'un événement vers le leader de groupe.
+.TP 
+\fBPERF_FLAG_PID_CGROUP\fP (depuis Linux 2.6.39)
+Cet attribut active la surveillance par conteneur sur tout le système. Un
+conteneur est une abstraction qui isole un ensemble de ressources à
+contrôler plus finement (processeurs, mémoire,\ etc.) Dans ce mode,
+l'événement n'est mesuré que si le thread exécuté sur le processeur
+surveillé appartient au conteneur désigné (cgroup). Le cgroup est identifié
+en passant un fichier au descripteur de fichier ouvert sur son répertoire
+dans le système de fichiers cgroupfs. Par exemple, si le cgroup à surveiller
+est appelé \fItest\fP, alors un descripteur de fichier ouvert sur
+\fI/dev/cgroup/test\fP (en supposant que cgroupfs est monté sur \fI/dev/cgroup\fP)
+doit être passé au paramètre \fIpid\fP. La surveillance de cgroup n'est
+disponible que pour les événements sur tout le système et pourrait donc
+nécessiter des droits supplémentaires.
+.P
+La structure \fIperf_event_attr\fP fournit des renseignements de configuration
+détaillée pour les événements en cours de création.
+
+.in +4n
+.nf
+struct perf_event_attr {
+    __u32     type;         /* Type d'événement */
+    __u32     size;         /* Taille de la structure d'attributs */
+    __u64     config;       /* Configuration spécifique au type */
+
+    union {
+        __u64 sample_period;    /* Période d'échantillonnage */
+        __u64 sample_freq;      /* Fréquence d'échantillonnage */
+    };
+
+    __u64     sample_type;  /* Indique les valeurs inclues dans
+                               l'échantillon */
+    __u64     read_format;  /* Indique les valeurs renvoyées en
+                               lecture */
+
+    __u64     disabled       : 1,   /* désactivé par défaut */
+              inherit        : 1,   /* les fils en hérite */
+              pinned         : 1,   /* doit toujours être en PMU */
+              exclusive      : 1,   /* ne regrouper qu'en PMU */
+              exclude_user   : 1,   /* ne pas compter
+                                       l'utilisateur */
+              exclude_kernel : 1,   /* ne pas compter le noyau */
+              exclude_hv     : 1,   /* ne pas compter
+                                       l'hyperviseur */
+              exclude_idle   : 1,   /* ne pas compter quand
+                                       inactif */
+              mmap           : 1,   /* inclure les données mmap */
+              comm           : 1,   /* inclure les données comm */
+              freq           : 1,   /* utiliser la fréquence, pas
+                                       la période */
+              inherit_stat   : 1,   /* décomptes par tâche */
+              enable_on_exec : 1,   /* prochain exec active */
+              task           : 1,   /* tracer la création de fils
+                                       et la fin */
+              watermark      : 1,   /* wakeup_watermark */
+              precise_ip     : 2,   /* contrainte de dérapage */
+              mmap_data      : 1,   /* données mmap non exécutées */
+              sample_id_all  : 1,   /* tous les événements
+                                       sample_type */
+              exclude_host   : 1,   /* ne pas compter en hôte */
+              exclude_guest  : 1,   /* ne pas compter en client */
+              exclude_callchain_kernel : 1,
+                                    /* exclure les appels en chaîne
+                                       du noyau */
+              exclude_callchain_user   : 1,
+                                    /* exclure les appels en chaîne
+                                       d'utilisateur */
+              __reserved_1   : 41;
+
+    union {
+        __u32 wakeup_events;    /* réveil tous les n événements */
+        __u32 wakeup_watermark; /* octets avant le réveil */
+    };
+
+    __u32     bp_type;          /* type de point d'arrêt */
+
+    union {
+        __u64 bp_addr;          /* adresse de point d'arrêt */
+        __u64 config1;          /* extension de config */
+    };
+
+    union {
+        __u64 bp_len;           /* taille de point d'arrêt */
+        __u64 config2;          /* extension de config1 */
+    };
+    __u64   branch_sample_type; /* enum perf_branch_sample_type */
+    __u64   sample_regs_user;   /* registres utilisateur à renvoyer
+                                   dans les échantillons */
+    __u32   sample_stack_user;  /* taille de pile à renvoyer dans
+                                   les échantillons */
+    __u32   __reserved_2;       /* Aligner sur u64 */
+
+};
+.fi
+.in
+
+Les champs de la structure \fIperf_event_attr\fP sont décrits en détail
+ci\-dessous.
+.TP 
+\fItype\fP
+Ce champ indique le type d'événement dans son ensemble. Il a l'une des
+valeurs suivantes.
+.RS
+.TP 
+\fBPERF_TYPE_HARDWARE\fP
+Cela indique un des événements matériels «\ généralisés\ » fournis par le
+noyau. Consultez la définition du champ \fIconfig\fP pour plus de précisions.
+.TP 
+\fBPERF_TYPE_SOFTWARE\fP
+Cela indique un des événements logiciels fournis par le noyau (même si
+aucune prise en charge matérielle n'est disponible).
+.TP 
+\fBPERF_TYPE_TRACEPOINT\fP
+Cela indique un point de trace fourni par l'infrastructure de point de trace
+du noyau.
+.TP 
+\fBPERF_TYPE_HW_CACHE\fP
+Cela indique un événement de cache matériel. Cela a un encodage particulier
+décrit dans la définition du champ \fIconfig\fP.
+.TP 
+\fBPERF_TYPE_RAW\fP
+Cela indique un événement «\ brut\ » spécifique à l'implémentation dans le
+champ \fIconfig\fP.
+.TP 
+\fBPERF_TYPE_BREAKPOINT\fP (depuis Linux 2.6.33)
+Cela indique un point d'arrêt matériel tel que fourni par le processeur. Les
+points d'arrêt peuvent être des accès en lecture ou écriture sur une adresse
+ainsi que l'exécution d'une adresse d'instruction.
+.TP 
+PMU dynamique
+Depuis Linux\ 2.6.39, \fBperf_event_open\fP() permet de gérer plusieurs
+PMU. Pour activer cela, une valeur exportée par le noyau peut être utilisée
+dans le champ \fItype\fP pour indiquer la PMU à utiliser. La valeur à utiliser
+est trouvable dans le système de fichiers sysfs\ : un sous\-répertoire existe
+par instance PMU sous \fI/sys/bus/event_source/devices\fP. Le fichier \fItype\fP
+dans chaque sous\-répertoire contient un entier qui peut être utilisé dans le
+champ \fItype\fP. Par exemple, \fI/sys/bus/event_source/devices/cpu/type\fP
+contient la valeur de PMU du processeur principal, c'est\-à\-dire 4 en
+général.
+.RE
+.TP 
+\fIsize\fP
+La taille de la structure \fIperf_event_attr\fP pour compatibilités ascendante
+et descendante. Définissez\-la en utilisant \fIsizeof(struct perf_event_attr)\fP
+pour permettre au noyau de voir la taille de struct au moment de la
+compilation.
+
+Le \fBPERF_ATTR_SIZE_VER0\fP relatif est défini à 64\ ; c'était la taille de la
+première struct publiée. \fBPERF_ATTR_SIZE_VER1\fP est 72, correspondant à
+l'addition des points d'arrêts dans Linux\ 2.6.33. \fBPERF_ATTR_SIZE_VER2\fP est
+80, correspondant à l'addition d'échantillonnage de branchement dans
+Linux\ 3.4. \fBPERF_ATR_SIZE_VER3\fP est 96, correspondant à l'addition de
+\fIsample_regs_user\fP et \fIsample_stack_user\fP dans Linux\ 3.7.
+.TP 
+\fIconfig\fP
+Cela indique l'événement voulu, en conjonction avec le champ \fItype\fP. Les
+champs \fIconfig1\fP et \fIconfig2\fP sont aussi pris en compte dans les cas où
+64\ bits ne suffisent pas pour spécifier complètement l'événement. L'encodage
+de ces champs dépend de l'événement.
+
+Le bit le plus significatif (bit\ 63) de \fIconfig\fP indique des données de
+configuration du compteur (brut) spécifique au processeur\ ; si le bit le
+plus significatif est indéfini, les 7\ bits suivants indiquent un type
+d'événement et le reste des bits indique l'identifiant de l'événement.
+
+Le champ \fIconfig\fP peut être définit de différentes façons, en fonction de
+la valeur du champ \fItype\fP précédemment décrit. Suivent les divers réglages
+possibles pour \fIconfig\fP, séparés par \fItype\fP.
+
+Si \fItype\fP est \fBPERF_TYPE_HARDWARE\fP, un des événements processeur matériel
+généralisé est mesuré. Ils ne sont pas tous disponibles sur toutes les
+plateformes. Définissez \fIconfig\fP à une des valeurs suivantes.
+.RS 12
+.TP 
+\fBPERF_COUNT_HW_CPU_CYCLES\fP
+Nombre total de cycles. Méfiez\-vous de ce qui arrive lors de la variation de
+fréquence du processeur.
+.TP 
+\fBPERF_COUNT_HW_INSTRUCTIONS\fP
+Instructions retirées. Prenez garde, elles peuvent être affectées par
+plusieurs problèmes, en particulier les décomptes d'interruptions
+matérielles.
+.TP 
+\fBPERF_COUNT_HW_CACHE_REFERENCES\fP
+Accès au cache. En général, cela indique les accès au cache de dernier
+niveau, mais cela peut dépendre du processeur. Cela pourrait inclure des
+messages de prefetches et de cohérence\ ; cela dépend toujours de la
+conception du processeur.
+.TP 
+\fBPERF_COUNT_HW_CACHE_MISSES\fP
+Coups ratés du cache. Cela indique généralement les coups ratés du cache de
+dernier niveau, c'est destiné à être utilisé en conjonction avec l'événement
+\fBPERF_COUNT_HW_CACHE_REFERENCES\fP pour calculer le taux de coups ratés du
+cache.
+.TP 
+\fBPERF_COUNT_HW_BRANCH_INSTRUCTIONS\fP
+Instructions de branchements retirés. Avant Linux\ 2.6.34, cela utilisait le
+mauvais événement sur les processeurs AMD.
+.TP 
+\fBPERF_COUNT_HW_BRANCH_MISSES\fP
+Instructions de branchements mal prédits.
+.TP 
+\fBPERF_COUNT_HW_BUS_CYCLES\fP
+Cycles de bus, ce qui peut être différent du décompte total de cycles.
+.TP 
+\fBPERF_COUNT_HW_STALLED_CYCLES_FRONTEND\fP (depuis Linux\ 3.0)
+Cycles bloqués pendant un problème.
+.TP 
+\fBPERF_COUNT_HW_STALLED_CYCLES_BACKEND\fP (depuis Linux\ 3.0)
+Cycles bloqués pendant un retrait.
+.TP 
+\fBPERF_COUNT_HW_REF_CPU_CYCLES\fP (depuis Linux\ 3.3)
+Nombre total de cycles ; non affecté par la variation de fréquence du
+processeur.
+.RE
+.IP
+Si \fItype\fP est \fBPERF_TYPE_SOFTWARE\fP, les événements logiciels fournis par
+le noyau sont mesurés. Définissez \fIconfig\fP à une des valeurs suivantes.
+.RS 12
+.TP 
+\fBPERF_COUNT_SW_CPU_CLOCK\fP
+Cela rend compte de l'horloge du processeur, un temporisateur par processeur
+à haute résolution.
+.TP 
+\fBPERF_COUNT_SW_TASK_CLOCK\fP
+Cela rend compte de l'horloge spécifiquement par rapport à la tâche en cours
+d'exécution.
+.TP 
+\fBPERF_COUNT_SW_PAGE_FAULTS\fP
+Cela rend compte du nombre d'erreurs de pagination.
+.TP 
+\fBPERF_COUNT_SW_CONTEXT_SWITCHES\fP
+Cela compte les changements de contexte. Jusqu'à Linux\ 2.6.34, ils étaient
+tous signalés comme des événements en espace utilisateur, ils sont
+maintenant signalés comme ayant lieu dans le noyau.
+.TP 
+\fBPERF_COUNT_SW_CPU_MIGRATIONS\fP
+Cela rend compte du nombre de fois où le processus a migré vers un nouveau
+processeur.
+.TP 
+\fBPERF_COUNT_SW_PAGE_FAULTS_MIN\fP
+Cela compte le nombre d'erreurs mineures de pagination. Elles n'ont pas
+nécessité d'entrées ou sorties du disque pour les traiter.
+.TP 
+\fBPERF_COUNT_SW_PAGE_FAULTS_MAJ\fP
+Cela compte le nombre d'erreurs majeures de pagination. Elles ont nécessité
+des entrées ou sorties de disque pour les traiter.
+.TP 
+\fBPERF_COUNT_SW_ALIGNMENT_FAULTS\fP (depuis Linux 2.6.33)
+Cela compte le nombre de défauts d'alignement. Ils ont lieu lors d'accès non
+alignés en mémoire\ ; le noyau peut les traiter mais cela réduit les
+performances. Cela n'arrive que sur certaines architectures (jamais sur
+x86).
+.TP 
+\fBPERF_COUNT_SW_EMULATION_FAULTS\fP (depuis Linux 2.6.33)
+Cela compte le nombre de défauts d'émulation. Le noyau intercepte parfois
+des instructions non implémentées et les émule pour l'espace
+utilisateur. Cela peut avoir des conséquences négatives sur les
+performances.
+.RE
+
+.RS
+Si \fItype\fP est \fBPERF_TYPE_TRACEPOINT\fP, alors les points de trace du noyau
+sont mesurés. La valeur à utiliser dans \fIconfig\fP peut être obtenue depuis
+\fItracing/events/*/*/id\fP de debugfs si ftrace est activé dans le noyau.
+.RE
+
+.RS
+Si \fItype\fP est \fBPERF_TYPE_HW_CACHE\fP, alors un événement de cache du
+processeur matériel est mesuré. Utilisez l'équation suivante pour calculer
+la valeur \fIconfig\fP appropriée.
+.RS 4
+.nf
+
+    (perf_hw_cache_id) | (perf_hw_cache_op_id << 8) |
+    (perf_hw_cache_op_result_id << 16)
+.fi
+.P
+où \fIperf_hw_cache_id\fP est parmi\ :
+.RS 4
+.TP 
+\fBPERF_COUNT_HW_CACHE_L1D\fP
+pour mesurer le cache de données de niveau\ 1\ ;
+.TP 
+\fBPERF_COUNT_HW_CACHE_L1I\fP
+pour mesurer le cache d'instructions de niveau\ 1\ ;
+.TP 
+\fBPERF_COUNT_HW_CACHE_LL\fP
+pour mesurer le cache de dernier niveau\ ;
+.TP 
+\fBPERF_COUNT_HW_CACHE_DTLB\fP
+pour mesurer les données TLB\ ;
+.TP 
+\fBPERF_COUNT_HW_CACHE_ITLB\fP
+pour mesurer les instructions TLB\ ;
+.TP 
+\fBPERF_COUNT_HW_CACHE_BPU\fP
+pour mesurer l'unité de prédiction de branchement\ ;
+.TP 
+\fBPERF_COUNT_HW_CACHE_NODE\fP (depuis Linux\ 3.0)
+pour mesurer les accès à la mémoire locale\ ;
+.RE
+.P
+et \fIperf_hw_cache_op_id\fP est parmi\ :
+.RS 4
+.TP 
+\fBPERF_COUNT_HW_CACHE_OP_READ\fP
+pour les accès en lecture\ ;
+.TP 
+\fBPERF_COUNT_HW_CACHE_OP_WRITE\fP
+pour les accès en écriture\ ;
+.TP 
+\fBPERF_COUNT_HW_CACHE_OP_PREFETCH\fP
+pour les accès prefetch\ ;
+.RE
+.P
+et \fIperf_hw_cache_op_result_id\fP est parmi\ :
+.RS 4
+.TP 
+\fBPERF_COUNT_HW_CACHE_RESULT_ACCESS\fP
+pour mesurer les accès\ ;
+.TP 
+\fBPERF_COUNT_HW_CACHE_RESULT_MISS\fP
+pour mesurer les coups ratés.
+.RE
+.RE
+
+Si \fItype\fP est \fBPERF_TYPE_RAW\fP, alors une valeur \fIconfig\fP «\ brute\ »
+personnalisée est nécessaire. La plupart des processeurs gèrent les
+événements qui ne sont pas couverts par les événements
+«\ généralisés\ ». Ceux\-ci sont définis par l'implémentation\ ; consultez le
+manuel du processeur (par exemple la documentation Intel Volume 3B ou le
+guide du développeur de BIOS et noyau AMD). La bibliothèque libpfm4 peut
+être utilisée pour traduire le nom, dans les manuels architecturaux, en
+valeur hexadécimale brute que \fBperf_event_open\fP() attend dans ce champ.
+
+Si \fItype\fP est \fBPERF_TYPE_BREAKPOINT\fP, alors laissez \fIconfig\fP défini à
+zéro. Ses paramètres sont définis ailleurs.
+.RE
+.TP 
+\fIsample_period\fP, \fIsample_freq\fP
+Un compteur d'«\ échantillonnage\ » génère une interruption tous les
+N\ événements, où N est donné par \fIsample_period\fP. Un compteur
+d'échantillonnage a \fIsample_period\fP > 0. Quand une interruption de
+dépassement arrive, les données demandées sont enregistrées dans le tampon
+mmap. Le champ \fIsample_type\fP contrôle les données qui sont enregistrées à
+chaque interruption.
+
+\fIsample_freq\fP permet d'utiliser la fréquence au lieu de la période. Dans ce
+cas, l'attribut \fIfreq\fP doit être défini. Le noyau ajustera la période
+d'échantillonnage pour essayer d'atteindre le taux voulu. Le taux
+d'ajustement est un tic d'horloge.
+.TP 
+\fIsample_type\fP
+Les divers bits de ce champ indiquent les valeurs à inclure dans
+l'échantillon. Elles seront enregistrées dans un tampon circulaire,
+disponible en espace utilisateur avec \fBmmap\fP(2). L'ordre de sauvegarde des
+valeurs dans l'échantillon est documenté dans la sous\-section \fBDisposition
+MMAP\fP ci\-dessous\ ; ce n'est pas l'ordre \fIenum perf_event_sample_format\fP.
+.RS
+.TP 
+\fBPERF_SAMPLE_IP\fP
+Enregistrement de pointeur d'instruction.
+.TP 
+\fBPERF_SAMPLE_TID\fP
+Enregistrement des identifiants de processus et de thread.
+.TP 
+\fBPERF_SAMPLE_TIME\fP
+Enregistrement d'un horodatage.
+.TP 
+\fBPERF_SAMPLE_ADDR\fP
+Enregistrement d'une adresse, si applicable.
+.TP 
+\fBPERF_SAMPLE_READ\fP
+Enregistrement des valeurs de décompte de tous les événements d'un groupe,
+pas seulement du leader de groupe.
+.TP 
+\fBPERF_SAMPLE_CALLCHAIN\fP
+Enregistrement de l'appel en chaîne (pile de backtrace).
+.TP 
+\fBPERF_SAMPLE_ID\fP
+Enregistrement d'un identifiant unique pour le leader de groupe d'événement
+ouvert.
+.TP 
+\fBPERF_SAMPLE_CPU\fP
+Enregistrement de numéro de processeur.
+.TP 
+\fBPERF_SAMPLE_PERIOD\fP
+Enregistrement de la période d'échantillonnage actuelle.
+.TP 
+\fBPERF_SAMPLE_STREAM_ID\fP
+Enregistrement d'un identifiant unique pour l'événement
+ouvert. Contrairement à \fBPERF_SAMPLE_ID\fP, le véritable identifiant est
+renvoyé, pas celui du leader de groupe. Cet identifiant est le même que
+celui renvoyé par \fBPERF_FORMAT_ID\fP.
+.TP 
+\fBPERF_SAMPLE_RAW\fP
+Enregistrement de données supplémentaires, si applicable. Normalement
+renvoyées par les événements de point de trace.
+.TP 
+\fBPERF_SAMPLE_BRANCH_STACK\fP (depuis Linux\ 3.4)
+Enregistrement de la pile de branchement. Consultez \fIbranch_sample_type\fP.
+.TP 
+\fBPERF_SAMPLE_REGS_USER\fP (depuis Linux 3.7)
+Enregistrement de l’état actuel du registre processeur au niveau utilisateur
+(les valeurs dans le processus avant d’appeler le noyau).
+.TP 
+\fBPERF_SAMPLE_STACK_USER\fP (depuis Linux\ 3.7)
+Enregistrement de la pile au niveau utilisateur, permettant le défilement de
+la pile.
+.TP 
+\fBPERF_SAMPLE_WEIGHT\fP (depuis Linux\ 3.10)
+Enregistrement d’une valeur de poids fournie par le matériel qui exprime le
+coût de l’événement d’échantillonnage. Cela permet au matériel de mettre en
+valeur les événements coûteux dans un profil.
+.TP 
+\fBPERF_SAMPLE_DATA_SRC\fP (depuis Linux\ 3.10)
+Enregistrement des sources de données\ : d’où viennent, dans la hiérarchie de
+mémoire, les données associées à l’instruction d’échantillonnage. Ce n’est
+disponible que si le matériel sous\-jacent prend en charge cette
+fonctionnalité.
+.RE
+.TP 
+\fIread_format\fP
+Ce champ indique le format des données renvoyées par \fBread\fP(2) sur un
+descripteur de fichier \fBperf_event_open\fP().
+.RS
+.TP 
+\fBPERF_FORMAT_TOTAL_TIME_ENABLED\fP
+Ajout du champ \fItime_enabled\fP de 64\ bits. Cela peut servir à calculer les
+totaux estimés si la PMU est sur\-utilisée et qu'il y a multiplexage.
+.TP 
+\fBPERF_FORMAT_TOTAL_TIME_RUNNING\fP
+Ajout du champ \fItime_running\fP de 64\ bits. Cela peut servir pour calculer
+les totaux estimés si la PMU est sur\-utilisée et qu'il y a multiplexage.
+.TP 
+\fBPERF_FORMAT_ID\fP
+Ajout d'une valeur unique de 64\ bits qui correspond au groupe de
+l'événement.
+.TP 
+\fBPERF_FORMAT_GROUP\fP
+Permettre à toutes les valeurs de décompte d'un groupe d'événement d'être
+lues avec une lecture.
+.RE
+.TP 
+\fIdisabled\fP
+Le bit \fIdisabled\fP indique si le compteur commence désactivé ou activé. Si
+désactivé, l'événement peut être activé plus tard par \fBioctl\fP(2),
+\fBprctl\fP(2) ou \fIenable_on_exec\fP.
+.TP 
+\fIinherit\fP
+Le bit \fIinherit\fP indique que le compteur devrait compter les événements des
+tâches filles comme les tâches indiquées. Cela ne s'applique qu'aux
+nouvelles filles, pas à celles existantes au moment où le compteur est créé
+(ni aux nouvelles filles des filles existantes).
+
+L'héritage ne fonctionne pas pour certaines combinaisons de \fIread_format\fP,
+comme \fBPERF_FORMAT_GROUP\fP.
+.TP 
+\fIpinned\fP
+Le bit \fIpinned\fP indique que le compteur devrait toujours être sur le
+processeur si c'est possible. Cela ne s'applique qu'aux compteurs matériels
+et seulement aux leaders de groupe. Si un compteur épinglé ne peut pas être
+mis dans le processeur (par exemple s'il n'y a pas assez de compteurs
+matériels ou en cas de confit avec n'importe quel autre événement), alors le
+compteur arrive en état d'«\ erreur\ », où les lectures renvoient une fin de
+fichier (c'est\-à\-dire que \fBread\fP(2) renvoie 0) jusqu'à ce que le compteur
+soit ensuite activé ou désactivé.
+.TP 
+\fIexclusive\fP
+Le bit \fIexclusive\fP indique que si ce groupe du compteur est sur le
+processeur, il devrait être le seul groupe utilisant les compteurs du
+processeur. Cela pourrait permettre à l'avenir de surveiller des programmes
+pour gérer les fonctionnalités PMU qui doivent fonctionner seules, sans
+perturber d'autres compteurs matériels.
+.TP 
+\fIexclude_user\fP
+Si ce bit est défini, le décompte exclut les événements qui arrivent dans
+l'espace utilisateur.
+.TP 
+\fIexclude_kernel\fP
+Si ce bit est défini, le décompte exclut les événements qui arrivent dans
+l'espace du noyau.
+.TP 
+\fIexclude_hv\fP
+Si ce bit est défini, le décompte exclut les événements qui arrivent dans
+l'hyperviseur. C'est surtout pour les PMU avec prise en charge intégrée de
+leur traitement (comme POWER). Une prise en charge supplémentaire est
+nécessaire pour traiter les mesures d'hyperviseur sur la plupart des
+machines.
+.TP 
+\fIexclude_idle\fP
+Si défini, ne pas compter quand le processeur est inactif.
+.TP 
+\fImmap\fP
+Le bit \fImmap\fP active l'enregistrement des événements mmap exécutées.
+.TP 
+\fIcomm\fP
+Le bit \fIcomm\fP active le suivi du nom de commande de processus tel que
+modifié par les appels systèmes \fBexec\fP(2) et
+\fBprctl\fP(PR_SET_NAME). Malheureusement pour les outils, il n'est pas
+possible de distinguer un appel système de l'autre.
+.TP 
+\fIfreq\fP
+Si ce bit est activé, alors \fIsample_frequency\fP est utilisé au lieu de
+\fIsample_period\fP lors du réglage de l'intervalle d'échantillonnage.
+.TP 
+\fIinherit_stat\fP
+Ce bit active la sauvegarde des décomptes d'événements lors du changement de
+contexte pour les tâches héritées. Cela n'a de sens que si le champ
+\fIinherit\fP est défini.
+.TP 
+\fIenable_on_exec\fP
+Si ce bit est défini, un compteur est automatiquement activé après un appel
+d'\fBexec\fP(2).
+.TP 
+\fItask\fP
+Si ce bit est défini, alors les notifications de création de fils et de fin
+sont inclues au tampon circulaire.
+.TP 
+\fIwatermark\fP
+Si défini, une interruption d'échantillonnage arrive lors du passage de la
+frontière \fIwakeup_watermark\fP. Sinon les interruptions arrivent après les
+échantillons \fIwakeup_events\fP.
+.TP 
+\fIprecise_ip\fP (depuis Linux\ 2.6.35)
+Cela contrôle la quantité de dérapage. Le dérapage est le nombre
+d'instructions qui s'exécutent entre l'arrivée d'un événement d'intérêt et
+la possibilité du noyau de s'arrêter pour enregistrer l'événement. Les plus
+petits dérapages sont meilleurs et permettent d'associer plus précisément
+les événements correspondant aux instructions, mais le matériel est souvent
+limité par leur taille.
+
+Les valeurs possibles sont les suivantes\ :
+.RS
+.TP 
+0 —
+\fBSAMPLE_IP\fP peut avoir un dérapage arbitraire\ ;
+.TP 
+1 —
+\fBSAMPLE_IP\fP doit avoir un dérapage constant\ ;
+.TP 
+2 —
+\fBSAMPLE_IP\fP a demandé à avoir dérapage nul\ ;
+.TP 
+3 —
+\fBSAMPLE_IP\fP doit avoir un dérapage nul. Consultez aussi
+\fBPERF_RECORD_MISC_EXACT_IP\fP.
+.RE
+.TP 
+\fImmap_data\fP (depuis Linux\ 2.6.36)
+L'équivalent du champ \fImmap\fP, mais qui active l'inclusion des événements de
+données mmap dans le tampon circulaire.
+.TP 
+\fIsample_id_all\fP (depuis Linux\ 2.6.38)
+Si défini, alors TID, TIME, ID, CPU et STREAM_ID peuvent de plus être inclus
+dans les non \fBPERF_RECORD_SAMPLE\fP si le \fIsample_type\fP correspondant est
+sélectionné.
+.TP 
+\fIexclude_host\fP (depuis Linux\ 3.2)
+Ne pas mesurer le temps passé dans l'hôte de machine virtuelle.
+.TP 
+\fIexclude_guest\fP (depuis Linux\ 3.2)
+Ne pas mesurer le temps passé dans le client de machine virtuelle.
+.TP 
+\fIexclude_callchain_kernel\fP (depuis Linux\ 3.7)
+Ne pas inclure les appels en chaîne du noyau.
+.TP 
+\fIexclude_callchain_user\fP (depuis Linux\ 3.7)
+Ne pas inclure les appels en chaîne d'utilisateur.
+.TP 
+\fIwakeup_events\fP, \fIwakeup_watermark\fP
+Cette union indique le nombre d'échantillons (\fIwakeup_events\fP) ou d'octets
+(\fIwakeup_watermark\fP) qui arrivent avant un signal de dépassement. Celui
+utilisé est sélectionné par l'attribut \fIwatermark\fP.
+
+\fIwakeup_events\fP ne compte que les types d’enregistrement
+\fBPERF_RECORD_SAMPLE\fP. Pour recevoir un signal pour tous les types
+\fBPERF_RECORD\fP arrivant, définissez \fIwakeup_watermark\fP à 1.
+.TP 
+\fIbp_type\fP (depuis Linux\ 2.6.33)
+Cela choisi le type de point d'arrêt. Il est parmi\ :
+.RS
+.TP 
+\fBHW_BREAKPOINT_EMPTY\fP
+pas de point d'arrêt\ ;
+.TP 
+\fBHW_BREAKPOINT_R\fP
+compte lors de la lecture de l'emplacement mémoire\ ;
+.TP 
+\fBHW_BREAKPOINT_W\fP
+compte lors de l'écriture à l'emplacement mémoire\ ;
+.TP 
+\fBHW_BREAKPOINT_RW\fP
+compte lors de la lecture ou l'écriture à l'emplacement mémoire\ ;
+.TP 
+\fBHW_BREAKPOINT_X\fP
+compte lors de l'exécution de code à l'emplacement mémoire.
+.LP
+Les valeurs peuvent être combinées à l'aide d'un OU binaire, mais les
+combinaisons de \fBHW_BREAKPOINT_R\fP ou \fBHW_BREAKPOINT_W\fP avec
+\fBHW_BREAKPOINT_X\fP ne sont pas permises.
+.RE
+.TP 
+\fIbp_addr\fP (depuis Linux\ 2.6.33)
+\fIbp_addr\fP est l'adresse du point d'arrêt. Pour les points d'arrêt
+d'exécution, c'est l'adresse mémoire de l'instruction d'intérêt\ ; pour les
+points d'arrêt de lecture et écriture, c'est l'adresse mémoire de
+l'emplacement mémoire d'intérêt.
+.TP 
+\fIconfig1\fP (depuis Linux\ 2.6.39)
+\fIconfig1\fP est utilisé pour définir des événements qui ont besoin d'un
+registre supplémentaire ou qui sinon ne rentrent pas dans le champ \fIconfig\fP
+normal. OFFCORE_EVENTS brut sur Nehalem/Westmere/SandyBridge utilise ce
+champ en\ 3.3 et les noyaux suivants.
+.TP 
+\fIbp_len\fP (depuis Linux\ 2.6.33)
+\fIbp_len\fP est la taille du point d'arrêt mesuré si \fItype\fP est
+\fBPERF_TYPE_BREAKPOINT\fP. Les options sont \fBHW_BREAKPOINT_LEN_1\fP,
+\fBHW_BREAKPOINT_LEN_2\fP, \fBHW_BREAKPOINT_LEN_4\fP et
+\fBHW_BREAKPOINT_LEN_8\fP. Pour un point d'arrêt, définissez\-le à
+\fIsizeof(long)\fP.
+.TP 
+\fIconfig2\fP (depuis Linux\ 2.6.39)
+
+\fIconfig2\fP est une extension supplémentaire du champ \fIconfig1\fP.
+.TP 
+\fIbranch_sample_type\fP (depuis Linux\ 3.4)
+C'est utilisé avec l'échantillonnage de branchement matériel des
+processeurs, si disponible. Il peut prendre une des valeurs suivantes.
+.RS
+.TP 
+\fBPERF_SAMPLE_BRANCH_USER\fP
+La cible de branchement est dans l'espace utilisateur.
+.TP 
+\fBPERF_SAMPLE_BRANCH_KERNEL\fP
+La cible de branchement est dans l'espace du noyau.
+.TP 
+\fBPERF_SAMPLE_BRANCH_HV\fP
+La cible de branchement est dans l'hyperviseur.
+.TP 
+\fBPERF_SAMPLE_BRANCH_ANY\fP
+N'importe quel type de branchement.
+.TP 
+\fBPERF_SAMPLE_BRANCH_ANY_CALL\fP
+N'importe quel branchement d'appel.
+.TP 
+\fBPERF_SAMPLE_BRANCH_ANY_RETURN\fP
+N'importe quel branchement de retour.
+.TP 
+\fBPERF_SAMPLE_BRANCH_IND_CALL\fP
+Appels indirects.
+.TP 
+\fBPERF_SAMPLE_BRANCH_PLM_ALL\fP
+Utilisateur, noyau et hyperviseur.
+.RE
+.TP 
+\fIsample_regs_user\fP (depuis Linux\ 3.7)
+Ce masque binaire définit l’ensemble des registres processeur utilisateur à
+renvoyer dans les échantillons. La disposition du masque de registre est
+spécifique à l’architecture et définie dans l’en\-tête du noyau
+\fIarch/ARCH/include/uapi/asm/perf_regs.h\fP.
+.TP 
+\fIsample_stack_user\fP (depuis Linux\ 3.7)
+Cela définit la taille de la pile utilisateur à renvoyer si
+\fBPERF_SAMPLE_STACK_USER\fP est indiqué.
+.SS "Lecture des résultats"
+Une fois qu'un descripteur de fichier \fBperf_event_open\fP() a été ouvert, les
+valeurs de l'événement peuvent être lues depuis le descripteur de
+fichier. Les valeurs présentes sont indiquées par le champ \fIread_format\fP de
+la structure \fIattr\fP au moment de l'ouverture.
+
+Si le tampon utilisé pour la lecture n'est pas assez grand pour contenir les
+données, \fBENOSPC\fP es renvoyé.
+
+Voici la disposition des données renvoyées par une lecture.
+.IP * 2
+Si \fBPERF_FORMAT_GROUP\fP a été indiqué pour permettre de lire tous les
+événements d'un groupe en une fois\ :
+
+.in +4n
+.nf
+struct read_format {
+    u64 nr;            /* Le nombre d'événements */
+    u64 time_enabled;  /* si PERF_FORMAT_TOTAL_TIME_ENABLED */
+    u64 time_running;  /* si PERF_FORMAT_TOTAL_TIME_RUNNING */
+    struct
+        u64 value;     /* La valeur de l'événement */
+        u64 id;        /* si PERF_FORMAT_ID */
+    } values[nr];
+};
+.fi
+.in
+.IP *
+Si \fBPERF_FORMAT_GROUP\fP n'a \fIpas\fP été indiqué\ :
+
+.in +4n
+.nf
+struct read_format {
+    u64 value;         /* La valeur de l'événement */
+    u64 time_enabled;  /* si PERF_FORMAT_TOTAL_TIME_ENABLED */
+    u64 time_running;  /* si PERF_FORMAT_TOTAL_TIME_RUNNING */
+    u64 id;            /* si PERF_FORMAT_ID */
+};
+.fi
+.in
+.PP
+Les valeurs lues sont les suivantes.
+.TP 
+\fInr\fP
+Le nombre d'événements dans le descripteur de fichier. Seulement disponible
+si \fBPERF_FORMAT_GROUP\fP a été indiqué.
+.TP 
+\fItime_enabled\fP, \fItime_running\fP
+Temps total pendant lequel l'événement a été activé et exécuté. Normalement
+ce sont les mêmes. Si plus d'événements sont démarrés que d'emplacements de
+compteur disponibles sur la PMU, alors il y a multiplexage et les événements
+ne sont pas exécutés tout le temps. Dans ce cas, les valeurs \fItime_enabled\fP
+et \fItime running\fP peuvent être utilisées pour estimer une valeur d'ordre de
+grandeur du décompte.
+.TP 
+\fIvalue\fP
+Une valeur positive sur 64\ bits contenant le résultat du compteur.
+.TP 
+\fIid\fP
+Une valeur unique globale pour cet événement en particulier, seulement si
+\fBPERF_FORMAT_ID\fP a été indiqué dans \fIread_format\fP.
+.SS "Disposition MMAP"
+En utilisant \fBperf_event_open\fP() en mode d'échantillonnage, les événements
+asynchrones (comme un dépassement de compteur ou un suivi mmap \fBPROT_EXEC\fP)
+sont journalisés dans un tampon circulaire. Ce tampon circulaire est créé et
+accédé à l'aide de \fBmmap\fP(2).
+
+La taille de mmap devrait être 1+2^n\ pages, où la première page est une page
+de métadonnées (\fIstruct perf_event_mmap_page\fP) qui contient plusieurs
+informations comme l'emplacement de la tête du tampon circulaire.
+
+Avant le noyau\ 2.6.39, un bogue oblige à allouer un tampon circulaire mmap
+lors de l'échantillonnage même s'il n'est pas prévu de l'utiliser.
+
+La structure de la première page mmap de métadonnées est la suivante\ :
+
+.in +4n
+.nf
+struct perf_event_mmap_page {
+    __u32 version;          /* numéro de version de la structure */
+    __u32 compat_version;   /* plus petite version compatible */
+    __u32 lock;             /* seqlock pour synchronisation */
+    __u32 index;            /* identifiant de compteur matériel */
+    __s64 offset;           /* ajouter au compteur matériel */
+    __u64 time_enabled;     /* temps d'événement actif */
+    __u64 time_running;     /* temps d'événement sur processeur */
+    union {
+        __u64   capabilities;
+        __u64   cap_usr_time  : 1,
+                cap_usr_rdpmc : 1,
+    };
+    __u16   pmc_width;
+    __u16   time_shift;
+    __u32   time_mult;
+    __u64   time_offset;
+    __u64   __reserved[120];   /* remplissage à 1\ k */
+    __u64   data_head;         /* tête de la section de données */
+    __u64   data_tail;         /* pied écrit en espace utilisateur */
+}
+.fi
+.in
+
+Ce qui suit présente les champs de la structure \fIperf_event_mmap_page\fP plus
+en détail\ :
+.TP 
+\fIversion\fP
+Numéro de version de cette structure.
+.TP 
+\fIcompat_version\fP
+La plus petite version avec laquelle elle est compatible.
+.TP 
+\fIlock\fP
+Un seqlock pour la synchronisation.
+.TP 
+\fIindex\fP
+Un identifiant unique de compteur matériel.
+.TP 
+\fIoffset\fP
+.\" FIXME clarify
+Ajouter cela à la valeur de compteur matériel.
+.TP 
+\fItime_enabled\fP
+Temps d'activité de l'événement.
+.TP 
+\fItime_running\fP
+Temps d'exécution de l'événement.
+.TP 
+\fIcap_usr_time\fP
+Capacité de temps utilisateur.
+.TP 
+\fIcap_usr_rdpmc\fP
+Si le matériel permet la lecture en espace utilisateur des compteurs de
+performance sans appel système (c'est l'instruction «\ rdpmc\ » sur x86),
+alors le code suivant peut être utilisé pour faire une lecture\ :
+
+.in +4n
+.nf
+u32 seq, time_mult, time_shift, idx, width;
+u64 count, enabled, running;
+u64 cyc, time_offset;
+s64 pmc = 0;
+
+do {
+    seq = pc\->lock;
+    barrier();
+    enabled = pc\->time_enabled;
+    running = pc\->time_running;
+
+    if (pc\->cap_usr_time && enabled != running) {
+        cyc = rdtsc();
+        time_offset = pc\->time_offset;
+        time_mult   = pc\->time_mult;
+        time_shift  = pc\->time_shift;
+    }
+
+    idx = pc\->index;
+    count = pc\->offset;
+
+    if (pc\->cap_usr_rdpmc && idx) {
+        width = pc\->pmc_width;
+        pmc = rdpmc(idx \- 1);
+    }
+
+    barrier();
+} while (pc\->lock != seq);
+.fi
+.in
+.TP 
+\fIpmc_width\fP
+Si \fIcap_usr_rdpmc\fP, ce champ fournit la taille en bit de la valeur lue en
+utilisant l'instruction rdpmc ou équivalente. Cela permet d'étendre avec
+signe le résultat comme ceci\ :
+
+.in +4n
+.nf
+pmc <<= 64 \- pmc_width;
+pmc >>= 64 \- pmc_width; // déplacement du signe à droite
+count += pmc;
+.fi
+.in
+.TP 
+\fItime_shift\fP, \fItime_mult\fP, \fItime_offset\fP
+
+Si \fIcap_usr_time\fP, ces champs peuvent être utilisés pour calculer la
+différence de temps depuis \fItime_enabled\fP (en nanoseconde) en utilisant
+rdtsc ou similaire.
+.nf
+
+    u64 quot, rem;
+    u64 delta;
+    quot = (cyc >> time_shift);
+    rem = cyc & ((1 << time_shift) \- 1);
+    delta = time_offset + quot * time_mult +
+            ((rem * time_mult) >> time_shift);
+.fi
+
+Où \fItime_offset\fP, \fItime_mult\fP, \fItime_shift\fP et \fIcyc\fP sont lus dans la
+boucle seqcount décrite ci\-dessus. Cette différence peut être ajoutée à
+\fIenabled\fP et éventuellement \fIrunning\fP (si idx), pour améliorer l'échelle\ :
+.nf
+
+    enabled += delta;
+    if (idx)
+        running += delta;
+    quot = count / running;
+    rem  = count % running;
+    count = quot * enabled + (rem * enabled) / running;
+.fi
+.TP 
+\fIdata_head\fP
+Cela pointe vers la tête de la section de données. La valeur augmente
+continuellement, elle n'est pas coupée. Vous devrez couper vous\-même la
+valeur à la taille du tampon mmap avant d'accéder aux échantillons.
+
+Sur les palteformes compatibles SMP, après la lecture de la valeur
+\fIdata_head\fP, l'espace utilisateur devrait renvoyer un rmb().
+.TP 
+\fIdata_tail\fP
+Quand l'association est \fBPROT_WRITE\fP, la valeur \fIdata_tail\fP devrait être
+écrite par l'espace utilisateur pour refléter les dernières données
+lues. Dans ce cas, le noyau n'écrasera pas les données non lues.
+.PP
+Les 2^n\ pages suivantes du tampon circulaire ont la disposition décrite
+ci\-dessous.
+
+Si \fIperf_event_attr.sample_id_all\fP est défini, alors tous les types
+d'événements auront les champs \fIsample_type\fP sélectionnés relatifs à
+l'emplacement et à la date (identité) où un événement a eu lieu (TID, TIME,
+ID, CPU, STREAM_ID) conformément à la description de \fBPERF_RECORD_SAMPLE\fP
+ci\-dessous, il sera stocké juste après le \fIperf_event_header\fP et les champs
+déjà présents pour les champs existants, c'est\-à\-dire à la fin de la charge
+utile. De cette façon, un nouveau perf.data sera pris en charge par les
+outils de performances plus anciens, avec ces nouveaux champs facultatifs
+ignorés.
+
+Les valeurs mmap commencent par un en\-tête\ :
+
+.in +4n
+.nf
+struct perf_event_header {
+    __u32   type;
+    __u16   misc;
+    __u16   size;
+};
+.fi
+.in
+
+Les champs \fIperf_event_header\fP sont décrits plus précisément ci\-dessous.
+.TP 
+\fItype\fP
+La valeur \fItype\fP est une des suivantes. Les valeurs dans l'enregistrement
+correspondant (qui suit l'en\-tête) dépendent du \fItype\fP sélectionné comme
+c'est montré.
+.RS
+.TP  4
+\fBPERF_RECORD_MMAP\fP
+Les événements MMAP enregistrent les associations \fBPROT_EXEC\fP pour pouvoir
+mettre en corrélation les pointeurs d'instruction en espace utilisateur et
+le code. Ils ont la structure suivante\ :
+
+.in +4n
+.nf
+struct {
+    struct perf_event_header header;
+    u32    pid, tid;
+    u64    addr;
+    u64    len;
+    u64    pgoff;
+    char   filename[];
+};
+.fi
+.in
+.TP 
+\fBPERF_RECORD_LOST\fP
+Cet enregistrement indique quand des événements sont perdus.
+
+.in +4n
+.nf
+struct {
+    struct perf_event_header header;
+    u64 id;
+    u64 lost;
+};
+.fi
+.in
+.RS
+.TP 
+\fIid\fP
+est l'identifiant d'événement unique pour les échantillons perdus.
+.TP 
+\fIlost\fP
+est le nombre d'événements perdus.
+.RE
+.TP 
+\fBPERF_RECORD_COMM\fP
+Cet enregistrement indique une modification du nom de processus.
+
+.in +4n
+.nf
+struct {
+    struct perf_event_header header;
+    u32 pid, tid;
+    char comm[];
+};
+.fi
+.in
+.TP 
+\fBPERF_RECORD_EXIT\fP
+Cet enregistrement indique un événement de fin de processus.
+
+.in +4n
+.nf
+struct {
+    struct perf_event_header header;
+    u32 pid, ppid;
+    u32 tid, ptid;
+    u64 time;
+};
+.fi
+.in
+.TP 
+\fBPERF_RECORD_THROTTLE\fP, \fBPERF_RECORD_UNTHROTTLE\fP
+Cet enregistrement indique un événement de variation de fréquence du
+processeur.
+
+.in +4n
+.nf
+struct {
+    struct perf_event_header header;
+    u64 time;
+    u64 id;
+    u64 stream_id;
+};
+.fi
+.in
+.TP 
+\fBPERF_RECORD_FORK\fP
+Cet enregistrement indique un événement de création de fils.
+
+.in +4n
+.nf
+struct {
+    struct perf_event_header header;
+    u32 pid, ppid;
+    u32 tid, ptid;
+    u64 time;
+};
+.fi
+.in
+.TP 
+\fBPERF_RECORD_READ\fP
+Cet enregistrement indique un événement de lecture.
+
+.in +4n
+.nf
+struct {
+    struct perf_event_header header;
+    u32 pid, tid;
+    struct read_format values;
+};
+.fi
+.in
+.TP 
+\fBPERF_RECORD_SAMPLE\fP
+Cet enregistrement indique un échantillon.
+
+.in +4n
+.nf
+struct {
+    struct perf_event_header header;
+    u64   ip;         /* si PERF_SAMPLE_IP */
+    u32   pid, tid;   /* si PERF_SAMPLE_TID */
+    u64   time;       /* si PERF_SAMPLE_TIME */
+    u64   addr;       /* si PERF_SAMPLE_ADDR */
+    u64   id;         /* si PERF_SAMPLE_ID */
+    u64   stream_id;  /* si PERF_SAMPLE_STREAM_ID */
+    u32   cpu, res;   /* si PERF_SAMPLE_CPU */
+    u64   period;     /* si PERF_SAMPLE_PERIOD */
+    struct read_format v; /* si PERF_SAMPLE_READ */
+    u64   nr;         /* si PERF_SAMPLE_CALLCHAIN */
+    u64   ips[nr];    /* si PERF_SAMPLE_CALLCHAIN */
+    u32   size;       /* si PERF_SAMPLE_RAW */
+    char  data[size]; /* si PERF_SAMPLE_RAW */
+    u64   bnr;        /* si PERF_SAMPLE_BRANCH_STACK */
+    struct perf_branch_entry lbr[bnr];
+                      /* si PERF_SAMPLE_BRANCH_STACK */
+    u64   abi;        /* si PERF_SAMPLE_REGS_USER */
+    u64   regs[weight(mask)];
+                      /* si PERF_SAMPLE_REGS_USER */
+    u64   size;       /* si PERF_SAMPLE_STACK_USER */
+    char  data[size]; /* si PERF_SAMPLE_STACK_USER */
+    u64   dyn_size;   /* si PERF_SAMPLE_STACK_USER */
+    u64   weight;     /* si PERF_SAMPLE_WEIGHT */
+    u64   data_src;   /* si PERF_SAMPLE_DATA_SRC */
+};
+.fi
+.RS
+.TP 
+\fIip\fP
+Si \fBPERF_SAMPLE_IP\fP est activé, alors une valeur de pointeur d'instruction
+sur 64\ bits est incluse.
+.TP 
+\fIpid\fP, \fItid\fP
+Si \fBPERF_SAMPLE_TID\fP est activé, alors un identifiant de processus sur
+32\ bits et un identifiant de thread sur 32\ bits sont inclus.
+.TP 
+\fItime\fP
+Si \fBPERF_SAMPLE_TIME\fP est activé, alors un horodatage sur 64\ bits est
+inclus. C'est obtenu à l'aide de  local_clock() qui est un horodatage
+matériel si disponible et la valeur jiffies sinon.
+.TP 
+\fIaddr\fP
+Si \fBPERF_SAMPLE_ADDR\fP est activé, alors une adresse sur 64\ bits est
+incluse. C'est généralement l'adresse d'un point de trace, point d'arrêt ou
+événement logiciel\ ; sinon la valeur est 0.
+.TP 
+\fIid\fP
+Si \fBPERF_SAMPLE_ID\fP est activé, un identifiant unique sur 64\ bits est
+inclus. Si l'événement est membre d'un groupe d'événements, l'identifiant du
+leader de groupe est renvoyé. Cet identifiant est le même que celui renvoyé
+par \fBPERF_FORMAT_ID\fP.
+.TP 
+\fIstream_id\fP
+Si \fBPERF_SAMPLE_STREAM_ID\fP est activé, un identifiant unique sur 64\ bits
+est inclus. Contrairement à \fBPERF_SAMPLE_ID\fP, le véritable identifiant est
+renvoyé, pas celui du leader de groupe. Cet identifiant est le même que
+celui renvoyé par \fBPERF_FORMAT_ID\fP.
+.TP 
+\fIcpu\fP, \fIres\fP
+Si \fBPERF_SAMPLE_CPU\fP est activé, c'est une valeur sur 32\ bits indiquant le
+processeur qui a été utilisé, en supplément d'une valeur réservée (non
+utilisée) sur 32\ bits.
+.TP 
+\fIperiod\fP
+Si \fBPERF_SAMPLE_PERIOD\fP est activé, une valeur sur 64\ bits indiquant la
+période d'échantillonnage actuelle est écrite.
+.TP 
+\fIv\fP
+Si \fBPERF_SAMPLE_READ\fP est activé, une structure de type \fIread_format\fP est
+incluse avec des valeurs pour tous les événements du groupe
+d'événements. Les valeurs incluses dépendent de la valeur \fIread_format\fP
+utilisée au moment de \fBperf_event_open\fP().
+.TP 
+\fInr\fP, \fIips[nr]\fP
+Si \fBPERF_SAMPLE_CALLCHAIN\fP est activé, alors un nombre sur 64\ bits est
+inclus, indiquant le nombre de pointeurs d'instruction sur 64\ bits qui
+suivent. C'est l'appel en chaîne actuel.
+.TP 
+\fIsize\fP, \fIdata[size]\fP
+Si \fBPERF_SAMPLE_RAW\fP est activé, alors une valeur sur 32\ bits indiquant la
+taille est incluse, suivie par un tableau de valeurs sur 8\ bits de taille
+\fIsize\fP. Les valeurs sont remplies avec des 0 pour avoir un alignement à
+64\ bits.
+
+Ces données brutes d'enregistrement sont opaques du point de vue de
+l'ABI. L'ABI ne fait pas de promesses sur la stabilité de son contenu, qui
+pourrait varier en fonction de l'événement, du matériel ou de la version du
+noyau.
+.TP 
+\fIbnr\fP, \fIlbr[bnr]\fP
+Si \fBPERF_SAMPLE_BRANCH_STACK\fP est activé, alors une valeur de 64\ bits
+indiquant le nombre d'enregistrements est incluse, suivie des structures
+\fIbnr\fP \fIperf_branch_entry\fP. Ces structures ont des valeurs d'origine, de
+destination et d'attributs indiquant les adresses d'origine et de
+destination des branchements sur la pile d'appel.
+.TP 
+\fIabi\fP, \fIregs[weight(mask)]\fP
+Si \fBPERF_SAMPLE_REGS_USER\fP est activé, alors les registres processeur
+utilisateur sont enregistrés.
+
+Le champ \fIabi\fP est parmi \fBPERF_SAMPLE_REGS_ABI_NONE\fP,
+\fBPERF_SAMPLE_REGS_ABI_32\fP ou \fBPERF_SAMPLE_REGS_ABI_64\fP.
+
+Le champ \fIregs\fP est un tableau de registres processeur qui ont été indiqués
+par le champ attr \fIsample_regs_user\fP. Le nombre de valeurs est le nombre de
+bits définis dans le masque binaire \fIsample_regs_user\fP.
+.TP 
+\fIsize\fP, \fIdata[size]\fP, \fIdyn_size\fP
+Si \fBPERF_SAMPLE_STACK_USER\fP est activé, enregistrer la pile utilisateur
+pour activer le backtrace. \fIsize\fP est la taille demandée par l’utilisateur
+dans \fIstack_user_size\fP ou la taille maximale d’enregistrement. \fIdata\fP
+contient les données de pile. \fIdyn_size\fP est la quantité de données
+vraiment renvoyée (peut être inférieure à \fIsize\fP).
+.TP 
+\fIweight\fP
+Si \fBPERF_SAMPLE_WEIGHT\fP est activé, une valeur de 64\ bit fournie par le
+matériel est enregistrée pour indiquer le coût de l’événement. Cela permet
+aux événements coûteux de ressortir plus clairement dans les profils.
+.TP 
+\fIdata_src\fP
+Si \fBPERF_SAMPLE_DATA_SRC\fP est activé, alors une valeur de 64\ bits est
+enregistrée, constituée des champs suivants.
+.RS
+.TP 
+\fImem_op\fP
+type de code opération (opcode), une combinaison bit à bit de
+\fBPERF_MEM_OP_NA\fP (non disponible), \fBPERF_MEM_OP_LOAD\fP (instruction de
+chargement), \fBPERF_MEM_OP_STORE\fP (instruction de stockage),
+\fBPERF_MEM_OP_PFETCH\fP (prefetch) et \fBPERF_MEM_OP_EXEC\fP (code executable).
+.TP 
+\fImem_lvl\fP
+niveau de hiérarchie de mémoire atteint ou raté, une combinaison bit à bit
+de \fBPERF_MEM_LVL_NA\fP (non disponible), \fBPERF_MEM_LVL_HIT\fP (atteint),
+\fBPERF_MEM_LVL_MISS\fP (raté), \fBPERF_MEM_LVL_L1\fP (cache de niveau\ 1),
+\fBPERF_MEM_LVL_LFB\fP (tampon de capacité), \fBPERF_MEM_LVL_L2\fP (cache de
+niveau\ 2), \fBPERF_MEM_LVL_L3\fP (cache de niveau\ 3), \fBPERF_MEM_LVL_LOC_RAM\fP
+(DRAM local), \fBPERF_MEM_LVL_REM_RAM1\fP (DRAM distant 1\ saut),
+\fBPERF_MEM_LVL_REM_RAM2\fP (DRAM distant 2\ sauts), \fBPERF_MEM_LVL_REM_CCE1\fP
+(cache distant 1\ saut), \fBPERF_MEM_LVL_REM_CCE2\fP (cache distant 2\ sauts),
+\fBPERF_MEM_LVL_IO\fP (mémoire d’entrée et sortie) et \fBPERF_MEM_LVL_UNC\fP
+(mémoire sans cache).
+.TP 
+\fImem_snoop\fP
+mode d’espionnage, une combinaison bit à bit de \fBPERF_MEM_SNOOP_NA\fP (non
+disponible), \fBPERF_MEM_SNOOP_NONE\fP (pas d’espionnage),
+\fBPERF_MEM_SNOOP_HIT\fP (espionnage atteint), \fBPERF_MEM_SNOOP_MISS\fP
+(espionnage raté) et \fBPERF_MEM_SNOOP_HITM\fP (espionnage atteint modifié).
+.TP 
+\fImem_lock\fP
+instruction de verrouillage, une combinaison bit à bit de
+\fBPERF_MEM_LOCK_NA\fP (non disponible) et \fBPERF_MEM_LOCK_LOCKED\fP (transaction
+verrouillée).
+.TP 
+\fImem_dtlb\fP
+accès tlb atteint ou raté, une combinaison bit à bit de \fBPERF_MEM_TLB_NA\fP
+(non disponible), \fBPERF_MEM_TLB_HIT\fP (atteint), \fBPERF_MEM_TLB_MISS\fP
+(raté), \fBPERF_MEM_TLB_L1\fP (TLB de niveau\ 1), \fBPERF_MEM_TLB_L2\fP (TLB de
+niveau\ 2), \fBPERF_MEM_TLB_WK\fP (parcours matériel), and \fBPERF_MEM_TLB_OS\fP
+(gestionnaire d’erreur du SE).
+.RE
+.RE
+.RE
+.TP 
+\fImisc\fP
+Le champ \fImisc\fP contient des renseignements supplémentaires sur
+l'échantillon.
+
+Le mode de processeur peut être déterminé à partir de cette valeur en la
+masquant avec \fBPERF_RECORD_MISC_CPUMODE_MASK\fP et en recherchant un des
+suivants (remarquez que ce ne sont pas des masques de bits, un seul peut
+être défini à la fois).
+.RS
+.TP 
+\fBPERF_RECORD_MISC_CPUMODE_UNKNOWN\fP
+Mode de processeur inconnu.
+.TP 
+\fBPERF_RECORD_MISC_KERNEL\fP
+L'échantillon a eu lieu dans le noyau.
+.TP 
+\fBPERF_RECORD_MISC_USER\fP
+L'échantillon a eu lieu dans le code utilisateur.
+.TP 
+\fBPERF_RECORD_MISC_HYPERVISOR\fP
+L'échantillon a eu lieu dans l'hyperviseur.
+.TP 
+\fBPERF_RECORD_MISC_GUEST_KERNEL\fP
+L'échantillon a eu lieu dans le noyau client.
+.TP 
+\fBPERF_RECORD_MISC_GUEST_USER\fP
+L'échantillon a eu lieu dans le code utilisateur client.
+.RE
+
+De plus, un des bits suivants peut être défini.
+.RS
+.TP 
+\fBPERF_RECORD_MISC_MMAP_DATA\fP
+C’est défini quand l’association n’est pas exécutable\ ; sinon l’association
+est exécutable.
+.TP 
+\fBPERF_RECORD_MISC_EXACT_IP\fP
+Cela indique que le contenu de \fBPERF_SAMPLE_IP\fP pointe vers la véritable
+instruction qui a déclenché l'événement. Consultez aussi
+\fIperf_event_attr.precise_ip\fP.
+.TP 
+\fBPERF_RECORD_MISC_EXT_RESERVED\fP
+Cela indique que des données étendues sont disponibles (actuellement pas
+utilisées).
+.TP 
+\fIsize\fP
+Cela indique la taille de l'enregistrement.
+.RE
+.SS "Dépassement de signal"
+Les événements peuvent être définis pour délivrer un signal lorsqu'un seuil
+est dépassé. Le gestionnaire de signaux est paramétré en utilisant les
+appels système \fBpoll\fP(2), \fBselect\fP(2), \fBepoll\fP(2) et \fBfcntl\fP(2).
+
+Pour générer des signaux, l'échantillonnage doit être activé
+(\fIsample_period\fP doit avoir une valeur non nulle).
+
+Deux façons permettent de générer des signaux.
+
+La première est de paramétrer des valeurs \fIwakeup_events\fP ou
+\fIwakeup_watermark\fP qui généreront un signal si un certain nombre
+d'échantillons ou d'octets ont été écrits dans le tampon circulaire
+mmap. Dans ce cas, un signal de type \fBPOLL_IN\fP est envoyé.
+
+L'autre façon est en utilisant l'ioctl \fBPERF_EVENT_IOC_REFRESH\fP. Cet ioctl
+ajoute à un compteur qui décrémente à chaque fois que l'événement
+dépasse. Quand il est non nul, un signal \fBPOLL_IN\fP est envoyé en cas de
+dépassement, mais une fois que la valeur a atteint 0, un signal de type
+\fBPOLL_HUP\fP est envoyé et l'événement sous\-jacent est désactivé.
+
+.\" FIXME(Vince) : Find out when this was introduced
+Remarque\ : sur les nouveaux noyaux (comme remarqué avec le 3.2) un signal
+est fourni pour chaque dépassement, même si \fIwakeup_events\fP n'est pas
+défini.
+.SS "Instruction rdpmc"
+À partir de Linux\ 3.4 sur x86, l'instruction \fIrdpmc\fP permet d'obtenir des
+lectures à faible latence sans avoir à entrer dans le noyau. Remarquez que
+l'utilisation de \fIrdpmc\fP n'est pas nécessairement plus rapide que d'autres
+méthodes pour lire des valeurs d'événement.
+
+Cette prise en charge peut être détectée avec le champ \fIcap_usr_rdpmc\fP dans
+la page mmap\ ; de la documentation pour calculer les valeurs d'événement est
+disponible dans cette section.
+.SS "Appels ioctl perf_event"
+.PP
+Plusieurs ioctls agissent sur les descripteurs de fichier de
+\fBperf_event_open\fP().
+.TP 
+\fBPERF_EVENT_IOC_ENABLE\fP
+Activer l'événement individuel ou le groupe d'événements indiqué par
+l'argument de descripteur de fichier.
+
+Si le bit \fBPERF_IOC_FLAG_GROUP\fP est défini dans l’argument ioctl, alors
+tous les événements d’un groupe sont activés, même si l’événement indiqué
+n’est pas le leader de groupe.
+.TP 
+\fBPERF_EVENT_IOC_DISABLE\fP
+Désactiver le compteur individuel ou le groupe d'événements indiqué par
+l'argument de descripteur de fichier.
+
+L'activation ou la désactivation du leader d'un groupe active ou désactive
+la totalité du groupe. Autrement dit, pendant que le leader de groupe est
+désactivé, aucun des compteurs du groupe ne compte. L'activation ou la
+désactivation d'un membre du groupe qui n'est pas le leader arrête ce
+compteur, mais n'affecte aucun des autres compteurs.
+
+Si le bit \fBPERF_IOC_FLAG_GROUP\fP est défini dans l’argument ioctl, alors
+tous les événements d’un groupe sont désactivés, même si l’événement indiqué
+n’est pas le leader de groupe.
+.TP 
+\fBPERF_EVENT_IOC_REFRESH\fP
+Les compteurs de dépassements non hérités peuvent utiliser cela pour activer
+un compteur pour un nombre de dépassements indiqué par l'argument, après
+lequel il est désactivé. Les appels suivants de cet ioctl ajoutent la valeur
+de l'argument au décompte actuel. Un signal avec \fBPOLL_IN\fP défini est
+envoyé à chaque dépassement jusqu'à ce que ce compte atteigne 0\ ; quand cela
+arrive, un signal avec \fBPOLL_HUP\fP défini est envoyé et l'événement est
+désactivé. L'utilisation de 0 comme argument est considéré comme un
+comportement indéfini.
+.TP 
+\fBPERF_EVENT_IOC_RESET\fP
+Redéfinir le compte d'événements indiqué par l'argument à zéro. Cela ne
+réinitialise que les décomptes\ ; réinitialiser les valeurs de multiplexage
+\fItime_enabled\fP et \fItime_running\fP est impossible.
+
+Si le bit \fBPERF_IOC_FLAG_GROUP\fP est défini dans l’argument ioctl, alors
+tous les événements d’un groupe sont réinitialisés, même si l’événement
+indiqué n’est pas le leader de groupe.
+
+Si le bit \fBPERF_IOC_FLAG_GROUP\fP n’est pas défini, alors le comportement est
+quelque peu inattendu\ : s’il est envoyé à un leader de groupe, seul le
+leader de groupe est réinitialisé (les fils sont laissés seuls)\ ; s’il est
+envoyé à un fils, tous les événements du groupe sont réinitialisés.
+.TP 
+\fBPERF_EVENT_IOC_PERIOD\fP
+IOC_PERIOD est la commande pour mettre à jour la période\ ; elle n'est pas
+mise à jour immédiatement, mais lors de la période suivante.
+
+L'argument est un pointeur vers une valeur sur 64\ bits contenant la nouvelle
+période voulue.
+.TP 
+\fBPERF_EVENT_IOC_SET_OUTPUT\fP
+Cela indique au noyau de signaler les notifications d'événement dans le
+descripteur de fichier indiqué plutôt que dans celui par défaut. Les
+descripteurs de fichier doivent tous être sur le même processeur.
+
+L'argument indique le descripteur de fichier désiré, ou \-1 si la sortie
+devrait être ignorée.
+.TP 
+\fBPERF_EVENT_IOC_SET_FILTER\fP (depuis Linux\ 2.6.33)
+Cela ajoute un filtre ftrace à cet événement.
+
+L'argument est un pointeur vers le filtre ftrace voulu.
+.SS "Utilisation de prctl"
+Un processus peut activer ou désactiver tous les groupes d'événements qui
+lui sont attachés en utilisant les opérations \fBPR_TASK_PERF_EVENTS_ENABLE\fP
+et \fBPR_TASK_PERF_EVENTS_DISABLE\fP de \fBprctl\fP(2). Cela s'applique à tous les
+compteurs sur le processus actuel, qu'ils soient créés par ce processus ou
+par un autre, et n'affecte aucun compteur que ce processus a créé sur
+d'autres processus. Cela n'active et désactive que les leaders de groupe,
+aucun autre des membres des groupes.
+.SS "Fichiers de configuration relatifs à perf_event"
+Fichiers de \fI/proc/sys/kernel/\fP
+.RS 4
+.TP 
+\fI/proc/sys/kernel/perf_event_paranoid\fP
+
+Le fichier \fIperf_event_paranoid\fP peut être défini pour restreindre l'accès
+aux compteurs de performance\ :
+
+2\ — ne permettre que les mesures en espace utilisateur\ ;
+
+1\ — (par défaut) permettre à la fois les mesures noyau et utilisateur\ ;
+
+0\ — permettre l'accès aux données spécifiques au processeur sauf les
+échantillons de point de trace brut\ ;
+
+\-1\ — pas de restriction.
+
+L'existence du fichier \fIperf_event_paranoid\fP est la méthode officielle pour
+déterminer si un noyau gère \fBperf_event_open\fP().
+.TP 
+\fI/proc/sys/kernel/perf_event_max_sample_rate\fP
+
+Cela définit le taux d'échantillonnage maximal. Un réglage trop haut peut
+permettre aux utilisateurs d'échantillonner à un taux ayant un impact sur
+les performances de la machine et éventuellement verrouiller la machine. La
+valeur par défaut est 100000 (échantillons par seconde).
+.TP 
+\fI/proc/sys/kernel/perf_event_mlock_kb\fP
+
+Le nombre maximal de pages qu'un utilisateur sans droit peut verrouiller
+avec \fBmlock\fP(2). La valeur par défaut est 516\ (ko).
+.RE
+Fichiers de \fI/sys/bus/event_source/devices/\fP
+.RS 4
+Depuis Linux\ 2.6.34, le noyau permet d'avoir plusieurs PMU disponibles pour
+la surveillance. Les informations sur la façon de programmer ces PMU sont
+disponibles dans \fI/sys/bus/event_source/devices/\fP. Tous les
+sous\-répertoires correspondent à une PMU différente.
+.TP 
+\fI/sys/bus/event_source/devices/*/type\fP
+Cela contient un entier qui peut être utilisé dans le champ \fItype\fP de
+\fIperf_event_attr\fP pour indiquer la volonté d'utiliser cette PMU.
+.TP 
+\fI/sys/bus/event_source/devices/*/rdpmc\fP
+[À documenter]
+.TP 
+\fI/sys/bus/event_source/devices/*/format/\fP
+Ce sous\-répertoire contient des renseignements sur ce à quoi les bits du
+champ \fIconfig\fP de \fIperf_event_attr\fP correspondent.
+.TP 
+\fI/sys/bus/event_source/devices/*/events/\fP
+Ce sous\-répertoire contient des fichiers avec des événements prédéfinis. Les
+contenus sont des chaînes décrivant les réglages d'événements exprimés en
+termes des champs trouvés dans le répertoire \fI./format/\fP. Ce ne sont pas
+nécessairement des listes complètes de tous les champs pris en charge par
+une PMU, mais généralement un sous\-ensemble d'événements jugés utiles ou
+intéressants.
+.TP 
+\fI/sys/bus/event_source/devices/*/uevent\fP
+[À documenter]
+.RE
+.SH "VALEUR RENVOYÉE"
+\fBperf_event_open\fP() renvoie le nouveau descripteur de fichier, ou \-1 en cas
+d'erreur (auquel cas \fIerrno\fP contient le code d'erreur).
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+Renvoyé si l'événement indiqué n'est pas disponible.
+.TP 
+\fBENOSPC\fP
+Avant Linux\ 3.3, s'il manquait de la place pour l'événement, \fBENOSPC\fP était
+renvoyé. Linus n'aimait pas cela, et ça a été modifié en
+\fBEINVAL\fP. \fBENOSPC\fP est toujours renvoyé en cas de tentative de lecture de
+résultats dans un tampon trop petit.
+.SH VERSIONS
+\fBperf_event_open\fP() a été introduite dans Linux\ 2.6.31 mais était appelée
+\fBperf_counter_open\fP(). Elle a été renommée dans Linux\ 2.6.32.
+.SH CONFORMITÉ
+Cet appel système \fBperf_event_open\fP() est spécifique à Linux et ne devrait
+pas être employé dans des programmes destinés à être portables.
+.SH NOTES
+La glibc ne fournit pas de fonction autour de cet appel système\ ; utilisez
+\fBsyscall\fP(2) pour l'appeler. Consultez l'exemple ci\-dessous.
+
+Le moyen officiel pour savoir si la prise en charge de \fBperf_event_open\fP()
+est activée est de vérifier si le fichier
+\fI/proc/sys/kernel/perf_event_paranoid\fP existe.
+.SH BOGUES
+L'option \fBF_SETOWN_EX\fP de \fBfcntl\fP(2) est nécessaire pour obtenir
+correctement les signaux de dépassement dans les threads. Cela a été
+introduit dans Linux\ 2.6.32.
+
+Avant Linux\ 3.3 (en tout cas pour x86), le noyau ne vérifiait pas si les
+événements pouvaient être programmés ensemble avant le moment de la
+lecture. La même chose arrive sur tous les noyaux connus si le watchdog NMI
+est activé. Cela signifie que pour voir si un ensemble donné d'événements
+fonctionne, il faut appeler \fBperf_event_open\fP(), démarrer, puis lire avant
+d'être sûr de pouvoir obtenir des mesures valables.
+
+Avant Linux\ 2.6.34, les contraintes d'événements n'étaient pas renforcées
+par le noyau. Dans ce cas, certains événements renverraient «\ 0\ »
+silencieusement si le noyau les avait programmés dans un emplacement de
+compteur incorrect.
+
+Avant Linux\ 2.6.34, à cause d'un bogue lors du multiplexage, de mauvais
+résultats pouvaient être renvoyés.
+
+Les noyaux de Linux\ 2.6.35 à Linux\ 2.6.39 peuvent planter rapidement si
+\fIinherit\fP est activé et que de nombreux threads sont démarrés.
+
+Avant Linux\ 2.6.35, \fBPERF_FORMAT_GROUP\fP ne fonctionnait pas avec les
+processus attachés.
+
+Dans les plus anciennes versions de Linux\ 2.6, le rafraîchissement d'un
+leader de groupe d'événements rafraîchissait tous les frères, et un
+rafraîchissement avec un paramètre de O activait un rafraîchissement
+infini. Ce comportement n'est pas géré, et ne devrait pas être utilisé.
+
+À cause d'un bogue dans le code du noyau entre Linux\ 2.6.36 et Linux\ 3.0, le
+champ \fIwatermark\fP était ignoré et agissait comme si \fIwakeup_event\fP avait
+été choisi si l'union contenait une valeur non nulle.
+
+Vérifiez toujours deux fois les résultats. Plusieurs événements généralisés
+ont eu de fausses valeurs. Par exemple, les branchements retirés ne
+mesuraient pas la bonne chose sur les machines AMD jusqu'au noyau\ 2.6.35.
+.SH EXEMPLE
+Ce qui suit est un court exemple qui mesure le décompte total d'instructions
+d'un appel à \fBprintf\fP(3).
+.nf
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <linux/perf_event.h>
+#include <asm/unistd.h>
+
+long
+perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
+                int cpu, int group_fd, unsigned long flags)
+{
+    int ret;
+
+    ret = syscall(__NR_perf_event_open, hw_event, pid, cpu,
+                   group_fd, flags);
+    return ret;
+}
+
+int
+main(int argc, char **argv)
+{
+    struct perf_event_attr pe;
+    long long count;
+    int fd;
+
+    memset(&pe, 0, sizeof(struct perf_event_attr));
+    pe.type = PERF_TYPE_HARDWARE;
+    pe.size = sizeof(struct perf_event_attr);
+    pe.config = PERF_COUNT_HW_INSTRUCTIONS;
+    pe.disabled = 1;
+    pe.exclude_kernel = 1;
+    pe.exclude_hv = 1;
+
+    fd = perf_event_open(&pe, 0, \-1, \-1, 0);
+    if (fd == \-1) {
+       fprintf(stderr, "Erreur d'ouverture du leader %llx\en", pe.config);
+       exit(EXIT_FAILURE);
+    }
+
+    ioctl(fd, PERF_EVENT_IOC_RESET, 0);
+    ioctl(fd, PERF_EVENT_IOC_ENABLE, 0);
+
+    printf("Mesure du décompte d'instructions pour ce printf\en");
+
+    ioctl(fd, PERF_EVENT_IOC_DISABLE, 0);
+    read(fd, &count, sizeof(long long));
+
+    printf("%lld instructions utilisées\en", count);
+
+    close(fd);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBfcntl\fP(2), \fBmmap\fP(2), \fBopen\fP(2), \fBprctl\fP(2), \fBread\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

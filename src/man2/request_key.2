@@ -1,0 +1,138 @@
+.\" Copyright (C) 2006 Red Hat, Inc. All Rights Reserved.
+.\" Written by David Howells (dhowells@redhat.com)
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_ONEPARA)
+.\" This program is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License
+.\" as published by the Free Software Foundation; either version
+.\" 2 of the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH REQUEST_KEY 2 "25 février 2010" Linux "Gestion des clés sous Linux"
+.SH NOM
+request_key \- Demander une clé au gestionnaire de clés du noyau
+.SH SYNOPSIS
+.nf
+\fB#include <keyutils.h>\fP
+.sp
+\fBkey_serial_t request_key(const char *\fP\fItype\fP\fB, const char *\fP\fIdescription\fP\fB,\fP
+\fB                         const char *\fP\fIcallout_info\fP\fB,\fP
+\fB                         key_serial_t \fP\fIkeyring\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBrequest_key\fP()  demande au noyau de trouver une clé d'un \fItype\fP donné,
+qui correspond à la \fIdescription\fP spécifiée, et si une clé est trouvée,
+l'attache au trousseau (\fIkeyring\fP) donné en argument et renvoie son numéro
+de série.
+.P
+\fBrequest_key\fP()  cherche une clé correspondant aux critères d'abord
+récursivement à l'intérieur des trousseaux attachés au processus appelant,
+dans l'ordre suivant\ : trousseau spécifique au processus léger (\fIthread\fP),
+trousseau spécifique au processus, et enfin le trousseau de session.
+.P
+Si \fBrequest_key\fP()  est appelé depuis un programme lui\-même appelé par
+\fBrequest_key\fP() au nom d'un autre processus afin de générer une clé, alors
+les trousseaux de cet autre processus seront ensuite parcourus, l'accès
+étant contrôlé par les attributs UID, GID, les groupes et le contexte de
+sécurité de cet autre processus.
+.P
+Une correspondance est d'abord recherchée avec toutes les clés d'un
+trousseau avant de chercher dans les trousseaux trouvés dans ce
+trousseau. Seules les clés qui sont accessibles à l'appelant peuvent être
+trouvées, et de même seuls les trousseaux qui lui sont accessibles peuvent
+être parcourus.
+.P
+Si aucune clé n'est trouvée, et si \fIcallout_info\fP possède une valeur non
+NULL, cette fonction va essayer de chercher plus loin. Dans un tel cas,
+l'argument \fIcallout_info\fP est passé à un service de l'espace utilisateur,
+tel que \fB/sbin/request\-key\fP, pour générer la clé.
+.P
+Si cela échoue aussi, alors une erreur est renvoyée, et une clé temporaire
+négative est insérée dans le trousseau spécifié. Cette clé expirera au bout
+de quelques secondes, mais en attendant, tous les appels ultérieurs à
+\fBrequest_key\fP() avec les mêmes arguments échouera.
+.P
+Le numéro de série \fIkeyring\fP peut être celui d'un trousseau valide sur
+lequel l'appelant possède les droits en écriture, ou il peut être un
+identifiant de trousseau spécial\ :
+.TP 
+\fBKEY_SPEC_THREAD_KEYRING\fP
+Pour indiquer le trousseau spécifique au processus léger (\fIthread\fP) de
+l'appelant.
+.TP 
+\fBKEY_SPEC_PROCESS_KEYRING\fP
+Pour indiquer le trousseau spécifique au processus de l'appelant.
+.TP 
+\fBKEY_SPEC_SESSION_KEYRING\fP
+Pour indiquer le trousseau spécifique à la session de l'appelant.
+.TP 
+\fBKEY_SPEC_USER_KEYRING\fP
+Pour indiquer le trousseau spécifique à l'UID de l'appelant.
+.TP 
+\fBKEY_SPEC_USER_SESSION_KEYRING\fP
+Pour indiquer le trousseau spécifique à la session de l'UID de l'appelant.
+.P
+Si une clé est créée, qu'elle soit valide ou négative, elle remplacera toute
+autre clé possédant le même type et la même description dans le trousseau
+destination.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBrequest_key\fP() renvoie le numéro de série de la clé
+trouvée. En cas d'erreur, la valeur \fB\-1\fP est renvoyée et \fIerrno\fP contient
+un code d'erreur approprié.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+Le trousseau n'était pas disponible pour pouvoir être modifié par
+l'utilisateur.
+.TP 
+\fBEINTR\fP
+La requête a été interrompue par un signal.
+.TP 
+\fBEDQUOT\fP
+Le quota de clés de cet utilisateur serait dépassé si la clé était créée ou
+ajoutée au trousseau.
+.TP 
+\fBEKEYEXPIRED\fP
+Une clé expirée a été trouvée, mais aucun remplacement n'a pu être obtenu.
+.TP 
+\fBEKEYREJECTED\fP
+La tentative de générer une nouvelle clé a été rejetée.
+.TP 
+\fBEKEYREVOKED\fP
+Une clé révoquée a été trouvée, mais aucun remplacement n'a pu être obtenu.
+.TP 
+\fBENOMEM\fP
+Il n'y a pas assez de mémoire pour créer une clé.
+.TP 
+\fBENOKEY\fP
+Aucune clé correspondante n'a été trouvée.
+.SH "ÉDITION DE LIENS"
+Bien qu'il s'agisse d'un appel système Linux, cette fonction n'est pas
+présente dans \fIlibc\fP, mais peut être trouvée dans \fIlibkeyutils\fP. L'édition
+des liens doit être être effectuée avec l'option \fB\-lkeyutils\fP.
+.SH "VOIR AUSSI"
+\fBkeyctl\fP(1), \fBadd_key\fP(2), \fBkeyctl\fP(2), \fBrequest\-key\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Denis Barbier (2010).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

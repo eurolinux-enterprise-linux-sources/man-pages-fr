@@ -1,0 +1,151 @@
+.\" Copyright (C) 2006 Red Hat, Inc. All Rights Reserved.
+.\" Written by David Howells (dhowells@redhat.com)
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_ONEPARA)
+.\" This program is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License
+.\" as published by the Free Software Foundation; either version
+.\" 2 of the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" FIXME Document KEYCTL_REJECT (new in 2.6.39)
+.\"		commit fdd1b94581782a2ddf9124414e5b7a5f48ce2f9c
+.\"		Documentation/security/keys.txt
+.\" FIXME Document KEYCTL_INSTANTIATE_IOV (new in 2.6.39)
+.\"		commit ee009e4a0d4555ed522a631bae9896399674f064
+.\"		Documentation/security/keys.txt
+.\" FIXME Document KEYCTL_INVALIDATE (new in 3.5)
+.\"		commit fd75815f727f157a05f4c96b5294a4617c0557da
+.\"		Documentation/security/keys.txt
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH KEYCTL 2 "25 février 2010" Linux "Gestion des clés sous Linux"
+.SH NOM
+keyctl \- Manipuler la gestion des clés du noyau
+.SH SYNOPSIS
+.nf
+\fB#include <keyutils.h>\fP
+.sp
+\fBlong keyctl(int \fP\fIcmd\fP\fB, ...);\fP
+.fi
+.SH DESCRIPTION
+\fBkeyctl\fP() possède un certain nombre de fonctions disponibles\ :
+.TP 
+\fBKEYCTL_GET_KEYRING_ID\fP
+Obtenir l'identifiant d'un trousseau.
+.TP 
+\fBKEYCTL_JOIN_SESSION_KEYRING\fP
+Rejoindre ou créer un trousseau de session.
+.TP 
+\fBKEYCTL_UPDATE\fP
+Mettre une clé à jour.
+.TP 
+\fBKEYCTL_REVOKE\fP
+Révoquer une clé.
+.TP 
+\fBKEYCTL_CHOWN\fP
+Changer le propriétaire d'une clé.
+.TP 
+\fBKEYCTL_SETPERM\fP
+Changer les permissions d'une clé.
+.TP 
+\fBKEYCTL_DESCRIBE\fP
+Obtenir la description d'une clé.
+.TP 
+\fBKEYCTL_CLEAR\fP
+Vider le contenu d'un trousseau.
+.TP 
+\fBKEYCTL_LINK\fP
+Ajouter une clé à un trousseau.
+.TP 
+\fBKEYCTL_UNLINK\fP
+Supprimer une clé d'un trousseau.
+.TP 
+\fBKEYCTL_SEARCH\fP
+Rechercher une clé dans un trousseau.
+.TP 
+\fBKEYCTL_READ\fP
+Lire le contenu d'une clé ou d'un trousseau.
+.TP 
+\fBKEYCTL_INSTANTIATE\fP
+Instancier une clé partiellement construite.
+.TP 
+\fBKEYCTL_NEGATE\fP
+Marquer négativement une clé partiellement construite.
+.TP 
+\fBKEYCTL_SET_REQKEY_KEYRING\fP
+Définir le trousseau pour les requêtes de clé par défaut.
+.TP 
+\fBKEYCTL_SET_TIMEOUT\fP
+Définir un délai d'expiration sur une clé.
+.TP 
+\fBKEYCTL_ASSUME_AUTHORITY\fP
+Assumer l'autorité pour instancier une clé.
+.P
+La bibliothèque \fBlibkeyutils\fP fournit un accès à chacune de ces fonctions
+individuellement, ce qui permet au compilateur de vérifier les
+arguments. Veuillez vous référer à la section \fBVOIR AUSSI\fP à la fin de ce
+document.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBkeyctl\fP() renvoie le numéro de série de la clé
+trouvée. En cas d'erreur, la valeur \fB\-1\fP est renvoyée et \fIerrno\fP contient
+un code d'erreur approprié.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+Une opération sur les clés n'avait pas les permissions nécessaires.
+.TP 
+\fBEDQUOT\fP
+Le quota de clés de l'utilisateur appelant serait dépassé si la clé était
+créée ou ajoutée au trousseau.
+.TP 
+\fBEKEYEXPIRED\fP
+Une clé expirée a été trouvée ou spécifiée.
+.TP 
+\fBEKEYREJECTED\fP
+Une clé rejetée a été trouvée ou spécifiée.
+.TP 
+\fBEKEYREVOKED\fP
+Une clé révoquée a été trouvée ou spécifiée.
+.TP 
+\fBENOKEY\fP
+Aucune clé correspondante n'a été trouvée, ou une clé invalide a été
+spécifiée.
+.SH "ÉDITION DE LIENS"
+Bien qu'il s'agisse d'un appel système Linux, cette fonction n'est pas
+présente dans \fIlibc\fP, mais peut être trouvée dans \fIlibkeyutils\fP. L'édition
+des liens doit être être effectuée avec l'option \fB\-lkeyutils\fP.
+.SH "VOIR AUSSI"
+.ad l
+.nh
+\fBkeyctl\fP(1), \fBadd_key\fP(2), \fBrequest_key\fP(2), \fBkeyctl_set_timeout\fP(3),
+\fBkeyctl_chown\fP(3), \fBkeyctl_clear\fP(3), \fBkeyctl_describe\fP(3),
+\fBkeyctl_describe_alloc\fP(3), \fBkeyctl_get_keyring_ID\fP(3),
+\fBkeyctl_instantiate\fP(3), \fBkeyctl_join_session_keyring\fP(3),
+\fBkeyctl_link\fP(3), \fBkeyctl_negate\fP(3), \fBkeyctl_revoke\fP(3),
+\fBkeyctl_search\fP(3), \fBkeyctl_setperm\fP(3), \fBkeyctl_set_reqkey_keyring\fP(3),
+\fBkeyctl_set_timeout\fP(3), \fBkeyctl_read\fP(3), \fBkeyctl_read_alloc\fP(3),
+\fBkeyctl_unlink\fP(3), \fBkeyctl_update\fP(3), \fBrequest\-key\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Denis Barbier (2010).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

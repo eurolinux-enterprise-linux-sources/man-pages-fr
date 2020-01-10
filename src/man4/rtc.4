@@ -1,0 +1,274 @@
+.\" rtc.4
+.\" Copyright 2002 Urs Thuermann (urs@isnogud.escape.de)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" $Id: rtc.4,v 1.4 2005/12/05 17:19:49 urs Exp $
+.\"
+.\" 2006-02-08 Various additions by mtk
+.\" 2006-11-26 cleanup, cover the generic rtc framework; David Brownell
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RTC 4 "25 février 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+rtc \- Horloge temps réel
+.SH SYNOPSIS
+#include <linux/rtc.h>
+.sp
+\fBint ioctl(\fP\fIfd\fP\fB, RTC_\fP\fIrequest\fP\fB, \fP\fIparam\fP\fB);\fP
+.SH DESCRIPTION
+Il s'agit d'une interface aux pilotes pour les horloges temps réel (RTC).
+
+La plupart des ordinateurs disposent d'une ou plusieurs horloges matérielles
+intégrées, enregistrant l'heure locale. Elles sont appelées «\ horloges
+temps réel\ » (RTC). L'une d'entre elles est généralement alimentée par une
+pile afin de rester à l'heure une fois l'ordinateur éteint. Les RTC
+permettent souvent d'utiliser des alarmes et d'autres interruptions.
+
+Tous les PC i386 et les systèmes basés sur ACPI ont une RTC compatible avec
+la puce Motorola\ MC146818 du PC/AT d'origine. Aujourd'hui l'horloge est
+généralement intégrée au jeu de composants de la carte mère («\ south
+bridge\ ») et utilise une pile de secours remplaçable de la taille d'une
+pièce de monnaie.
+
+Les systèmes autres que les PC, comme les systèmes embarqués construits
+autour de processeurs embarquant tout le système, utilisent d'autres mises
+en œuvre. Généralement, ils n'offrent pas les mêmes fonctionnalités qu'une
+RTC de PC/AT.
+.SS "RTC vs horloge système"
+Les RTC ne doivent pas être confondues avec l'horloge système, qui est une
+horloge logicielle gérée par le noyau et utilisée dans \fBgettimeofday\fP(2) et
+\fBtime\fP(2), ainsi que pour le marquage temporel des fichiers, etc. L'horloge
+système indique le nombre de secondes et microsecondes écoulées depuis un
+instant de départ, défini comme depuis l'époque POSIX\ : 1er\ janvier 1970 à
+00:00:00 (UTC). (Une mise en œuvre usuelle compte le nombre d'interruptions,
+une par pulsation à une fréquence de 100, 250 ou 1000\ Hz.) C'est\-à\-dire
+qu'elle est supposée renvoyer l'heure locale, comme le font les RTC.
+
+Une différence clé entre une RTC et l'horloge système est qu'une RTC
+fonctionne même lorsque le système est dans un état de veille d'alimentation
+(incluant «\ éteint\ ») et que l'horloge système ne peut
+fonctionner. Jusqu'à son initialisation, l'horloge système ne peut indiquer
+que le temps écoulé depuis le démarrage du système mais pas celui depuis
+l'époque POSIX. Ainsi, au démarrage et après la sortie de veille, l'horloge
+système sera souvent réglée à l'heure locale actuelle en utilisant une
+RTC. Les systèmes sans RTC ont besoin de régler leur horloge système par un
+autre moyen, peut\-être à travers le réseau ou en entrant les valeurs à la
+main.
+.SS "Fonctionnalités d'une RTC"
+Les RTC peuvent être lues et réglées avec \fBhwclock\fP(8), ou directement en
+utilisant les ioctl listés ci\-dessous.
+
+En plus du compte de la date et de l'heure, de nombreuses RTC peuvent aussi
+générer des interruptions\ :
+.IP * 3
+à chaque mise à jour de l'horloge (c.\-à\-d.. une fois par seconde)\ ;
+.IP *
+à des intervalles réguliers, de fréquence réglable à une puissance de 2
+entre 2\ Hz et 8192\ Hz\ ;
+.IP *
+lorsque la date d'une alarme réglée auparavant est atteinte.
+.PP
+Chacune de ces sources d'interruptions peut être activée ou désactivée
+séparément. Sur de nombreux systèmes, l'interruption venant de l'alarme peut
+être configurée comme un événement déclenchant le réveil du système, et
+ainsi sortir le système d'un état de veille d'alimentation comme la veille
+en RAM (STR, appelée S3 dans les systèmes ACPI), l'hibernation (appelée S4
+dans les systèmes ACPI) ou même l'extinction (appelée S5 dans les systèmes
+ACPI). Sur certains systèmes, la pile de secours de la RTC ne peut générer
+d'interruptions, alors qu'une autre le peut.
+
+Le périphérique \fI/dev/rtc\fP (ou \fI/dev/rtc0\fP, \fI/dev/rtc1\fP, etc.) est en
+lecture seule et un seul accès simultané est possible. Un processus appelant
+\fBread\fP(2) ou \fBselect\fP(2) est bloqué jusqu'à la réception de l'interruption
+RTC suivante. Suite à l'interruption, le processus peut lire un entier long,
+dont l'octet de poids faible contient le type d'interruption qui vient de se
+produire et les 3\ octets restants contiennent le nombre d'interruptions
+depuis le dernier appel à \fBread\fP(2).
+.SS "Interface ioctl(2)"
+Les appels \fBioctl\fP(2) suivants sont définis sur les descripteurs des
+fichiers associés aux périphériques RTC\ :
+.TP 
+\fBRTC_RD_TIME\fP
+Renvoie l'heure de cette RTC dans la structure suivante\ :
+.IP
+.in +4n
+.nf
+struct rtc_time {
+    int tm_sec;
+    int tm_min;
+    int tm_hour;
+    int tm_mday;
+    int tm_mon;
+    int tm_year;
+    int tm_wday;     /* non utilisé */
+    int tm_yday;     /* non utilisé */
+    int tm_isdst;    /* non utilisé */
+};
+.fi
+.in
+.IP
+Les membres de cette structure ont les mêmes sens et les mêmes portées que
+la ceux de la structure \fItm\fP décrite dans \fBgmtime\fP(3). Un pointeur vers
+cette structure est attendu en troisième paramètre pour \fBioctl\fP(2).
+.TP 
+\fBRTC_SET_TIME\fP
+Règle cette horloge RTC à l'heure spécifiée par la structure \fIrtc_time\fP
+vers laquelle pointe le troisième paramètre passé à \fBioctl\fP(2). Pour
+pouvoir modifier l'heure RTC, le processus doit être privilégié
+(i.e. disposer du droit \fBCAP_SYS_TIME\fP).
+.TP 
+\fBRTC_ALM_READ\fP, \fBRTC_ALM_SET\fP
+Lit et règle l'heure d'alarme, pour les horloges RTC qui gèrent les
+alarmes. L'interruption venant de l'alarme doit être activée ou désactivée
+séparément en utilisant respectivement les requêtes \fBRTC_AIE_ON\fP ou
+\fBRTC_AIE_OFF\fP. Le troisième paramètre d'\fBioctl\fP(2) est un pointeur vers
+une structure \fIrtc_time\fP. Seuls les champs \fItm_sec\fP, \fItm_min\fP, et
+\fItm_hour\fP de cette structure sont utilisés.
+.TP 
+\fBRTC_IRQP_READ\fP, \fBRTC_IRQP_SET\fP
+Lit et règle la fréquence des interruptions, pour les horloges RTC gérant
+les interruptions périodiques. L'interruption périodique doit être activée
+ou désactivée séparément en utilisant respectivement les requêtes
+\fBRTC_PIE_ON\fP ou \fBRTC_PIE_OFF\fP. Le troisième paramètre d'\fBioctl\fP(2) est un
+\fIunsigned long\ *\fP ou un \fIunsigned long\fP respectivement. La valeur
+représente la fréquence en interruptions par seconde. Le jeu des fréquences
+permises est l'ensemble des multiples de deux entre 2 et 8192. Seul un
+processus privilégié (i.e. disposant du droit \fBCAP_SYS_RESOURCE\fP) peut
+régler une fréquence supérieure à celle spécifiée dans
+\fI/proc/sys/dev/rtc/max\-user\-freq\fP, par défaut 64.
+.TP 
+\fBRTC_AIE_ON\fP, \fBRTC_AIE_OFF\fP
+Active ou désactive l'interruption venant de l'alarme, pour les RTC qui
+gèrent les alarmes. Le troisième paramètre d'\fBioctl\fP(2) est ignoré.
+.TP 
+\fBRTC_UIE_ON\fP, \fBRTC_UIE_OFF\fP
+Active ou désactive l'interruption à chaque mise à jour, pour les horloges
+gérant cette interruption envoyée chaque seconde. Le troisième paramètre
+d'\fBioctl\fP(2) est ignoré.
+.TP 
+\fBRTC_PIE_ON\fP, \fBRTC_PIE_OFF\fP
+Active ou désactive l'interruption périodique, pour les RTC gérant ces
+interruptions périodiques. Le troisième paramètre d'\fBioctl\fP(2) est
+ignoré. Seul un processus privilégié (i.e. disposant du droit
+\fBCAP_SYS_RESOURCE\fP) peut régler une fréquence supérieure à celle spécifiée
+dans \fI/proc/sys/dev/rtc/max\-user\-freq\fP.
+.TP 
+\fBRTC_EPOCH_READ\fP, \fBRTC_EPOCH_SET\fP
+De nombreuses RTC codent l'année dans un registre de 8\ bits, interprété
+soit comme un nombre binaire de 8\ bits, soit comme un nombre BCD. Dans les
+deux cas, le nombre est interprété relativement à l'époque de cette
+RTC. L'époque de la RTC est initialisé à 1900 sur la plupart des systèmes,
+sauf sur Alpha et Mips où il peut être initialisé à 1952, 1980 ou 2000,
+suivant la valeur du registre RTC destiné à l'année. Avec certaines RTC, ces
+opérations peuvent être utilisées respectivement pour lire ou régler
+l'époque de la RTC. Le troisième paramètre \fBioctl\fP(2) est respectivement un
+\fIunsigned long\ *\fP ou un \fIunsigned long\fP, et la valeur de retour (ou
+assignée) est l'époque. Pour régler l'époque RTC, le processus doit être
+privilégié (i.e. disposer du droit \fBCAP_SYS_TIME\fP).
+.TP 
+\fBRTC_WKALM_RD\fP, \fBRTC_WKALM_SET\fP
+Certaines RTC disposent d'une interface pour les alarmes plus puissante,
+utilisant ces ioctl pour lire ou écrire l'heure de l'alarme de la RTC avec
+cette structure\ :
+.PP
+.RS
+.in +4n
+.nf
+struct rtc_wkalrm {
+    unsigned char enabled;
+    unsigned char pending;
+    struct rtc_time time;
+};
+.fi
+.in
+.RE
+.IP
+L'attribut \fIenabled\fP est utilisé pour activer ou désactiver l'interruption
+venant de l'alarme, ou pour lire son état actuel\ ; lorsque ces appels sont
+utilisés, \fBRTC_AIE_ON\fP et \fBRTC_AIE_OFF\fP ne sont pas utilisés. L'attribut
+\fIpending\fP est utilisé par \fBRTC_WKALM_RD\fP pour signaler une interruption en
+attente (c'est en général inutile sous Linux, excepté lors du dialogue avec
+la RTC gérée par un microcode EFI). Le champ \fItime\fP est autant utilisé par
+\fBRTC_ALM_READ\fP et \fBRTC_ALM_SET\fP, excepté que les champs \fItm_mday\fP,
+\fItm_mon\fP et \fItm_year\fP sont également valides. Un pointeur vers cette
+structure doit être passé en troisième paramètre \fBioctl\fP(2).
+.SH FICHIERS
+\fI/dev/rtc\fP, \fI/dev/rtc0\fP, \fI/dev/rtc1\fP\ : fichiers spéciaux de périphérique
+caractère des différentes RTC.
+
+\fI/proc/driver/rtc\fP\ : état de la (première) RTC.
+.SH NOTES
+Lorsque l'horloge du noyau est synchronisée avec une référence externe en
+utilisant \fBadjtimex\fP(2), le noyau met à jour une RTC désignée toutes les
+11\ minutes. Pour y parvenir, le noyau doit arrêter brièvement les
+interruptions périodiques, ce qui peut affecter les programmes utilisant
+cette RTC.
+
+L'époque d'une RTC n'a rien à voir avec l'époque POSIX, utilisé uniquement
+pour l'horloge système.
+
+Si l'année relative à l'époque de la RTC et au registre de l'année est
+inférieure à 1970, on considère que l'année est de 100\ ans supérieure,
+c.\-à\-d. entre 2000 et 2069.
+
+Certaines RTC gèrent les caractères génériques («\ wildcard \ ») dans les
+champs des alarmes, destinés aux scénarios comme les alarmes périodiques
+toutes les quinze minutes après chaque heure, ou au premier jour de chaque
+mois. Une telle utilisation n'est pas portable\ ; un code en espace
+utilisateur portable n'attend qu'une seule interruption d'alarme, puis
+désactivera ou réinitialisera cette alarme après l'avoir reçue.
+
+Certaines RTC gèrent des interruptions de périodes multiples d'une seconde
+plutôt qu'en fractions de secondes, des alarmes multiples, la programmation
+de signaux de sortie d'horloge, la mémoire non volatile, et d'autres
+possibilités matérielles qui ne sont pas accessibles par cette API.
+.SH "VOIR AUSSI"
+\fBdate\fP(1), \fBadjtimex\fP(2), \fBgettimeofday\fP(2), \fBsettimeofday\fP(2),
+\fBstime\fP(2), \fBtime\fP(2), \fBgmtime\fP(3), \fBtime\fP(7), \fBhwclock\fP(8)
+
+\fIDocumentation/rtc.txt\fP dans les sources du noyau Linux
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Simon Paillard et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

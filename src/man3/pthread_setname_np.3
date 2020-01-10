@@ -1,0 +1,195 @@
+.\" Copyright (C) 2012 Chandan Apsangi <chandan.jc@gmail.com>
+.\" and Copyright (C) 2013 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH PTHREAD_SETNAME_NP 3 "21 juin 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+pthread_setname_np, pthread_getname_np \- Définir ou obtenir le nom d'un
+thread
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP             /* Consultez feature_test_macros(7) */
+\fB#include <pthread.h>\fP
+\fBint pthread_setname_np(pthread_t \fP\fIthread\fP\fB, const char *\fP\fIname\fP\fB);\fP
+\fBint pthread_getname_np(pthread_t \fP\fIthread\fP\fB,\fP
+\fB                       const char *\fP\fIname\fP\fB, size_t \fP\fIlen\fP\fB);\fP
+.fi
+.sp
+Compilez et effectuez l'édition des liens avec l'option \fI\-pthread\fP.
+.SH DESCRIPTION
+Par défaut, tous les threads créés par \fBpthread_create\fP() héritent du nom
+de programme. La fonction \fBpthread_setname_np\fP() permet d'affecter un nom
+propre à un thread, ce qui peut être utile pour déboguer une application
+multithread. Le nom du thread est une chaîne de langage C significative,
+dont la longueur ne peut dépasser 16\ caractères, caractère nul final
+(\(aq\e0\(aq) inclus. L'argument \fIthread\fP indique le thread dont le nom
+doit être changé\ ; le nouveau nom est précisé dans \fIname\fP.
+
+La fonction \fBpthread_getname_np\fP() permet de récupérer le nom du
+thread. L'argument \fIthread\fP indique le thread dont le nom doit être
+récupéré. Le tampon \fIname\fP est utilisé pour renvoyer le nom du thread\ ;
+\fIlen\fP indique le nombre d'octets disponibles dans \fIname\fP. La longueur du
+tampon indiqué dans \fIname\fP doit être d'au moins 16\ caractères. Le nom du
+thread renvoyé dans le tampon de retour est terminé par caractère nul.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, ces fonctions renvoient 0\ ; en cas d'erreur elles
+renvoient un numéro d'erreur non nul.
+.SH ERREURS
+La fonction \fBpthread_setname_np\fP() peut échouer avec l'erreur suivante\ :
+.TP 
+\fBERANGE\fP
+La longueur de la chaîne vers laquelle pointe \fIname\fP dépasse la limite
+autorisée.
+.PP
+La fonction \fBpthread_getname_np\fP() peut échouer avec l'erreur suivante\ :
+.TP 
+\fBERANGE\fP
+Le tampon indiqué par \fIname\fP et \fIlen\fP a une taille insuffisante pour
+contenir le nom du thread.
+.PP
+Si l'une de ces fonctions ne parvient pas à ouvrir
+\fI/proc/self/task/[tid]/comm\fP, alors l'appel peut échouer en retournant
+l'une des erreurs décrites dans \fBopen\fP(2)
+.SH VERSIONS
+Ces fonctions ont été introduites dans la glibc dans sa version\ 2.12.
+.SH CONFORMITÉ
+Ces fonctions sont des extension GNU non standard.
+.SH NOTES
+\fBpthread_setname_np\fP() écrit en interne dans le fichier comm du thread
+(dans le système de fichiers \fI/proc\fP)\ :
+\fI/proc/self/task/[tid]/comm\fP. \fBpthread_getname_np\fP() récupère le nom du
+thread à ce même endroit.
+.SH EXEMPLE
+.PP
+Le programme ci\-dessous illustre l'utilisation de \fBpthread_setname_np\fP() et
+de \fBpthread_getname_np\fP().
+
+La session d'interpréteur de commande ci\-dessous montre l'exécution du
+programme\ :
+.in +4n
+.nf
+
+$\fB ./a.out\fP
+Thread créé. Le nom par défaut est\ : a.out
+Le nom du thread après nommage est THREADFOO.
+\fB^Z\fP                           # Suspendre l'exécution du programme
+[1]+  Stoppé            ./a.out
+$ \fBps H \-C a.out \-o 'pid tid cmd comm'\fP
+  PID   TID CMD                         COMMAND
+ 5990  5990 ./a.out                     a.out
+ 5990  5991 ./a.out                     THREADFOO
+$ \fBcat /proc/5990/task/5990/comm\fP
+a.out
+$ \fBcat /proc/5990/task/5991/comm\fP
+THREADFOO
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#define _GNU_SOURCE
+#include <pthread.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+#include <stdlib.h>
+
+#define NAMELEN 16
+
+#define errExitEN(en, msg) \e
+            do { errno = en; perror(msg); exit(EXIT_FAILURE); \e
+        } while (0)
+
+static void *
+threadfunc(void *parm)
+{
+    sleep(5);          // permet au programme principal de définir
+                       // le nom du thread
+    return NULL;
+}
+
+int
+main(int argc, char **argv)
+{
+    pthread_t thread;
+    int rc;
+    char thread_name[NAMELEN];
+
+    rc = pthread_create(&thread, NULL, threadfunc, NULL);
+    if (rc != 0)
+        errExitEN(rc, "pthread_create");
+
+    rc = pthread_getname_np(thread, thread_name, NAMELEN);
+    if (rc != 0)
+        errExitEN(rc, "pthread_getname_np");
+
+    printf("Thread créé. Le nom par défaut est\ : %s\en", thread_name);
+    rc = pthread_setname_np(thread, (argc > 1) ? argv[1] : "THREADFOO");
+    if (rc != 0)
+        errExitEN(rc, "pthread_setname_np");
+
+    sleep(2);
+
+    rc = pthread_getname_np(thread, thread_name,
+                            (argc > 2) ? atoi(argv[1]) : NAMELEN);
+    if (rc != 0)
+        errExitEN(rc, "pthread_getname_np");
+    printf("Le nom du thread après nommage est %s.\en", thread_name);
+
+    rc = pthread_join(thread, NULL);
+    if (rc != 0)
+        errExitEN(rc, "pthread_join");
+
+    printf("Terminé\en");
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+.ad l
+.nh
+\fBprctl\fP(2), \fBpthread_create\fP(3), \fBpthreads\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

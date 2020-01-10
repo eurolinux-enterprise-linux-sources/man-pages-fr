@@ -1,0 +1,198 @@
+.\" Copyright (C) 2007, 2010 Michael Kerrisk <mtk.manpages@gmail.com>
+.\" and Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 18:34:44 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Merged readv.[23], 2002-10-17, aeb
+.\" 2007-04-30 mtk, A fairly major rewrite to fix errors and
+.\"     add more details.
+.\" 2010-11-16, mtk, Added documentation of preadv() and pwritev()
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH READV 2 "17 novembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+readv, writev, preadv, pwritev \- Lire ou écrire dans plusieurs tampons
+.SH SYNOPSIS
+.nf
+\fB#include <sys/uio.h>\fP
+.sp
+\fBssize_t readv(int \fP\fIfd\fP\fB, const struct iovec *\fP\fIiov\fP\fB, int \fP\fIiovcnt\fP\fB);\fP
+.sp
+\fBssize_t writev(int \fP\fIfd\fP\fB, const struct iovec *\fP\fIiov\fP\fB, int \fP\fIiovcnt\fP\fB);\fP
+.sp
+\fBssize_t preadv(int \fP\fIfd\fP\fB, const struct iovec *\fP\fIiov\fP\fB, int \fP\fIiovcnt\fP\fB,\fP
+\fB               off_t \fP\fIoffset\fP\fB);\fP
+.sp
+\fBssize_t pwritev(int \fP\fIfd\fP\fB, const struct iovec *\fP\fIiov\fP\fB, int \fP\fIiovcnt\fP\fB,\fP
+\fB                off_t \fP\fIoffset\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBpreadv\fP(), \fBpwritev\fP()\ : _BSD_SOURCE
+.SH DESCRIPTION
+L'appel système \fBreadv\fP() lit \fIiovcnt\fP blocs depuis le descripteur de
+fichier \fIfd\fP dans les multiples tampons décrits par \fIiov\fP.
+.PP
+L'appel système \fBwritev\fP() écrit au plus \fIiovcnt\fP blocs décrits par \fIiov\fP
+dans le fichier associé au descripteur \fIfd\fP.
+.PP
+Le pointeur \fIiov\fP pointe vers un tableau de structures \fIiovec\fP définies
+dans \fI<sys/uio.h>\fP\ :
+.PP
+.br
+.in +4n
+.nf
+struct iovec {
+    void  *iov_base;    /* Adresse de début */
+    size_t iov_len;     /* Nombre d'octets à transférer */
+};
+.fi
+.in
+.PP
+L'appel système \fBreadv\fP() travaille comme \fBread\fP(2) sauf que plusieurs
+tampons sont remplis.
+.PP
+L'appel système \fBwritev\fP() travaille comme \fBwrite\fP(2) sauf que plusieurs
+tampons sont écrits.
+.PP
+Les tampons sont considérés dans l'ordre du tableau. Cela signifie que
+\fBreadv\fP() remplit \fIiov\fP[0] complètement avant d'en arriver à \fIiov\fP[1], et
+ainsi de suite. (S'il n'y a pas assez de données, tous les tampons pointés
+par \fIiov\fP ne seront pas forcément remplis.) De même, \fBwritev\fP() écrit tout
+le contenu de \fIiov\fP[0] avant de considérer \fIiov\fP[1], et ainsi de suite.
+.PP
+Les transferts de données effectués par \fBreadv\fP() et \fBwritev\fP() sont
+atomiques\ : les données écrites par \fBwritev\fP() sont écrites d'un bloc qui
+n'est pas interrompu par des écritures venant d'autres processus (mais voir
+\fBpipe\fP(7) pour une exception)\ ; de façon similaire, \fBreadv\fP() a la
+garantie de lire un bloc contigu de données depuis le fichier, quelles que
+soient les opérations de lecture effectuées par d'autres threads ou
+processus qui ont des descripteurs de fichier correspondant à la même
+description de fichier ouvert (consultez \fBopen\fP(2)).
+.SS "preadv() et pwritev()"
+L'appel système \fBpreadv\fP() combine les fonctionnalités de \fBreadv\fP() et
+\fBpread\fP(2). Il effectue la même tâche que \fBreadv\fP(), mais ajoute un
+quatrième paramètre, \fIoffset\fP, qui indique la position dans le fichier à
+partir de laquelle l'opération d'entrée doit être effectuée.
+
+L'appel système \fBpwritev\fP() combine les fonctionnalités de \fBwritev\fP() et
+\fBpwrite\fP(2). Il effectue la même tâche que \fBwritev\fP(), mais ajoute un
+quatrième paramètre, \fIoffset\fP, qui indique la position dans le fichier à
+partir de laquelle l'opération de sortie doit être effectuée.
+
+La position dans le fichier n'est pas modifiée par ces appels système. Le
+fichier décrit par \fIfd\fP doit permettre le positionnement.
+.SH "VALEUR RENVOYÉE"
+S'ils réussissent, \fBreadv\fP() et \fBpreadv\fP() renvoient le nombre d'octets
+lus\ ; \fBwritev\fP et \fBpwritev\fP() renvoient le nombre d'octets écrits. En cas
+d'échec, \-1 est renvoyé, et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+Les erreurs indiquées pour \fBread\fP(2) et \fBwrite\fP(2) sont susceptibles de se
+produire. D'autre part, \fBpreadv\fP() et \fBpwritev\fP() peuvent aussi échouer
+pour les mêmes raisons que \fBlseek\fP(2). De plus, il peut survenir\ :
+.TP 
+\fBEINVAL\fP
+La somme des valeurs \fIiov_len\fP déborde du type \fIssize_t\fP, ou le nombre
+\fIiovcnt\fP de vecteur est nul ou supérieur au maximum autorisé.
+.SH VERSIONS
+\fBpreadv\fP() et \fBpwritev\fP() sont apparus dans Linux 2.6.30\ ; la glibc le
+gère depuis la version 2.10.
+.SH CONFORMITÉ
+.\" The readv/writev system calls were buggy before Linux 1.3.40.
+.\" (Says release.libc.)
+\fBreadv\fP(), \fBwritev\fP()\ : BSD\ 4.4 (ces appels système sont apparus dans
+BSD\ 4.2), POSIX.1\-2001. La libc5 de Linux utilisait le type \fIsize_t\fP pour
+le paramètre \fIiovcnt\fP et \fIint\fP en retour de ces fonctions.
+
+\fBpreadv\fP(), \fBpwritev\fP() : non standard, mais sont aussi présents sur les
+BSD modernes.
+.SH NOTES
+.SS "Notes sur Linux"
+POSIX.1\-2001 permet à l'implémentation de limiter le nombre d'éléments qui
+peuvent être passés dans \fIiov\fP. Une implémentation peut annoncer sa limite
+en définissant \fBIOV_MAX\fP dans \fI<limits.h>\fP ou à l'exécution à
+travers \fIsysconf(_SC_IOV_MAX)\fP. Sous Linux, la limite annoncée ainsi est
+1024, qui est la véritable limite du noyau. Cependant, les fonctions
+d'enrobage de la glibc font du travail supplémentaire si elles détectent que
+l'appel système a échoué en raison de cette limite. Pour \fBreadv\fP(), la
+fonction d'enrobage alloue un tampon temporaire assez grand pour tous les
+éléments de \fIiov\fP, passe ce tampon à \fBread\fP(2), copie les données du
+tampon vers les emplacements indiqués par le champ \fIiov_base\fP des éléments
+de \fIiov\fP, puis libère le tampon. La fonction d'enrobage de \fBwritev\fP()
+fonctionne de façon similaire avec un tampon temporaire et un appel à
+\fBwrite\fP(2).
+.SH BOGUES
+Il est déconseillé de mélanger les appels à \fBreadv\fP() ou \fBwritev\fP() qui
+agissent sur les descripteurs avec les fonctions de la bibliothèque stdio\ ;
+les résultats sont indéfinis et probablement différents de ce que l'on
+attend.
+.SH EXEMPLE
+Le segment de code suivant donne un exemple d'utilisation de \fBwritev\fP()\ :
+
+.in +4n
+.nf
+char *str0 = "hello ";
+char *str1 = "world\en";
+struct iovec iov[2];
+ssize_t nwritten;
+
+iov[0].iov_base = str0;
+iov[0].iov_len = strlen(str0);
+iov[1].iov_base = str1;
+iov[1].iov_len = strlen(str1);
+
+nwritten = writev(STDOUT_FILENO, iov, 2);
+.fi
+.in
+.SH "VOIR AUSSI"
+\fBpread\fP(2), \fBread\fP(2), \fBwrite\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

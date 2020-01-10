@@ -1,0 +1,189 @@
+.\" Copyright (c) 1980, 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     @(#)getpriority.2	6.9 (Berkeley) 3/10/91
+.\"
+.\" Modified 1993-07-24 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1996-07-01 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified 1996-11-06 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 2001-10-21 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"    Corrected statement under EPERM to clarify privileges required
+.\" Modified 2002-06-21 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"    Clarified meaning of 0 value for 'who' argument
+.\" Modified 2004-05-27 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" FIXME Oct 2008: Denys Vlasenko is working on a PRIO_THREAD feature that
+.\" is likely to get included in mainline; this will need to be documented.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETPRIORITY 2 "12 février 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+getpriority, setpriority \- Lire et écrire la priorité d'ordonnancement du
+processus
+.SH SYNOPSIS
+\fB#include <sys/time.h>\fP
+.br
+\fB#include <sys/resource.h>\fP
+.sp
+\fBint getpriority(int \fP\fIwhich\fP\fB, int \fP\fIwho\fP\fB);\fP
+.br
+\fBint setpriority(int \fP\fIwhich\fP\fB, int \fP\fIwho\fP\fB, int \fP\fIprio\fP\fB);\fP
+.SH DESCRIPTION
+La priorité d'ordonnancement du processus, du groupe de processus ou de
+l'utilisateur, comme précisé dans \fIwhich\fP et \fIwho\fP est lue avec
+\fBgetpriority\fP() et définit avec \fBsetpriority\fP().
+
+La valeur de \fIwhich\fP doit être \fBPRIO_PROCESS\fP, \fBPRIO_PGRP\fP, ou
+\fBPRIO_USER\fP, et \fIwho\fP est interprété en fonction de \fIwhich\fP (un ID de
+processus pour \fBPRIO_PROCESS\fP, un ID de groupe de processus pour
+\fBPRIO_PGRP\fP, et un ID d'utilisateur pour \fBPRIO_USER\fP). Une valeur nulle
+pour \fIwho\fP indique (respectivement) le processus appelant, le groupe de
+processus de l'appelant ou l'UID réel du processus appelant. \fIPrio\fP est une
+valeur dans l'intervalle \-20 à 19 (voir les Notes plus bas). La priorité par
+défaut est 0, les priorités les plus faibles indiquant un ordonnancement le
+plus favorable.
+
+La fonction \fBgetpriority\fP() renvoie la plus haute priorité (la plus basse
+valeur numérique) dont bénéficie l'un des processus indiqué. La fonction
+\fBsetpriority\fP() définit la priorité des processus indiqués à la valeur
+fournie. Seul le superutilisateur peut diminuer la valeur numérique de la
+priorité.
+.SH "VALEUR RENVOYÉE"
+Comme \fBgetpriority\fP() peut tout à fait renvoyer la valeur \-1, il faut
+effacer la variable externe \fIerrno\fP avant l'appel afin de vérifier si \-1
+indique une erreur ou une priorité légitime. L'appel \fBsetpriority\fP()
+renvoie 0 s'il réussit, ou \-1 s'il échoue.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+\fIwhich\fP n'était ni \fBPRIO_PROCESS\fP, ni \fBPRIO_PGRP\fP, ni \fBPRIO_USER\fP.
+.TP 
+\fBESRCH\fP
+Aucun processus ne correspond aux valeurs de \fIwhich\fP et \fIwho\fP indiquées.
+.PP
+De plus \fBsetpriority\fP() peut échouer pour les erreurs suivantes\ :
+.TP 
+\fBEACCES\fP
+L'appelant a tenté de diminuer la priorité d'un processus, sans avoir les
+privilèges requis (sous Linux, il s'agit de la capacité
+\fBCAP_SYS_NICE\fP). Depuis Linux 2.6.12, cette erreur ne survient que si
+l'appelant tente de définir la priorité en\(hydehors de la plage permise par
+la limite souple \fBRLIMIT_NICE\fP du processus cible\ ; consultez
+\fBgetrlimit\fP(2) pour plus de détails.
+.TP 
+\fBEPERM\fP
+Un processus correspond bien aux valeurs indiquées, mais ni l'UID réel, ni
+l'UID effectif de l'appelant ne correspondent à l'UID effectif de ce
+processus, et (sur les systèmes Linux) l'appelant n'a pas la capacité
+\fBCAP_SYS_NICE\fP. Voir les NOTES ci\(hydessous.
+.SH CONFORMITÉ
+SVr4, BSD\ 4.4 (ces fonctions sont apparues dans BSD\ 4.2), POSIX.1\-2001.
+.SH NOTES
+Un fils créé avec \fBfork\fP(2) hérite de la valeur de courtoisie de son
+père. La valeur de courtoisie est préservée au travers d'un \fBexecve\fP(2).
+
+L'importance des variations d'ordonnancement des processus suivant leurs
+valeurs de courtoisies respectives dépend des systèmes UNIX et pour Linux,
+dépend de la version du noyau. Depuis le noyau 2.6.23, Linux emploie un
+algorithme rendant plus sensibles les variations de courtoisies. Les valeurs
+de courtoisies élevées (+19) ne laissent que très peu de temps CPU à un
+processus si d'autres programmes, plus prioritaires, réclament le
+processeur. Inversement, les valeurs de courtoisie basses (\-20) fournissent
+beaucoup de temps CPU aux tâches qui en ont besoin (par exemple, certaines
+applications audio).
+
+Les détails concernant la condition d'erreur \fBEPERM\fP dépendent du
+système. La description ci\(hydessus concerne ce que dit POSIX.1\-2001, et
+qui semble être suivi par tous les systèmes de type System\ V. Les noyaux
+Linux antérieurs à 2.6.12 demandent que l'UID réel ou effectif de l'appelant
+correspondent à l'UID réel du processus \fIwho\fP (et non pas à son UID
+effectif). Linux 2.6.12 et suivants demandent que l'UID effectif de
+l'appelant corresponde à l'UID réel ou effectif du processus \fIwho\fP. Tous
+les systèmes de type BSD (SunOS\ 4.1.3, Ultrix\ 4.2, BSD\ 4.3, FreeBSD\ 4.3,
+OpenBSD\-2.5, ...) se comportent de la même manière que Linux 2.6.12 et les
+suivants.
+.LP
+Le véritable intervalle des priorités varie suivant les versions du
+noyau. Sur les systèmes Linux antérieurs à 1.3.36, l'intervalle s'étendait
+de \-infini à 15. Depuis la version 1.3.43, l'intervalle est \-20..19. Dans le
+noyau, les valeurs de politesse sont représentées dans l'intervalle 40..1
+(les nombres négatifs sont des codes d'erreurs), et ce sont ces valeurs qui
+sont utilisées par les appels système \fBsetpriority\fP() et
+\fBgetpriority\fP(). Les routines de la bibliothèque glibc se chargent des
+conversions entre les représentations dans le noyau et dans l'espace
+utilisateur grâce à la formule \fIunice\ =\ 20\ \-\ knice\fP.
+.LP
+Sur certains systèmes, les valeurs de politesse vont de \-20 à 20.
+.LP
+L'inclusion de \fI<sys/time.h>\fP n'est plus obligatoire, mais améliore
+la portabilité. (En fait, \fI<sys/resource.h>\fP définit la structure
+\fIrusage\fP qui contient des champs de type \fIstruct timeval\fP, défini dans
+\fI<sys/time.h>\fP).
+.SH BOGUES
+Selon la norme POSIX, la valeur de courtoisie (nice) est définie à l'échelle
+du processus. Cependant, les threads POSIX sont actuellement implémentés
+dans Linux/NPTL de telle sorte que la valeur de courtoisie est un attribut
+du thread\ : différents threads d'un même processus peuvent avoir des valeurs
+de courtoisie différentes. Les applications portables doivent donc éviter de
+s'appuyer sur cette propriété de Linux, qui devrait, à l'avenir, être mise
+en conformité avec les normes.
+.SH "VOIR AUSSI"
+\fBnice\fP(1), \fBrenice\fP(1), \fBfork\fP(2), \fBcapabilities\fP(7)
+
+\fIDocumentation/scheduler/sched\-nice\-design.txt\fP dans les sources du noyau
+(depuis Linux\ 2.6.23)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

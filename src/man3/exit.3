@@ -1,0 +1,134 @@
+.\" Copyright (C) 2001 Andries Brouwer <aeb@cwi.nl>.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" FIXME There are a lot of other process termination actions that
+.\" could be listed on this page. See, for example, the list in the
+.\" POSIX exit(3p) page.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH EXIT 3 "14 février 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+exit \- Terminer normalement un processus
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBvoid exit(int \fP\fIstatus\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBexit\fP() termine normalement un processus et la valeur \fIstatus
+& 0377\fP est envoyée au processus parent (consultez \fBwait\fP(2)).
+.LP
+Toutes les fonctions enregistrées avec \fBatexit\fP(3) et \fBon_exit\fP(3) sont
+appelées dans l'ordre inverse de leur enregistrement. Il est possible pour
+l'une de ces fonctions d'utiliser \fBatexit\fP(3) ou \fBon_exit\fP(3) pour
+enregistrer une fonction supplémentaire à exécuter lors de la procédure de
+terminaison\ ; le nouvel enregistrement est ajouté au début de la liste des
+fonctions à appeler. Si l'une de ces fonctions ne rend pas la main (par
+exemple, car elle appelle \fB_exit\fP(2) ou se tue avec un signal), alors
+aucune des fonctions suivantes de la liste n'est exécutée et le processus de
+terminaison est abandonné (en particulier, le vidage des flux
+\fBstdio\fP(3)). Si une fonction a été enregistrée plusieurs fois avec
+\fBatexit\fP(3) ou \fBon_exit\fP(3), alors elle sera appelée aussi souvent qu'elle
+a été enregistrée.
+.LP
+Tous les flux ouverts du type \fBstdio\fP(3) sont vidés et fermés. Les fichiers
+créés par \fBtmpfile\fP(3) sont supprimés.
+.LP
+Le standard C spécifie deux constantes symboliques \fBEXIT_SUCCESS\fP et
+\fBEXIT_FAILURE\fP qui peuvent être passées à \fBexit\fP() pour indiquer
+respectivement une terminaison sans ou avec échec.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBexit\fP() ne revient jamais.
+.SH CONFORMITÉ
+SVr4, BSD\ 4.3, POSIX.1\-2001, C89, C99
+.SH NOTES
+.LP
+Le résultat est indéfini si l'une des fonctions enregistrées avec
+\fBatexit\fP(3) et \fBon_exit\fP(3) appelle \fBexit\fP() ou \fBlongjmp\fP(3). Remarquez
+qu'un appel d'\fBexecve\fP(2) supprime les enregistrements créés en utilisant
+\fBatexit\fP(3) et \fBon_exit\fP(3).
+.LP
+L'utilisation d'\fBEXIT_SUCCESS\fP et \fBEXIT_FAILURE\fP est légèrement plus
+portable (vers des environnements non UNIX) que celle de zéro et d'une
+valeur non nulle comme 1 ou \-1. En particulier, le système VMS utilise une
+convention différente.
+.LP
+BSD a tenté de standardiser les codes de sortie, consultez le fichier
+\fI<sysexits.h>\fP.
+.LP
+Après \fBexit\fP(), le code de retour doit être transmis au processus
+parent. Il y a trois cas. Si le parent a défini \fBSA_NOCLDWAIT\fP ou s'il a
+défini le comportement de \fBSIGCHLD\fP à \fBSIG_IGN\fP, le code de retour est
+ignoré. Si le père était en attente de la fin de son fils, il reçoit le code
+de retour. Dans ces deux cas, le fils meurt immédiatement. Si le parent
+n'est pas en attente, mais n'a pas indiqué qu'il désire ignorer le code de
+retour, le processus fils devient un processus «\ zombie\ » (ce n'est rien
+d'autre qu'une coquille enveloppant le code de retour d'un octet), que le
+processus père pourra consultez ultérieurement grâce à l'une des fonctions
+\fBwait\fP(2).
+.LP
+Si l'implémentation supporte le signal \fBSIGCHLD\fP, celui\-ci est envoyé au
+processus père. Si le père a défini \fBSA_NOCLDWAIT\fP, il n'est pas précisé si
+\fBSIGCHLD\fP est envoyé ou non.
+.LP
+Si le processus est un leader de session, et si son terminal de contrôle est
+le terminal de la session, alors chaque processus du groupe de processus en
+avant plan de ce terminal reçoit un signal \fBSIGHUP\fP, et le terminal est
+dissocié de cette session, lui permettant d'être acquis par un nouveau
+processus de contrôle.
+.LP
+Si la fin du processus rend orphelin un groupe de processus, et si certains
+membres de ce groupe nouvellement orphelin sont arrêtés, alors tous les
+processus de ce groupe vont recevoir \fBSIGHUP\fP suivi de
+\fBSIGCONT\fP. Consultez \fBsetpgid\fP(2) pour plus d'informations sur les
+processus orphelins.
+.SH "VOIR AUSSI"
+\fB_exit\fP(2), \fBsetpgid\fP(2), \fBwait\fP(2), \fBatexit\fP(3), \fBon_exit\fP(3),
+\fBtmpfile\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

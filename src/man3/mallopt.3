@@ -1,0 +1,434 @@
+.\" t
+.\" Copyright (c) 2012 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MALLOPT 3 "30 avril 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+mallopt \- Définir les paramètres d'allocation de mémoire
+.SH SYNOPSIS
+\fB#include <malloc.h>\fP
+
+\fBint mallopt(int \fP\fIparam\fP\fB, int \fP\fIvalue\fP\fB);\fP
+.SH DESCRIPTION
+La fonction \fBmallopt\fP() ajuste les paramètres qui contrôlent le
+comportement des fonctions liées à l'allocation de mémoire (voir
+\fBmalloc\fP(3)). Le paramètre \fIparam\fP indique le paramètre à modifier, et
+\fIvalue\fP indique la nouvelle valeur pour ce paramètre.
+
+Les valeurs suivantes peuvent être assignées à \fIparam\fP\ :
+.TP 
+\fBM_CHECK_ACTION\fP
+Ce paramètre contrôle le comportement de la glibc lorsque des erreurs de
+programmation sont détectées (par exemple, lors qu'un pointeur est libéré
+plusieurs fois). Les 3\ bits de poids faible (bits 2, 1 et 0) de cette valeur
+ont les significations suivantes\ :
+.RS
+.TP 
+Bit\ 0
+Lorsque ce bit est positionné, un message d'une ligne détaillant l'erreur
+est affiché sur \fIstderr\fP. Le message commence par la chaîne "***\ glibc
+detected\ ***", suivi par le nom du programme, le nom de la fonction de
+l'allocation mémoire qui a détecté l'erreur, une brève description de
+l'erreur, puis l'adresse mémoire à laquelle l'erreur a été détectée.
+.TP 
+Bit\ 1
+Lorsque ce bit est positionné, après avoir affiché un message d'erreur
+configuré par le bit\ 0, le programme est terminé en appelant
+\fBabort\fP(3). Depuis la version\ 2.4 de la glibc, si le bit\ 0 est également
+positionné, alors le programme affiche également —\ entre l'affichage d'un
+message d'erreur et l'abandon du programme\ — l'état de la pile à la manière
+de \fBbacktrace\fP(3) et les projections en mémoire du processus à la manière
+de \fI/proc/[pid]/maps\fP (voir \fBproc\fP(5)).
+.TP 
+Bit\ 2 (depuis la glibc 2.4)
+Ce bit a un effet uniquement si le bit 0 est également positionné. Lorsqu'il
+est positionné, alors le message d'erreur d'une ligne décrivant l'erreur est
+simplifié et contient uniquement le nom de la fonction où l'erreur a été
+détectée ainsi qu'une brève description de l'erreur.
+.RE
+.IP
+Les autres bits de \fIvalue\fP sont ignorés.
+.IP
+La combinaison des bits décrits ci\-dessus permet de configurer
+\fBM_CHECK_ACTION\fP avec les valeurs suivantes\ :
+.RS 12
+.IP 0 3
+Ignore les erreurs et continue l'exécution (sans résultats définis).
+.IP 1
+Affiche un message d'erreur détaillé et continue l'exécution.
+.IP 2
+Interrompt le programme.
+.IP 3
+Affiche un message d'erreur détaillé, l'état de la pile et des projections
+en mémoire, puis interrompt le programme.
+.IP 5
+Affiche un message d'erreur simple et continue l'exécution.
+.IP 7
+Affiche un message d'erreur simple, l'état de la pile et des projections en
+mémoire, puis interrompt le programme.
+.RE
+.IP
+Depuis la version\ 2.3.4 de la glibc, \fBM_CHECK_ACTION\fP a pour valeur par
+défaut 3 (1 jusqu'à la version\ 2.3.3).
+.IP
+Il est recommandé d'utiliser une valeur \fBM_CHECK_ACTION\fP non nulle, car
+sinon l'arrêt impromptu du programme risque d'être différé, ce qui rend très
+difficile de retrouver l'origine du problème.
+.TP 
+\fBM_MMAP_MAX\fP
+.\" The following text adapted from comments in the glibc source:
+Ce paramètre indique le nombre maximum de requêtes d'allocation qui peuvent
+être servies simultanément avec \fBmmap\fP(2). Il permet de préserver les
+performances de certains systèmes qui ont un nombre limité de tables
+internes à disposition de \fBmmap\fP(2).
+.IP
+La valeur par défaut est 65\ 536, qui n'a pas de sens particulier mais sert
+seulement de protection. Configurer ce paramètre à 0 désactive l'utilisation
+de \fBmmap\fP(2) pour servir de grandes requêtes d'allocation.
+.TP 
+\fBM_MMAP_THRESHOLD\fP
+Lorsqu'une requête d'allocation supérieure ou égale au seuil
+\fBM_MMAP_THRESHOLD\fP (en octets) ne peut être satisfaite depuis la liste de
+blocs libres, les fonctions d'allocation de mémoire utilisent \fBmmap\fP(2)
+plutôt que d'augmenter la taille du segment de données avec \fBsbrk\fP(2).
+.IP
+Allouer la mémoire avec \fBmmap\fP(2) permet toujours aux blocs de mémoire
+alloués d'être rendus de manière indépendante au système. Cela représente un
+avantage significatif comparé au tas qui ne peut être désalloué que si la
+mémoire est libérée par le haut. D'autre part, il y a certains inconvénients
+à utiliser \fBmmap\fP(2)\ : l'espace désalloué n'est pas considéré comme libéré
+l'empêchant d'être réutilisé pour de futures allocations\ ; de la mémoire
+peut être gaspillée car les allocations via \fBmmap\fP(2) doivent être alignées
+sur une taille de page\ ; et le noyau doit effectuer la tâche coûteuse de
+remise à zéro de la mémoire allouée par \fBmmap\fP(2). Trouver un compromis
+entre ces effets mène à une valeur du paramètre \fBM_MMAP_THRESHOLD\fP par
+défaut à 128*1024.
+.IP
+La limite basse de ce paramètre est 0. La limite haute est
+\fBDEFAULT_MMAP_THRESHOLD_MAX\fP\ : c'est\-à\-dire 512*1024 sur les systèmes
+32\ bits ou \fI4*1024*1024*sizeof(long)\fP sur les systèmes 64\ bits.
+.IP
+\fINote\ :\fP de nos jours, la glibc configure ce seuil dynamiquement. La valeur
+initiale est 128*1024, mais lorsque sont libérés des blocs de taille
+supérieure au seuil mais inférieure ou égale à
+\fBDEFAULT_MMAP_THRESHOLD_MAX\fP, le seuil est ajusté à la taille du bloc
+libéré. Quand le mécanisme de seuil dynamique est activé, le seuil de
+désallocation du tas est également configuré dynamiquement à deux fois le
+seuil mmap. L'ajustement dynamique du seuil mmap est désactivé dès lors
+qu'un des paramètres \fBM_TRIM_THRESHOLD\fP, \fBM_TOP_PAD\fP, \fBM_MMAP_THRESHOLD\fP,
+ou \fBM_MMAP_MAX\fP est configuré.
+.TP 
+\fBM_MXFAST\fP (depuis glibc\ 2.3)
+.\" The following text adapted from comments in the glibc sources:
+Définir la limite supérieure (en octets) pour les requêtes d'allocation
+mémoire qui sont satisfaites en utilisant des «\ fastbins\ ». Les «\ fastbins\ » sont des espaces de stockage qui contiennent des blocs de
+mémoire désalloués de la même taille, sans fusion des blocs libres
+adjacents. La réallocation ultérieure de blocs de cette taille peut être
+effectuée très rapidement en allouant à partir du «\ fastbin \», mais d'un
+autre côté la fragmentation de la mémoire et l'empreinte mémoire totale du
+programme augmentera. La valeur par défaut de ce paramètre vaut
+\fI64*sizeof(size_t)/4\fP (c'est\-à\-dire 64 sur des architectures 32\ bits). Ce
+paramètre doit être compris entre 0 et \fI80*sizeof(size_t)/4\fP. Définir
+\fBM_MXFAST\fP à 0 désactive l'utilisation des «\ fastbins\ ».
+.TP 
+\fBM_PERTURB\fP (depuis glibc\ 2.4)
+Si ce paramètre est configuré à une valeur non nulle, tous les octets de
+mémoire allouée (autrement qu'avec \fBcalloc\fP(3)) sont initialisés au
+complément de la valeur de l'octet le moins significatif de
+\fIvalue\fP. Lorsque la mémoire allouée est libérée avec \fBfree\fP(3), les octets
+libérés prennent tous la valeur de l'octet le moins significatif de
+\fIvalue\fP. Cette fonctionnalité permet de détecter des erreurs lorsque les
+programmes supposent que la mémoire allouée a été initialisée à zéro, ou
+réutilisent des valeurs depuis une zone mémoire précédemment libérée.
+.TP 
+\fBM_TOP_PAD\fP
+Ce paramètre définit la quantité en octets de bourrage à utiliser lors de
+l'appel à \fBsbrk\fP(2) pour modifier la taille du segment de données. Ce
+paramètre a un effet dans les circonstances suivantes\ :
+.RS
+.IP * 3
+Lorsque la taille du segment de données est augmentée, \fBM_TOP_PAD\fP octets
+sont ajoutés à la requête \fBsbrk\fP(2).
+.IP *
+Lorsque le tas est désalloué suite à l'appel \fBfree\fP(3) (voir
+\fBM_TRIM_THRESHOLD\fP), cet espace supplémentaire est préservé en haut du tas.
+.RE
+.IP
+Dans tous les cas, la quantité de bourrage est toujours arrondie à la taille
+d'une page système.
+.IP
+La valeur \fBM_TOP_PAD\fP résulte d'un compromis entre l'augmentation du nombre
+d'appels système (avec une valeur faible) et le gaspillage de mémoire
+inutilisée en haut du tas (avec une valeur élevée).
+.IP
+.\" DEFAULT_TOP_PAD in glibc source
+La valeur par défaut de ce paramètre est 128*1024.
+.TP 
+\fBM_TRIM_THRESHOLD\fP
+Lorsque la quantité de mémoire libre et contigüe en haut du tas dépasse ce
+seuil, \fBfree\fP(3) utilise \fBsbrk\fP(2) pour rendre cette mémoire au système
+d'exploitation. (Cela peut être utile pour les programmes qui sont exécutés
+encore longtemps après avoir libéré une quantité importante de mémoire.)
+.IP
+La valeur par défaut de ce paramètre est 128*1024, en octets. Une valeur de
+\-1 désactive complètement la désallocation.
+.IP
+.\" FIXME Do the arena parameters need to be documented?
+.\" .TP
+.\" .BR M_ARENA_TEST " (since glibc 2.10)"
+.\" .TP
+.\" .BR M_ARENA_MAX " (since glibc 2.10)"
+.\"
+.\" Environment variables
+.\"     MALLOC_ARENA_MAX_
+.\"     MALLOC_ARENA_TEST_
+.\"
+.\" http://udrepper.livejournal.com/20948.html describes some details
+.\"	of the MALLOC_ARENA_* environment variables.
+.\"
+.\" These macros aren't enabled in production releases until 2.15?
+.\" (see glibc malloc/Makefile)
+.\"
+La valeur \fBM_TRIM_THRESHOLD\fP résulte d'un compromis entre l'augmentation du
+nombre d'appels système (avec une valeur faible) et le gaspillage de mémoire
+inutilisée en haut du tas (avec une valeur élevée).
+.SS "Variables d'environnement"
+Un certain nombre des paramètres de \fBmallopt\fP() peuvent être modifiés à
+travers de variables d'environnement. Ces variables ont l'avantage de ne pas
+nécessiter la modification du code source du programme. Pour être prises en
+compte, ces variables doivent être définies avant le premier appel à une
+fonction d'allocation mémoire. Les paramètres passés par la fonction
+\fBmallopt\fP() sont prioritaires devant ceux issus des variables
+d'environnement. Pour des raisons de sécurité, ces variables sont ignorées
+dans le cas de programmes \fIsetuid\fP ou \fIsetgid\fP.
+
+Les variables d'environnement disponibles —\ toutes terminées par le
+caractère de soulignement («\ underscore\ »)\ — sont les suivantes\ :
+.TP 
+\fBMALLOC_CHECK_\fP
+.\" On glibc 2.12/x86, a simple malloc()+free() loop is about 70% slower
+.\" when MALLOC_CHECK_ was set.
+Cette variable d'environnement contrôle le même paramètre que
+\fBM_CHECK_ACTION\fP de \fBmallopt\fP(). Si elle est configurée à une valeur non
+nulle, une mise en œuvre spécifique des fonctions d'allocation mémoire est
+utilisée, grâce à la fonctionnalité \fBmalloc_hook\fP(3). Cette mise en œuvre
+effectue des vérifications d'erreurs supplémentaires, au prix d'un
+ralentissement par rapport au jeu standard de fonctions d'allocation
+mémoire. Cependant, elle ne détecte pas toutes les erreurs possibles\ : des
+fuites mémoires peuvent encore se produire.
+.IP
+La valeur de cette variable d'environnement doit être un seul chiffre, dont
+le sens est comme décrit pour \fBM_CHECK_ACTION\fP. Tout caractère au\-delà du
+premier chiffre est ignoré.
+.IP
+Pour des raisons de sécurité, \fBMALLOC_CHECK_\fP est ignoré par défaut dans le
+cas de programmes \fIsetuid\fP ou \fIsetgid\fP. Cependant, si le fichier
+\fI/etc/suid\-debug\fP existe (peu importe son contenu), alors la valeur de
+\fBMALLOC_CHECK_\fP est prise en compte pour les programmes \fIsetuid\fP ou
+\fIsetgid\fP.
+.TP 
+\fBMALLOC_MMAP_MAX_\fP
+Contrôle le même paramètre que \fBM_MMAP_MAX\fP de \fBmallopt\fP().
+.TP 
+\fBMALLOC_MMAP_THRESHOLD_\fP
+Contrôle le même paramètre que \fBM_MMAP_THRESHOLD\fP de \fBmallopt\fP().
+.TP 
+\fBMALLOC_PERTURB_\fP
+Contrôle le même paramètre que \fBM_PERTURB\fP de \fBmallopt\fP().
+.TP 
+\fBMALLOC_TRIM_THRESHOLD_\fP
+Contrôle le même paramètre que \fBM_TRIM_THRESHOLD\fP de \fBmallopt\fP().
+.TP 
+\fBMALLOC_TOP_PAD_\fP
+Contrôle le même paramètre que \fBM_TOP_PAD\fP de \fBmallopt\fP().
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBmallopt\fP() renvoie 1. En cas d'erreur, il renvoie 0.
+.SH ERREURS
+.\" .SH VERSIONS
+.\" Available already in glibc 2.0, possibly earlier
+En cas d'erreur, \fIerrno\fP n'est pas positionné.
+.SH CONFORMITÉ
+.\" .SH NOTES
+Cette fonction n'est pas spécifiée par les standards POSIX ou C. Une
+fonction similaire existe sur de nombreux dérivés de «\ System\ V\ », mais les
+valeurs permises de \fIparam\fP varient d'un système à l'autre. SVID définit
+les options \fBM_MXFAST\fP, \fBM_NLBLKS\fP, \fBM_GRAIN\fP, and \fBM_KEEP\fP, mais seule
+la première d'entre elles est disponible dans la glibc.
+.SH BOGUES
+Indiquer une valeur invalide pour \fIparam\fP ne génère pas d'erreur.
+
+.\" FIXME This looks buggy:
+.\" setting the M_MXFAST limit rounds up:    (s + SIZE_SZ) & ~MALLOC_ALIGN_MASK)
+.\" malloc requests are rounded up:
+.\"    (req) + SIZE_SZ + MALLOC_ALIGN_MASK) & ~MALLOC_ALIGN_MASK
+.\" http://sources.redhat.com/bugzilla/show_bug.cgi?id=12129
+Une erreur de calcul dans la mise en œuvre glibc implique qu'un appel de la
+forme suivante\ :
+.nf
+
+    mallopt(M_MXFAST, n)
+
+.fi
+.\" Bins are multiples of 2 * sizeof(size_t) + sizeof(size_t)
+n'active pas les «\ fastbins\ » pour toutes les allocations d'une taille
+jusqu'à \fIn\fP. Pour obtenir l'effet attendu, \fIn\fP doit être arrondi à un
+multiple supérieur ou égal à \fI(2k+1)*sizeof(size_t)\fP, où \fIk\fP est un
+entier.
+
+.\" FIXME MALLOC_MMAP_THRESHOLD_ and MALLOC_MMAP_MAX_
+.\" do have an effect for set-user-ID programs (but not
+.\" set-group-ID programs).
+.\" http://sources.redhat.com/bugzilla/show_bug.cgi?id=12155
+Les variables \fBMALLOC_MMAP_THRESHOLD_\fP et \fBMALLOC_MMAP_MAX_\fP \fIne sont
+pas\fP ignorées pour les programmes \fIsetgid\fP.
+
+.\" FIXME http://sources.redhat.com/bugzilla/show_bug.cgi?id=12140
+Si \fBmallopt\fP() est utilisé pour configurer \fBM_PERTURB\fP, tous les octets de
+mémoire alloués sont initialisés au complément de \fIvalue\fP, puis lorsque la
+mémoire est libérée les octets sont initialisés à \fIvalue\fP. Cependant, une
+erreur de \fIsizeof(size_t)\fP est présente dans le code mis en œuvre\ : au lieu
+d'initialiser précisément le bloc de mémoire libéré par l'appel \fIfree(p)\fP,
+c'est bloc démarrant à \fIp+sizeof(size_t)\fP qui est initialisé.
+.SH EXEMPLE
+Le programme ci\-dessous illustre l'utilisation de \fBM_CHECK_ACTION\fP. Si le
+programme est appelé avec un paramètre (entier), alors celui\-ci est utilisé
+pour \fBM_CHECK_ACTION\fP. Le programme alloue un bloc de mémoire, puis le
+libère deux fois, ce qui constitue une erreur.
+
+L'exemple de session ci\-dessous montre ce qu'il se passe lorsqu'un programme
+est exécuté avec la glibc et la valeur par défaut de \fBM_CHECK_ACTION\fP\ :
+.in +4n
+.nf
+
+$ \fB./a.out\fP
+main(): fin du premier appel free()
+*** glibc detected *** ./a.out: double free or corruption (top): 0x09d30008 ***
+======= Backtrace: =========
+/lib/libc.so.6(+0x6c501)[0x523501]
+/lib/libc.so.6(+0x6dd70)[0x524d70]
+/lib/libc.so.6(cfree+0x6d)[0x527e5d]
+\&./a.out[0x80485db]
+/lib/libc.so.6(__libc_start_main+0xe7)[0x4cdce7]
+\&./a.out[0x8048471]
+======= Memory map: ========
+001e4000\-001fe000 r\-xp 00000000 08:06 1083555    /lib/libgcc_s.so.1
+001fe000\-001ff000 r\-\-p 00019000 08:06 1083555    /lib/libgcc_s.so.1
+[some lines omitted]
+b7814000\-b7817000 rw\-p 00000000 00:00 0
+bff53000\-bff74000 rw\-p 00000000 00:00 0          [stack]
+Abandon
+.fi
+.in
+.PP
+L'exemple suivant montre les cas d'autres valeurs de \fBM_CHECK_ACTION\fP:
+.PP
+.in +4n
+.nf
+$ \fB./a.out 1\fP             # Diagnostique l'erreur et continue
+main(): fin du premier appel free()
+*** glibc detected *** ./a.out: double free or corruption (top): 0x09cbe008 ***
+main(): fin du second appel free()
+$ \fB./a.out 2\fP             # Interrompt le programme sans message d'erreur
+main(): fin du premier appel free()
+Abandon
+$ \fB./a.out 0\fP             # Ignore l'erreur et continue
+main(): fin du premier appel free()
+main(): fin du second appel free()
+.fi
+.in
+.PP
+L'exemple suivant montre comment configurer le même paramètre avec la
+variable d'environnement \fBMALLOC_CHECK_\fP\ :
+.PP
+.in +4n
+.nf
+$ \fBMALLOC_CHECK_=1 ./a.out\fP
+main(): fin du premier appel free()
+*** glibc detected *** ./a.out: free(): invalid pointer: 0x092c2008 ***
+main(): fin du second appel free()
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <malloc.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main(int argc, char *argv[])
+{
+    char *p;
+
+    if (argc > 1) {
+        if (mallopt(M_CHECK_ACTION, atoi(argv[1])) != 1) {
+            fprintf(stderr, "échec de mallopt()");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    p = malloc(1000);
+    if (p == NULL) {
+        fprintf(stderr, "échec de malloc()");
+        exit(EXIT_FAILURE);
+    }
+
+    free(p);
+    printf("main(): fin du premier appel free()\en");
+
+    free(p);
+    printf("main(): fin du second appel free()\en");
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+.ad l
+.nh
+\fBmmap\fP(2), \fBsbrk\fP(2), \fBmallinfo\fP(3), \fBmalloc\fP(3), \fBmalloc_hook\fP(3),
+\fBmalloc_info\fP(3), \fBmalloc_stats\fP(3), \fBmalloc_trim\fP(3), \fBmcheck\fP(3),
+\fBmtrace\fP(3), \fBposix_memalign\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

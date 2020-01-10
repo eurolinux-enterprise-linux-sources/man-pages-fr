@@ -1,0 +1,156 @@
+.\" t
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MQ_SEND 3 "20 septembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+mq_send, mq_timedsend \- Envoyer un message à une file de messages
+.SH SYNOPSIS
+.nf
+\fB#include <mqueue.h>\fP
+.sp
+\fBint mq_send(mqd_t \fP\fImqdes\fP\fB, const char *\fP\fImsg_ptr\fP\fB,\fP
+\fB              size_t \fP\fImsg_len\fP\fB, unsigned \fP\fImsg_prio\fP\fB);\fP
+.sp
+\fB#include <time.h>\fP
+\fB#include <mqueue.h>\fP
+.sp
+\fBint mq_timedsend(mqd_t \fP\fImqdes\fP\fB, const char *\fP\fImsg_ptr\fP\fB,\fP
+\fB              size_t \fP\fImsg_len\fP\fB, unsigned \fP\fImsg_prio\fP\fB,\fP
+\fB              const struct timespec *\fP\fIabs_timeout\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP.
+.sp
+.ad l
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBmq_timedsend\fP()\ :
+.RS 4
+_XOPEN_SOURCE\ >=\ 600 || _POSIX_C_SOURCE\ >=\ 200112L
+.RE
+.ad
+.SH DESCRIPTION
+\fBmq_send\fP() ajoute le message pointé par \fImsg_ptr\fP à la file de messages
+référencée par le descripteur \fImqdes\fP. L'argument \fImsg_len\fP spécifie la
+longueur du message pointé par \fImsg_ptr\fP. Cette longueur doit être
+inférieure ou égale à l'attribut \fImq_msgsize\fP de la file. Les messages de
+longueur nulle sont permis.
+
+L'argument \fImsg_prio\fP est un entier non négatif qui spécifie la priorité de
+ce message. Les messages sont placés dans la file en ordre de priorité
+décroissante. Les nouveaux messages avec la même priorité seront placés
+après les anciens messages de même priorité.
+
+Si la file de messages est déjà pleine (c'est\-à\-dire que le nombre de
+messages de la file est égal à l'attribut \fImq_maxmsg\fP de la file), alors
+par défaut, \fBmq_send\fP() bloque tant qu'il n'y a pas d'espace suffisant pour
+placer un message dans la file ou jusqu'à ce que l'appel soit interrompu par
+un gestionnaire de signaux. Si le drapeau \fBO_NONBLOCK\fP est activé pour la
+description de la file de messages, alors l'appel échoue immédiatement avec
+l'erreur \fBEAGAIN\fP.
+
+\fBmq_timedsend\fP() se comporte comme \fBmq_send\fP(), excepté que si la file est
+pleine et si le drapeau \fBO_NONBLOCK\fP n'est pas activé dans la description
+de la file de messages, alors \fIabs_timeout\fP pointe vers une structure qui
+spécifie un temps pendant lequel l'appel sera bloqué. Cette limite est un
+délai absolu en secondes et nanosecondes depuis l'époque, 1er\ janvier 1970 à
+00:00:00 (UTC), spécifié dans la structure suivante\ :
+.sp
+.in +4n
+.nf
+struct timespec {
+    time_t tv_sec;        /* secondes     */
+    long   tv_nsec;       /* nanosecondes */
+};
+
+.fi
+.in
+Si la file de messages est pleine et si le délai d'attente a déjà expiré
+pendant la durée de l'appel, \fBmq_timedsend\fP() s'achève immédiatement.
+.SH "VALEUR RENVOYÉE"
+En cas de succès, \fBmq_send\fP() et \fBmq_timedsend\fP() renvoient 0. En cas
+d'erreur, elle renvoient \-1 et définissent \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+La file est pleine et le drapeau \fBO_NONBLOCK\fP était défini pour la file de
+messages référencée par le descripteur \fImqdes\fP.
+.TP 
+\fBEBADF\fP
+Le descripteur spécifié dans \fImqdes\fP n'est pas valable.
+.TP 
+\fBEINTR\fP
+L'appel a été interrompu par un gestionnaire de signal\ ; consultez
+\fBsignal\fP(7).
+.TP 
+\fBEINVAL\fP
+L'appel devrait être bloqué, et \fIabs_timeout\fP n'est pas valable, soit car
+\fItv_sec\fP est inférieur à zéro, ou soit car \fItv_nsec\fP est inférieur à zéro
+ou plus grand que 1000\ millions.
+.TP 
+\fBEMSGSIZE\fP
+\fImsg_len\fP était plus grand que l'attribut \fImq_msgsize\fP de la file de
+messages.
+.TP 
+\fBETIMEDOUT\fP
+Le délai d'attente de l'appel a expiré avant que le message ait été
+transféré.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Sous Linux, \fBmq_timedsend\fP() est un appel système et \fBmq_send\fP() est une
+fonction de bibliothèque au dessus de la couche des appels systèmes.
+.SH "VOIR AUSSI"
+\fBmq_close\fP(3), \fBmq_getattr\fP(3), \fBmq_notify\fP(3), \fBmq_open\fP(3),
+\fBmq_receive\fP(3), \fBmq_unlink\fP(3), \fBmq_overview\fP(7), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

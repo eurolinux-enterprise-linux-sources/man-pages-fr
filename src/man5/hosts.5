@@ -1,0 +1,135 @@
+.\" Copyright (c) 2000 Manoj Srivastava <srivasta@debian.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Minor polishing, aeb
+.\" Modified, 2002-06-16, Mike Coleman
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH HOSTS 5 "16 juin 2002" Linux "Manuel du programmeur Linux"
+.SH NOM
+hosts \- Table de correspondance statique des noms d'hôtes
+.SH SYNOPSIS
+\fB/etc/hosts\fP
+.SH DESCRIPTION
+Cette page de manuel décrit le format du fichier \fI/etc/hosts\fP. Il s'agit
+d'un simple fichier texte qui associe des adresses IP avec des noms d'hôtes,
+une ligne par adresse IP. Pour chaque hôte, une seule ligne doit être
+présente, avec les informations suivantes\ :
+.RS
+.PP
+Adresse_IP nom_hote_canonique [aliases...]
+.RE
+.PP
+Les champs d'une entrée sont séparés par un nombre quelconque d'espaces
+et/ou de caractères de tabulations. Le texte commençant avec un caractère
+«\ #\ » sera considéré, jusqu'à la fin de la ligne, comme un commentaire, et
+sera donc ignoré. Les noms d'hôtes ne peuvent contenir que des caractères
+alphanumériques, des signes moins «\ \-\ » et des points «\ .\ ». Ils doivent
+commencer par un caractère alphabétique et se terminer par un caractère
+alphanumérique. Les alias optionnels permettent de disposer de noms
+différents, d'orthographe différente, de noms plus courts, ou de noms
+d'hôtes génériques (par exemple \fIlocalhost\fP).
+.PP
+Le système «\ Berkeley Internet Name Domain\ » (BIND) implémente un serveur de
+noms Internet pour les systèmes UNIX. Il remplace ou complète le fichier
+\fI/etc/hosts\fP ou la recherche des noms d'hôtes, et évite à un hôte de
+dépendre d'un fichier \fI/etc/hosts\fP complet et à jour.
+.PP
+Sur les systèmes modernes, même si la table des hôtes a été remplacée par
+DNS, ce mécanisme est encore largement employé pour\ :
+.TP 
+\fBinitialiser une machine\fP
+La plupart de systèmes ont un petit fichier contenant le nom et l'adresse
+des hôtes importants sur le réseau local. Ceci est utile lorsque le DNS
+n'est pas actif, notamment lors de la mise en route du système.
+.TP 
+\fBNIS\fP
+Les sites employant NIS utilisent la table d'hôtes comme entrée pour la base
+de données des hôtes NIS. Même si NIS peut être employé avec un DNS, la
+plupart des sites NIS utilisent encore la table des noms d'hôtes avec une
+entrée pour toutes les machines locales, à des fins de secours.
+.TP 
+\fBnœuds isolés\fP
+Les très petits sites, isolés du réseau, emploient la table d'hôtes à la
+place du DNS. Si les informations locales sont rarement modifiées, et si le
+réseau n'est pas connecté à Internet, le DNS n'offre pas beaucoup
+d'avantages.
+.SH FICHIERS
+\fI/etc/hosts\fP
+.SH NOTES
+Les modifications apportées à ce fichiers prennent normalement effet
+immédiatement, excepté dans les cas où le fichier est mis en cache par les
+applications.
+.SS "Notes d'histoire"
+La RFC\ 952 indiquait le format d'origine pour la table de l'hôte, mais ça a
+changé depuis.
+
+Avant l'arrivée de DNS, la table des hôtes était la seule manière de
+résoudre les noms d'hôtes sur l'Internet balbutiant. Le fichier pouvait être
+créé à partir de la base de données officielle maintenue au Network
+Information Control Center (NIC), bien que des modifications locaux étaient
+souvent nécessaires pour gérer les adresses et les alias non\-officiels. Le
+NIC ne maintient plus le fichier hosts.txt, quoiqu'on puisse encore en
+trouver des versions historiques sur le Web. Je n'en ai trouvé que trois, de
+92, 94 et 95.
+.SH EXEMPLE
+.nf
+127.0.0.1       localhost
+192.168.1.10    toto.mondomaine.org    toto
+192.168.1.13    titi.mondomaine.org    titi
+146.82.138.7    master.debian.org      master
+209.237.226.90  www.opensource.org
+.fi
+.SH "VOIR AUSSI"
+\fBhostname\fP(1), \fBresolver\fP(3), \fBresolver\fP(5), \fBhostname\fP(7), \fBnamed\fP(8)
+
+.\" .SH AUTHOR
+.\" This manual page was written by Manoj Srivastava <srivasta@debian.org>,
+.\" for the Debian GNU/Linux system.
+RFC\ 952 sur Internet
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

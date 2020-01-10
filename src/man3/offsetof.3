@@ -1,0 +1,118 @@
+.\" Copyright (C) 2006 Justin Pryzby <pryzbyj@justinpryzby.com>
+.\"     and Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(PERMISSIVE_MISC)
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+.\" CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+.\" TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+.\" SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+.\" %%%LICENSE_END
+.\"
+.\" References:
+.\"   /usr/lib/gcc/i486-linux-gnu/4.1.1/include/stddef.h
+.\"   glibc-doc
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH OFFSETOF 3 "12 juillet 2008" GNU "Manuel du programmeur Linux"
+.SH NOM
+offsetof \- Décalage d'un membre d'une structure
+.SH SYNOPSIS
+.nf
+\fB#include <stddef.h>\fP
+.sp
+\fBsize_t offsetof(\fP\fItype\fP\fB, \fP\fImembre\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La macro \fBoffsetof\fP() renvoie le décalage du champ \fImembre\fP à partir du
+début de la structure \fItype\fP.
+
+Cette macro est utile car la taille des champs qui composent une structure
+peut varier d'une implémentation à l'autre. De plus, les compilateurs
+peuvent insèrer des octets entre les champs pour des questions d'alignement,
+le nombre de ces octets dépendant de chaque compilateur. Ainsi, le décalage
+d'un élément n'est pas forcément égal à la somme des tailles des membres qui
+le précèdent.
+
+Une erreur de compilateur sera signalée si \fImembre\fP n'est pas aligné avec
+une frontière d'octet (c'est\-à\-dire qu'il s'agit d'un champ de bits).
+.SH "VALEUR RENVOYÉE"
+\fBoffsetof\fP() renvoie le décalage (en octets) du \fImembre\fP spécifié à
+l'intérieur de la structure \fItype\fP.
+.SH CONFORMITÉ
+C89, C99, POSIX.1\-2001.
+.SH EXEMPLE
+Sur un système Linux/i386, le programme ci\-dessous, compilé avec les options
+par défaut de \fBgcc\fP(1), affichera le résultat suivant\ :
+.in +4n
+.nf
+
+$\fB ./a.out\fP
+décalages: i=0 c=4 d=8 a=16
+sizeof(struct s)=16
+.fi
+.SS "Source du programme"
+\&
+.nf
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main(void)
+{
+    struct s {
+        int i;
+        char c;
+        double d;
+        char a[];
+    };
+
+    /* La sortie dépend du compilateur */
+
+    printf("décalages: i=%ld c=%ld d=%ld a=%ld\en",
+            (long) offsetof(struct s, i),
+            (long) offsetof(struct s, c),
+            (long) offsetof(struct s, d),
+            (long) offsetof(struct s, a));
+    printf("sizeof(struct s)=%ld\en", (long) sizeof(struct s));
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,638 @@
+.\" t
+.\" This man page is Copyright (C) 1999 Andi Kleen <ak@muc.de>.
+.\" and copyright (c) 1999 Matthew Wilcox.
+.\"
+.\" %%%LICENSE_START(VERBATIM_ONE_PARA)
+.\" Permission is granted to distribute possibly modified copies
+.\" of this page provided the header is included verbatim,
+.\" and in case of nontrivial modification author and date
+.\" of the modification is added to the header.
+.\" %%%LICENSE_END
+.\"
+.\" 2002-10-30, Michael Kerrisk, <mtk.manpages@gmail.com>
+.\"	Added description of SO_ACCEPTCONN
+.\" 2004-05-20, aeb, added SO_RCVTIMEO/SO_SNDTIMEO text.
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\"	A few small grammar fixes
+.\" 2010-06-13 Jan Engelhardt <jengelh@medozas.de>
+.\"	Documented SO_DOMAIN and SO_PROTOCOL.
+.\" FIXME
+.\" The following are not yet documented:
+.\"	SO_PEERNAME (2.4?)
+.\"		get only
+.\"		Seems to do something similar to getpeernam(), but then
+.\"		why is it necessary / how does it differ?
+.\"	SO_TIMESTAMPNS (2.6.22)
+.\"		Documentation/networking/timestamping.txt
+.\"		commit 92f37fd2ee805aa77925c1e64fd56088b46094fc
+.\"		Author: Eric Dumazet <dada1@cosmosbay.com>
+.\"	SO_TIMESTAMPING (2.6.30)
+.\"		Documentation/networking/timestamping.txt
+.\"		commit cb9eff097831007afb30d64373f29d99825d0068
+.\"		Author: Patrick Ohly <patrick.ohly@intel.com>
+.\"	SO_RXQ_OVFL (2.6.33)
+.\"		commit 3b885787ea4112eaa80945999ea0901bf742707f
+.\"		Author: Neil Horman <nhorman@tuxdriver.com>
+.\" 	SO_WIFI_STATUS (3.3)
+.\"		commit 6e3e939f3b1bf8534b32ad09ff199d88800835a0
+.\"		Author: Johannes Berg <johannes.berg@intel.com>
+.\"		Also: SCM_WIFI_STATUS
+.\"	SO_NOFCS (3.4)
+.\"		commit 3bdc0eba0b8b47797f4a76e377dd8360f317450f
+.\"		Author: Ben Greear <greearb@candelatech.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SOCKET 7 "21 juin 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+socket \- Interface Linux aux sockets
+.SH SYNOPSIS
+\fB#include <sys/socket.h>\fP
+.sp
+\fIsockfd\fP\fB = socket(int \fP\fIfamille_socket\fP\fB, int \fP\fItype_socket\fP\fB, int
+\fP\fIprotocole\fP\fB);\fP
+.SH DESCRIPTION
+Cette page de manuel documente l'interface utilisateur de l'implémentation
+Linux des sockets réseau. Les sockets compatibles BSD représentent
+l'interface uniforme entre le processus utilisateur et les piles de
+protocoles réseau dans le noyau. Les modules des protocoles sont regroupés
+en \fIfamilles de protocoles\fP comme \fBAF_INET\fP, \fBAF_IPX\fP, \fBAF_PACKET\fP et en
+\fItypes de sockets\fP comme \fBSOCK_STREAM\fP ou \fBSOCK_DGRAM\fP. Consultez
+\fBsocket\fP(2) pour plus d'informations sur les familles et les types de
+sockets.
+.SS "Fonctions du niveau socket"
+Ces fonctions servent au processus utilisateur pour envoyer ou recevoir des
+paquets et pour faire d'autres opérations sur les sockets. Pour plus de
+détails, consultez leurs pages de manuel respectives.
+
+\fBsocket\fP(2) crée une socket, \fBconnect\fP(2) connecte une socket à une
+adresse de socket distante, la fonction \fBbind\fP(2) attache une socket à une
+adresse locale, \fBlisten\fP(2) indique à la socket que de nouvelles connexions
+doivent être acceptées, et \fBaccept\fP(2) fournit une nouvelle socket avec la
+nouvelle connexion entrante. \fBsocketpair\fP(2) renvoie deux sockets anonymes
+connectées (seulement implémenté pour quelques familles locales comme
+\fBAF_UNIX\fP).
+.PP
+\fBsend\fP(2), \fBsendto\fP(2), et \fBsendmsg\fP(2) envoient des données sur une
+socket, et \fBrecv\fP(2), \fBrecvfrom\fP(2) et \fBrecvmsg\fP(2) reçoivent les données
+envoyées par une socket. \fBpoll\fP(2) et \fBselect\fP(2) attendent que des
+données arrivent ou que l'émission soit possible. De plus, les opérations
+d'entrée\-sortie standard comme \fBwrite\fP(2), \fBwritev\fP(2), \fBsendfile\fP(2),
+\fBread\fP(2) et \fBreadv\fP(2) peuvent être utilisées pour la lecture et
+l'écriture des données.
+.PP
+\fBgetsockname\fP(2) renvoie l'adresse de la socket locale et \fBgetpeername\fP(2)
+renvoie l'adresse de la socket distante. \fBgetsockopt\fP(2) et
+\fBsetsockopt\fP(2) servent à définir et obtenir les options de la couche
+socket ou protocole. \fBioctl\fP(2) peut être utilisé pour lire et écrire
+d'autres options.
+.PP
+\fBclose\fP(2) sert à fermer une socket. \fBshutdown\fP(2) ferme une partie des
+connexions d'une socket multiple.
+.PP
+La recherche ou l'utilisation de \fBpread\fP(2) et \fBpwrite\fP(2) avec un
+décalage non nul n'est pas possible sur les sockets.
+.PP
+Des opérations d'entrée\-sortie non bloquantes sur les sockets sont possibles
+en définissant l'attribut \fBO_NONBLOCK\fP du descripteur de la socket avec
+\fBfcntl\fP(2). Toutes les opérations qui devraient normalement bloquer se
+terminent alors avec l'erreur \fBEAGAIN\fP (l'opération devra être retentée
+ultérieurement). \fBconnect\fP(2) renverra l'erreur
+\fBEINPROGRESS\fP. L'utilisateur peut alors attendre divers événements avec
+\fBpoll\fP(2) ou \fBselect\fP(2).
+.TS
+tab(:) allbox;
+c s s
+l l l.
+Événements E/S
+Événement:Appel:Circonstance
+Lecture:POLLIN:T{
+Arrivée de nouvelles données
+T}
+Lecture:POLLIN:T{
+Configuration d'une connexion achevée
+(pour les sockets orientées connexion)
+T}
+Lecture:POLLHUP:T{
+Demande de déconnexion initiée par l'autre extrémité
+T}
+Lecture:POLLHUP:T{
+Connexion rompue (seulement pour les protocoles orientés connexion)
+Lors de l'écriture sur la socket, le signal
+\fBSIGPIPE\fP
+est aussi émis.
+T}
+Écriture:POLLOUT:T{
+La socket a assez de place dans le tampon d'émission pour écrire de nouvelles données.
+T}
+Lect./Écrit.:T{
+POLLIN|
+.br
+POLLOUT
+T}:T{
+Un appel sortant à
+\fBconnect\fP(2)
+est terminé.
+T}
+Lect./Écrit.:POLLERR:Une erreur asynchrone s'est produite.
+Lect./Écrit.:POLLHUP:T{
+Le correspondant a clos un sens de communication.
+T}
+Exception:POLLPRI:T{
+Arrivée de données urgentes.
+\fBSIGURG\fP
+est alors envoyé.
+T}
+.\" FIXME . The following is not true currently:
+.\" It is no I/O event when the connection
+.\" is broken from the local end using
+.\" .BR shutdown (2)
+.\" or
+.\" .BR close (2).
+.TE
+.PP
+Une alternative à \fBpoll\fP(2) et \fBselect\fP(2) est de laisser le noyau
+informer l'application des événements par l'intermédiaire d'un signal
+\fBSIGIO\fP. Pour cela, l'attribut \fBO_ASYNC\fP doit être défini sur un
+descripteur de fichier de la socket via \fBfcntl\fP(2) et un gestionnaire de
+signal valable pour \fBSIGIO\fP doit être installé avec
+\fBsigaction\fP(2). Consultez les remarques sur les \fISignaux\fP ci\-dessous.
+.SS "Structures d'adresse de socket"
+Chaque domaine de socket a son propre format pour les adresses de socket,
+avec une structure d'adresse propre. Chacune de ces structures commence avec
+un champ entier «\ family\ » (famille), de type \fIsa_family_t\fP, qui indique le
+type de structure d'adresse. Cela permet aux appels système génériques à
+tous les domaines de sockets (par exemple \fBconnect\fP(2), \fBbind\fP(2),
+\fBaccept\fP(2), \fBgetsockname\fP(2), \fBgetpeername\fP(2)) de déterminer le domaine
+d'une adresse de socket donnée.
+
+Le type \fIstruct sockaddr\fP est défini afin de pouvoir passer n'importe quel
+type d'adresse de socket aux interface dans l'API des sockets. Le but de ce
+type est purement d'autoriser la conversion de types d'adresse de socket
+propres à un domaine vers le type «\ générique\ », afin d'éviter les
+avertissements du compilateur au sujet de la non correspondance dans les
+appels de l'API des sockets.
+
+De plus, l'API des sockets fournit le type de données \fIstruct
+sockaddr_storage\fP. Ce type est fait pour contenir toute structure d'adresse
+de socket spécifique à un domaine. Il est suffisamment grand et est aligné
+correctement (en particulier, il est assez grand pour contenir des adresses
+de socket IPv6). Cette structure contient le champ suivant, qui peut être
+utilisé pour identifier le type d'adresse socket effectivement stockée dans
+la structure\ :
+
+.in +4n
+.nf
+    sa_family_t ss_family;
+.fi
+.in
+
+La structure \fIsockaddr_storage\fP est utile dans les programmes qui doivent
+prendre en charge les adresses de socket de manière générique (par exemple
+les programmes qui doivent gérer à la fois des adresses de socket IPv4 et
+IPv6).
+.SS "Options de sockets"
+.\" FIXME
+.\" In the list below, the text used to describe argument types
+.\" for each socket option should be more consistent
+.\"
+.\" SO_ACCEPTCONN is in POSIX.1-2001, and its origin is explained in
+.\" W R Stevens, UNPv1
+Les options présentées ci\-dessous peuvent être définies en utilisant
+\fBsetsockopt\fP(2) et lues avec \fBgetsockopt\fP(2) avec le niveau de socket
+positionné à \fBSOL_SOCKET\fP, et ce pour toutes les sockets. Sauf mention
+contraire, \fIoptval\fP est un pointeur vers un \fIint\fP.
+.TP 
+\fBSO_ACCEPTCONN\fP
+Renvoie une valeur indiquant si la socket a été déclarée comme acceptant les
+connexions à l'aide de \fBlisten\fP(2). La valeur\ 0 indique que la socket n'est
+pas en attente de connexions et la valeur\ 1 indique que la socket accepte
+les connexions. Cette option de socket peut être seulement lue, et pas
+modifiée.
+.TP 
+\fBSO_BINDTODEVICE\fP
+Attache cette socket à un périphérique donné, tel que «\ eth0\ », comme
+indiqué dans le nom d'interface transmis. Si le nom est une chaîne vide ou
+si la longueur de l'option est nulle, la socket est détachée du
+périphérique. L'option transmise est une chaîne de longueur variable
+terminée par un caractère nul, contenant le nom de l'interface, la longueur
+maximale étant \fBIFNAMSIZ\fP. Si une socket est attachée à une interface,
+seuls les paquets reçus de cette interface particulière sont traités par la
+socket. Cela ne fonctionne que pour certains types de sockets, en
+particulier les sockets \fBAF_INET\fP. Ceci n'est pas géré pour les sockets de
+paquets (utilisez pour cela \fBbind\fP(2)).
+
+Avant Linux\ 3.8, cette option de socket pouvait être configurée, sans
+pouvoir être lue par \fBgetsockopt\fP(2). Depuis Linux\ 3.8, elle est
+lisible. Le paramètre \fIoptlen\fP doit contenir la taille du tampon destiné à
+recevoir le nom du périphérique, préférablement \fBIFNAMSZ\fP. La véritable
+longueur du nom du périphérique est renvoyée dans le paramètre \fIoptlen\fP.
+.TP 
+\fBSO_BROADCAST\fP
+Définir ou lire l'attribut de diffusion. Une fois activé, les sockets de
+datagrammes sont autorisées à envoyer des paquets à une adresse de
+diffusion. Cette option n'a aucun effet sur les sockets orientées flux.
+.TP 
+\fBSO_BSDCOMPAT\fP
+Active la compatibilité BSD bogue\-à\-bogue. Cela est utilisé par le module du
+protocole UDP de Linux\ 2.0 et 2.2. Si cette compatibilité est activée, les
+erreurs ICMP reçues pour une socket UDP ne seront pas transmises au
+programme utilisateur. Dans les versions récentes du noyau, la gestion de
+cette option a été abandonnée progressivement\ : Linux\ 2.4 l'ignore
+silencieusement et Linux\ 2.6 génère une alerte noyau (printk()) si le
+programme utilise cette option. Linux\ 2.0 activait également les options de
+compatibilité BSD bogue\-à\-bogue (modification aléatoire des en\-têtes, non
+prise en compte de l'attribut de diffusion) pour les sockets brutes ayant
+cette option, mais cela a été éliminé dans Linux\ 2.2.
+.TP 
+\fBSO_DEBUG\fP
+Active le débogage de socket. Cela n'est autorisé que pour les processus
+avec la capacité \fBCAP_NET_ADMIN\fP ou un identifiant d'utilisateur effectif
+égal à 0.
+.TP 
+\fBSO_DOMAIN\fP (depuis Linux\ 2.6.32)
+Récupère le domaine de socket en tant qu'entier, en renvoyant une valeur
+telle que \fBAF_INET6\fP. Consultez \fBsocket\fP(2)  pour plus de détails. Cette
+option de socket peut être seulement lue, et pas modifiée.
+.TP 
+\fBSO_ERROR\fP
+Lit et efface l'erreur en cours sur la socket. Cette option de socket peut
+être seulement lue, et pas modifiée. Demande un entier.
+.TP 
+\fBSO_DONTROUTE\fP
+Ne pas émettre par l'intermédiaire d'une passerelle, n'envoyer qu'aux hôtes
+directement connectés. Le même effet peut être obtenu avec l'attribut
+\fBMSG_DONTROUTE\fP durant une opération \fBsend\fP(2) sur la socket. Demande un
+attribut entier booléen.
+.TP 
+\fBSO_KEEPALIVE\fP
+Active l'émission de messages périodiques gardant la socket ouverte pour les
+sockets orientées connexion. Demande un attribut entier booléen.
+.TP 
+\fBSO_LINGER\fP
+Définit ou lit l'option \fBSO_LINGER\fP. Le paramètre est une structure
+\fIlinger\fP.
+.sp
+.in +4n
+.nf
+struct linger {
+    int l_onoff;    /* définition de l'activité */
+    int l_linger;   /* durée d'attente en secondes */
+};
+.fi
+.in
+.IP
+Lorsque ce paramètre est actif, un appel à \fBclose\fP(2) ou \fBshutdown\fP(2) ne
+se terminera pas avant que tous les messages en attente pour la socket aient
+été correctement émis ou que le délai d'attente soit écoulé. Sinon, l'appel
+se termine immédiatement et la fermeture est effectuée en
+arrière\-plan. Lorsque la socket est fermée au cours d'un \fBexit\fP(2), elle
+attend toujours en arrière\-plan.
+.TP 
+\fBSO_MARK\fP (depuis Linux\ 2.6.25)
+.\" commit 4a19ec5800fc3bb64e2d87c4d9fdd9e636086fe0
+.\" and    914a9ab386a288d0f22252fc268ecbc048cdcbd5
+Positionner la marque pour chaque paquet envoyé au travers de cette socket
+(similaire à la cible MARK de netfilter, mais pour les sockets). Le
+changement de marque peut être utilisé pour un routage par marques sans
+netfilter ou pour le filtrage de paquets. Utiliser cette option nécessite la
+capacité \fBCAP_NET_ADMIN\fP.
+.TP 
+\fBSO_OOBINLINE\fP
+.\" don't document it because it can do too much harm.
+.\".B SO_NO_CHECK
+Si cette option est activée, les données hors bande sont placées directement
+dans le flux des données reçues. Sinon, elles ne sont transmises que si
+l'attribut \fBMSG_OOB\fP est défini durant la réception.
+.TP 
+\fBSO_PASSCRED\fP
+.\" FIXME Document SO_PASSSEC, added in 2.6.18; there is some info
+.\" in the 2.6.18 ChangeLog
+Autorise ou interdit la réception des messages de contrôle
+\fBSCM_CREDENTIALS\fP. Pour plus de détails, consultez \fBunix\fP(7).
+.TP 
+\fBSO_PEEK_OFF\fP (depuis Linux 3.4)
+.\" commit ef64a54f6e558155b4f149bb10666b9e914b6c54
+Cette option, qui n'est à ce jour garantie que pour les sockets \fBunix\fP(7),
+définit la valeur de la «\ position de lecture\ » (ou «\ peek offset\ ») pour
+l'appel système \fBrecv(2)\fP lorsqu'il est invoqué avec l'attribut
+\fBMSG_PEEK\fP.
+
+Lorsque cette option reçoit une valeur négative (elle est initialisée à \-1
+pour toute nouvelle socket), elle se comporte classiquement\ : \fBrecv(2)\fP,
+avec l'attribut \fBMSG_PEEK\fP, lit les données depuis le début de la file.
+
+Lorsque l'option reçoit une valeur supérieure ou égale à zéro, alors la
+lecture suivante des données accumulées dans la socket est réalisée à la
+position précisée par la valeur de l'option. Dans le même temps, la
+«\ position de lecture\ » est incrémentée du nombre d'octets lus dans la file,
+de façon à ce que la prochaine lecture renvoie la donnée suivante dans la
+file.
+
+Si des données sont retirées de la tête de la file par la fonction
+\fBrecv\fP(2) (ou équivalent) sans l'attribut \fBMSG_PEEK\fP, alors la «\ position
+de lecture\ » est diminuée du nombre d'octets supprimés. Autrement dit,
+l'acquisition de données sans avoir recours à l'attribut \fBMSG_PEEK\fP a pour
+effet de modifier la «\ position de lecture », de sorte que la prochaine
+lecture renvoie les données qui auraient été renvoyées si aucune donnée
+n'avait été supprimée.
+
+Pour les sockets de datagrammes, si la «\ position de lecture\ » pointe à
+l'intérieur d'un paquet, alors les données renvoyées seront marquées de
+l'attribut \fBMSG_TRUNC\fP.
+
+L'exemple suivant illustre l'usage de \fBSO_PEEK_OFF\fP. Imaginons une socket
+de flux contenant les données suivantes dans sa file\ :
+
+    aabbccddeeff
+
+.IP
+La séquence suivante d'appels à \fBrecv\fP(2) aura l'effet décrit dans les
+commentaires\ :
+
+.in +4n
+.nf
+int ov = 4;                  // affecte 4 à la position de lecture
+setsockopt(fd, SOL_SOCKET, SO_PEEK_OFF, &ov, sizeof(ov));
+
+recv(fd, buf, 2, MSG_PEEK);  // Lit "cc"; l'indide de position prend la valeur 6
+recv(fd, buf, 2, MSG_PEEK);  // Lit "dd"; l'indice de position prend la valeur 8
+recv(fd, buf, 2, 0);         // Lit "aa"; l'indice de position prend la valeur 6
+recv(fd, buf, 2, MSG_PEEK);  // Lit "ee"; l'indice position prend la valeur 8
+.fi
+.in
+.TP 
+\fBSO_PEERCRED\fP
+Renvoie les données d'authentification du processus étranger connecté à
+cette socket. Cela n'est possible que pour les sockets de flux \fBAF_UNIX\fP
+connectées et les paires de sockets \fBAF_UNIX\fP de flux et de datagrammes
+crées avec \fBsocketpair\fP(2)\ ; consultez \fBunix\fP(7). Les données retournées
+sont celles qui étaient effectives au moment de l'appel à \fBconnect\fP(2) ou
+\fBsocketpair\fP(2). L'argument est une structure \fIucred\fP. Il faut définir la
+macro de test de fonctionnalité \fBGNU_SOURCE\fP pour activer la définition de
+cette structure dans \fI<sys/socket.h>\fP. Cette option de socket peut
+être seulement lue, et pas modifiée.
+.TP 
+\fBSO_PRIORITY\fP
+Définir la priorité définie par le protocole pour tous les paquets envoyés
+sur la socket. Linux utilise cette valeur pour trier les files réseau\ : les
+paquets avec une priorité élevée peuvent être traités d'abord, en fonction
+de la gestion des files sur le périphérique. Pour \fBip\fP(7), cela définit
+aussi le champ IP Type\-Of\-Service (TOS) pour les paquets sortants. Établir
+une priorité en dehors de l'intervalle allant de 0 à 6 nécessite la capacité
+\fBCAP_NET_ADMIN\fP.
+.TP 
+\fBSO_PROTOCOL\fP (depuis Linux\ 2.6.32)
+Récupère le protocole de socket en tant qu'entier, en renvoyant une valeur
+telle que \fBIPPROTO_SCTP\fP. Consultez \fBsocket\fP(2)  pour plus de
+détails. Cette option de socket peut être seulement lue, et pas modifiée.
+.TP 
+\fBSO_RCVBUF\fP
+.\" Most (all?) other implementations do not do this -- MTK, Dec 05
+.\" The following thread on LMKL is quite informative:
+.\" getsockopt/setsockopt with SO_RCVBUF and SO_SNDBUF "non-standard" behaviour
+.\" 17 July 2012
+.\" http://thread.gmane.org/gmane.linux.kernel/1328935
+Définit ou lit la taille maximale en octets du tampon de réception. Le noyau
+double cette valeur (pour prévoir de l'espace pour les opérations de
+service) lorsque la valeur est définie avec \fBsetsockopt\fP(2), et cette
+valeur doublée est retournée par \fBgetsockopt\fP(2). La valeur par défaut est
+définie par le fichier \fI/proc/sys/net/core/rmem_default\fP et la valeur
+maximale autorisée est définie par le fichier
+\fI/proc/sys/net/core/rmem_max\fP. La valeur (doublée) minimale pour cette
+option est 256.
+.TP 
+\fBSO_RCVBUFFORCE\fP (depuis Linux\ 2.6.14)
+En utilisant cette option de socket, un processus privilégié
+(\fBCAP_NET_ADMIN\fP) peut exécuter la même tâche que \fBSO_RCVBUF\fP, mais la
+limite \fIrmem_max\fP peut être remplacée.
+.TP 
+\fBSO_RCVLOWAT\fP et \fBSO_SNDLOWAT\fP
+.\" See http://marc.theaimsgroup.com/?l=linux-kernel&m=111049368106984&w=2
+.\" Tested on kernel 2.6.14 -- mtk, 30 Nov 05
+Indique le nombre minimal d'octets dans le tampon pour que la couche socket
+passe les données au protocole (\fBSO_SNDLOWAT\fP) ou à l'utilisateur en
+réception (\fBSO_RCVLOWAT\fP). Ces deux valeurs sont initialisées à
+1. \fBSO_SNDLOWAT\fP n'est pas modifiable (\fBsetsockopt\fP(2) échoue avec
+l'erreur \fBENOPROTOOPT\fP). \fBSO_RCVLOWAT\fP est modifiable seulement depuis
+Linux\ 2.4. Les appels système \fBselect\fP(2) et \fBpoll\fP(2) ne respectent pour
+le moment pas la définition de \fBSO_RCVLOWAT\fP sur Linux, et marque la socket
+comme lisible même lorsqu'un unique octet de données est disponible. La
+lecture suivante depuis la socket sera bloquée jusqu'à ce que
+\fBSO_RCVLOWAT\fP\ octets soient disponibles.
+.TP 
+\fBSO_RCVTIMEO\fP et \fBSO_SNDTIMEO\fP
+.\" Not implemented in 2.0.
+.\" Implemented in 2.1.11 for getsockopt: always return a zero struct.
+.\" Implemented in 2.3.41 for setsockopt, and actually used.
+.\" in fact to EAGAIN
+Indiquer le délai maximal d'émission ou de réception avant de signaler une
+erreur. Le paramètre est une structure \fItimeval\fP. Si une fonction d'entrée
+ou de sortie bloque pendant cet intervalle de temps et que des données ont
+été envoyées ou reçues, la valeur de retour de cette fonction sera la
+quantité de données transmises\ ; si aucune donnée n'a été transmise et si
+le délai d'attente est atteint, \-1 est renvoyé et \fIerrno\fP est positionnée à
+\fBEAGAIN\fP ou \fBEWOULDBLOCK\fP, ou \fBEINPROGRESS\fP (pour \fBconnect\fP(2)), comme
+si la socket avait été définie comme non bloquante. Si le délai d'attente
+est défini à zéro (valeur par défaut), l'opération ne sera jamais
+interrompue. Les délais n'ont d'effet que pour les appels système faisant
+des E/S sur des sockets (par exemple \fBread\fP(2), \fBrecvmsg\fP(2), \fBsend\fP(2),
+\fBsendmsg\fP(2))\ ; ils n'ont pas d'effet pour \fBselect\fP(2), \fBpoll\fP(2),
+\fBepoll_wait\fP(2), etc.
+.TP 
+\fBSO_REUSEADDR\fP
+Indique que les règles utilisées pour la validation des adresses fournies
+dans un appel à \fBbind\fP(2) doivent autoriser la réutilisation des adresses
+locales. Pour les sockets \fBAF_INET\fP, cela signifie que la socket peut être
+attachée à n'importe quelle adresse sauf lorsqu'une socket active en écoute
+y est liée. Lorsque la socket en écoute est attachée à \fBINADDR_ANY\fP avec un
+port spécifique, il n'est pas possible de s'attacher à ce port quelle que
+soit l'adresse locale. L'argument est un attribut booléen entier.
+.TP 
+\fBSO_SNDBUF\fP
+.\" Most (all?) other implementations do not do this -- MTK, Dec 05
+.\" See also the comment to SO_RCVBUF (17 Jul 2012 LKML mail)
+Définit ou lit la taille maximale en octets du tampon d'émission. Le noyau
+double cette valeur (pour prévoir de l'espace pour les opérations de
+service) lorsque la valeur est définie avec \fBsetsockopt\fP(2), et cette
+valeur doublée est retournée par \fBgetsockopt\fP(2). La valeur par défaut est
+définie par le fichier \fI/proc/sys/net/core/wmem_default\fP et la valeur
+maximale autorisée est définie par le fichier
+\fI/proc/sys/net/core/wmem_max\fP. La valeur (doublée) minimale pour cette
+option est 2048.
+.TP 
+\fBSO_SNDBUFFORCE\fP (depuis Linux\ 2.6.14)
+En utilisant cette option de socket, un processus privilégié
+(\fBCAP_NET_ADMIN\fP) peut exécuter la même tâche que \fBSO_SNDBUF\fP, mais la
+limite \fIwmem_max\fP peut être remplacée.
+.TP 
+\fBSO_TIMESTAMP\fP
+Active ou désactive la réception des messages de contrôle
+\fBSO_TIMESTAMP\fP. Le message de contrôle d'horodatage est envoyé avec le
+niveau \fBSOL_SOCKET\fP et le champ \fIcmsg_data\fP est une structure \fItimeval\fP
+indiquant la date de réception du dernier paquet fourni à l'utilisateur dans
+cet appel. Consultez \fBcmsg\fP(3) pour plus de détails sur les messages de
+contrôle.
+.TP 
+\fBSO_TYPE\fP
+Lit le type de socket, sous forme d'entier (comme \fBSOCK_STREAM\fP). Cette
+option de socket peut être seulement lue, et pas modifiée.
+.SS Signaux
+Lors de l'écriture sur une socket orientée connexion qui a été fermée
+(localement ou à l'autre extrémité), le signal \fBSIGPIPE\fP est envoyé au
+processus qui écrivait, et \fBEPIPE\fP est renvoyé. Le signal n'est pas envoyé
+lorsque l'appel d'écriture indiqué contenait l'attribut \fBMSG_NOSIGNAL\fP.
+.PP
+Lorsque demandé avec l'option \fBFIOSETOWN\fP de \fBfcntl\fP(2) ou l'option
+\fBSIOCSPGRP\fP de \fBioctl\fP(2), le signal \fBSIGIO\fP est envoyé quand un
+événement d'entrée\-sortie a lieu. Il est possible d'utiliser \fBpoll\fP(2) ou
+\fBselect\fP(2) dans le gestionnaire de signal pour savoir sur quelle socket
+l'événement s'est produit. Une alternative (sous Linux\ 2.2) est de définir
+un signal en temps\-réel avec le \fBfnctl\fP(2) \fBF_SETSIG\fP. Le gestionnaire du
+signal en temps\-réel sera appelé avec le descripteur de fichier dans le
+champ \fIsi_fd\fP de \fIsiginfo_t\fP. Consultez \fBfcntl\fP(2) pour plus
+d'informations.
+.PP
+.\" .SS Ancillary messages
+Dans certains cas (par exemple, différents processus accédant à la même
+socket), la condition ayant déclenché le signal \fBSIGIO\fP peut avoir déjà
+disparu quand le processus réagit au signal. Si cela se produit, le
+processus devrait attendre à nouveau car Linux renverra ce signal
+ultérieurement.
+.SS "Interfaces /proc"
+Les paramètres réseau de base des sockets sont accessibles en utilisant les
+fichiers du répertoire \fI/proc/sys/net/core/\fP.
+.TP 
+\fIrmem_default\fP
+contient la taille en octets par défaut du tampon de réception.
+.TP 
+\fIrmem_max\fP
+contient la taille maximale en octets du tampon de réception qu'un
+utilisateur peut définir avec l'option \fBSO_RCVBUF\fP de la socket.
+.TP 
+\fIwmem_default\fP
+contient la taille en octets par défaut du tampon d'émission de la socket.
+.TP 
+\fIwmem_max\fP
+contient la taille maximale en octets du tampon d'émission qu'un utilisateur
+peut définir avec l'option \fBSO_SNDBUF\fP de la socket.
+.TP 
+\fImessage_cost\fP et \fImessage_burst\fP
+configurent le filtrage par jeton utilisé pour limiter la charge des
+messages d'avertissement dus aux événements réseau extérieurs.
+.TP 
+\fInetdev_max_backlog\fP
+contient le nombre maximal de paquets dans la file d'entrée globale.
+.TP 
+\fIoptmem_max\fP
+.\" netdev_fastroute is not documented because it is experimental
+contient la taille maximale par socket des données de service et des données
+de contrôle utilisateur comme les iovecs.
+.SS Ioctls
+Ces opérations sont accessibles en utilisant \fBioctl\fP(2)\ :
+
+.in +4n
+.nf
+\fIerror\fP\fB = ioctl(\fP\fIip_socket\fP\fB, \fP\fItype_ioctl\fP\fB, \fP\fI&valeur_résultat\fP\fB);\fP
+.fi
+.in
+.TP 
+\fBSIOCGSTAMP\fP
+.\"
+Renvoie une structure \fItimeval\fP avec la date de réception du dernier paquet
+transmis à l'utilisateur. Cela est utile pour des mesures précises du temps
+de cheminement. Consultez \fBsetitimer\fP(2) pour une description de la
+structure \fItimeval\fP. L'ioctl ne doit être utilisé que si l'option
+\fBSO_TIMESTAMP\fP de la socket n'est pas définie. Sinon, la date du dernier
+paquet reçu quand \fBSO_TIMESTAMP\fP n'était pas définie est renvoyée,
+provoquant un échec s'il n'exite pas de tels paquets (c'est\-à\-dire que
+\fBioctl\fP(2) renvoie \-1 avec un \fIerrno\fP défini à \fBENOENT\fP).
+.TP 
+\fBSIOCSPGRP\fP
+Définit le processus ou le groupe de processus à qui envoyer les signaux
+\fBSIGIO\fP ou \fBSIGURG\fP lorsqu'une opération d'entrée\-sortie asynchrone est
+terminée ou si des données urgentes sont disponibles. L'argument est un
+pointeur sur un \fIpid_t\fP. Si l'argument est positif, le signal est envoyé à
+ce processus. S'il est négatif, le signal est envoyé au groupe de processus
+dont l'identifiant correspond à la valeur absolue de l'argument. Un
+processus ne peut demander que l'émission vers lui\-même ou son propre
+groupe, à moins qu'il ait la capacité \fBCAP_KILL\fP ou un identifiant
+d'utilisateur effectif nul.
+.TP 
+\fBFIOASYNC\fP
+Change l'attribut \fBO_ASYNC\fP pour activer ou désactiver le mode
+d'entrée\-sortie asynchrone de la socket. Un mode d'entrée\-sortie asynchrone
+signifie que le signal \fBSIGIO\fP ou le signal défini avec \fBF_SETSIG\fP est
+envoyé quand un événement d'entrée\-sortie se produit.
+.IP
+.\"
+Le paramètre est un booléen entier. (Cette opération est synonyme de
+l'utilisation de \fBfcntl\fP(2) pour définir l'attribut \fBO_ASYNC\fP).
+.TP 
+\fBSIOCGPGRP\fP
+Lit le processus ou le groupe de processus auquel les signaux \fBSIGIO\fP ou
+\fBSIGURG\fP sont envoyés. Zéro est obtenu quand aucun n'est défini.
+.PP
+Opérations \fBfcntl\fP(2) valables\ :
+.TP 
+\fBFIOGETOWN\fP
+Identique à l'\fBioctl\fP(2) \fBSIOCGPGRP\fP.
+.TP 
+\fBFIOSETOWN\fP
+Identique à l'\fBioctl\fP(2) \fBSIOCSPGRP\fP.
+.SH VERSIONS
+\fBSO_BINDTODEVICE\fP a été introduit dans Linux\ 2.0.30. \fBSO_PASSCRED\fP est une
+nouveauté de Linux\ 2.2. Les interfaces \fI/proc\fP ont été introduites dans
+Linux\ 2.2. \fBSO_RCVTIMEO\fP et \fBSO_SNDTIMEO\fP sont gérés depuis
+Linux\ 2.3.41. Auparavant, les délais d'attente étaient définis dans les
+protocoles et ne pouvaient être ni lus ni modifiés.
+.SH NOTES
+Linux suppose que la moitié du tampon d'émission/réception est utilisé pour
+les structures internes du noyau. Ainsi les valeurs dans les fichiers
+\fI/proc\fP correspondants sont deux fois plus grandes que ce que l'on peut
+observer directement sur le câble.
+
+Linux ne permettra la réutilisation des ports qu'avec l'option
+\fBSO_REUSEADDR\fP lorsque celle\-ci sera définie à la fois par le précédent
+programme qui a effectué un \fBbind\fP(2) sur le port et par le programme qui
+veut réutiliser ce port. Ceci diffère de certaines implémentations (par
+exemple, sur FreeBSD) où seul le dernier programme doit définir l'option
+\fBSO_REUSEADDR\fP. Habituellement, cette différence est invisible, puisque,
+par exemple, un programme serveur est conçu pour toujours définir cette
+option.
+.SH BOGUES
+.\" FIXME Document SO_ATTACH_FILTER and SO_DETACH_FILTER
+.\" .SH AUTHORS
+.\" This man page was written by Andi Kleen.
+Des options \fBCONFIG_FILTER\fP de socket, \fBSO_ATTACH_FILTER\fP et
+\fBSO_DETACH_FILTER\fP, ne sont pas documentées. Pour les utiliser, il est
+conseillé d'utiliser la bibliothèque libpcap.
+.SH "VOIR AUSSI"
+\fBgetsockopt\fP(2), \fBconnect\fP(2), \fBsetsockopt\fP(2), \fBsocket\fP(2),
+\fBcapabilities\fP(7), \fBddp\fP(7), \fBip\fP(7), \fBpacket\fP(7), \fBtcp\fP(7), \fBudp\fP(7),
+\fBunix\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

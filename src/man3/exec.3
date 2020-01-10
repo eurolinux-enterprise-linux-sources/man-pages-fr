@@ -1,0 +1,187 @@
+.\" Copyright (c) 1991 The Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     @(#)exec.3	6.4 (Berkeley) 4/19/91
+.\"
+.\" Converted for Linux, Mon Nov 29 11:12:48 1993, faith@cs.unc.edu
+.\" Updated more for Linux, Tue Jul 15 11:54:18 1997, pacman@cqc.com
+.\" Modified, 24 Jun 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added note on casting NULL
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH EXEC 3 "25 septembre 2010" GNU "Manuel du programmeur Linux"
+.SH NOM
+execl, execlp, execle, execv, execvp, execvpe \- Exécuter un fichier
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBextern char **environ;\fP
+.sp
+\fBint execl(const char *\fP\fIpath\fP\fB, const char *\fP\fIarg\fP\fB, ...);\fP
+.br
+\fBint execlp(const char *\fP\fIfile\fP\fB, const char *\fP\fIarg\fP\fB, ...);\fP
+.br
+\fBint execle(const char *\fP\fIpath\fP\fB, const char *\fP\fIarg\fP\fB,\fP
+.br
+\fB ..., char * const \fP\fIenvp\fP\fB[]);\fP
+.br
+\fBint execv(const char *\fP\fIpath\fP\fB, char *const \fP\fIargv\fP\fB[]);\fP
+.br
+\fBint execvp(const char *\fP\fIfile\fP\fB, char *const \fP\fIargv\fP\fB[]);\fP
+.br
+\fBint execvpe(const char *\fP\fIfile\fP\fB, char *const \fP\fIargv\fP\fB[],\fP
+.br
+\fB char *const \fP\fIenvp\fP\fB[]);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBexecvpe\fP()\ : _GNU_SOURCE
+.SH DESCRIPTION
+La famille des fonctions \fBexec\fP() remplace l'image du processus en cours
+par une nouvelle image du processus. Les fonctions décrites dans cette page
+sont en réalité des frontaux pour \fBexecve\fP(2) (consultez la page de manuel
+de \fBexecve\fP(2) pour plus de détails sur le remplacement de l'image du
+processus en cours).
+.PP
+L'argument initial de toutes ces fonctions est le chemin d'accès du fichier
+à exécuter.
+.PP
+Les arguments \fIconst char\ *arg\fP ainsi que les points de suspension des
+fonctions \fBexecl\fP(), \fBexeclp\fP(), et \fBexecle\fP() peuvent être vues comme
+\fIarg0\fP, \fIarg1\fP, \&..., \fIargn\fP. Ensemble, ils décrivent une liste d'un ou
+plusieurs pointeurs sur des chaînes de caractères terminées par des
+caractères nuls, qui constituent les arguments disponibles pour le programme
+à exécuter. Par convention, le premier argument doit pointer sur le nom du
+fichier associé au programme à exécuter. La liste des arguments \fIdoit\fP se
+terminer par un pointeur NULL, et puisque ce sont des fonctions variadiques,
+ce pointeur doit être transtypé avec \fI(char\ *) NULL\fP.
+.PP
+Les fonctions \fBexecv\fP(), \fBexecvp\fP() et \fBexecvpe\fP() utilisent un tableau
+de pointeurs sur des chaînes de caractères terminées par des caractères
+nuls, qui constituent les arguments disponibles pour le programme à
+exécuter. Par convention, le premier argument doit pointer sur le nom du
+fichier associé au programme à exécuter. Le tableau de pointeurs \fIdoit\fP se
+terminer par un pointeur NULL.
+.PP
+Les fonctions \fBexecle\fP() et \fBexecvpe\fP() permettent à l'appelant d'indiquer
+l'environnement du processus à exécuter via le paramètre \fIenvp\fP. Ce
+paramètre est un tableau de pointeurs sur des chaînes de caractères
+terminées par des caractères nuls, qui \fIdoit\fP se terminer par un pointeur
+NULL. Les autres fonctions fournissent au nouveau processus l'environnement
+constitué par la variable externe \fIenviron\fP du processus appelant.
+.SS "Sémantique particulière pour execlp() et execvp()"
+.PP
+Les fonctions \fBexeclp\fP(), \fBexecvp\fP() et \fBexecvpe\fP() dupliqueront les
+actions de l'interpréteur de commandes dans la recherche du fichier
+exécutable si le nom fourni ne contient pas de barre oblique «\ /\ ». Le
+fichier est recherché dans la liste de répertoires, séparés par des
+deux\-points, spécifiée dans la variable d'environnement \fBPATH\fP. Si cette
+variable n'est pas définie, le chemin par défaut sera le répertoire actuel,
+suivi de la liste des répertoires renvoyée par \fIconfstr(_CS_PATH)\fP (cet
+appel à \fBconfstr\fP(3) renvoie habituellement «\ /bin:/usr/bin:\ »).
+
+Si le nom du fichier indiqué inclut une barre oblique, alors \fBPATH\fP est
+ignoré et le fichier dont le chemin est fourni est exécuté.
+
+De plus, certaines erreurs sont traitées de manière spécifique.
+
+Si l'accès au fichier est refusé (\fBexecve\fP(2) renvoie \fBEACCES\fP), ces
+fonctions continueront à parcourir le reste du chemin de recherche. Si aucun
+fichier n'est trouvé, elles reviendront, et \fIerrno\fP sera défini à
+\fBEACCES\fP.
+
+Si l'en\-tête d'un fichier n'est pas reconnu (\fBexecve\fP(2) renvoie
+\fBENOEXEC\fP), ces fonctions exécuteront un interpréteur de commandes
+(\fI/bin/sh\fP) avec le chemin d'accès au fichier en tant que premier
+argument. Si ceci échoue, aucune recherche supplémentaire n'est effectuée.
+.SH "VALEUR RENVOYÉE"
+Une sortie des fonctions \fBexec\fP() n'intervient que si une erreur s'est
+produite. La valeur de retour est \-1, et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+Toutes ces fonctions peuvent échouer et définir \fIerrno\fP à n'importe quelle
+erreur décrite dans \fBexecve\fP(2).
+.SH VERSIONS
+La fonction \fBexecvpe\fP() a été introduite dans la glibc\ 2.11.
+.SH CONFORMITÉ
+POSIX.1\-2001, POSIX.1\-2008.
+
+La fonction \fBexecvpe\fP() est une extension GNU.
+.SH NOTES
+Sur certains systèmes, le chemin de recherche par défaut (employé si
+l'environnement ne contient pas la variable \fBPATH\fP) contient le répertoire
+courant à la suite de \fI/bin\fP et \fI/usr/bin\fP, afin d'éviter les chevaux de
+Troie. Linux utilise encore le répertoire courant en premier dans ce chemin
+de recherche par défaut.
+.PP
+Le comportement de \fBexeclp\fP() et \fBexecvp\fP() lorsqu'une erreur se produit
+pendant l'exécution d'un programme est une pratique historique mais n'a
+traditionnellement jamais été documenté, ni spécifié dans le standard
+POSIX. Lorsque \fBETXTBSY\fP est rencontré, BSD (et peut\-être d'autres
+systèmes) endorment le processus appelant puis réitère l'opération. Linux
+considère cette situation comme une erreur grave, et revient immédiatement.
+.PP
+Habituellement, les fonctions \fBexeclp\fP() et \fBexecvp\fP() ignoraient toutes
+les erreurs sauf celles décrites ci\-dessus, \fBENOMEM\fP et
+\fBE2BIG\fP. Désormais, elles reviennent à l'appelant si une autre erreur que
+celles\-ci se produit.
+.SH "VOIR AUSSI"
+\fBsh\fP(1), \fBexecve\fP(2), \fBfork\fP(2), \fBptrace\fP(2), \fBfexecve\fP(3),
+\fBenviron\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

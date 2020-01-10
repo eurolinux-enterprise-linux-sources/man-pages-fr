@@ -1,0 +1,94 @@
+.\" Copyright (c) 2001 Martin Schulze <joey@infodrom.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" 2008-09-04, mtk, taken from Debian downstream, with a few light edits
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH NETWORKS 5 "4 septembre 2008" GNU/Linux "Manuel de l'administrateur Linux"
+.SH NOM
+networks \- Informations concernant le nom de réseau
+.SH DESCRIPTION
+Le fichier \fI/etc/networks\fP est un fichier texte ASCII qui décrit les
+réseaux DARPA connus et les noms symboliques de ces réseaux. Chaque ligne
+représente un réseau et possède la structure suivante\ :
+
+.RS
+\fInom numéro alias ...\fP
+.RE
+
+où les champs sont séparés par des espaces ou des caractères de
+tabulation. Le caractère dièse («\ \fB#\fP\ ») indique le début d'un
+commentaire\ : ce caractère et le reste de la ligne sont ignorés par les
+fonctions de la bibliothèque qui traitent ce fichier.
+
+Descriptions des champs\ :
+.TP 
+\fInom\fP
+Le nom symbolique du réseau. Les noms de réseau peuvent contenir tout
+caractère imprimable sauf des espaces et le caractère de commentaire.
+.TP 
+\fInuméro\fP
+Numéro officiel de ce réseau en notation décimale pointée (consultez
+\fBinet\fP(3)). Le «\ .0\ » final (pour la composante de l'hôte de l'adresse
+réseau) peut être omis.
+.TP 
+\fIalias\fP
+Alias optionnels pour le réseau.
+.LP
+
+Ce fichier est lu par les utilitaires \fBroute\fP et \fBnetstat\fP. Seuls les
+réseaux de classe A, B ou C sont gérés, les réseaux partitionnés (par
+ex. réseau/26 ou réseau/38) ne sont pas gérés par cet utilitaire.
+.SH FICHIERS
+.TP 
+\fI/etc/networks\fP
+Fichier de définition des réseaux.
+.SH "VOIR AUSSI"
+\fBgetnetbyaddr\fP(3), \fBgetnetbyname\fP(3), \fBgetnetent\fP(3), \fBnetstat\fP(8),
+\fBroute\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Jean\-Luc Coulon et l'équipe francophone de traduction
+de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

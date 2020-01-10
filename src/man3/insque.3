@@ -1,0 +1,245 @@
+.\" peter memishian -- meem@gnu.ai.mit.edu
+.\" $Id: insque.3,v 1.2 1996/10/30 21:03:39 meem Exp meem $
+.\" and Copyright (c) 2010, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   Linux libc source code (5.4.7)
+.\"   Solaris 2.x, OSF/1, and HP-UX manpages
+.\"   Curry's "UNIX Systems Programming for SVR4" (O'Reilly & Associates 1996)
+.\"
+.\" Changed to POSIX, 2003-08-11, aeb+wh
+.\" mtk, 2010-09-09: Noted glibc 2.4 bug, added info on circular
+.\"	lists, added example program
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH INSQUE 3 "9 septembre 2010" "" "Manuel du programmeur Linux"
+.SH NOM
+insque, remque \- Ajouter ou supprimer un élément d'une file
+.SH SYNOPSIS
+.nf
+\fB#include <search.h>\fP
+.sp
+\fBvoid insque(void *\fP\fIelem\fP\fB, void *\fP\fIprev\fP\fB);\fP
+
+\fBvoid remque(void *\fP\fIelem\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBinsque\fP(), \fBremque\fP()\ :
+.RS 4
+_SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.RE
+.ad
+.SH DESCRIPTION
+Les fonctions \fBinsque\fP() et \fBremque\fP() manipulent une liste doublement
+chaînée. Chaque élément de cette liste est une structure dont les deux
+premiers éléments sont des pointeurs avant et arrière. La liste peut être
+linéaire (c'est\-à\-dire que l'élément en fin de liste a un pointeur avant à
+NULL, et l'élément en début de liste a un pointeur arrière à NULL) ou
+circulaire.
+
+\fBinsque\fP() insère l'élément pointé par \fIelem\fP immédiatement après
+l'élément pointé par \fIprev\fP.
+
+Si la liste est linéaire, alors l'appel \fIinsque(elem, NULL)\fP peut être
+utilisé pour insérer l'élément initial de la liste et l'appel définit les
+pointeurs avant et arrière à NULL.
+
+Si la liste est circulaire, l'appelant doit s'assurer que les pointeurs
+avant et arrière du premier élément sont initialisés pour pointer vers cet
+élément, et que l'argument \fIprev\fP de \fBinsque\fP() doit aussi pointer vers
+cet élément.
+
+\fBremque\fP() supprime l'élément pointé par \fIelem\fP de la liste doublement
+chaînée.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH NOTES
+Traditionnellement (par exemple, SunOS, Linux libc\ 4 et libc\ 5), les
+paramètres de ces fonctions sont du type \fIstruct qelem *\fP, définie comme
+ceci\ :
+
+.in +4n
+.nf
+struct qelem {
+    struct    qelem *q_forw;
+    struct    qelem *q_back;
+    char      q_data[1];
+};
+.fi
+.in
+
+C'est ce que vous obtiendrez si \fB_GNU_SOURCE\fP est définie avant l'inclusion
+de \fI<search.h>\fP.
+
+L'emplacement des prototypes de ces fonctions varie suivant les différentes
+versions d'UNIX. Celui précisé ci\-dessus correspond à la version
+POSIX. Certains systèmes les placent dans \fI<string.h>\fP. Sous Linux,
+libc4 et libc5 ils sont renseignés dans \fI<stdlib.h>\fP.
+.SH BOGUES
+Dans la glibc\ 2.4 et les versions précédentes, il n'était pas possible de
+spécifier \fIprev\fP à NULL. En conséquence, pour construire une liste
+linéaire, l'appelant devait construire une liste avec un appel initial
+contenant les deux premiers éléments de la liste, avec les pointeurs avant
+et arrière correctement définis pour chaque élément.
+.SH EXEMPLE
+Le programme suivant montre une utilisation de \fBinsque\fP(). Ci\-dessous la
+sortie de l'exécution du programme\ :
+.in +4n
+.nf
+
+$ \fB./a.out \-c a b c\fP
+Traversing completed list:
+    a
+    b
+    c
+That was a circular list
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <search.h>
+
+struct element {
+    struct element *forward;
+    struct element *backward;
+    char *name;
+};
+
+static struct element *
+new_element(void)
+{
+    struct element *e;
+
+    e = malloc(sizeof(struct element));
+    if (e == NULL) {
+        fprintf(stderr, "malloc() failed\en");
+        exit(EXIT_FAILURE);
+    }
+
+    return e;
+}
+
+int
+main(int argc, char *argv[])
+{
+    struct element *first, *elem, *prev;
+    int circular, opt, errfnd;
+
+    /* The "\-c" command\-line option can be used to specify that the
+       list is circular */
+
+    errfnd = 0;
+    circular = 0;
+    while ((opt = getopt(argc, argv, "c")) != \-1) {
+        switch (opt) {
+        case 'c':
+            circular = 1;
+            break;
+        default:
+            errfnd = 1;
+            break;
+        }
+    }
+
+    if (errfnd || optind >= argc) {
+        fprintf(stderr,  "Usage: %s [\-c] string...\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    /* Create first element and place it in the linked list */
+
+    elem = new_element();
+    first = elem;
+
+    elem\->name = argv[optind];
+
+    if (circular) {
+        elem\->forward = elem;
+        elem\->backward = elem;
+        insque(elem, elem);
+    } else {
+        insque(elem, NULL);
+    }
+
+    /* Add remaining command\-line arguments as list elements */
+
+    while (++optind < argc) {
+        prev = elem;
+
+        elem = new_element();
+        elem\->name = argv[optind];
+        insque(elem, prev);
+    }
+
+    /* Traverse the list from the start, printing element names */
+
+    printf("Traversing completed list:\en");
+    elem = first;
+    do {
+        printf("    %s\en", elem\->name);
+        elem = elem\->forward;
+    } while (elem != NULL && elem != first);
+
+    if (elem == first)
+        printf("That was a circular list\en");
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

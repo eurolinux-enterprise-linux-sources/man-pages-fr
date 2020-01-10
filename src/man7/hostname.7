@@ -1,0 +1,106 @@
+.\" Copyright (c) 1987, 1990, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" %%%LICENSE_START(BSD_4_CLAUSE_UCB)
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\" %%%LICENSE_END
+.\"
+.\"     @(#)hostname.7	8.2 (Berkeley) 12/30/93
+.\" $FreeBSD: src/share/man/man7/hostname.7,v 1.7 2004/07/03 18:29:23 ru Exp $
+.\"
+.\" 2008-06-11, mtk, Taken from FreeBSD 6.2 and modified for Linux.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH HOSTNAME 7 "7 novembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+hostname \- Description de la résolution de noms
+.SH DESCRIPTION
+Les noms d'hôtes sont des domaines, où un domaine est une liste hiérarchique
+de sous\-domaines séparés par des points. Par exemple la machine monet, dans
+le sous\-domaine Berkeley du domaine EDU serait représentée ainsi\ :
+«\ monet.Berkeley.EDU\ ».
+
+Les noms d'hôtes sont souvent utilisés avec des programmes clients et
+serveurs réseau, qui devront en général traduire le nom en une adresse
+utilisable. (Cette tâche est habituellement réalisée par \fBgetaddrinfo\fP(3)
+ou par la fonction obsolète \fBgethostbyname\fP(3)). Les noms d'hôtes sont
+traduits par le «\ Internet Name Resolver\ » en suivant la méthode suivante.
+
+Si le nom n'est constitué que d'un seul composant, c'est\-à\-dire qu'il ne
+contient pas de point, et si la variable d'environnement \fBHOSTALIASES\fP
+contient le nom d'un fichier, ce dernier est parcouru à la recherche d'une
+chaîne correspondant au nom d'hôte. Le fichier doit être constitué de lignes
+composées de deux chaînes séparées par des caractères blancs, la première
+est l'alias du nom d'hôte, et la seconde est le nom complet de l'hôte, à
+substituer à l'alias. Si une correspondance (sans différencier les
+majuscules et minuscules) est trouvée entre le nom d'hôte à résoudre et le
+premier champ d'une ligne, le nom substitué est utilisé sans traitement
+supplémentaire.
+
+Si le nom d'hôte original se termine par un point final, ce dernier est
+enlevé et le nom restant est recherché sans traitement supplémentaire.
+
+Si le nom d'entrée ne se termine pas par un point final, on le recherche en
+parcourant une liste de domaine jusqu'à ce qu'une correspondance
+apparaisse. La liste de recherche par défaut inclut le domaine local puis
+son domaine parent, avec au moins deux noms de composants (le plus long
+d'abord). Par exemple, dans le domaine CS.Berkeley.EDU, le nom lithium.CChem
+sera d'abord recherché en tant que lithium.CChem.CS.Berkeley.EDU puis comme
+lithium.CChem.Berkeley.EDU. En revanche, lithium.CChem.EDU ne sera pas
+essayé, car il ne reste qu'un seul composant du domaine local. Le chemin de
+recherche peut être modifié par un fichier de configuration général pour le
+système (consultez \fBresolver\fP(5)).
+.SH "VOIR AUSSI"
+.\" .SH HISTORY
+.\" Hostname appeared in
+.\" 4.2BSD.
+\fBgethostbyname\fP(3), \fBresolver\fP(5), \fBmailaddr\fP(7), \fBnamed\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2008).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

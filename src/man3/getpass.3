@@ -1,0 +1,142 @@
+.\" Copyright (c) 2000 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETPASS 3 "21 juin 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+getpass \- Obtenir un mot de passe (password)
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBchar *getpass( const char *\fP\fIprompt\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBgetpass\fP()\ :
+.ad l
+.RS 4
+.PD 0
+.TP  4
+Depuis la glibc 2.2.2\ :
+.nf
+_BSD_SOURCE ||
+    (_XOPEN_SOURCE\ >=\ 500 ||
+        _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED) &&
+    !(_POSIX_C_SOURCE\ >=\ 200112L || _XOPEN_SOURCE\ >=\ 600)
+.fi
+.TP  4
+Avant la glibc 2.2.2\ :
+aucune
+.PD
+.RE
+.ad b
+.SH DESCRIPTION
+Cette fonction est obsolète. Ne l'utilisez pas. Si vous voulez lire une
+entrée de terminal sans écho local, consultez la description du drapeau
+\fIECHO\fP dans \fBtermios\fP(3).
+.PP
+La fonction \fBgetpass\fP() ouvre \fI/dev/tty\fP (le terminal de contrôle du
+processus)  affiche le message d'accueil \fIprompt\fP, éteint l'écho local, lit
+une ligne (le mot de passe), puis restaure l'état de \fI/dev/tty\fP et le
+referme.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBgetpass\fP() renvoie un pointeur sur une chaîne de caractères
+allouée statiquement contenant les \fBPASS_MAX\fP premiers caractères du mot de
+passe sans le retour chariot final, terminé par un caractère nul
+(«\ \e0\ »). Ce tampon peut être écrasé par un autre appel. En cas d'erreur,
+l'état du terminal est restauré, \fIerrno\fP est rempli, et la fonction renvoie
+NULL.
+.SH ERREURS
+La fonction peut échouer dans les cas suivants\ :
+.TP 
+\fBENXIO\fP
+Le processus n'a pas de terminal de contrôle.
+.SH FICHIERS
+.\" .SH HISTORY
+.\" A
+.\" .BR getpass ()
+.\" function appeared in Version 7 AT&T UNIX.
+\fI/dev/tty\fP
+.SH ATTRIBUTS
+.SS "Multithreading (voir pthreads(7))"
+La fonction \fBgetpass\fP() n'est pas sûre dans un contexte multithread.
+.SH CONFORMITÉ
+Présent dans SUSv2, mais marquée «\ LEGACY\ ». Supprimé de POSIX.1\-2001.
+.SH NOTES
+Dans les versions libc4 et libc5, le message n'est pas affiché sur
+\fI/dev/tty\fP mais sur \fIstderr\fP. De plus, si \fI/dev/tty\fP ne peut être ouvert,
+le mot de passe est lu depuis \fIstdin\fP. Le tampon statique a une longueur de
+128 octets, aussi seulement 127 caractères du mot de passe sont
+renvoyés. Durant la lecture, les signaux (\fBSIGINT\fP, \fBSIGQUIT\fP, \fBSIGSTOP\fP,
+\fBSIGTSTP\fP) sont désactivés et les caractères de contrôle correspondant (en
+général Ctrl\-C, Ctrl\-\e, Ctrl\-Z et Ctrl\-Y) sont transmis comme part
+intégrante du mot de passe. Depuis la libc\ 5.4.19, l'édition de ligne est
+également désactivée, ainsi les retours en arrières, etc., seront présents
+dans le mot de passe.
+.PP
+Pour la glibc2, si \fI/dev/tty\fP ne peut pas être ouvert, le message est
+envoyé sur \fIstderr\fP et le mot de passe lu sur \fIstdin\fP. Il n'y a pas de
+limite à la longueur du mot de passe. L'édition de ligne n'est pas
+désactivée.
+.PP
+D'après SUSv2, la valeur de \fBPASS_MAX\fP doit être définie dans
+\fI<limits.h>\fP au cas où elle est inférieure à 8, et doit toujours
+être accessible avec \fIsysconf(_SC_PASS_MAX)\fP. Quoiqu'il en soit, POSIX.2
+retire les constantes \fBPASS_MAX\fP et \fB_SC_PASS_MAX\fP, ainsi que la fonction
+\fBgetpass\fP(). Les bibliothèques libc4 et libc5 n'ont jamais géré \fBPASS_MAX\fP
+ou \fB_SC_PASS_MAX\fP. La glibc2 accepte \fB_SC_PASS_MAX\fP et renvoie \fBBUFSIZ\fP
+(par exemple, 8192).
+.SH BOGUES
+Le processus appelant doit effacer le mot de passe saisi aussi vite que
+possible, afin d'éviter d'en conserver une copie en texte clair dans son
+espace d'adressage.
+.SH "VOIR AUSSI"
+\fBcrypt\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

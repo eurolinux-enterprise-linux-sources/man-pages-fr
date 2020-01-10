@@ -1,0 +1,110 @@
+.\" Copyright (C) 2006 Red Hat, Inc. All Rights Reserved.
+.\" Written by Marcela Maslanova <mmaslano@redhat.com>
+.\" and Copyright 2013, Michael kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETUNWIND 2 "13 février 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+getunwind \- Copier les données unwind vers le tampon de l'appelant
+.SH SYNOPSIS
+.nf
+\fB#include <syscall.h>\fP
+\fB#include <linux/unwind.h>\fP
+.sp
+\fBlong getunwind(void \fP\fI*buf\fP\fB, size_t \fP\fIbuf_size\fP\fB);\fP
+.fi
+
+\fIRemarque\fP\ : il n'existe pas de fonction glibc autour de cet appel
+système\ ; consultez \fBNOTES\fP.
+.SH DESCRIPTION
+\fIRemarque\ : cette fonction est obsolète.\fP
+
+L'appel système \fBgetunwind\fP() spécifique à IA\-64 copie les données unwind
+de la trame d'appel du noyau vers le tampon pointé par \fIbuf\fP et renvoie la
+taille des données unwind\ ; ces données décrivent la page gate (le code du
+noyau qui est projeté dans l'espace utilisateur).
+
+La taille du tampon \fIbuf\fP est indiquée dans \fIbuf_size\fP. Les données ne
+sont copiées que si \fIbuf_size\fP est plus grand ou égal à la taille des
+données unwind et que \fIbuf\fP n'est pas NULL\ ; sinon, aucune donnée n'est
+copiée et l'appel réussit, en renvoyant la taille qui aurait été nécessaire
+pour stocker les données unwind.
+
+La première partie des données unwind contient une table unwind. Le reste
+contient les renseignements unwind associés, sans ordre particulier. La
+table unwind contient des entrées sous la forme suivante\ :
+
+.nf
+	u64 start;      (adresse 64\ bits du début de fonction)
+	u64 end;        (adresse 64\ bits de fin de fonction)
+	u64 info;       (offset relatif au tampon des renseignements unwind)
+.fi
+
+Une entrée dont la valeur \fIstart\fP est zéro indique la fin de la table. Pour
+plus de renseignements sur le format, consultez le manuel \fIIA\-64 Software
+Conventions and Runtime Architecture\fP.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, \fBgetunwind\fP() renvoie la taille de table unwind. En cas
+d'erreur, il renvoie \-1 et remplit \fIerrno\fP avec la valeur d'erreur.
+.SH ERREURS
+\fBgetunwind\fP() échoue avec l'erreur \fBEFAULT\fP si les renseignements unwind
+ne peuvent pas être stockés dans l'espace indiqué par \fIbuf\fP.
+.SH VERSIONS
+Cet appel système est disponible depuis Linux 2.4.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux et n'est disponible que sur
+l'architecture IA\-64.
+.SH NOTES
+Cet appel système est maintenant obsolète. La façon moderne d'obtenir les
+données unwind du noyau est avec le DSO gate. L'adresse de l'en\-tête ELF
+pour ce DSO est passée au niveau utilisateur à l'aide de \fBAT_SYSINFO_EHDR\fP
+(consultez \fBgetauxval\fP(3)).
+
+La glibc ne fournit pas de fonction autour de cet appel système\ ; dans
+l'éventualité où vous voudriez quand même l'appeler, utilisez \fBsyscall\fP(2).
+.SH "VOIR AUSSI"
+\fBgetauxval\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

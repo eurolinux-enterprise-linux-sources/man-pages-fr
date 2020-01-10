@@ -1,0 +1,122 @@
+.\" This manpage is Copyright (C) 2006, Michael Kerrisk
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RENAMEAT 2 "4 mai 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+renameat \- Changer le nom d'un fichier relativement à un descripteur de
+répertoire
+.SH SYNOPSIS
+.nf
+\fB#include <fcntl.h> /* Définition des constantes AT_* */\fP
+\fB#include <stdio.h>\fP
+.sp
+\fBint renameat(int \fP\fIolddirfd\fP\fB, const char *\fP\fIoldpath\fP\fB,\fP
+\fB             int \fP\fInewdirfd\fP\fB, const char *\fP\fInewpath\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBrenameat\fP():
+.PD 0
+.ad l
+.RS 4
+.TP  4
+Depuis la glibc 2.10\ :
+_XOPEN_SOURCE\ >=\ 700 || _POSIX_C_SOURCE\ >=\ 200809L
+.TP 
+Avant la glibc 2.10\ :
+_ATFILE_SOURCE
+.RE
+.ad
+.PD
+.SH DESCRIPTION
+L'appel système \fBrenameat\fP() fonctionne exactement comme \fBrename\fP(2), les
+seules différences étant décrites sur cette page.
+
+Si le chemin donné dans \fIoldpath\fP est relatif, il est interprété par
+rapport au répertoire référencé par le descripteur de fichier \fIolddirfd\fP
+(plutôt que par rapport au répertoire de travail du processus, comme c'est
+le cas pour \fBrename\fP(2)).
+
+Si \fIoldpath\fP est un chemin relatif, et si \fIolddirfd\fP a la valeur spéciale
+\fBAT_FDCWD\fP, alors \fIoldpath\fP est interprété par rapport au répertoire de
+travail du processus (comme pour \fBrename\fP(2)).
+
+Si \fIoldpath\fP est un chemin absolu, \fIolddirfd\fP est ignoré.
+
+L'interprétation de \fInewpath\fP est identique à celle de \fIoldpath\fP, excepté
+qu'un chemin relatif est interprété par rapport au répertoire correspondant
+à \fInewdirfd\fP.
+.SH "VALEUR RENVOYÉE"
+S'il réussit l'appel \fBrenameat\fP() renvoie zéro, sinon il renvoie \-1 et
+remplit \fIerrno\fP avec le code d'erreur.
+.SH ERREURS
+Les erreurs renvoyées par \fBrename\fP(2) peuvent également l'être par
+\fBrenameat\fP(). Les erreurs supplémentaires suivantes peuvent également se
+produire\ :
+.TP 
+\fBEBADF\fP
+\fIolddirfd\fP ou \fInewdirfd\fP n'est pas un descripteur de fichier valable.
+.TP 
+\fBENOTDIR\fP
+\fIoldpath\fP est un chemin relatif, et \fIolddirfd\fP est un descripteur de
+fichier ne référençant pas un répertoire\ ; ou bien c'est le cas pour
+\fInewpath\fP et \fInewdirfd\fP.
+.SH VERSIONS
+\fBrenameat\fP() a été ajouté au noyau Linux dans sa version 2.6.16\ ; la glibc
+le gère depuis la version\ 2.4.
+.SH CONFORMITÉ
+POSIX.1\-2008.
+.SH NOTES
+Consultez \fBopenat\fP(2) pour une explication de la nécessité de
+\fBrenameat\fP().
+.SH "VOIR AUSSI"
+\fBopenat\fP(2), \fBrename\fP(2), \fBpath_resolution\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

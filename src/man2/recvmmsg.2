@@ -1,0 +1,226 @@
+.\" Copyright (C) 2011 by Andi Kleen <andi@firstfloor.org>
+.\" and Copyright (c) 2011 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Syscall added in following commit
+.\"	commit a2e2725541fad72416326798c2d7fa4dafb7d337
+.\"	Author: Arnaldo Carvalho de Melo <acme@redhat.com>
+.\"	Date:   Mon Oct 12 23:40:10 2009 -0700
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RECVMMSG 2 "24 décembre 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+recvmmsg \- Recevoir plusieurs message sur une socket
+.SH SYNOPSIS
+.nf
+\fB#define _GNU_SOURCE\fP
+\fB#include <sys/socket.h>\fP
+
+\fBint recvmmsg(int \fP\fIsockfd\fP\fB, struct mmsghdr *\fP\fImsgvec\fP\fB, unsigned int \fP\fIvlen\fP\fB,\fP
+.br
+\fB             unsigned int \fP\fIflags\fP\fB, struct timespec *\fP\fItimeout\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+L'appel système \fBrecvmmsg\fP() est une extension de \fBrecvmsg\fP(2) qui permet
+à l'appelant de recevoir plusieurs messages d'une socket en utilisant un
+seul appel système. (Cela améliore les performances pour certaines
+applications.) Une autre propriété de ce cette extension de \fBrecvmsg\fP(2)
+est la gestion d'une temporisation pour l'opération de réception.
+
+Le paramètre \fIsockfd\fP est le descripteur de fichier de la socket émettrice.
+
+L'argument \fImsgvec\fP est un pointeur vers un tableau de structures
+\fImmsghdr\fP. La taille de ce tableau est précisée dans \fIvlen\fP.
+
+La structure \fImmsghdr\fP est définie dans \fI<sys/socket.h>\fP comme
+ceci\ :
+
+.in +4n
+.nf
+struct mmsghdr {
+    struct msghdr msg_hdr;  /* En\-tête du message  */
+    unsigned int  msg_len;  /* Nombre d'octes reçus pour l'en\-tête */
+};
+.fi
+.in
+.PP
+Le champ \fImsg_hdr\fP est une structure  \fImsghdr\fP, conformément à
+\fBrecvmsg\fP(2). Le champ \fImsg_len\fP est le nombre d'octets retourné par le
+message dans l'entrée. Ce champ a la même valeur que la valeur de retour de
+la simple commande \fBrecvmsg\fP(2) sur l'en\-tête.
+
+L'argument \fIflags\fP contient le OU binaire de la collection des
+attributs. Les attributs sont ceux documentés pour \fBrecvmsg\fP(2), plus\ :
+.TP 
+\fBMSG_WAITFORONE\fP (depuis Linux 2.6.34)
+Activer \fBMSG_DONTWAIT\fP après le premier message reçu.
+.PP
+L'argument \fItimeout\fP est un pointeur vers une \fIstruct timespec\fP (consultez
+\fBclock_gettime\fP(2)) définissant la temporisation (en secondes et
+nanosecondes) pour l'opération de réception. (Cet intervalle sera arrondi à
+la granularité de l'horloge système, et peut être légèrement modifié à cause
+des délais d'ordonnancement du noyau.) Si \fItimeout\fP est le pointeur nul,
+l'opération se bloque indéfiniment.
+
+Un appel bloquant \fBrecvmmsg\fP() bloque jusqu'à la réception de \fIvlsen\fP
+messages ou l'expiration de la temporisation. Un appel non bloquant lit
+autant de messages que disponibles (jusqu'à la limite indiquée par \fIvlen\fP)
+et retourne immédiatement.
+
+Au retour de \fBrecvmmsg\fP(), les éléments successifs de \fImsgvec\fP sont mis à
+jour pour contenir l'information concernant chaque message reçu : les champs
+secondaires de \fImsg_hdr\fP sont mis à jour conformément à \fBrecmsg\fP(2). La
+valeur de retour de l'appel indique le nombre d'éléments de \fImsgvec\fP mis à
+jour.
+.SH "VALEUR RENVOYÉE"
+En cas du succès, \fBrecvmmsg\fP() retourne le nombre de messages reçus dans
+\fImsgvec\fP\ ; Dans le cas contraire, il renvoie \-1 et remplit \fIerrno\fP avec le
+code d'erreur.
+.SH ERREURS
+Les erreurs sont les mêmes que pour \fBrecvmsg\fP(2), plus l'erreur suivante\ :
+.TP 
+\fBEINVAL\fP
+\fItimeout\fP n'est pas valable.
+.SH VERSIONS
+L'appel système \fBrecvmmsg\fP() a été ajouté dans Linux\ 2.6.33. La prise en
+charge dans la glibc a été ajoutée dans la version\ 2.12.
+.SH CONFORMITÉ
+\fBrecvmmsg\fP() est spécifique à Linux.
+.SH EXEMPLE
+.PP
+Le programme suivant utilise \fBrecvmmsg\fP() pour recevoir plusieurs messages
+sur une socket et les stocker dans plusieurs tampons. L'appel termine si
+tous les tampons sont remplis ou si le délai indiqué est dépassé.
+
+Le morceau de code suivant engendre périodiquement des datagrammes UDP
+contenant un nombre aléatoire\ :
+.in +4n
+.nf
+
+$\fB while true; do echo $RANDOM > /dev/udp/127.0.0.1/1234; \fP
+\fBsleep 0.25; done\fP
+.fi
+.in
+
+Ces datagrammes sont lus par le programme ci\-dessous, qui peut par exemple
+afficher la sortie suivante\ :
+.in +4n
+.nf
+
+$\fB ./a.out\fP
+5 messages reçus
+1 11782
+2 11345
+3 304
+4 13514
+5 28421
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+#define _GNU_SOURCE
+#include <netinet/ip.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+
+int
+main(void)
+{
+#define VLEN 10
+#define BUFSIZE 200
+#define TIMEOUT 1
+    int sockfd, retval, i;
+    struct sockaddr_in sa;
+    struct mmsghdr msgs[VLEN];
+    struct iovec iovecs[VLEN];
+    char bufs[VLEN][BUFSIZE+1];
+    struct timespec timeout;
+
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd == \-1) {
+        perror("socket()");
+        exit(EXIT_FAILURE);
+    }
+
+    sa.sin_family = AF_INET;
+    sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    sa.sin_port = htons(1234);
+    if (bind(sockfd, (struct sockaddr *) &sa, sizeof(sa)) == \-1) {
+        perror("bind()");
+        exit(EXIT_FAILURE);
+    }
+
+    memset(msgs, 0, sizeof(msgs));
+    for (i = 0; i < VLEN; i++) {
+        iovecs[i].iov_base = bufs[i];
+        iovecs[i].iov_len = BUFSIZE;
+        msgs[i].msg_hdr.msg_iov = &iovecs[i];
+        msgs[i].msg_hdr.msg_iovlen = 1;
+    }
+
+    timeout.tv_sec = TIMEOUT;
+    timeout.tv_nsec = 0;
+
+    resultat = recvmmsg(sockfd, msgs, VLEN, 0, &timeout);
+    if (resultat == \-1) {
+        perror("recvmmsg()");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("%d messages reçus\en", resultat);
+    for (i = 0; i < resultat; i++) {
+        bufs[i][msgs[i].msg_len] = 0;
+        printf("%d %s", i+1, bufs[i]);
+    }
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBclock_gettime\fP(2), \fBrecvmsg\fP(2), \fBsendmmsg\fP(2), \fBsendmsg\fP(2),
+\fBsocket\fP(2), \fBsocket\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

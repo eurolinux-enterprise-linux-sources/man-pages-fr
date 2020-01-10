@@ -1,0 +1,175 @@
+.\" t
+.\" Copyright (c) 2005 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SIGSET 3 "20 septembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+sigset, sighold, sigrelse, sigignore \- API signaux System\ V
+.SH SYNOPSIS
+\fB#include <signal.h>\fP
+.sp
+\fBtypedef void (*sighandler_t)(int);\fP
+.sp
+\fBsighandler_t sigset(int \fP\fIsig\fP\fB, sighandler_t \fP\fIdisp\fP\fB);\fP
+.sp
+\fBint sighold(int \fP\fIsig\fP\fB);\fP
+.sp
+\fBint sigrelse(int \fP\fIsig\fP\fB);\fP
+.sp
+\fBint sigignore(int \fP\fIsig\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBsigset\fP(), \fBsighold\fP(), \fBsigrelse\fP(), \fBsigignore\fP()\ :
+.br
+.RS 4
+_XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.RE
+.ad
+.SH DESCRIPTION
+Ces fonctions sont fournies dans la glibc comme interface de compatibilité
+pour les programmes qui utilisent l'API signaux System\ V historique. Cette
+API est obsolète, les nouvelles applications devraient utiliser l'API
+signaux POSIX (\fBsigaction\fP(2), \fBsigprocmask\fP(2), etc.).
+
+La fonction \fBsigset\fP() modifie le dispositif du signal \fIsig\fP. L'argument
+\fIdisp\fP peut être l'adresse d'une fonction gestionnaire de signaux ou l'une
+des constantes suivantes\ :
+.TP 
+\fBSIG_DFL\fP
+Réinitialiser le dispositif de \fIsig\fP à sa valeur par défaut.
+.TP 
+\fBSIG_IGN\fP
+Ignorer \fIsig\fP.
+.TP 
+\fBSIG_HOLD\fP
+Ajouter \fIsig\fP au masque de signaux du processus, mais laisser le dispositif
+de \fIsig\fP inchangé.
+.PP
+Si \fIdisp\fP spécifie l'adresse d'un gestionnaire de signaux, \fIsig\fP est
+ajouté au masque de signaux du processus pendant l'exécution du
+gestionnaire.
+.PP
+Si \fIdisp\fP a été spécifié à une autre valeur que \fBSIG_HOLD\fP, \fIsig\fP est
+retiré du masque de signaux du processus.
+.PP
+Les dispositifs pour \fBSIGKILL\fP et \fBSIGSTOP\fP ne peuvent pas être modifiés.
+.PP
+La fonction \fBsighold\fP() ajoute \fIsig\fP au masque de signaux du processus
+appelant.
+
+La fonction \fBsigrelse\fP() retire \fIsig\fP du masque de signaux du processus
+appelant.
+
+La fonction \fBsigignore\fP() configure le dispositif de \fIsig\fP à \fBSIG_IGN\fP.
+.SH "VALEUR RENVOYÉE"
+Si elle réussit, \fBsigset\fP() renvoie \fBSIG_HOLD\fP si \fIsig\fP était bloqué
+avant l'appel ou le dispositif précédent du signal s'il n'était pas bloqué
+avant l'appel. Si elle échoue, \fBsigset\fP() renvoie \-1 et écrit \fIerrno\fP pour
+indiquer l'erreur (mais consultez la section des BOGUES ci\-dessous).
+
+Les fonctions \fBsighold\fP(), \fBsigrelse\fP() et \fBsigignore\fP() renvoient 0 si
+elle réussissent et \-1 si elles échouent et écrivent \fIerrno\fP pour indiquer
+l'erreur.
+.SH ERREURS
+Pour \fBsigset\fP(), voir la section ERREURS des pages de manuel
+\fBsigaction\fP(2) et \fBsigprocmask\fP(2).
+
+Pour \fBsighold\fP() et \fBsigrelse\fP(), voir la section ERREURS de la page de
+manuel \fBsigprocmask\fP(2).
+
+Pour \fBsigignore\fP(), voir la section ERREURS de la page de manuel
+\fBsigaction\fP(2).
+.SH CONFORMITÉ
+SVr4, POSIX.1\-2001. Ces fonctions sont obsolètes. Ne les utilisez pas dans
+de nouveaux programmes. POSIX.1\-2008 marque \fBsighold\fP(), \fBsigignore\fP(),
+\fBsigpause\fP(), \fBsigrelse\fP() et \fBsigset\fP() comme étant obsolètes, en
+recommandant d'utiliser à la place \fBsigaction\fP(2), \fBsigprocmask\fP(2),
+\fBpthread_sigmask\fP(3) et \fBsigsuspend\fP(2).
+.SH NOTES
+Ces fonctions sont apparues dans la glibc version 2.1.
+
+Le type \fIsighandler_t\fP est une extension GNU. Il n'est utilisé dans cette
+page que pour rendre le prototype de \fBsigset\fP() plus lisible.
+
+La fonction \fBsigset\fP() fournit une sémantique de gestion des signaux fiable
+(comme lorsqu'on appelle \fBsigaction\fP(2) avec \fIsa_mask\fP valant 0).
+
+Sur System\ V, la fonction \fBsignal\fP() fournit une sémantique non fiable
+(comme lorsqu'on appelle \fBsigaction\fP(2) avec \fIsa_mask\fP valant
+\fISA_RESETHAND | SA_NODEFER\fP). Sur BSD, \fBsignal\fP() fournit une sémantique
+fiable. POSIX.1\-2001 laisse ces aspects de \fBsignal\fP() non
+spécifiés. Consultez \fBsignal\fP(2) pour plus de détails.
+
+Afin d'attendre un signal, BSD et System\ V fournissent tous les deux une
+fonction nommée \fBsigpause\fP(3), mais cette fonction n'a pas le même argument
+sur les deux systèmes. Consultez \fBsigpause\fP(3) pour les détails.
+.SH BOGUES
+Dans les versions de la glibc antérieures à la 2.2, \fBsigset\fP() ne
+débloquait pas \fIsig\fP si \fIdisp\fP était spécifié à une autre valeur que
+\fBSIG_HOLD\fP.
+
+.\" See http://sourceware.org/bugzilla/show_bug.cgi?id=1951
+Dans les versions de la glibc antérieures à 2.5, \fBsigset\fP() ne renvoyait
+pas correctement le dispositif précédent du signal dans deux cas. Le
+premier, si \fIdisp\fP était spécifié à \fBSIG_HOLD\fP, un appel réussi à
+\fBsigset\fP() renvoyait toujours \fBSIG_HOLD\fP. À la place, elle aurait dû
+renvoyer le dispositif précédent du signal (à moins que le signal ne fût
+bloqué, auquel cas \fBSIG_HOLD\fP aurait été renvoyé). Le second, si le signal
+est actuellement bloqué, la valeur renvoyée par un appel à \fBsigset\fP()
+réussi devait renvoyer \fBSIG_HOLD\fP. À la place, elle renvoyait le dispositif
+précédent du signal. Ces problèmes ont été résolus depuis la version 2.5 de
+la glibc.
+.SH "VOIR AUSSI"
+\fBkill\fP(2), \fBpause\fP(2), \fBsigaction\fP(2), \fBsignal\fP(2), \fBsigprocmask\fP(2),
+\fBraise\fP(3), \fBsigpause\fP(3), \fBsigvec\fP(3), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

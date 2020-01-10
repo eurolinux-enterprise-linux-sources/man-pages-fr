@@ -1,0 +1,177 @@
+.\" This manpage is Copyright (C) 1992 Drew Eckhardt;
+.\"             and Copyright (C) 1993 Michael Haardt, Ian Jackson.
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 1993-07-23 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1994-08-21 by Michael Haardt
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2005-04-04, as per suggestion by Michael Hardt for rename.2
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH LINK 2 "27 janvier 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+link \- Créer un nouveau nom pour un fichier
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBint link(const char *\fP\fIoldpath\fP\fB, const char *\fP\fInewpath\fP\fB);\fP
+.SH DESCRIPTION
+\fBlink\fP() crée un nouveau lien (aussi appelé lien matériel ou hard link) sur
+un fichier existant.
+
+Si \fInewpath\fP existe, il ne sera \fIpas\fP écrasé.
+
+Ce nouveau nom pourra être utilisé exactement comme l'ancien quelle que soit
+l'opération. Les deux noms réfèrent au même fichier (et ont donc les mêmes
+permissions et propriétaire) et il est impossible de déterminer quel nom
+était l'original.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+L'écriture dans le répertoire contenant \fInewpath\fP n'est pas autorisée pour
+l'UID effectif du processus, ou l'un des répertoires de \fIoldpath\fP ou
+\fInewpath\fP ne permet pas le parcours (exécution). Consultez aussi
+\fBpath_resolution\fP(7).
+.TP 
+\fBEDQUOT\fP
+Le quota de blocs de disque de l'utilisateur sur le système de fichiers a
+été atteint.
+.TP 
+\fBEEXIST\fP
+\fInewpath\fP existe déjà.
+.TP 
+\fBEFAULT\fP
+\fIoldpath\fP ou \fInewpath\fP pointent en dehors de l'espace d'adressage
+accessible.
+.TP 
+\fBEIO\fP
+Une erreur d'entrée\-sortie s'est produite.
+.TP 
+\fBELOOP\fP
+Trop de liens symboliques ont été rencontrés en parcourant \fIoldpath\fP ou
+\fInewpath\fP.
+.TP 
+\fBEMLINK\fP
+Le fichier référencé par \fIoldpath\fP possède déjà le nombre maximal de liens.
+.TP 
+\fBENAMETOOLONG\fP
+\fIoldpath\fP ou \fInewpath\fP est trop long.
+.TP 
+\fBENOENT\fP
+Un répertoire contenu dans \fIoldpath\fP ou \fInewpath\fP n'existe pas, ou est un
+lien symbolique pointant nulle part.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.TP 
+\fBENOSPC\fP
+Le périphérique contenant le fichier n'a pas de place pour une nouvelle
+entrée de répertoire.
+.TP 
+\fBENOTDIR\fP
+Un élément du chemin d'accès \fIoldpath\fP ou \fInewpath\fP n'est pas réellement
+un répertoire.
+.TP 
+\fBEPERM\fP
+\fIoldpath\fP est un répertoire.
+.TP 
+\fBEPERM\fP
+Le système de fichiers contenant \fIoldpath\fP et \fInewpath\fP ne permet pas la
+création de liens matériels.
+.TP 
+\fBEPERM\fP (depuis Linux\ 3.6)
+L'appelant n'a pas le droit de créer un lien matériel vers ce fichier
+(consultez la description de \fI/proc/sys/fs/protected_hardlink\fP dans
+\fBproc\fP(5)).
+.TP 
+\fBEROFS\fP
+Le fichier se trouve sur un système de fichiers en lecture seule.
+.TP 
+\fBEXDEV\fP
+\fIoldpath\fP et \fInewpath\fP ne résident pas sur le même système de
+fichiers. (Linux permet de monter un système de fichiers à différents
+endroits, mais \fBlink\fP() ne fonctionne pas sur différents points de montage,
+même si le système de fichiers sous\(hyjacent est le même.
+.SH CONFORMITÉ
+.\" SVr4 documents additional ENOLINK and
+.\" EMULTIHOP error conditions; POSIX.1 does not document ELOOP.
+.\" X/OPEN does not document EFAULT, ENOMEM or EIO.
+SVr4, BSD\ 4.3, POSIX.1\-2001 (mais consultez la section NOTES).
+.SH NOTES
+Les liens matériels créés par \fBlink\fP(), ne peuvent pas s'étendre sur
+plusieurs systèmes de fichiers. Utilisez plutôt \fBsymlink\fP(2) si ceci est
+nécessaire.
+
+.\" more precisely: since kernel 1.3.56
+.\" For example, the default Solaris compilation environment
+.\" behaves like Linux, and contributors to a March 2005
+.\" thread in the Austin mailing list reported that some
+.\" other (System V) implementations did/do the same -- MTK, Apr 05
+Selon POSIX.1\-2001, \fBlink\fP() devrait déréférencer \fIoldpath\fP s'il s'agit
+d'un lien symbolique. Cependant, depuis le noyau 2.0, Linux ne se comporte
+pas comme cela\ : si \fIoldpath\fP est un lien symbolique, alors \fInewpath\fP est
+créé comme un lien matériel vers le même fichier de lien symbolique
+(c'est\(hyà\(hydire que \fInewpath\fP devient un lien symbolique vers le
+fichier sur lequel pointe \fIoldpath\fP). Certaines autres implémentations ont
+le même comportement que Linux. POSIX.1\-2008 change la spécification de
+\fBlink\fP(), en rendant dépendant de l'implémentation le fait que \fIoldpath\fP
+est déréférencé s'il s'agit d'un lien symbolique. Pour un contrôle précis
+sur le traitement des liens symboliques pour la création d'un lien,
+consultez \fBlinkat\fP(2).
+.SH BOGUES
+Sur les systèmes de fichiers NFS, le code de retour peut être faux si le
+serveur NFS a créé correctement le lien mais s'est arrêté avant de donner le
+code de retour. Utiliser dans ce cas \fBstat\fP(2) pour vérifier si le lien a
+été effectivement créé.
+.SH "VOIR AUSSI"
+\fBln\fP(1), \fBlinkat\fP(2), \fBopen\fP(2), \fBrename\fP(2), \fBstat\fP(2), \fBsymlink\fP(2),
+\fBunlink\fP(2), \fBpath_resolution\fP(7), \fBsymlink\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

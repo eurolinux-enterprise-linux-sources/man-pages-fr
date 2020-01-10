@@ -1,0 +1,175 @@
+.\" This manpage is Copyright (C) 1992 Drew Eckhardt;
+.\"             and Copyright (C) 1993 Michael Haardt
+.\"             and Copyright (C) 1993,1994 Ian Jackson.
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" You may distribute it under the terms of the GNU General
+.\" Public License. It comes with NO WARRANTY.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 1996-08-18 by urs
+.\" Modified 2003-04-23 by Michael Kerrisk
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MKNOD 2 "27 janvier 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+mknod \- Créer un nœud du système de fichiers
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <sys/stat.h>\fP
+\fB#include <fcntl.h>\fP
+\fB#include <unistd.h>\fP
+.sp
+\fBint mknod(const char *\fP\fIpathname\fP\fB, mode_t \fP\fImode\fP\fB, dev_t \fP\fIdev\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBmknod\fP()\ :
+.ad l
+.RS 4
+_BSD_SOURCE || _SVID_SOURCE || _XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.RE
+.ad
+.SH DESCRIPTION
+\fBmknod\fP() crée un nœud du système de fichiers (fichier, fichier spécial de
+périphérique ou tube nommé) appelé \fIpathname\fP, avec les attributs \fImode\fP
+et \fIdev\fP.
+
+L'argument \fImode\fP définit à la fois les permissions d'utilisation, et le
+type de nœud à créer. C'est une combinaison par \fIOU binaire\fP «\ |\ » entre
+l'un des types de nœuds ci\(hydessous et les permissions d'accès pour le
+nouveau nœud.
+
+Les permissions sont modifiées par le \fIumask\fP du processus\ : les
+permissions effectivement écrites sont \fI(mode & ~umask)\fP.
+
+.\" (S_IFSOCK since Linux 1.2.4)
+Le type de nœud doit être l'un des suivants \fBS_IFREG\fP, \fBS_IFCHR\fP,
+\fBS_IFBLK\fP, \fBS_IFIFO\fP ou \fBS_IFSOCK\fP pour indiquer respectivement un
+fichier régulier (vide à la création), un fichier spécial mode caractère, un
+fichier spécial mode bloc, un tube nommé (FIFO) ou une socket du domaine
+UNIX. Un type de fichier égal à 0 est équivalent à \fBS_IFREG\fP.
+
+Si le nœud est de type \fBS_IFCHR\fP or \fBS_IFBLK\fP alors \fIdev\fP doit indiquer
+les numéros majeurs et mineurs du périphérique associé (\fBmakedev\fP(3) peut
+être utile pour construire la valeur de \fIdev\fP). Pour les autres types de
+nœuds, \fIdev\fP est ignoré.
+
+Si \fIpathname\fP existe déjà, ou est un lien symbolique, l'appel échoue avec
+l'erreur \fBEEXIST\fP.
+
+Le nœud nouvellement créé aura pour propriétaire l'UID effectif du
+processus. Si le répertoire contenant ce nœud a son bit Set\-GID à 1, ou si
+le système de fichiers est monté avec une sémantique BSD, le nouveau nœud
+héritera de l'appartenance au groupe de son parent. Sinon il appartiendra au
+groupe effectif du processus.
+.SH "VALEUR RENVOYÉE"
+\fBmknod\fP() renvoie 0 s'il réussit, ou \-1 s'il échoue, auquel cas \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEACCES\fP
+Le répertoire parent n'autorise pas l'écriture au processus, ou l'un des
+répertoires de \fIpathname\fP n'autorise pas la consultation de son
+contenu. (Consultez aussi \fBpath_resolution\fP(7).)
+.TP 
+\fBEDQUOT\fP
+Le quota utilisateur pour le système de fichiers a été dépassé (usage de
+blocs de disque ou d'inœuds).
+.TP 
+\fBEEXIST\fP
+\fIpathname\fP existe déjà. Cela inclut le cas où \fIpathname\fP est un lien
+symbolique, pouvant pointer nulle part.
+.TP 
+\fBEFAULT\fP
+\fIpathname\fP pointe en\(hydehors de l'espace d'adressage accessible.
+.TP 
+\fBEINVAL\fP
+\fImode\fP demande la création d'autre chose qu'un fichier régulier, fichier
+spécial de périphérique, FIFO ou socket.
+.TP 
+\fBELOOP\fP
+Trop de liens symboliques ont été rencontrés en parcourant \fIpathname\fP.
+.TP 
+\fBENAMETOOLONG\fP
+\fIpathname\fP est trop long.
+.TP 
+\fBENOENT\fP
+Un des répertoires du chemin d'accès \fIpathname\fP n'existe pas ou est un lien
+symbolique pointant nulle part.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.TP 
+\fBENOSPC\fP
+Le périphérique contenant \fIpathname\fP n'a pas assez de place pour le nouveau
+nœud.
+.TP 
+\fBENOTDIR\fP
+Un élément du chemin d'accès \fIpathname\fP n'est pas un répertoire.
+.TP 
+\fBEPERM\fP
+.\" For UNIX domain sockets and regular files, EPERM is returned only in
+.\" Linux 2.2 and earlier; in Linux 2.4 and later, unprivileged can
+.\" use mknod() to make these files.
+\fImode\fP demande la création d'un nœud autre qu'un fichier régulier, une FIFO
+(tube nommé) ou une socket du domaine UNIX, alors que le processus appelant
+n'est pas privilégié (sous Linux\ : n'a pas la capacité \fBCAP_MKNOD\fP). Cette
+erreur se produit également si le système de fichiers contenant \fIpathname\fP
+ne supporte pas les nœuds du type demandé.
+.TP 
+\fBEROFS\fP
+\fIpathname\fP est placé sur un système de fichiers en lecture seule.
+.SH CONFORMITÉ
+.\" The Linux version differs from the SVr4 version in that it
+.\" does not require root permission to create pipes, also in that no
+.\" EMULTIHOP, ENOLINK, or EINTR error is documented.
+SVr4, BSD\ 4.4, POSIX.1\-2001 (mais voir plus loin).
+.SH NOTES
+POSIX.1\-2001 dit\ : «\ Le seul usage portable de \fBmknod\fP() est réservé à la
+création de fichiers spéciaux FIFO. Si le \fImode\fP n'est pas \fBS_IFIFO\fP ou si
+\fIdev\fP n'est pas 0, alors le comportement de \fBmknod\fP() est indéterminé\ ». Toutefois, aujourd'hui, on ne devrait jamais utiliser \fBmknod\fP() pour
+cela\ ; on devrait utiliser \fBmkfifo\fP(3), une fonction spécialement conçue
+pour cela.
+
+.\" and one should make UNIX domain sockets with socket(2) and bind(2).
+Sous Linux \fBmknod\fP ne peut pas être utilisé pour créer des répertoires. Il
+faut créer les répertoires avec \fBmkdir\fP(2).
+
+Il y a de nombreux problèmes avec le protocole sous\(hyjacent à NFS,
+certains d'entre eux pouvant affecter \fBmknod\fP().
+.SH "VOIR AUSSI"
+\fBchmod\fP(2), \fBchown\fP(2), \fBfcntl\fP(2), \fBmkdir\fP(2), \fBmknodat\fP(2),
+\fBmount\fP(2), \fBsocket\fP(2), \fBstat\fP(2), \fBumask\fP(2), \fBunlink\fP(2),
+\fBmakedev\fP(3), \fBmkfifo\fP(3), \fBpath_resolution\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

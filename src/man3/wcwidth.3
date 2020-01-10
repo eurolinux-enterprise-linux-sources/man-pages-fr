@@ -1,0 +1,71 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH WCWIDTH 3 "28 septembre 2011" GNU "Manuel du programmeur Linux"
+.SH NOM
+wcwidth \- Connaître le nombre de colonnes nécessaires pour un caractère
+large
+.SH SYNOPSIS
+.nf
+\fB#define _XOPEN_SOURCE\fP       /* Consultez feature_test_macros(7) */
+\fB#include <wchar.h>\fP
+.sp
+\fBint wcwidth(wchar_t \fP\fIc\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBwcwidth\fP() renvoie le nombre de colonnes nécessaires pour
+représenter le caractère large \fIc\fP. Si \fIc\fP est un caractère large
+imprimable, la valeur est au moins 0. Si \fIc\fP est un caractère large nul
+(L\(aq\e0\(aq), la valeur renvoyée est 0. Sinon \-1 est renvoyé.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBwcwidth\fP() renvoie le nombre de colonnes pour \fIc\fP.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+
+Notez que la glibc avant 2.2.5 utilisait le prototype
+.br
+.nf
+\fBint wcwidth(wint_t \fP\fIc\fP\fB);\fP
+.fi
+.SH NOTES
+Le comportement de \fBwcwidth\fP() dépend de la catégorie \fBLC_CTYPE\fP de la
+locale utilisée.
+.SH "VOIR AUSSI"
+\fBiswprint\fP(3), \fBwcswidth\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

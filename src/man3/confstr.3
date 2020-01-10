@@ -1,0 +1,134 @@
+.\" Copyright (c) 1993 by Thomas Koenig (ig25@rz.uni-karlsruhe.de)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sat Jul 24 19:53:02 1993 by Rik Faith (faith@cs.unc.edu)
+.\" FIXME Many more values for 'name' are supported, some of which
+.\"	are documented under 'info confstr'.
+.\"	See <bits/confname.h> for the rest.
+.\"	These should all be added to this page.
+.\"	See also the POSIX.1-2001 specification of confstr()
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH CONFSTR 3 "10 mai 2012" GNU "Manuel du programmeur Linux"
+.SH NOM
+confstr \- Lire une chaîne de caractères dépendant de la configuration
+.SH SYNOPSIS
+.nf
+\fB#include <unistd.h>\fP
+.sp
+\fBsize_t confstr(int \fP\fIname\fP\fB, char *\fP\fIbuf\fP\fB, size_t \fP\fIlen\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBconfstr\fP()\ : _POSIX_C_SOURCE\ >=\ 2 || _XOPEN_SOURCE
+.SH DESCRIPTION
+La fonction \fBconfstr\fP() fournit la valeur d'une chaîne de caractères
+dépendante de la configuration.
+.PP
+L'argument \fIname\fP est la variable système réclamée. Les variables suivantes
+sont supportées\ :
+.TP 
+\fB_CS_GNU_LIBC_VERSION\fP (Bibliothèque GNU C seulement\ ; depuis la glibc\ 2.3.2)
+Une chaîne qui identifie la version de la bibliothèque GNU C du système (par
+exemple, «\ glibc\ 2.3.4\ »).
+.TP 
+\fB_CS_GNU_LIBPTHREAD_VERSION\fP (Bibliothèque GNU C seulement\ ; depuis la glibc\ 2.3.2)
+Une chaîne qui identifie l'implémentation POSIX fournie par la bibliothèque
+C du système (par exemple, «\ NPTL\ 2.3.4\ » ou «\ linuxthreads\-0.10\ »).
+.TP 
+\fB_CS_PATH\fP
+Une valeur de la variable \fBPATH\fP indiquant les emplacements où les
+utilitaires standard POSIX.2 peuvent être trouvés.
+.PP
+Si \fIbuf\fP n'est pas NULL, et si \fIlen\fP est différent de 0, alors
+\fBconfstr\fP() copie la valeur de la chaîne dans le tampon \fIbuf\fP, en limitant
+la longueur à \fIlen \- 1\fP octets si nécessaire, terminée par un octet nul
+(«\ \e0\ »). On peut détecter la troncature de la chaîne en comparant le
+résultat de \fBconfstr\fP() avec le paramètre \fIlen\fP.
+.PP
+Si \fIlen\fP est nulle, et si \fIbuf\fP vaut NULL, alors \fBconfstr\fP() renvoie
+simplement la valeur définie ci\-dessus.
+.SH "VALEUR RENVOYÉE"
+Si \fIname\fP est une variable de configuration valide, \fBconfstr\fP() renvoie le
+nombre d'octets (incluant le caractère nul) qui doit être utilisé pour
+enregistrer la variable. Cette valeur peut être plus grande que \fIlen\fP, ce
+qui signifie que la valeur de \fIbuf\fP est tronquée.
+
+Si \fIname\fP est une variable de configuration valable sans valeur, alors
+\fBconfstr\fP() renvoie 0. Si \fIname\fP ne correspond pas à une variable de
+configuration valable, \fBconfstr\fP() renvoie 0 et \fIerrno\fP est définie à
+\fBEINVAL\fP.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+Si la valeur de \fIname\fP n'est pas valable.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH EXEMPLE
+Le fragment de code ci\-dessous détermine le chemin d'accès aux utilitaires
+POSIX.2\ :
+.br
+.nf
+.in +4n
+
+char *pathbuf;
+size_t n;
+
+n = confstr(_CS_PATH, NULL, (size_t) 0);
+pathbuf = malloc(n);
+if (pathbuf == NULL)
+    abort();
+confstr(_CS_PATH, pathbuf, n);
+.in
+.fi
+.SH "VOIR AUSSI"
+\fBsh\fP(1), \fBexec\fP(3), \fBsystem\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

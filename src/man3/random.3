@@ -1,0 +1,160 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sun Mar 28 00:25:51 1993, David Metcalfe
+.\" Modified Sat Jul 24 18:13:39 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Aug 20 21:47:07 2000, aeb
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH RANDOM 3 "19 avril 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+random, srandom, initstate, setstate \- Générateur de nombres aléatoires
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBlong int random(void);\fP
+
+\fBvoid srandom(unsigned int \fP\fIseed\fP\fB);\fP
+
+\fBchar *initstate(unsigned int \fP\fIseed\fP\fB, char *\fP\fIstate\fP\fB, size_t \fP\fIn\fP\fB);\fP
+.br
+\fBchar *setstate(char *\fP\fIstate\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBrandom\fP(), \fBsrandom\fP(), \fBinitstate\fP(), \fBsetstate\fP()\ :
+.RS 4
+_SVID_SOURCE || _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.RE
+.ad
+.SH DESCRIPTION
+La fonction \fBrandom\fP() utilise un générateur de nombre aléatoire non
+linéaire («\ non\-linear additive feedback random number generator\ »)
+utilisant une table par défaut de 31 entiers longs pour renvoyer
+successivement des nombres pseudoaléatoires entre 0 et \fBRAND_MAX\fP. La
+période de ce générateur est très grande, approximativement \fI16\ *\ ((2^31)\ \-\ 1)\fP.
+.PP
+La fonction \fBsrandom\fP() utilise son argument comme «\ graine\ » pour
+engendrer une nouvelle séquence de nombre pseudoaléatoires qui seront
+fournis lors des appels à \fBrandom\fP(). Ces séquences sont reproductibles en
+invoquant \fBsrandom\fP() avec la même graine. Si aucune graine n'est fournie,
+La fonction \fBrandom\fP() utilise automatiquement une graine originale de
+valeur 1.
+.PP
+La fonction \fBinitstate\fP() permet d'initialiser une table d'états \fIstate\fP
+pour l'utiliser avec \fBrandom\fP(). La taille \fIn\fP de la table est utilisée
+par \fBinitstate\fP() pour déterminer le niveau de sophistication du générateur
+de nombre aléatoires. Plus grande est la table d'état, meilleurs seront les
+nombres aléatoires. \fIseed\fP est la graine utilisée pour l'initialisation,
+indiquant un point de départ pour la séquence de nombres, et permet de
+redémarrer au même endroit.
+.PP
+La fonction \fBsetstate\fP() modifie la table d'états utilisée par la fonction
+\fBrandom\fP(). La table d'état \fIstate\fP est alors utilisée comme générateur de
+nombres aléatoires jusqu'au prochain appel de \fBinitstate\fP() ou
+\fBsetstate\fP(). \fIstate\fP doit d'abord être initialisée avec \fBinitstate\fP() ou
+être le résultat d'un appel précédent à \fBsetstate\fP()
+.SH "VALEUR RENVOYÉE"
+La fonction \fBrandom\fP() renvoie une valeur entre 0 et \fBRAND_MAX\fP. La
+fonction \fBsrandom\fP() ne renvoie pas de valeur.
+
+La fonction \fBinitstate\fP() renvoie un pointeur sur la table d'états
+précédente. En cas d'échec, \fIerrno\fP contient le code d'erreur.
+
+La fonction \fBsetstate\fP() renvoie un pointeur sur la table d'états
+précédente. En cas d'échec, NULL est renvoyé et \fIerrno\fP contient le code
+d'erreur.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+Le paramètre \fIstate\fP de \fBsetstate\fP() était NULL.
+.TP 
+\fBEINVAL\fP
+Une table d'états de moins de 8\ octets a été fournie à \fBinitstate\fP().
+.SH CONFORMITÉ
+BSD\ 4.3, POSIX.1\-2001.
+.SH NOTES
+Actuellement, les valeurs optimales \fIn\fP, pour la taille de la table d'états
+sont 8, 32, 64, 128, et 256\ octets. Les autres valeurs seront arrondies à
+la taille la plus proche. Essayer d'utiliser moins de 8\ octets déclenche
+une erreur.
+.PP
+Cette fonction ne devrait pas être utilisée si plusieurs threads utilisent
+\fBrandom\fP() et si le comportement doit être reproductible. Utilisez
+\fBrandom_r\fP(3) dans ce cas.
+.PP
+La génération de nombres aléatoires est un sujet complexe. \fINumerical
+Recipes in C: The Art of Scientific Computing\fP (William H. Press, Brian
+P. Flannery, Saul A. Teukolsky, William T. Vetterling; New York: Cambridge
+University Press, 2007, 3rd ed.) fournit une excellente discussion sur les
+problèmes pratiques de génération de noms aléatoires dans le chapitre\ 7
+(Random Numbers).
+.PP
+Pour une discussion plus théorique, qui aborde également en profondeur
+d'autres domaines, voir le chapitre 3 (Random Numbers) du livre de Donald
+E. Knuth \fIThe Art of Computer Programming\fP, volume 2 (Seminumerical
+Algorithms), 2nd ed.; Reading, Massachusetts: Addison\-Wesley Publishing
+Company, 1981.
+.SH BOGUES
+.\" http://sourceware.org/bugzilla/show_bug.cgi?id=15380
+D'après POSIX, \fBinitstate\fP() devrait renvoyer NULL en cas d'erreur. Dans la
+mise en œuvre de la glibc, \fIerrno\fP est renseigné en cas d'erreur comme
+spécifié, mais la fonction ne renvoie pas NULL
+.SH "VOIR AUSSI"
+\fBdrand48\fP(3), \fBrand\fP(3), \fBrandom_r\fP(3), \fBsrand\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

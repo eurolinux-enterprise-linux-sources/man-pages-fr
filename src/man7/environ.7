@@ -1,0 +1,187 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de),
+.\"   Fri Apr  2 11:32:09 MET DST 1993
+.\" and Andries Brouwer (aeb@cwi.nl), Fri Feb 14 21:47:50 1997.
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sun Jul 25 10:45:30 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Sun Jul 21 21:25:26 1996 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified Mon Oct 21 17:47:19 1996 by Eric S. Raymond (esr@thyrsus.com)
+.\" Modified Wed Aug 27 20:28:58 1997 by Nicolás Lichtmaier (nick@debian.org)
+.\" Modified Mon Sep 21 00:00:26 1998 by Andries Brouwer (aeb@cwi.nl)
+.\" Modified Wed Jan 24 06:37:24 2001 by Eric S. Raymond (esr@thyrsus.com)
+.\" Modified Thu Dec 13 23:53:27 2001 by Martin Schulze <joey@infodrom.org>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ENVIRON 7 "25 juillet 2009" Linux "Manuel du programmeur Linux"
+.SH NOM
+environ \- Environnement utilisateur
+.SH SYNOPSIS
+.nf
+\fBextern char **\fP\fIenviron\fP\fB;\fP
+.br
+.fi
+.SH DESCRIPTION
+La variable \fIenviron\fP pointe sur un tableau de pointeurs de chaînes que
+l'on nomme «\ environnement\ ». Le dernier pointeur de ce tableau vaut
+NULL. (Cette variable doit être déclarée dans les programmes utilisateurs,
+mais elle est déclarée dans le fichier d'en\(hytête \fI<unistd.h>\fP
+avec libc4 et libc5, ou bien avec glibc si \fB_GNU_SOURCE\fP est définie.) Ce
+tableau de chaînes de caractères est fourni au processus par l'appel
+\fBexec\fP(3) qui démarre le processus.
+
+Par convention, ces chaînes sont de la forme «\ \fInom\fP\fB=\fP\fIvaleur\fP\ ». Des
+exemples classiques sont\ :
+.TP 
+\fBUSER\fP
+Le nom de l'utilisateur connecté (utilisé par des programmes de style BSD).
+.TP 
+\fBLOGNAME\fP
+Le nom de l'utilisateur connecté (utilisé par certains programmes de style
+System\ V).
+.TP 
+\fBHOME\fP
+Le répertoire de login d'un utilisateur, mis en place par \fBlogin\fP(1) depuis
+le fichier \fBpasswd\fP(5).
+.TP 
+\fBLANG\fP
+Le nom de la localisation à utiliser pour les catégories non spécifiées par
+\fBLC_ALL\fP ou une variable d'environnement spécifique comme \fBLC_COLLATE\fP,
+\fBLC_CTYPE\fP, \fBLC_MESSAGES\fP, \fBLC_MONETARY\fP, \fBLC_NUMERIC\fP, \fBLC_TIME\fP,
+consultez \fBlocale\fP(5).
+.TP 
+\fBPATH\fP
+Une liste de répertoires que \fBsh\fP(1) et de nombreux autres programmes
+utilisent pour trouver un fichier dont le chemin est incomplet. Les
+répertoires sont séparés par des «\ :\ ». (De même, il existe \fBCDPATH\fP qui
+est utilisé par certains interpréteurs de commandes pour connaître le chemin
+de destination d'une commande cd, \fBMANPATH\fP utilisé par \fBman\fP(1) pour
+trouver les pages de manuel, etc.)
+.TP 
+\fBPWD\fP
+Le répertoire de travail actuel, renseigné par certains interpréteurs de
+commandes.
+.TP 
+\fBSHELL\fP
+Le nom de fichier de l'interpréteur de commandes de l'utilisateur.
+.TP 
+\fBTERM\fP
+Le type de terminal utilisé pour les affichages.
+.TP 
+\fBPAGER\fP
+L'application préférée de l'utilisateur pour afficher du texte.
+.TP 
+\fBEDITOR\fP/\fBVISUAL\fP
+.\" .TP
+.\" .B BROWSER
+.\" The user's preferred utility to browse URLs. Sequence of colon-separated
+.\" browser commands. See http://www.catb.org/~esr/BROWSER/ .
+L'application préférée de l'utilisateur pour modifier des textes.
+.PP
+D'autres noms peuvent être inscrits dans l'environnement par la commande
+\fIexport\fP avec la syntaxe «\ nom=valeur\ » sous \fBsh\fP(1), ou par la commande
+\fIsetenv\fP avec \fBcsh\fP(1). Des arguments peuvent aussi être insérés dans
+l'environnement lors d'un \fBexec\fP(3). Un programme C peut manipuler son
+environnement avec les fonctions \fBgetenv\fP(3), \fBputenv\fP(3), \fBsetenv\fP(3) et
+\fBunsetenv\fP(3).
+
+Remarquez que le comportement de nombreux programmes ou routines de
+bibliothèque est influencé par la présence ou la valeur de certaines
+variables d'environnement. En voici quelques exemples\ :
+.LP
+Les variables \fBLANG\fP, \fBLANGUAGE\fP, \fBNLSPATH\fP, \fBLOCPATH\fP, \fBLC_ALL\fP,
+\fBLC_MESSAGES\fP, etc. influencent la localisation, consultez \fBlocale\fP(5).
+.LP
+\fBTMPDIR\fP modifie le préfixe de chemin d'accès des fichiers créés par
+\fBtmpnam\fP(3) et d'autres fonctions, le répertoire temporaire utilisé par
+\fBsort\fP(1) et d'autres programmes, etc.
+.LP
+\fBLD_LIBRARY_PATH\fP, \fBLD_PRELOAD\fP et d'autres variables LD_* modifient le
+comportement de l'éditeur de lien dynamique.
+.LP
+\fBPOSIXLY_CORRECT\fP oblige certains programmes ou routines à respecter
+scrupuleusement la norme POSIX.
+.LP
+Le comportement de \fBmalloc\fP(3) est influencé par les variables \fBMALLOC_*\fP.
+.LP
+La variable \fBHOSTALIASES\fP fournit le nom du fichier d'alias consulté par
+\fBgethostbyname\fP(3).
+.LP
+\fBTZ\fP et \fBTZDIR\fP gèrent les informations sur les fuseaux horaires utilisées
+par \fBtzset\fP(3) et donc par les fonctions comme \fBctime\fP(3),
+\fBlocaltime\fP(3), \fBmktime\fP(3), \fBstrftime\fP(3). Consultez aussi
+\fBtzselect\fP(8).
+.LP
+\fBTERMCAP\fP donne des indications sur la manière de traiter le terminal (ou
+donne le nom d'un fichier contenant ces spécifications).
+.LP
+\fBCOLUMNS\fP et \fBLINES\fP indiquent aux applications la taille de la fenêtre,
+éventuellement avec préséance sur la taille réelle.
+.LP
+\fBPRINTER\fP ou \fBLPDEST\fP indiquent l'imprimante à utiliser. Consultez
+\fBlpr\fP(1).
+.LP
+Etc.
+.SH BOGUES
+Il est clair qu'il y a un risque concernant la sécurité. De nombreuses
+commandes système peuvent être induites en erreur par un utilisateur qui
+fournirait des valeurs inhabituelles pour \fBIFS\fP ou \fBLD_LIBRARY_PATH\fP.
+
+Il y a aussi un risque de pollution de l'espace des noms. Des programmes
+comme \fImake\fP et \fIautoconf\fP permettent la surcharge des noms d'utilitaires
+par défaut par des variables d'environnement avec le même nom en
+majuscules. Ainsi, on peut utiliser \fBCC\fP pour choisir le compilateur C (et
+de même \fBMAKE\fP, \fBAR\fP, \fBAS\fP, \fBFC\fP, \fBLD\fP, \fBLEX\fP, \fBRM\fP, \fBYACC\fP,
+etc.). Toutefois dans certains cas, ces variables fournissent des paramètres
+à certains programmes plutôt qu'un nom d'utilitaire. Ainsi, il existe
+\fBMORE\fP, \fBLESS\fP, ou \fBGZIP\fP. De telles utilisations sont considérées comme
+des erreurs, et doivent être évitées dans les nouveaux programmes. Les
+auteurs de \fIgzip\fP devraient penser à renommer leur option \fBGZIP_OPT\fP.
+.SH "VOIR AUSSI"
+\fBbash\fP(1), \fBcsh\fP(1), \fBlogin\fP(1), \fBsh\fP(1), \fBtcsh\fP(1), \fBexecve\fP(2),
+\fBclearenv\fP(3), \fBexec\fP(3), \fBgetenv\fP(3), \fBputenv\fP(3), \fBsetenv\fP(3),
+\fBunsetenv\fP(3), \fBlocale\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,218 @@
+.\" t
+.\" Copyright (C) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MQ_NOTIFY 3 "4 octobre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+mq_notify \- S'enregistrer pour la réception d'une notification de l'arrivée
+d'un nouveau message
+.SH SYNOPSIS
+.nf
+\fB#include <mqueue.h>\fP
+.sp
+\fBint mq_notify(mqd_t \fP\fImqdes\fP\fB, const struct sigevent *\fP\fIsevp\fP\fB);\fP
+.fi
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lrt\fP.
+.SH DESCRIPTION
+\fBmq_notify\fP() permet à un processus appelant de s'enregistrer ou de ne plus
+s'enregistrer pour délivrer une notification asynchrone lorsqu'un message
+entre dans une file de messages vide référencée par le descripteur \fImqdes\fP.
+
+L'argument \fIsevp\fP est un pointeur vers une structure \fIsigevent\fP. Pour plus
+d'informations sur cette structure, consultez \fBsigevent\fP(7).
+.PP
+Si \fIsevp\fP est un pointeur non NULL, alors \fBmq_notify\fP() enregistre le
+processus appelant afin de recevoir les notifications. Le champ
+\fIsigev_notify\fP de \fIsigevent\fP qui pointe vers \fIsevp\fP spécifie comment la
+notification est réalisée. Ce champ possède l'une des valeurs suivantes\ :
+.TP 
+\fBSIGEV_NONE\fP
+.\" When is SIGEV_NONE useful?
+Une notification «\ null\ »\ : le processus appelant est enregistré comme
+destinataire des notifications, mais aucune notification n'est envoyée
+lorsqu'un message arrive.
+.TP 
+\fBSIGEV_SIGNAL\fP
+.\" I don't know of other implementations that set
+.\" si_pid and si_uid -- MTK
+Notifier le processus en envoyant le signal spécifié dans
+\fIsigev_signo\fP. Consultez \fBsigevent\fP(7) pour plus de détails. Le champ
+\fIsi_code\fP de la structure \fIsiginfo_t\fP sera défini à \fBSI_MESGQ\fP. De plus,
+\fIsi_pid\fP sera défini au PID du processus qui envoie le message, et
+\fIsi_uid\fP sera défini à l'ID utilisateur du processus émetteur.
+.TP 
+\fBSIGEV_THREAD\fP
+Jusqu'à la livraison du message, invoquer \fIsigev_notify_function\fP comme si
+c'était la fonction de création d'un nouveau processus léger. Consultez
+\fBsigevent\fP(7) pour plus détails.
+.PP
+Seul un processus peut être enregistré pour recevoir les notifications d'une
+file de messages.
+
+Si \fIsevp\fP est NULL, et si le processus appelant est actuellement enregistré
+pour recevoir des notifications de cette file de messages, alors
+l'enregistrement est supprimé\ ; un autre processus peut s'enregistrer pour
+recevoir les notifications de cette file.
+
+Une notification de message n'est créée que lorsqu'un nouveau message arrive
+et que la file est vide. Si la file n'est pas vide à ce moment,
+\fBmq_notify\fP() est appelée, alors une notification sera créée après que la
+file est vidée et qu'un nouveau message arrive.
+
+Si un autre processus ou thread attend pour lire un message d'une file vide
+avec \fBmq_receive\fP(3), alors tout enregistrement de notification de message
+est ignoré\ : le message est délivré au processus ou au thread appelant avec
+\fBmq_receive\fP(3) et l'enregistrement de notification de message garde son
+effet.
+
+Une notification apparaît une seule fois\ : après qu'une notification est
+délivrée, l'enregistrement de notification est supprimé et d'autre processus
+peuvent s'enregistrer. Si le processus notifié souhaite recevoir la
+prochaine notification, il peut utiliser \fBmq_notify\fP() pour demander une
+autre notification. Cela doit être fait avant de vider tous les messages non
+lus de la file (Placer la file en mode non bloquant est utile pour la vider
+sans la bloquer une seule fois si elle est vide).
+.SH "VALEUR RENVOYÉE"
+Si elle réussit, la fonction \fBmq_notify\fP() renvoie 0. En cas d'erreur, elle
+renvoie \-1 et définit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEBADF\fP
+Le descripteur spécifié dans \fImqdes\fP n'est pas valable.
+.TP 
+\fBEBUSY\fP
+Un autre processus est déjà enregistré pour recevoir les notifications de
+cette file de messages.
+.TP 
+\fBEINVAL\fP
+\fIsevp\->sigev_notify\fP n'est pas l'une des valeurs permises\ ; ou
+\fIsevp\->sigev_notify\fP vaut \fBSIGEV_SIGNAL\fP et \fIsevp\->sigev_signo\fP
+n'est pas un numéro de signal valable.
+.TP 
+\fBENOMEM\fP
+Mémoire insuffisante.
+.PP
+.\" Linux does not do this
+POSIX.1\-2008 dit qu'une implémentation \fIpourrait\fP générer une erreur
+\fBEINVAL\fP si \fIsevp\fP est NULL et si l'appelant n'a pas souscrit aux
+notifications de la file \fImqdes\fP.
+.SH CONFORMITÉ
+POSIX.1\-2001.
+.SH EXEMPLE
+Le programme suivant enregistre une requête de notification pour une file de
+messages nommée avec l'un des arguments de la ligne de commande. La
+notification est réalisée en créant un thread. Le thread exécute une
+fonction qui lit un message provenant de la file puis le processus se
+termine.
+.nf
+
+#include <pthread.h>
+#include <mqueue.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#define handle_error(msg) \e
+    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+static void                     /* Thread start function */
+tfunc(union sigval sv)
+{
+    struct mq_attr attr;
+    ssize_t nr;
+    void *buf;
+    mqd_t mqdes = *((mqd_t *) sv.sival_ptr);
+
+    /* Determine max. msg size; allocate buffer to receive msg */
+
+    if (mq_getattr(mqdes, &attr) == \-1)
+        handle_error("mq_getattr");
+    buf = malloc(attr.mq_msgsize);
+    if (buf == NULL)
+        handle_error("malloc");
+
+    nr = mq_receive(mqdes, buf, attr.mq_msgsize, NULL);
+    if (nr == \-1)
+        handle_error("mq_receive");
+
+    printf("Read %ld bytes from MQ\en", (long) nr);
+    free(buf);
+    exit(EXIT_SUCCESS);         /* Terminate the process */
+}
+
+int
+main(int argc, char *argv[])
+{
+    mqd_t mqdes;
+    struct sigevent sev;
+
+    if (argc != 2) {
+	fprintf(stderr, "Usage: %s <mq\-name>\en", argv[0]);
+	exit(EXIT_FAILURE);
+    }
+
+    mqdes = mq_open(argv[1], O_RDONLY);
+    if (mqdes == (mqd_t) \-1)
+        handle_error("mq_open");
+
+    sev.sigev_notify = SIGEV_THREAD;
+    sev.sigev_notify_function = tfunc;
+    sev.sigev_notify_attributes = NULL;
+    sev.sigev_value.sival_ptr = &mqdes;   /* Arg. to thread func. */
+    if (mq_notify(mqdes, &sev) == \-1)
+        handle_error("mq_notify");
+
+    pause();    /* Le processus sera terminé par la fonction du proc. */
+}
+.fi
+.SH "VOIR AUSSI"
+\fBmq_close\fP(3), \fBmq_getattr\fP(3), \fBmq_open\fP(3), \fBmq_receive\fP(3),
+\fBmq_send\fP(3), \fBmq_unlink\fP(3), \fBmq_overview\fP(7), \fBsigevent\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

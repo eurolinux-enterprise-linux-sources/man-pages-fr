@@ -1,0 +1,198 @@
+.\" Copyright 2000 Sam Varshavchik <mrsam@courier-mta.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References: RFC 2553
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETIPNODEBYNAME 3 "4 septembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+getipnodebyname, getipnodebyaddr, freehostent \- Obtenir les adresses réseau
+et noms d'hôte
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+\fB#include <sys/socket.h>\fP
+\fB#include <netdb.h>\fP
+.sp
+\fBstruct hostent *getipnodebyname(const char *\fP\fIname\fP\fB, int \fP\fIaf\fP\fB,\fP
+\fB                                int \fP\fIflags\fP\fB, int *\fP\fIerror_num\fP\fB);\fP
+.sp
+\fBstruct hostent *getipnodebyaddr(const void *\fP\fIaddr\fP\fB, size_t \fP\fIlen\fP\fB,\fP
+\fB                                int \fP\fIaf\fP\fB, int *\fP\fIerror_num\fP\fB);\fP
+.sp
+\fBvoid freehostent(struct hostent *\fP\fIip\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+Ces fonctions sont déconseillées (et ne sont pas disponibles dans la
+glibc). Utilisez \fBgetaddrinfo\fP(3) et \fBgetnameinfo\fP(3) à la place.
+.LP
+Les fonctions \fBgetipnodebyname\fP() et \fBgetipnodebyaddr\fP() renvoient le nom
+et l'adresse réseau d'un hôte. Ces fonctions renvoient un pointeur sur une
+structure définie comme suit\ :
+.sp
+.in +4n
+.nf
+struct hostent {
+    char  *h_name;
+    char **h_aliases;
+    int    h_addrtype;
+    int    h_length;
+    char **h_addr_list;
+};
+.in
+.fi
+.PP
+Ces fonctions remplacent les fonctions \fBgethostbyname\fP(3) et
+\fBgethostbyaddr\fP(3) qui ne pouvaient qu'accéder aux adresses réseau de la
+famille IPv4. Les fonctions \fBgetipnodebyname\fP() et \fBgetipnodebyaddr\fP()
+peuvent fonctionner avec diverses familles d'adresses réseau.
+.PP
+Contrairement aux fonctions du type \fBgethostby\fP, ces routines renvoient des
+pointeurs sur des zones de mémoires allouées dynamiquement. La fonction
+\fBfreehostent\fP() sert à libérer la zone de mémoire allouée dynamiquement une
+fois que l'on n'a plus besoin des informations se trouvant dans la structure
+\fIhostent\fP.
+.SS "Paramètres de getipnodebyname()"
+La fonction \fBgetipnodebyname\fP() recherche l'adresse réseau de l'hôte
+indiqué dans son argument \fIname\fP. Le paramètre \fIaf\fP prend l'une des
+valeurs suivantes\ :
+.TP 
+\fBAF_INET\fP
+Le paramètre \fIname\fP représente une adresse décimale pointée IPv4, ou le nom
+d'un hôte sur un réseau IPv4.
+.TP 
+\fBAF_INET6\fP
+Le paramètre \fIname\fP représente une adresse hexadécimale IPv6, ou le nom
+d'un hôte sur un réseau IPv6.
+.PP
+Le paramètre \fIflags\fP indique des options supplémentaires. Plusieurs options
+peuvent être indiquées en les groupant avec un OU binaire. \fIflags\fP doit
+être mis à 0 si aucune option n'est souhaitée.
+.TP 
+\fBAI_V4MAPPED\fP
+Cet attribut est utilisé avec \fBAF_INET6\fP pour demander de rechercher une
+adresse IPv4 plutôt qu'une IPv6. L'adresse IPv4 devra toutefois être
+projetée dans l'espace IPv6.
+.TP 
+\fBAI_ALL\fP
+Cet attribut est utilisé avec \fBAI_V4MAPPED\fP pour demander une recherche
+simultanée d'adresses IPv4 et IPv6. Toute adresse IPv4 trouvée sera projetée
+dans l'espace IPv6.
+.TP 
+\fBAI_ADDRCONFIG\fP
+Cet attribut est utilisé avec \fBAF_INET6\fP pour indiquer que les requêtes
+ultérieures d'adresses IPv6 n'auront pas lieu à moins que le système n'ait
+au moins une adresse IPv6 affectée à une interface réseau. Symétriquement,
+les requêtes d'adresses IPv4 n'auront lieu que si le système dispose au
+moins d'une adresse IPv4 affectée à une interface réseau. Cet attribut peut
+être utilisé seul ou avec \fBAI_V4MAPPED\fP.
+.TP 
+\fBAI_DEFAULT\fP
+Cet attribut est équivalent à \fB(AI_ADDRCONFIG | AI_V4MAPPED)\fP.
+.SS "Paramètres de getipnodebyaddr()"
+La fonction \fBgetipnodebyaddr\fP() recherche le nom d'un hôte dont l'adresse
+réseau est indiquée par l'argument \fIaddr\fP. Le paramètre \fIaf\fP prend l'une
+des valeurs suivantes\ :
+.TP 
+\fBAF_INET\fP
+Le paramètre \fIaddr\fP pointe vers une structure \fIstruct in_addr\fP et \fIlen\fP
+doit valoir \fIsizeof(struct in_addr)\fP.
+.TP 
+\fBAF_INET6\fP
+Le paramètre \fIaddr\fP pointe vers une structure \fIstruct in6_addr\fP et \fIlen\fP
+doit valoir \fIsizeof(struct in6_addr)\fP.
+.SH "VALEUR RENVOYÉE"
+En cas d'erreur, un pointeur NULL est renvoyé, et \fIerror_num\fP contiendra un
+code d'erreur parmi les suivants\ :
+.TP 
+\fBHOST_NOT_FOUND\fP
+Le nom d'hôte ou l'adresse réseau n'ont pas été trouvés.
+.TP 
+\fBNO_ADDRESS\fP
+Le serveur de noms reconnaît l'adresse réseau ou le nom, mais n'a pas fourni
+de réponse. Ceci peut se produire si l'hôte n'a que des adresses IPv4, et
+qu'on a demandé uniquement des informations IPv6, ou l'inverse.
+.TP 
+\fBNO_RECOVERY\fP
+Le serveur de noms a renvoyé une erreur définitive.
+.TP 
+\fBTRY_AGAIN\fP
+Le serveur de noms a renvoyé une erreur temporaire. Réessayez plus tard.
+.PP
+Une recherche couronnée de succès renvoie un pointeur sur une structure
+\fIhostent\fP contenant les champs suivants\ :
+.TP 
+\fIh_name\fP
+Nom officiel de l'hôte.
+.TP 
+\fIh_aliases\fP
+Table de pointeurs vers des alias non officiels du même hôte. La table est
+terminée par un pointeur NULL.
+.TP 
+\fIh_addrtype\fP
+Il s'agit d'une copie du paramètre \fIaf\fP de \fBgetipnodebyname\fP() ou
+\fBgetipnodebyaddr\fP(). \fIh_addrtype\fP sera toujours \fBAF_INET\fP si le paramètre
+\fIaf\fP était \fBAF_INET\fP. \fIh_addrtype\fP sera toujours \fBAF_INET6\fP si le
+paramètre \fIaf\fP était \fBAF_INET6\fP.
+.TP 
+\fIh_length\fP
+Ce champ sera défini à \fIsizeof(struct in_addr)\fP si \fIh_addrtype\fP est
+\fBAF_INET\fP, et \fIsizeof(struct in6_addr)\fP si \fIh_addrtype\fP vaut \fBAF_INET6\fP.
+.TP 
+\fIh_addr_list\fP
+Il s'agit d'une table de pointeurs vers les structures d'adresse de
+l'hôte. La table est terminée par un pointeur NULL.
+.SH CONFORMITÉ
+.\" Not in POSIX.1-2001.
+RFC\ 2553
+.SH NOTES
+Ces fonctions étaient présentes dans la glibc 2.1.91\-95, mais en ont été
+retirées. Plusieurs systèmes de type UNIX les supportent, mais tous les
+considèrent comme déconseillées.
+.SH "VOIR AUSSI"
+\fBgetaddrinfo\fP(3), \fBgetnameinfo\fP(3), \fBinet_ntop\fP(3), \fBinet_pton\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

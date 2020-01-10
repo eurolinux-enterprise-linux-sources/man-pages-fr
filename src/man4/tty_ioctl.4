@@ -1,0 +1,399 @@
+.\" Copyright 2002 Walter Harms <walter.harms@informatik.uni-oldenburg.de>
+.\" and Andries Brouwer <aeb@cwi.nl>.
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TTY_IOCTL 4 "29 octobre 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+tty_ioctl \- Ioctl pour les terminaux et lignes série
+.SH SYNOPSIS
+\fB#include <termios.h>\fP
+.sp
+\fBint ioctl(int \fP\fIfd\fP\fB, int \fP\fIcmd\fP\fB, ...);\fP
+.SH DESCRIPTION
+Les appels système \fBioctl\fP(2) pour les terminaux et les ports série
+acceptent différents paramètres possibles. La plupart nécessitent un
+troisième paramètre, d'un type variable, appelé \fIargp\fP ou \fIarg\fP.
+.LP
+Utiliser des \fIioctl\fP rend les programmes non portables. Utiliser les
+interfaces POSIX décrites dans \fBtermios\fP(3) si possible.
+.SS "Récupérer et positionner les attributs d'un terminal"
+.TP 
+\fBTCGETS	struct termios *\fP\fIargp\fP
+Équivalent à \fItcgetattr(fd, argp)\fP.
+.br
+Récupère la configuration du port série courant.
+.TP 
+\fBTCSETS	const struct termios *\fP\fIargp\fP
+Équivalent à \fItcsetattr(fd, TCSANOW, argp)\fP.
+.br
+Configure le port série courant.
+.TP 
+\fBTCSETSW	const struct termios *\fP\fIargp\fP
+Équivalent à \fItcsetattr(fd, TCSADRAIN, argp)\fP.
+.br
+Laisse le tampon de sortie se vider, puis configure le port série courant.
+.TP 
+\fBTCSETSF	const struct termios *\fP\fIargp\fP
+Équivalent à \fItcsetattr(fd, TCSAFLUSH, argp)\fP.
+.br
+Laisse le tampon de sortie se vider, abandonne toute entrée en court, puis
+configure le port série courant.
+.LP
+Les quatre ioctl suivants sont équivalents à \fBTCGETS\fP, \fBTCSETS\fP,
+\fBTCSETSW\fP et \fBTCSETSF\fP, à l'exception qu'ils prennent une structure
+\fIstruct termio\ *\fP plutôt que \fIstruct termios\ *\fP.
+.IP
+\fBTCGETA	struct termio *\fP\fIargp\fP
+.IP
+\fBTCSETA	const struct termio *\fP\fIargp\fP
+.IP
+\fBTCSETAW	const struct termio *\fP\fIargp\fP
+.IP
+\fBTCSETAF	const struct termio *\fP\fIargp\fP
+.SS "Verrouiller une structure termios"
+La structure \fItermios\fP d'un terminal peut être verrouillée. Le verrou est
+en lui\-même une structure \fItermios\fP, dont les bits ou champs non nuls
+indiquent une valeur verrouillée.
+.TP 
+\fBTIOCGLCKTRMIOS	struct termios *\fP\fIargp\fP
+Récupère l'état du verrou de la structure \fItermios\fP du terminal.
+.TP 
+\fBTIOCSLCKTRMIOS	const struct termios *\fP\fIargp\fP
+Définit l'état du verrou de la structure \fItermios\fP du terminal. Seul un
+superutilisateur (plus précisément\ : un processus avec la capacité
+\fBCAP_SYS_ADMIN\fP)  peut faire cela.
+.SS "Récupérer et configurer les tailles de fenêtre"
+Les tailles de fenêtre sont stockées dans le noyau, mais ne sont pas
+utilisée par le noyau (sauf pour les consoles virtuelles, pour lesquelles le
+noyau met à jour les tailles de fenêtre quand la taille d'une console
+virtuelle change, par exemple lors du chargement d'une nouvelle fonte).
+
+Les constantes et structures suivantes sont définies dans
+\fI<sys/ioctl.h>\fP.
+.TP 
+\fBTIOCGWINSZ	struct winsize *\fP\fIargp\fP
+Récupère la taille de la fenêtre.
+.TP 
+\fBTIOCSWINSZ	const struct winsize *\fP\fIargp\fP
+Définit la taille de la fenêtre.
+.LP
+La structure utilisée par ces ioctl est la suivante\ :
+
+.in +4n
+.nf
+struct winsize {
+    unsigned short ws_row;
+    unsigned short ws_col;
+    unsigned short ws_xpixel;   /* non utilisé */
+    unsigned short ws_ypixel;   /* non utilisé */
+};
+.fi
+.in
+
+Lorsque la taille d'une fenêtre change, un signal \fBSIGWINCH\fP est envoyé au
+groupe de processus au premier plan.
+.SS "Envoyer une interruption («\ break\ »)"
+.TP 
+\fBTCSBRK	int \fP\fIarg\fP
+Équivalent à \fItcsendbreak(fd, arg)\fP.
+.br
+Si le terminal utilise un mode de transmission série asynchrone et que
+\fIarg\fP est nul, envoie une interruption (un flux de bits nuls) pendant 0,25
+à 0,5 seconde. Si le terminal n'utilise pas un mode de transmission série
+asynchrone, alors soit une interruption est envoyée, soit la fonction ne
+fait rien. Quand \fIarg\fP est non nul, le comportement n'est pas défini.
+
+(SVr4, UnixWare, Solaris et Linux traitent \fItcsendbreak(fd,arg)\fP avec un
+paramètre \fIarg\fP non nul de la même façon que \fItcdrain(fd)\fP. SunOS
+considère \fIarg\fP comme un coefficient multiplicateur et envoie un flux de
+bits \fIarg\fP fois plus long que lorsque \fIarg\fP est nul. DG/UX et AIX traite
+\fIarg\fP (lorsqu'il est non nul) comme un intervalle de temps exprimé en
+millisecondes. HP\-UX ignore \fIarg\fP.)
+.TP 
+\fBTCSBRKP	int \fP\fIarg\fP
+La «\ version POSIX\ » de \fBTCSBRK\fP. Elle traite le paramètre non nul \fIarg\fP
+comme un intervalle de temps mesuré en dixièmes de seconde et ne fait rien
+lorsque le pilote ne supporte pas les interruptions.
+.TP 
+\fBTIOCSBRK	void\fP
+Active les interruptions, c'est\-à\-dire commence à envoyer des bits à zéro.
+.TP 
+\fBTIOCCBRK	void\fP
+Désactive les interruptions, c'est\-à\-dire arrête d'envoyer les bits nuls.
+.SS "Contrôle de flux logiciel"
+.TP 
+\fBTCXONC	int \fP\fIarg\fP
+Équivalent à \fItcflow(fd, arg)\fP.
+.br
+Consultez \fBtcflow\fP(3) pour avoir la signification des valeurs \fBTCOOFF\fP,
+\fBTCOON\fP, \fBTCIOFF\fP et \fBTCION\fP.
+.SS "Information sur les tampons et vidage"
+.TP 
+\fBFIONREAD	int *\fP\fIargp\fP
+Récupère le nombre d'octets dans le tampon d'entrée.
+.TP 
+\fBTIOCINQ	int *\fP\fIargp\fP
+Identique à \fBFIONREAD\fP.
+.TP 
+\fBTIOCOUTQ	int *\fP\fIargp\fP
+Récupère le nombre d'octets dans le tampon de sortie.
+.TP 
+\fBTCFLSH	int \fP\fIarg\fP
+Équivalent à \fItcflush(fd, arg)\fP.
+.br
+Consultez \fBtcflush\fP(3) pour la signification de \fBTCIFLUSH\fP, \fBTCOFLUSH\fP et
+\fBTCIOFLUSH\fP.
+.SS "Simuler l'entrée"
+.TP 
+\fBTIOCSTI	const char *\fP\fIargp\fP
+Insert l'octet donné dans la queue d'entrée.
+.SS "Rediriger la sortie de la console"
+.TP 
+\fBTIOCCONS	void\fP
+Redirige la sortie qui serait allé vers \fI/dev/console\fP ou \fI/dev/tty0\fP vers
+un terminal donné. S'il s'agit d'un pseudoterminal maître, envoie à
+l'esclave. Dans les versions de Linux antérieures à 2.6.10, n'importe qui
+peut utiliser cet appel à condition que la sortie ne soit pas déjà
+redirigée\ ; depuis la version 2.6.10, seul une superutilisateur (un
+processus avec la capacité \fBCAP_SYS_ADMIN\fP) peut l'utiliser. Si elle a déjà
+été redirigée, \fBEBUSY\fP est renvoyé, mais la redirection peut être arrêtée
+en utilisant cet ioctl avec \fIfd\fP pointant vers \fI/dev/console\fP ou
+\fI/dev/tty0\fP.
+.SS "Terminal de contrôle"
+.TP 
+\fBTIOCSCTTY	int \fP\fIarg\fP
+Fait du terminal donné le terminal de contrôle du processus appelant. Le
+processus appelant doit être un leader de session et ne doit pas déjà avoir
+de terminal de contrôle. Si ce terminal est déjà le terminal de contrôle
+d'une autre session, alors l'ioctl échoue avec le code d'erreur \fBEPERM\fP, à
+moins que l'appelant soit un superutilisateur (plus précisément : il a la
+capacité \fBCAP_SYS_ADMIN\fP) et que \fIarg\fP vaille 1. Dans ce dernier cas, le
+terminal est «\ volé\ », et tous les processus pour lesquels c'était le
+terminal de contrôle le perde.
+.TP 
+\fBTIOCNOTTY	void\fP
+Si le terminal donné est le terminal de contrôle du processus appelant,
+abandonne ce terminal de contrôle. Si le processus est un leader de session,
+alors \fBSIGHUP\fP et \fBSIGCONT\fP seront envoyés au groupe de processus au
+premier plan, et tous les processus de la session perdent leur terminal de
+contrôle.
+.SS "Groupe de processus et identifiant de session"
+.TP 
+\fBTIOCGPGRP	pid_t *\fP\fIargp\fP
+En cas de succès, équivalent à \fI*argp = tcgetpgrp(fd)\fP.
+.br
+Récupère l'identifiant du groupe de processus au premier plan sur ce
+terminal.
+.TP 
+\fBTIOCSPGRP	const pid_t *\fP\fIargp\fP
+Équivalent à \fItcsetpgrp(fd, *argp)\fP.
+.br
+Définit l'identifiant du groupe de processus au premier plan du terminal.
+.TP 
+\fBTIOCGSID	pid_t *\fP\fIargp\fP
+Récupère l'identifiant de session du terminal donné. L'appel échouera avec
+pour erreur \fBENOTTY\fP si le terminal n'est pas un pseudoterminal maître et
+n'est pas notre terminal de contrôle. Étrange.
+.SS "Mode exclusif"
+.TP 
+\fBTIOCEXCL	void\fP
+Met le terminal en mode exclusif. Plus aucun appel \fBopen\fP(2) sur le
+terminal ne sera autorisé. (Ils échoueront avec l'erreur \fBEBUSY\fP, sauf pour
+un superutilisateur, c'est\-à\-dire un processus ayant la capacité
+\fBCAP_SYS_ADMIN\fP.)
+.TP 
+\fBTIOCNXCL	void\fP
+Désactive le mode exclusif.
+.SS "Paramètres de la ligne («\ line discipline\ »)"
+.TP 
+\fBTIOCGETD	int *\fP\fIargp\fP
+Récupère les paramètres de la ligne du terminal.
+.TP 
+\fBTIOCSETD	const int *\fP\fIargp\fP
+Définit les paramètres de la ligne («\ line discipline\ ») du terminal.
+.SS "ioctls pour les pseudoterminaux"
+.TP 
+\fBTIOCPKT	const int *\fP\fIargp\fP
+Active (quand *\fIargp\fP n'est pas nul) ou désactive le mode paquet. Ne peut
+être appliqué qu'à la partie maître d'un pseudoterminal (renvoie \fBENOTTY\fP
+sinon). En mode paquet, chaque \fBread\fP(2) suivant renverra un paquet qui
+contient soit un seul octet de contrôle non nul ou un unique octet nul suivi
+par les données écrites du côté esclave du pseudoterminal. Si le premier
+octet n'est pas \fBTIOCPKT_DATA\fP (0), il s'agit d'un OU logique entre les
+bits suivants\ :
+
+.nf
+TIOCPKT_FLUSHREAD   Le tampon de lecture du terminal est vidé.
+TIOCPKT_FLUSHWRITE  Le tampon d'écriture du terminal est vidé.
+TIOCPKT_STOP        La sortie vers le terminal est arrêtée.
+TIOCPKT_START       La sortie vers le terminal est relancée.
+TIOCPKT_DOSTOP      Les caractères de relance et d'arrêt sont \fB^S\fP/\fB^Q\fP.
+TIOCPKT_NOSTOP      Les caractères de relance et d'arrêt ne sont
+                    pas \fB^S\fP/\fB^Q\fP.
+.fi
+
+Tant que ce mode est utilisé, la présence d'information d'état de contrôle à
+lire du côté maître peut être détectée avec \fBselect\fP(2) pour les conditions
+exceptionnelles.
+
+Ce mode est utilisé par \fBrlogin\fP(1) et \fBrlogind\fP(8) pour implémenter
+l'envoi distant du contrôle de flux (\fB^S\fP/\fB^Q\fP) en local.
+
+Les ioctls BSD \fBTIOCSTOP\fP, \fBTIOCSTART\fP, \fBTIOCUCNTL\fP et \fBTIOCREMOTE\fP
+n'ont pas été implémentés sous Linux.
+.SS "Contrôle des modems"
+.TP 
+\fBTIOCMGET	int *\fP\fIargp\fP
+Récupère l'état des bits du modem.
+.TP 
+\fBTIOCMSET	const int *\fP\fIargp\fP
+Positionner l'état des bits du modem.
+.TP 
+\fBTIOCMBIC	const int *\fP\fIargp\fP
+Efface les bits du modem indiqués.
+.TP 
+\fBTIOCMBIS	const int *\fP\fIargp\fP
+Positionner les bits du modem indiqués.
+.LP
+Les bits utilisés par ces quatre ioctls sont\ :
+
+.nf
+TIOCM_LE        DSR (data set ready/line enable)
+                    (terminal de transmission de données \- modem \- prêt)
+TIOCM_DTR       DTR (data terminal ready)
+                    (terminal de données \- ordinateur \- prêt)
+TIOCM_RTS       RTS (request to send)
+                    (demande d'émission)
+TIOCM_ST        Secondary TXD (transmit)
+                    (transmission de données)
+TIOCM_SR        Secondary RXD (receive)
+                    (réception de données)
+TIOCM_CTS       CTS (clear to send)
+                    (prêt à émettre)
+TIOCM_CAR       DCD (data carrier detect)
+                    (porteuse détectée)
+TIOCM_CD         voir TIOCM_CAR
+TIOCM_RNG       RNG (ring)
+                    (indicateur d'appel)
+TIOCM_RI         voir TIOCM_RNG
+TIOCM_DSR       DSR (data set ready)
+                    (terminal de transmission de données \- modem \- prêt)
+.fi
+.SS "Marquer une ligne comme étant locale"
+.TP 
+\fBTIOCGSOFTCAR	int *\fP\fIargp\fP
+(GSOFTCAR\ : «\ Get SOFTware CARrier flag\ ») Récupère l'état du drapeau
+CLOCAL dans le champ c_cflag de la structure \fItermios\fP.
+.TP 
+\fBTIOCSSOFTCAR	const int *\fP\fIargp\fP
+(SSOFTCAR\ : «\ Set SOFTware CARrier flag\ ») Positionne le drapeau CLOCAL
+de la structure \fItermios\fP si *\fIargp\fP n'est pas nulle, et l'efface dans le
+cas contraire.
+.LP
+Si le drapeau \fBCLOCAL\fP d'une ligne est désactivé, le signal de détection de
+porteuse (DCD) est significatif et un appel à \fBopen\fP(2) sur le terminal
+correspondant sera bloqué tant que le signal DCD sera maintenu, à moins que
+le drapeau \fBO_NONBLOCK\fP soit fourni. Si \fBCLOCAL\fP est positionné, la ligne
+se comporte comme si DCD était maintenu en permanence. Le drapeau logiciel
+pour la porteuse est généralement positionné pour les périphériques locaux
+et désactivé pour les lignes par modem.
+.SS "Spécifique à Linux"
+Pour l'ioctl \fBTIOCLINUX\fP, reportez\-vous à \fBconsole_ioctl\fP(4).
+.SS "Débogage du noyau"
+\fB#include <linux/tty.h>\fP
+.TP 
+\fBTIOCTTYGSTRUCT	struct tty_struct *\fP\fIargp\fP
+.\"
+.\" .SS "Serial info"
+.\" .BR "#include <linux/serial.h>"
+.\" .sp
+.\" .TP
+.\" .BI "TIOCGSERIAL	struct serial_struct *" argp
+.\" Get serial info.
+.\" .TP
+.\" .BI "TIOCSSERIAL	const struct serial_struct *" argp
+.\" Set serial info.
+Récupère la structure \fItty_struct\fP correspondant à \fIfd\fP.
+.SH "VALEUR RENVOYÉE"
+L'appel système \fBioctl\fP(2) renvoie 0 en cas de succès. En cas d'erreur, il
+renvoie \-1 et positionne \fIerrno\fP comme il faut.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+Paramètre de commande non valable.
+.TP 
+\fBENOIOCTLCMD\fP
+Commande inconnue.
+.TP 
+\fBENOTTY\fP
+\fIfd\fP inapproprié.
+.TP 
+\fBEPERM\fP
+Droits insuffisants.
+.SH EXEMPLE
+Vérifier la condition DTR sur un port série.
+
+.nf
+#include <termios.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+
+int
+main(void)
+{
+    int fd, serial;
+
+    fd = open("/dev/ttyS0", O_RDONLY);
+    ioctl(fd, TIOCMGET, &serial);
+    if (serial & TIOCM_DTR)
+        puts("TIOCM_DTR non positionné");
+    else
+        puts("TIOCM_DTR mis");
+    close(fd);
+}
+.fi
+.SH "VOIR AUSSI"
+.\"
+.\" FIONBIO			const int *
+.\" FIONCLEX			void
+.\" FIOCLEX			void
+.\" FIOASYNC			const int *
+.\" from serial.c:
+.\" TIOCSERCONFIG		void
+.\" TIOCSERGWILD		int *
+.\" TIOCSERSWILD		const int *
+.\" TIOCSERGSTRUCT		struct async_struct *
+.\" TIOCSERGETLSR		int *
+.\" TIOCSERGETMULTI		struct serial_multiport_struct *
+.\" TIOCSERSETMULTI		const struct serial_multiport_struct *
+.\" TIOCGSERIAL, TIOCSSERIAL (see above)
+\fBioctl\fP(2), \fBtermios\fP(3), \fBconsole_ioctl\fP(4), \fBpty\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Simon Paillard et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

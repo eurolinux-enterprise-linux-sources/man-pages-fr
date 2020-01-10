@@ -1,0 +1,113 @@
+.\" Copyright 1993 Rickard E. Faith (faith@cs.unc.edu)
+.\" Portions extracted from linux/kernel/ioport.c (no copyright notice).
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Tue Aug  1 16:47    1995 by Jochen Karrer
+.\"                              <cip307@cip.physik.uni-wuerzburg.de>
+.\" Modified Tue Oct 22 08:11:14 EDT 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Fri Nov 27 14:50:36 CET 1998 by Andries Brouwer <aeb@cwi.nl>
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH IOPL 2 "15 mars 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+iopl \- Modifier le niveau de privilège d'entrée\-sortie
+.SH SYNOPSIS
+\fB#include <sys/io.h>\fP
+.sp
+\fBint iopl(int \fP\fIlevel\fP\fB);\fP
+.SH DESCRIPTION
+\fBiopl\fP() modifie le niveau de droits pour les entrées\-sorties du processus
+appelant, en utilisant les deux bits de poids faible indiqués dans \fIlevel\fP.
+
+Cette fonction est indispensable pour permettre aux serveurs X compatibles
+8514 de fonctionner sous Linux. Comme ces serveurs X ont besoin de l'accès
+aux 65536 ports d'entrée\-sortie, la fonction \fBioperm\fP(2) ne serait pas
+suffisante.
+
+En plus de disposer d'un accès illimité aux ports d'entrée\-sortie, un
+processus tournant à un niveau de privilège élevé pourra également inhiber
+les interruptions. Ceci risque d'engendrer un plantage du système, et est
+fortement déconseillé.
+
+Les permissions sont héritées aussi bien par \fBfork\fP(2) que par
+\fBexecve\fP(2).
+
+Le niveau de privilège d'entrée\-sortie pour un utilisateur normal vaut 0.
+
+Cet appel existe principalement pour l'architecture i386. Sur beaucoup
+d'autres architectures, il est soit inexistant soit renvoie toujours une
+erreur.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+\fIlevel\fP est plus grand que 3.
+.TP 
+\fBENOSYS\fP
+Cet appel n'est pas implémenté.
+.TP 
+\fBEPERM\fP
+Le processus appelant n'a pas assez de droits pour appeler \fBiopl\fP()\ ; la
+capacité \fBCAP_SYS_RAWIO\fP est nécessaire pour augmenter le niveau de droits
+d'entrées et sorties au\-delà de sa valeur actuelle.
+.SH CONFORMITÉ
+\fBipc\fP() est spécifique à Linux et ne doit pas être utilisé dans des
+programmes destinés à être portables.
+.SH NOTES
+Libc5 considère qu'il s'agit d'un appel système et fournit le prototype dans
+\fI<unistd.h>\fP. glibc1 n'offre pas de prototype. glibc2 fournit un
+prototype à la fois dans \fI<sys/io.h>\fP et dans
+\fI<sys/perm.h>\fP. Évitez ce dernier, il n'est disponible que sur les
+i386.
+.SH "VOIR AUSSI"
+\fBioperm\fP(2), \fBoutb\fP(2), \fBcapabilities\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

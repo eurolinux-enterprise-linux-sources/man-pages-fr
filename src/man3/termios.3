@@ -1,0 +1,736 @@
+.\" Copyright (c) 1993 Michael Haardt
+.\" (michael@moria.de)
+.\" Fri Apr  2 11:32:09 MET DST 1993
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 1993-07-24 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1995-02-25 by Jim Van Zandt <jrv@vanzandt.mv.com>
+.\" Modified 1995-09-02 by Jim Van Zandt <jrv@vanzandt.mv.com>
+.\" moved to man3, aeb, 950919
+.\" Modified 2001-09-22 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2001-12-17, aeb
+.\" Modified 2004-10-31, aeb
+.\" 2006-12-28, mtk:
+.\"     Added .SS headers to give some structure to this page; and a
+.\"     small amount of reordering.
+.\"     Added a section on canonical and noncanonical mode.
+.\"     Enhanced the discussion of "raw" mode for cfmakeraw().
+.\"     Document CMSPAR.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TERMIOS 3 "15 mars 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+termios, tcgetattr, tcsetattr, tcsendbreak, tcdrain, tcflush, tcflow,
+cfmakeraw, cfgetospeed, cfgetispeed, cfsetispeed, cfsetospeed, cfsetspeed \-
+Configuration du terminal
+.SH SYNOPSIS
+.nf
+\fB#include <termios.h>\fP
+.br
+\fB#include <unistd.h>\fP
+.sp
+\fBint tcgetattr(int \fP\fIfd\fP\fB, struct termios *\fP\fItermios_p\fP\fB);\fP
+.sp
+\fBint tcsetattr(int \fP\fIfd\fP\fB, int \fP\fIoptional_actions\fP\fB,\fP
+\fB              const struct termios *\fP\fItermios_p\fP\fB);\fP
+.sp
+\fBint tcsendbreak(int \fP\fIfd\fP\fB, int \fP\fIdurée\fP\fB);\fP
+.sp
+\fBint tcdrain(int \fP\fIfd\fP\fB);\fP
+.sp
+\fBint tcflush(int \fP\fIfd\fP\fB, int \fP\fIqueue_selector\fP\fB);\fP
+.sp
+\fBint tcflow(int \fP\fIfd\fP\fB, int \fP\fIaction\fP\fB);\fP
+.sp
+\fBvoid cfmakeraw(struct termios *\fP\fItermios_p\fP\fB);\fP
+.sp
+\fBspeed_t cfgetispeed(const struct termios *\fP\fItermios_p\fP\fB);\fP
+.sp
+\fBspeed_t cfgetospeed(const struct termios *\fP\fItermios_p\fP\fB);\fP
+.sp
+\fBint cfsetispeed(struct termios *\fP\fItermios_p\fP\fB, speed_t \fP\fIvitesse\fP\fB);\fP
+.sp
+\fBint cfsetospeed(struct termios *\fP\fItermios_p\fP\fB, speed_t \fP\fIvitesse\fP\fB);\fP
+.sp
+\fBint cfsetspeed(struct termios *\fP\fItermios_p\fP\fB, speed_t \fP\fIvitesse\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBcfsetspeed\fP(), \fBcfmakeraw\fP()\ : _BSD_SOURCE
+.SH DESCRIPTION
+Les fonctions termios établissent une interface générale pour les terminaux,
+permettant de contrôler les ports de communication asynchrone.
+.SS "La structure termios"
+.LP
+Plusieurs fonctions décrites ici utilisent un argument \fItermios_p\fP qui est
+un pointeur sur une structure \fItermios\fP. Cette structure contient au moins
+les membres suivants\ :
+.sp
+.in +4n
+.nf
+tcflag_t c_iflag;      /* modes d'entrée */
+tcflag_t c_oflag;      /* modes de sortie */
+tcflag_t c_cflag;      /* modes de contrôle */
+tcflag_t c_lflag;      /* modes locaux */
+cc_t     c_cc[NCCS];   /* caractères spéciaux */
+.fi
+.in
+.PP
+Les valeurs qui peuvent être mises dans ces membres sont décrites
+ci\-dessous. Dans le cas des quatre premiers membres, les définitions de
+certains des modes associés qui peuvent être utilisés ne sont exposés que si
+une macro est définie pour des tests spécifiques (consultez
+\fBfeature_test_macros\fP(7)), comme indiqué entre crochets («\ []\ »).
+.PP
+Dans les descriptions ci\-dessous, «\ pas dans POSIX\ » signifie que la
+valeur n'est pas spécifiée dans POSIX.1\-2001, et «\ XSI\ » signifie que la
+valeur est spécifiée dans POSIX.1\-2001 comme faisant partie de l'extension
+XSI.
+.PP
+Constante pour l'attribut \fIc_iflag\fP\ :
+.TP 
+\fBIGNBRK\fP
+Ignorer les signaux BREAK en entrée.
+.TP 
+\fBBRKINT\fP
+Si \fBIGNBRK\fP est indiqué, un caractère BREAK en entrée est ignoré. S'il
+n'est pas indiqué, mais si \fBBRKINT\fP est présent, alors un BREAK videra les
+files d'attente en entrée et sortie, et si le terminal contrôle un groupe de
+processus au premier plan, un signal \fBSIGINT\fP sera envoyé à ce groupe. Si
+ni \fBIGNBRK\fP ni \fBBRKINT\fP ne sont indiqués, un caractère BREAK sera lu comme
+un caractère nul («\ \e0\ »), sauf si \fBPARMRK\fP est présent, auquel cas il
+sera lu comme une séquence \e377 \e0 \e0.
+.TP 
+\fBIGNPAR\fP
+Ignorer les erreurs de format et de parité.
+.TP 
+\fBPARMRK\fP
+Si \fBIGNPAR\fP n'est pas indiqué, un caractère ayant une erreur de parité ou
+de format est préfixé avec \e377 \e0. Si ni \fBIGNPAR\fP ni \fBPARMRK\fP ne sont
+indiqués, un caractère contenant une erreur de parité ou de format est lu
+comme \e0.
+.TP 
+\fBINPCK\fP
+Valider la vérification de parité en entrée.
+.TP 
+\fBISTRIP\fP
+Éliminer le huitième bit.
+.TP 
+\fBINLCR\fP
+Convertir NL en CR en entrée.
+.TP 
+\fBIGNCR\fP
+Ignorer CR en entrée.
+.TP 
+\fBICRNL\fP
+Convertir CR en NL en entrée, sauf si \fBIGNCR\fP est indiqué.
+.TP 
+\fBIUCLC\fP
+(Pas dans POSIX) Transformer les majuscules en minuscules en entrée.
+.TP 
+\fBIXON\fP
+Valider le contrôle de flux XON/XOFF en sortie.
+.TP 
+\fBIXANY\fP
+(XSI) La sortie bloquée sera redémarrée en tapant n'importe quel
+caractère. Le défaut est de ne redémarrer la sortie qu'avec le caractère
+START.
+.TP 
+\fBIXOFF\fP
+Valider le contrôle de flux XON/XOFF en entrée.
+.TP 
+\fBIMAXBEL\fP
+(Pas dans POSIX) Faire sonner le terminal quand le tampon d'entrée est
+plein. Linux n'implémente pas ce bit, et considère qu'il est toujours actif.
+.TP 
+\fBIUTF8\fP (depuis Linux 2.6.4)
+(Pas dans POSIX) L'entrée est en UTF\-8\ ; ceci permet au caractère
+d'effacement de fonctionner correctement dans le mode «\ cooked\ ».
+.PP
+Constantes POSIX.1 pour l'attribut \fIc_oflag\fP\ :
+.TP 
+\fBOPOST\fP
+Traitement en sortie dépendant de l'implémentation.
+.PP
+Les autres constantes pour \fIc_oflag\fP sont définies dans POSIX.1\-2001 sauf
+indication contraire.
+.TP 
+\fBOLCUC\fP
+(Pas dans POSIX) Convertir les minuscules en majuscules en sortie.
+.TP 
+\fBONLCR\fP
+(XSI) Convertir NL en CR\-NL en sortie.
+.TP 
+\fBOCRNL\fP
+Convertir CR en NL en sortie.
+.TP 
+\fBONOCR\fP
+Ne pas émettre de CR en colonne 0.
+.TP 
+\fBONLRET\fP
+Ne pas émettre de CR.
+.TP 
+\fBOFILL\fP
+Utiliser des caractères de remplissage pour le délai, plutôt qu'une
+temporisation.
+.TP 
+\fBOFDEL\fP
+(Pas dans POSIX) Le caractère de remplissage est ASCII DEL (0177). Sinon
+c'est ASCII NUL («\ \e0\ »). (Non implémenté dans Linux)
+.TP 
+\fBNLDLY\fP
+Masque du délai de saut de ligne. Les valeurs sont \fBNL0\fP et
+\fBNL1\fP. [Nécessite \fB_BSD_SOURCE\fP ou \fB_SVID_SOURCE\fP ou \fB_XOPEN_SOURCE\fP]
+.TP 
+\fBCRDLY\fP
+Masque du délai de retour chariot. Les valeurs sont \fBCR0\fP, \fBCR1\fP, \fBCR2\fP
+ou \fBCR3\fP. [Nécessite \fB_BSD_SOURCE\fP ou \fB_SVID_SOURCE\fP ou \fB_XOPEN_SOURCE\fP]
+.TP 
+\fBTABDLY\fP
+Masque du délai de tabulation horizontale. Les valeurs sont \fBTAB0\fP,
+\fBTAB1\fP, \fBTAB2\fP, \fBTAB3\fP (ou \fBXTABS\fP). Une valeur TAB3 , c'est\-à\-dire
+XTABS, convertit les tabulations en espaces (positions toutes les huit
+colonnes). [Nécessite \fB_BSD_SOURCE\fP ou \fB_SVID_SOURCE\fP ou \fB_XOPEN_SOURCE\fP]
+.TP 
+\fBBSDLY\fP
+Masque du délai de retour en arrière (backspace). Les valeurs sont \fBBS0\fP ou
+\fBBS1\fP (n'a jamais été implémenté). [Nécessite \fB_BSD_SOURCE\fP ou
+\fB_SVID_SOURCE\fP ou \fB_XOPEN_SOURCE\fP]
+.TP 
+\fBVTDLY\fP
+Masque du délai de tabulation verticale. Les valeurs sont \fBVT0\fP ou \fBVT1\fP.
+.TP 
+\fBFFDLY\fP
+Masque du délai de saut de page. Les valeurs sont \fBFF0\fP ou
+\fBFF1\fP. [Nécessite \fB_BSD_SOURCE\fP ou \fB_SVID_SOURCE\fP ou \fB_XOPEN_SOURCE\fP]
+.PP
+Constantes pour l'attribut \fIc_cflag\fP\ :
+.TP 
+\fBCBAUD\fP
+(Pas dans POSIX) Masque des vitesses (4+1\ bits). [Nécessite \fB_BSD_SOURCE\fP
+ou \fB_SVID_SOURCE\fP]
+.TP 
+\fBCBAUDEX\fP
+(Pas dans POSIX) Masque étendu des vitesses (1\ bit) inclus dans
+\fBCBAUD\fP. [Nécessite \fB_BSD_SOURCE\fP ou \fB_SVID_SOURCE\fP]
+.sp
+POSIX dit que la vitesse est stockée dans une structure \fItermios\fP sans dire
+précisément où, et fournit \fBcfgetispeed\fP() et \fBcfsetispeed\fP() pour la lire
+ou l'écrire. Certains systèmes utilisent les bits de \fBCBAUD\fP dans
+\fIc_cflag\fP, d'autres systèmes utilisent des champs distincts, par exemple
+\fIsg_ispeed\fP et \fIsg_ospeed\fP.
+.TP 
+\fBCSIZE\fP
+Masque de longueur des caractères. Les valeurs sont \fBCS5\fP, \fBCS6\fP, \fBCS7\fP
+ou \fBCS8\fP.
+.TP 
+\fBCSTOPB\fP
+Utiliser deux bits de stop plutôt qu'un.
+.TP 
+\fBCREAD\fP
+Valider la réception.
+.TP 
+\fBPARENB\fP
+Valider le codage de parité en sortie, et la vérification de parité en
+entrée.
+.TP 
+\fBPARODD\fP
+Si le bit \fBPARODD\fP est positionné, la parité en entrée et sortie sera
+impaire\ ; sinon une parité paire est utilisée.
+.TP 
+\fBHUPCL\fP
+Abaisser les signaux de contrôle du modem lorsque le dernier processus
+referme le périphérique (raccrochage).
+.TP 
+\fBCLOCAL\fP
+Ignorer les signaux de contrôle du modem.
+.TP 
+\fBLOBLK\fP
+(Pas POSIX) Bloquer la sortie depuis un niveau de shell non
+concurrent. Utilisé par \fBshl\fP (shell layers). (Non implémenté dans Linux)
+.TP 
+\fBCIBAUD\fP
+(Pas dans POSIX) Masque des vitesses d'entrée. Les bits pour \fBCIBAUD\fP sont
+les mêmes que ceux de \fBCBAUD\fP, décalés à gauche de \fBIBSHIFT\fP
+bits. [Nécessite \fB_BSD_SOURCE\fP ou \fB_SVID_SOURCE\fP] (Non implémenté dans
+Linux)
+.TP 
+\fBCMSPAR\fP
+(Pas dans POSIX) Parité fixe (marque/espace \- supporté par certains
+périphériques série)\ ; si \fBPARODD\fP est positionné, le bit de parité est
+toujours à 1\ ; si \fBPARODD\fP n'est pas positionné, le bit de parité est
+toujours à 0. [Nécessite \fB_BSD_SOURCE\fP ou \fB_SVID_SOURCE\fP]
+.TP 
+\fBCRTSCTS\fP
+(Pas dans POSIX) Contrôle de flux RTS/CTS. [Nécessite \fB_BSD_SOURCE\fP ou
+\fB_SVID_SOURCE\fP]
+.PP
+Constantes pour l'attribut \fIc_lflag\fP\ :
+.TP 
+\fBISIG\fP
+Lorsqu'un caractère INTR, QUIT, SUSP ou DSUSP arrive, engendrer le signal
+correspondant.
+.TP 
+\fBICANON\fP
+Active le mode canonique (décrit ci\-dessous).
+.TP 
+\fBXCASE\fP
+.\" glibc is probably now wrong to allow
+.\" Define
+.\" .B _XOPEN_SOURCE
+.\" to expose
+.\" .BR XCASE .
+(Pas dans POSIX, non supporté sous Linux) Si \fBICANON\fP est indiqué
+également, le terminal est en mode majuscule uniquement. Les entrées sont
+converties en minuscules, sauf pour les caractères précédés par \e. En
+sortie, les caractères majuscules sont précédés par \e et les minuscules
+sont converties en majuscules. (Nécessite _BSD_SOURCE, _SVID_SOURCE ou
+_XOPEN_SOURCE.)
+.TP 
+\fBECHO\fP
+Afficher les caractères saisis.
+.TP 
+\fBECHOE\fP
+Si \fBICANON\fP est également activé, la touche ERASE efface le caractère
+précédent, et WERASE efface le mot précédent.
+.TP 
+\fBECHOK\fP
+Si \fBICANON\fP est également activé, la touche KILL efface la ligne en cours.
+.TP 
+\fBECHONL\fP
+Si \fBICANON\fP est également activé, afficher le caractère NL même si ECHO
+n'est pas activé.
+.TP 
+\fBECHOCTL\fP
+(Pas dans POSIX) Si \fBECHO\fP est également activé, les caractères spéciaux du
+terminal autres que TAB, NL, START, et STOP sont représentés par \fB^X\fP, où X
+est le caractère dont le code ASCII est supérieur de 0x40 à celui du
+caractère spécial. Par exemple, 0x08 (BS) est représenté par
+\fB^H\fP. [Nécessite \fB_BSD_SOURCE\fP ou \fB_SVID_SOURCE\fP]
+.TP 
+\fBECHOPRT\fP
+(Pas dans POSIX) Si \fBICANON\fP et \fBECHO\fP sont aussi activés, les caractères
+sont imprimés lorsqu'ils sont effacés. [Nécessite \fB_BSD_SOURCE\fP ou
+\fB_SVID_SOURCE\fP]
+.TP 
+\fBECHOKE\fP
+(Pas dans POSIX) Si \fBICANON\fP est également activé, la touche KILL efface
+chaque caractère de la ligne, comme indiqué par \fBECHOE\fP et
+\fBECHOPRT\fP. [Nécessite \fB_BSD_SOURCE\fP ou \fB_SVID_SOURCE\fP]
+.TP 
+\fBDEFECHO\fP
+(Pas dans POSIX) N'effectuer l'affichage que lorsque le caractère est
+lu. (Non implémenté dans Linux)
+.TP 
+\fBFLUSHO\fP
+(Pas dans POSIX, non supporté sous Linux) Le tampon de sortie est vidé. Cet
+attribut est déclenché en tapant le caractère DISCARD. [Nécessite
+\fB_BSD_SOURCE\fP ou \fB_SVID_SOURCE\fP]
+.TP 
+\fBNOFLSH\fP
+.\" Stevens lets SUSP only flush the input queue
+Désactiver le vidage des files d'entrée et de sortie pendant la création des
+signaux pour les caractères INT, QUIT et SUSP.
+.TP 
+\fBTOSTOP\fP
+Envoyer le signal \fBSIGTTOU\fP au groupe d'un processus en arrière\-plan
+essayant d'écrire sur son terminal de contrôle.
+.TP 
+\fBPENDIN\fP
+(Pas dans POSIX, non supporté sous Linux) Tous les caractères de la file
+d'entrée sont réimprimés quand le caractère suivant est lu. (\fBbash\fP(1)
+utilise ceci pour la complétion de commande) [Nécessite \fB_BSD_SOURCE\fP ou
+\fB_SVID_SOURCE\fP]
+.TP 
+\fBIEXTEN\fP
+Traitement de l'entrée dépendant de l'implémentation. Cet attribut, tout
+comme \fBICANON\fP, doit être actif pour que les caractères spéciaux EOL2,
+LNEXT, REPRINT et WERASE soient interprétés, et pour que l'attribut \fBIUCLC\fP
+prenne effet.
+.PP
+Le tableau \fIc_cc\fP définit des caractères spéciaux. Les symboles (valeurs
+initiales) et significations sont\ :
+.TP 
+\fBVDISCARD\fP
+(Pas dans POSIX, non supporté sous Linux\ ; 017, SI, Ctrl\-O) Bascule
+start/stop pour ignorer les caractères en attente de sortie. Reconnu quand
+\fBIEXTEN\fP est actif, et pas transmis en entrée.
+.TP 
+\fBVDSUSP\fP
+(Pas dans POSIX et non supporté sous Linux\ ; 031, EM, Ctrl\-Y) Caractère de
+suspension retardée (DSUSP). Envoie le signal \fBSIGTSTP\fP quand le caractère
+est lu par le programme utilisateur. Reconnu quand \fBIEXTEN\fP et \fBISIG\fP sont
+actifs, et quand le système supporte le contrôle des processus, et non
+transmis en entrée.
+.TP 
+\fBVEOF\fP
+(004, EOT, Ctrl\-D) Caractère de fin de fichier (EOF). Plus précisément\ : ce
+caractère oblige l'envoi du contenu du tampon vers le programme lecteur sans
+attendre la fin de ligne. S'il s'agit du premier caractère de la ligne,
+l'appel à \fBread\fP(2) renvoie zéro dans le programme appelant, ce qui
+correspond à une fin de fichier. Reconnu quand \fBICANON\fP est actif, et pas
+transmis en entrée.
+.TP 
+\fBVEOL\fP
+(0, NUL) Caractère fin de ligne supplémentaire (EOL). Reconnu quand
+\fBICANON\fP est actif.
+.TP 
+\fBVEOL2\fP
+(Pas dans POSIX\ ; 0, NUL) Encore un autre caractère fin de ligne
+(EOL2). Reconnu quand \fBICANON\fP est actif.
+.TP 
+\fBVERASE\fP
+(0177, DEL, rubout, ou 010, BS, Ctrl\-H ou encore #) Caractère d'effacement
+(ERASE). Ceci efface le caractère précédent pas encore effacé, mais ne
+revient pas en deça d'EOF ou du début de ligne. Reconnu quand \fBICANON\fP est
+actif, et n'est pas transmis en entrée.
+.TP 
+\fBVINTR\fP
+(003, ETX, Ctrl\-C, ou encore 0177, DEL, rubout) Caractère d'interruption
+(INTR). Envoie le signal \fBSIGINT\fP. Reconnu quand \fBISIG\fP est présent, et
+n'est pas transmis en entrée.
+.TP 
+\fBVKILL\fP
+(025, NAK, Ctrl\-U ou Ctrl\-X, ou encore @) Caractère Kill (KILL). Il efface
+tous les caractères en entrée, jusqu'au dernier EOF ou début de
+ligne. Reconnu quand \fBICANON\fP est actif, et pas transmis en entrée.
+.TP 
+\fBVLNEXT\fP
+(Pas dans POSIX\ ; 026, SYN, Ctrl\-V) Suivant littéral (LNEXT). Protège le
+caractère suivant en lui supprimant toute signification spéciale. Reconnu
+quand \fBIEXTEN\fP est actif, et pas transmis en entrée.
+.TP 
+\fBVMIN\fP
+Nombre minimal de caractères lors d'une lecture en mode non canonique (MIN).
+.TP 
+\fBVQUIT\fP
+(034, FS, Ctrl\-\e) Caractère Quit (QUIT). Envoie le signal
+\fBSIGQUIT\fP. Reconnu quand \fBISIG\fP est présent, et n'est pas transmis en
+entrée.
+.TP 
+\fBVREPRINT\fP
+(Pas dans POSIX\ ; 022, DC2, Ctrl\-R) Réafficher les caractères pas encore
+lus (REPRINT). Reconnu quand \fBICANON\fP et \fBIEXTEN\fP sont actifs, et pas
+transmis en entrée.
+.TP 
+\fBVSTART\fP
+(021, DC1, Ctrl\-Q) Caractère de démarrage (START). Relance la sortie
+interrompue par un caractère d'arrêt. Reconnu quand \fBIXON\fP est actif, et
+pas transmis en entrée.
+.TP 
+\fBVSTATUS\fP
+(Pas dans POSIX, non supporté sous Linux\ ; 024, DC4, Ctrl\-T). Caractère
+d'état (STATUS). Affiche sur le terminal des informations sur l'état,
+incluant l'état du processus en premier plan et la quantité de temps CPU
+qu'il a consommé. Envoie aussi un signal \fBSIGINFO\fP (not supporté par Linux)
+au groupe du processus de premier plan.
+.TP 
+\fBVSTOP\fP
+(023, DC3, Ctrl\-S) Caractère d'arrêt (STOP). Interrompt la sortie jusqu'à la
+pression d'un caractère de démarrage. Reconnu quand \fBIXON\fP est actif, et
+pas transmis en entrée.
+.TP 
+\fBVSUSP\fP
+(032, SUB, Ctrl\-Z) Caractère de suspension (SUSP). Envoie le signal
+\fBSIGTSTP\fP. Reconnu quand \fBISIG\fP est actif, et pas transmis en entrée.
+.TP 
+\fBVSWTCH\fP
+(Pas dans POSIX et non supporté sous Linux\ ; 0, NUL) Caractère de
+basculement (SWTCH). Utilisé par System V pour basculer les shells dans des
+calques (\fIshell layers\fP), notion qui a précédée le contrôle des travaux du
+shell.
+.TP 
+\fBVTIME\fP
+Délai en dixièmes de seconde pour une lecture en mode non canonique (TIME).
+.TP 
+\fBVWERASE\fP
+(Pas dans POSIX\ ; 027, ETB, Ctrl\-W) Effacement de mot (WERASE). Reconnu
+quand \fBICANON\fP et \fBIEXTEN\fP sont actifs, et pas transmis en entrée.
+.LP
+Un caractère spécial de terminal isolé peut être désactivé en positionnant
+la valeur de l'élément \fIc_cc\fP correspondant à \fB_POSIX_VDISABLE\fP.
+.LP
+Les valeurs d'indices ci\-dessus sont toutes différentes, sauf \fBVTIME\fP et
+\fBVMIN\fP qui peuvent avoir la même valeur que \fBVEOL\fP et \fBVEOF\fP
+respectivement. En mode non canonique, la signification d'un caractère
+spécial est remplacée par sa valeur de temporisation. Pour des explications
+sur \fBVMIN\fP et \fBVTIME\fP, consultez la description du mode non canonique
+ci\-dessous.
+.SS "Récupérer et changer les paramètres du terminal"
+.PP
+\fBtcgetattr\fP() récupère les paramètres associés à l'objet référencé par
+\fIfd\fP et les stocke dans la structure \fItermios\fP pointée par
+\fItermios_p\fP. Cette fonction peut être appelée par un processus en
+arrière\-plan. Néanmoins, les attributs de terminal peuvent être modifiés par
+la suite par le processus au premier plan.
+.LP
+\fBtcsetattr\fP() définit les paramètres du terminal (à moins que le matériel
+sous\-jacent ne le supporte pas) en lisant la structure \fItermios\fP pointée
+par \fItermios_p\fP. \fIoptional_actions\fP précise quand les changements auront
+lieu\ :
+.IP \fBTCSANOW\fP
+Les modifications sont effectuées immédiatement.
+.IP \fBTCSADRAIN\fP
+Les modifications sont effectuées lorsque toutes les opérations d'écriture
+sur \fIfd\fP auront été transmises. Cette fonction devrait être utilisée pour
+toute modification de paramètre affectant les sorties.
+.IP \fBTCSAFLUSH\fP
+Les modifications sont effectuées lorsque toutes les opérations d'écriture
+sur \fIfd\fP auront été transmises. Les entrées qui n'ont pas été traitées
+seront éliminées avant de faire les modifications.
+.SS "Mode canonique et non canonique"
+La valeur du bit \fBICANON\fP dans \fIc_lflag\fP détermine si le terminal est dans
+le mode canonique (\fBICANON\fP positionné) ou non canonique (\fBICANON\fP non
+positionné). Par défaut, \fBICANON\fP est positionné.
+
+Dans le mode canonique\ :
+.IP * 2
+L'entrée est rendue disponible ligne à ligne. Une ligne d'entrée est
+disponible quand un délimiteur de ligne (NL, EOL, EOL2 ou EOF au début d'une
+ligne). Sauf dans le cas de EOF, le délimiteur de ligne est inclus dans le
+tampon renvoyé par \fBread\fP(2).
+.IP * 2
+L'édition des lignes est activée (ERASE, KILL\ ; et si le bit \fBIEXTEN\fP est
+positionné\ : WERASE, REPRINT, LNEXT). Un \fBread\fP(2) renverra au plus une
+ligne de l'entrée\ ; si le \fBread\fP(2) a demandé moins de caractères que
+disponibles dans la ligne en cours, seuls les octets demandés seront lus, et
+les autres caractères seront disponibles pour les \fBread\fP(2) suivants.
+.PP
+Dans le mode non canonique, l'entrée est disponible tout de suite (sans que
+l'utilisateur ait à taper de caractère délimiteur de ligne), aucun
+traitement de l'entrée n'est effectué, et l'édition des lignes est
+désactivé. La valeur des paramètres MIN (\fIc_cc[VMIN]\fP) et TIME
+(\fIc_cc[VTIME]\fP) détermine les circonstances dans lesquelles \fBread\fP(2) se
+termine\ ; il y a quatre cas différents\ :
+.IP * 2
+MIN == 0; TIME == 0\ : Si des données sont disponibles, \fBread\fP(2) retourne
+immédiatement le nombre d'octets disponibles ou le nombre d'octets demandés
+(le plus petit des deux). Si aucune donnée n'est disponible, \fBread\fP(2)
+renvoie 0.
+.IP * 2
+MIN > 0; TIME == 0\ : \fBread\fP(2) est bloquant jusqu'à ce que MIN octets
+ou le nombre d'octets demandés soient disponibles, puis renvoie le plus
+petit de ces nombres.
+.IP * 2
+MIN == 0; TIME > 0\ : TIME spécifie une limite de temps en dixièmes de
+seconde. Le décompte du temps est démarré lors de l'appel à
+\fBread\fP(2). \fBread\fP(2) retourne si au moins un octet est disponible ou si la
+temporisation expire. Si la temporisation expire sans qu'il n'y ait eu de
+données disponibles, \fBread\fP(2) renvoie 0.
+.IP * 2
+MIN > 0; TIME > 0\ : TIME spécifie une limite de temps en dixièmes de
+seconde. Quand un premier caractère est disponible en entrée, la
+temporisation est démarrée, puis remise à zéro à chaque caractère
+reçu. \fBread\fP(2) retourne quand le nombre d'octets demandés ou MIN octets
+ont été lus, ou si le délai entre deux octets est dépassé. Comme la
+temporisation n'est démarrée que lors de la réception du premier octet, au
+moins un octet sera lu par \fBread\fP(2).
+.SS "Mode brut"
+.LP
+\fBcfmakeraw\fP() place le terminal dans un mode proche du mode «\ raw\ » de
+l'ancien pilote de terminal version\ 7\ : l'entrée est disponible caractère
+par caractère, il n'y a pas d'écho ni de traitement particulier des
+caractères d'entrée ou sortie. Les attributs du terminal sont définis
+ainsi\ :
+.nf
+
+    termios_p\->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP
+                    | INLCR | IGNCR | ICRNL | IXON);
+    termios_p\->c_oflag &= ~OPOST;
+    termios_p\->c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+    termios_p\->c_cflag &= ~(CSIZE | PARENB);
+    termios_p\->c_cflag |= CS8;
+.fi
+.SS "Contrôle de la ligne"
+.LP
+\fBtcsendbreak\fP() transmet un flux continu de bits à zéro pendant une
+\fIdurée\fP donnée si le terminal utilise une transmission série asynchrone. Si
+\fIdurée\fP vaut zéro, les bits à zéro sont émis pendant au moins 0,25 seconde,
+et pas plus de 0,5 seconde. Si \fIdurée\fP est non nulle, l'émission se fera
+pendant un temps dépendant de l'implémentation.
+.LP
+Si le terminal n'est pas connecté avec une liaison série asynchrone,
+\fBtcsendbreak\fP() n'effectue aucune action.
+.LP
+\fBtcdrain\fP() attend que toutes les écritures sur l'objet référencé par \fIfd\fP
+aient été transmises.
+.LP
+\fBtcflush\fP() élimine toutes les écritures sur l'objet \fIfd\fP pas encore
+transmises, ainsi que les données reçues mais pas encore lues, ceci en
+fonction de la valeur de \fIqueue_selector\fP\ :
+.IP \fBTCIFLUSH\fP
+efface les données reçues mais non lues.
+.IP \fBTCOFLUSH\fP
+efface les données écrites mais non transmises.
+.IP \fBTCIOFLUSH\fP
+efface à la fois les données reçues non lues, et les données écrites non
+transmises.
+.LP
+\fBtcflow\fP() suspend la transmission ou la réception des données sur l'objet
+référencé par \fIfd\fP, en fonction de la valeur de \fIaction\fP\ :
+.IP \fBTCOOFF\fP
+suspend les transmissions.
+.IP \fBTCOON\fP
+redémarre les transmissions suspendues.
+.IP \fBTCIOFF\fP
+envoie un caractère STOP, ce qui demande au terminal de suspendre toute
+transmission de données vers le système.
+.IP \fBTCION\fP
+envoie un caractère START, ce qui redémarre la transmission des données
+depuis le terminal vers le système.
+.LP
+Lors de l'ouverture d'un terminal, ni ses sorties ni ses entrées ne sont
+suspendues.
+.SS "Vitesse de la ligne"
+Il est possible d'utiliser les fonctions suivantes pour lire ou écrire la
+vitesse de communication du terminal, en utilisant la structure
+\fItermios\fP. Les modifications ne prennent effet que lorsque la fonction
+\fBtcsetattr\fP() a été invoquée et qu'elle a réussi.
+
+Définir une vitesse \fBB0\fP demande au modem de raccrocher. La vitesse réelle
+de communication correspondant à \fBB38400\fP peut être modifiée avec
+\fBsetserial\fP(8).
+.LP
+Les vitesses en entrée et en sortie sont stockées dans la structure
+\fItermios\fP.
+.LP
+\fBcfgetospeed\fP() renvoie la vitesse de sortie stockée dans la structure
+\fItermios\fP pointée par \fItermios_p\fP.
+.LP
+\fBcfsetospeed\fP() définit la vitesse de sortie stockée dans la structure
+\fItermios\fP pointée par \fItermios_p\fP à la valeur \fIvitesse\fP, qui doit être
+l'une des constantes suivantes\ :
+.nf
+
+\fB	B0
+	B50
+	B75
+	B110
+	B134
+	B150
+	B200
+	B300
+	B600
+	B1200
+	B1800
+	B2400
+	B4800
+	B9600
+	B19200
+	B38400
+	B57600
+	B115200
+	B230400\fP
+
+.fi
+La vitesse nulle, \fBB0\fP, est utilisée pour terminer une connexion. Si B0 est
+indiquée, il n'y a aucune garantie d'état des lignes de contrôle du
+modem. Normalement, ceci devrait déconnecter la ligne. \fBCBAUDEX\fP est un
+masque pour les vitesses supérieures à celles définies dans POSIX.1
+(supérieures ou égales à 57600). Ainsi, \fBB57600\fP & \fBCBAUDEX\fP est non
+nulle.
+.LP
+\fBcfgetispeed\fP() renvoie la vitesse d'entrée stockée dans la structure
+\fItermios\fP.
+.LP
+\fBcfsetispeed\fP() définit la vitesse d'entrée stockée dans la structure
+\fItermios\fP à la valeur \fIvitesse\fP, qui doit être spécifiée à l'aide d'une
+des constantes \fBBnnn\fP listées ci\-dessus pour \fBcfsetospeed\fP(). Si la
+vitesse d'entrée est mise à 0, elle prendra la même valeur que la vitesse de
+sortie.
+.LP
+\fBcfsetspeed\fP() est une extension BSD\ 4.4. Elle prend les mêmes arguments
+que \fBcfsetispeed\fP(), et définit à la fois les vitesses d'entrée et de
+sortie.
+.SH "VALEUR RENVOYÉE"
+.LP
+\fBcfgetispeed\fP() renvoie la vitesse d'entrée stockée dans la structure
+\fItermios\fP.
+.LP
+\fBcfgetospeed\fP() renvoie la vitesse de sortie stockée dans la structure
+\fItermios\fP.
+.LP
+Toutes les autres fonctions renvoient
+.IP 0
+si elle réussissent, et
+.IP \-1
+si elles échouent, auquel cas \fIerrno\fP contient le code d'erreur.
+.LP
+Notez que \fBtcsetattr\fP() indique une réussite si \fIune\fP des modifications
+peut être réalisée. Toutefois, pour effectuer plusieurs changements, il peut
+être nécessaire de faire suivre cet appel d'une invocation de \fBtcgetattr\fP()
+pour vérifier que les modifications ont bien été réalisées.
+.SH CONFORMITÉ
+\fBtcgetattr\fP(), \fBtcsetattr\fP(), \fBtcsendbreak\fP(), \fBtcdrain\fP(),
+\fBtcflush\fP(), \fBtcflow\fP(), \fBcfgetispeed\fP(), \fBcfgetospeed\fP(),
+\fBcfsetispeed\fP() et \fBcfsetospeed\fP() sont spécifiés dans POSIX.1\-2001.
+
+\fBcfmakeraw\fP() et \fBcfsetspeed\fP() ne sont pas standard, mais sont
+disponibles sur les BSD.
+.SH NOTES
+UNIX V7 et plusieurs systèmes ultérieurs avaient une liste de vitesse de
+transmission où l'on rencontrait, après les quatorze valeurs B0...B9600, les
+constantes EXTA et EXTB («\ External A\ » et «\ External B\ »). De nombreux
+systèmes étendent cette liste avec des vitesses bien plus rapides.
+.LP
+.\" libc4 until 4.7.5, glibc for sysv: EINVAL for duration > 0.
+.\" libc4.7.6, libc5, glibc for unix: duration in ms.
+.\" glibc for bsd: duration in us
+.\" glibc for sunos4: ignore duration
+L'effet d'une \fIdurée\fP non nulle avec \fBtcsendbreak\fP() est variable. SunOS
+indique un break pendant \fIduration\ *\ N\fP secondes, où \fIN\fP est au moins
+0,25, et au plus 0,5. Linux, AIX, DU, Tru64 envoie un break pendant
+\fIduration\fP millisecondes. FreeBSD, NetBSD, HP\-UX et MacOS ignorent la
+valeur \fIduration\fP. Sous Solaris et UnixWare, \fBtcsendbreak\fP() avec une
+\fIduration\fP non nulle se comporte comme \fBtcdrain\fP().
+.SH "VOIR AUSSI"
+\fBstty\fP(1), \fBconsole_ioctl\fP(4), \fBtty_ioctl\fP(4), \fBsetserial\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

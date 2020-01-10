@@ -1,0 +1,128 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sun Jul 25 10:41:34 1993 by Rik Faith (faith@cs.unc.edu)
+.\" Modified Wed Oct 17 01:12:26 2001 by John Levon <moz@compsoc.man.ac.uk>
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH STRDUP 3 "19 avril 2013" GNU "Manuel du programmeur Linux"
+.SH NOM
+strdup, strndup, strdupa, strndupa \- Dupliquer une chaîne
+.SH SYNOPSIS
+.nf
+\fB#include <string.h>\fP
+.sp
+\fBchar *strdup(const char *\fP\fIs\fP\fB);\fP
+.sp
+\fBchar *strndup(const char *\fP\fIs\fP\fB, size_t \fP\fIn\fP\fB);\fP
+.br
+\fBchar *strdupa(const char *\fP\fIs\fP\fB);\fP
+.br
+\fBchar *strndupa(const char *\fP\fIs\fP\fB, size_t \fP\fIn\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.PD 0
+.ad l
+.sp
+\fBstrdup\fP()\ :
+.RS 4
+_SVID_SOURCE || _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500 || _XOPEN_SOURCE\ &&\ _XOPEN_SOURCE_EXTENDED
+.br
+|| /* Depuis la glibc 2.12\ : */ _POSIX_C_SOURCE\ >=\ 200809L
+.RE
+.PP
+\fBstrndup\fP()\ :
+.RS 4
+.TP  4
+Depuis la glibc 2.10\ :
+POSIX_C_SOURCE\ >=\ 200809L || _XOPEN_SOURCE\ >=\ 700
+.TP 
+Avant la glibc 2.10\ :
+_GNU_SOURCE
+.RE
+.PP
+\fBstrdupa\fP(), \fBstrndupa\fP()\ : _GNU_SOURCE
+.ad
+.PD
+.SH DESCRIPTION
+La fonction \fBstrdup\fP() renvoie un pointeur sur une nouvelle chaîne de
+caractères qui est dupliquée depuis \fIs\fP. La mémoire occupée par cette
+nouvelle chaîne est obtenue en appelant \fBmalloc\fP(3), et peut (doit) donc
+être libérée avec \fBfree\fP(3).
+
+La fonction \fBstrndup\fP() est identique, mais ne copie au plus que
+\fIn\fP\ octets. Si \fIs\fP est plus grande que \fIn\fP, seuls \fIn\fP\ octets sont
+copiés, et un octet nul de fin («\ \e0\ ») est ajouté.
+
+\fBstrdupa\fP et \fBstrndupa\fP sont similaires, mais utilisent \fBalloca\fP(3) pour
+allouer le tampon. Elles sont directement utilisables avec GNU GCC, mais
+souffrent des mêmes restrictions que \fBalloca\fP(3).
+.SH "VALEUR RENVOYÉE"
+En cas de succès, la fonction \fBstrdup\fP() renvoie un pointeur sur la chaîne
+dupliquée. NULL est renvoyé s'il n'y avait pas assez de mémoire et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBENOMEM\fP
+Mémoire disponible insuffisante pour dupliquer la chaîne.
+.SH CONFORMITÉ
+.\" 4.3BSD-Reno, not (first) 4.3BSD.
+\fBstrdup\fP() est conforme à SVr4, BSD\ 4.3, POSIX.1\-2001. \fBstrndup\fP() est
+conforme à POSIX.1\-2008. \fBstrdupa\fP() et \fBstrndupa\fP() sont des extensions
+GNU.
+.SH "VOIR AUSSI"
+\fBalloca\fP(3), \fBcalloc\fP(3), \fBfree\fP(3), \fBmalloc\fP(3), \fBrealloc\fP(3),
+\fBstring\fP(3), \fBwcsdup\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

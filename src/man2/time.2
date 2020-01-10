@@ -1,0 +1,94 @@
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified Sat Jul 24 14:13:40 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Additions by Joseph S. Myers <jsm28@cam.ac.uk>, 970909
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH TIME 2 "9 septembre 2011" Linux "Manuel du programmeur Linux"
+.SH NOM
+time \- Lire l'heure
+.SH SYNOPSIS
+\fB#include <time.h>\fP
+.sp
+\fBtime_t time(time_t *\fP\fIt\fP\fB);\fP
+.SH DESCRIPTION
+\fBtime\fP()  renvoie la date sous la forme du nombre de secondes depuis
+l'époque, 1er\ janvier 1970 à\ 00:00:00 (UTC).
+
+Si \fIt\fP n'est pas NULL, la valeur renvoyée est également stockée dans la
+structure vers laquelle il pointe.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, l'appel \fBtime\fP renvoie le nombre de secondes écoulées depuis
+l'époque. S'il échoue, la valeur \fI((time_t)\ \-1)\fP est renvoyée, et \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fIt\fP pointe en dehors de l'espace d'adressage.
+.SH CONFORMITÉ
+.\" .br
+.\" Under 4.3BSD, this call is obsoleted by
+.\" .BR gettimeofday (2).
+SVr4, BSD\ 4.3, C89, C99, POSIX.1\-2001. POSIX ne précise pas de condition
+d'erreur.
+.SH NOTES
+POSIX.1 définit le nombre de secondes écoulées depuis l'époque grâce à une
+formule qui est une approximation du nombre de secondes entre une date
+spécifiée et l'époque. Cette formule prend en compte le fait que les années
+divisibles par 4 sont bissextiles, sauf les années qui sont divisibles par
+100 mais pas par 400. Cette valeur ne correspond donc pas toujours au
+véritable nombre de secondes écoulées depuis l'époque, à cause des secondes
+de rattrapage et parce que les horloges système ne sont pas forcément
+synchronisées avec une référence standard. Cependant elle reste cohérente au
+cours du temps. Consultez l'explication A.4.15 de POSIX.1\-2008 pour plus de
+détails.
+.SH "VOIR AUSSI"
+\fBdate\fP(1), \fBgettimeofday\fP(2), \fBctime\fP(3), \fBftime\fP(3), \fBtime\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

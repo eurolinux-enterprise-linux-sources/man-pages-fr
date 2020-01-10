@@ -1,0 +1,493 @@
+.\" Copyright (c) 1992 Drew Eckhardt, March 28, 1992
+.\" and Copyright (c) 2002, 2004, 2005, 2008, 2010 Michael Kerrisk
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified 1993-07-23 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1996-01-13 by Arnt Gulbrandsen <agulbra@troll.no>
+.\" Modified 1996-01-22 by aeb, following a remark by
+.\"          Tigran Aivazian <tigran@sco.com>
+.\" Modified 1996-04-14 by aeb, following a remark by
+.\"          Robert Bihlmeyer <robbe@orcus.ping.at>
+.\" Modified 1996-10-22 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 2001-05-04 by aeb, following a remark by
+.\"          Håvard Lygre <hklygre@online.no>
+.\" Modified 2001-04-17 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" Modified 2002-06-13 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added note on nonstandard behavior when SIGCHLD is ignored.
+.\" Modified 2002-07-09 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Enhanced descriptions of 'resource' values
+.\" Modified 2003-11-28 by aeb, added RLIMIT_CORE
+.\" Modified 2004-03-26 by aeb, added RLIMIT_AS
+.\" Modified 2004-06-16 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on CAP_SYS_RESOURCE
+.\"
+.\" 2004-11-16 -- mtk: the getrlimit.2 page, which formally included
+.\" coverage of getrusage(2), has been split, so that the latter
+.\" is now covered in its own getrusage.2.
+.\"
+.\" Modified 2004-11-16, mtk: A few other minor changes
+.\" Modified 2004-11-23, mtk
+.\"	Added notes on RLIMIT_MEMLOCK, RLIMIT_NPROC, and RLIMIT_RSS
+.\"		to "CONFORMING TO"
+.\" Modified 2004-11-25, mtk
+.\"	Rewrote discussion on RLIMIT_MEMLOCK to incorporate kernel
+.\"		2.6.9 changes.
+.\"	Added note on RLIMIT_CPU error in older kernels
+.\" 2004-11-03, mtk, Added RLIMIT_SIGPENDING
+.\" 2005-07-13, mtk, documented RLIMIT_MSGQUEUE limit.
+.\" 2005-07-28, mtk, Added descriptions of RLIMIT_NICE and RLIMIT_RTPRIO
+.\" 2008-05-07, mtk / Peter Zijlstra, Added description of RLIMIT_RTTIME
+.\" 2010-11-06, mtk: Added documentation of prlimit()
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH GETRLIMIT 2 "11 février 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+getrlimit, setrlimit, prlimit \- Lire et écrire les limites et utilisations
+des ressources
+.SH SYNOPSIS
+\fB#include <sys/time.h>\fP
+.br
+\fB#include <sys/resource.h>\fP
+.sp
+\fBint getrlimit(int \fP\fIresource\fP\fB, struct rlimit *\fP\fIrlim\fP\fB);\fP
+.br
+\fBint setrlimit(int \fP\fIresource\fP\fB, const struct rlimit *\fP\fIrlim\fP\fB);\fP
+.sp
+\fBint prlimit(pid_t \fP\fIpid\fP\fB, int \fP\fIresource\fP\fB, const struct rlimit
+*\fP\fInew_limit\fP\fB,\fP
+.br
+\fB struct rlimit *\fP\fIold_limit\fP\fB);\fP
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+\fBprlimit\fP()\ : _GNU_SOURCE && _FILE_OFFSET_BITS == 64
+.SH DESCRIPTION
+Les appels système \fBgetrlimit\fP() et \fBsetrlimit\fP() lisent ou écrivent les
+limites des ressources système. Chaque ressource a une limite souple et une
+limite stricte définies par la structure \fIrlimit\fP (l'argument \fIrlim\fP de
+\fBgetrlimit\fP() et \fBsetrlimit\fP())\ :
+.PP
+.in +4n
+.nf
+struct rlimit {
+  rlim_t rlim_cur; /* limite souple */
+  rlim_t rlim_max; /* limite stricte (plafond
+                      de rlim_cur) */
+};
+
+.fi
+.in
+La limite souple est la valeur que le noyau prend en compte pour la
+ressource correspondante. La limite stricte agit comme un plafond pour la
+limite souple\ : un processus non privilégié peut seulement modifier sa
+limite souple dans l'intervalle entre zéro et la limite stricte, et diminuer
+(de manière irréversible) sa limite stricte. Un processus privilégié (sous
+Linux\ : un processus ayant la capacité \fBCAP_SYS_RESOURCE\fP) peut modifier
+ses deux limites à sa guise.
+.PP
+La valeur \fBRLIM_INFINITY\fP indique une limite infinie pour la ressource
+(aussi bien pour \fBgetrlimit\fP() que pour \fBsetrlimit\fP()).
+.PP
+Le paramètre \fIresource\fP doit être l'un des éléments suivants\ :
+.TP 
+\fBRLIMIT_AS\fP
+.\" since 2.0.27 / 2.1.12
+Taille maximum de la mémoire virtuelle du processus en octets. Cette limite
+affecte les appels à \fBbrk\fP(2), \fBmmap\fP(2) et \fBmremap\fP(2), qui échouent
+avec l'erreur \fBENOMEM\fP en cas de dépassement de cette limite. De même,
+l'extension de la pile automatique échouera (et générera un \fBSIGSEGV\fP qui
+tuera le processus si aucune pile alternative n'a été définie par un appel à
+\fBsigaltstack\fP(2)). Depuis que cette valeur est de type \fIlong\fP, sur les
+machines où le type \fIlong\fP est sur 32 bits, soit cette limite est au plus 2
+GiB, soit cette ressource est illimitée.
+.TP 
+\fBRLIMIT_CORE\fP
+Taille maximum du fichier \fIcore\fP. Lorsqu'elle vaut zéro, aucun fichier
+d'image noyau (Ndt\ : core dump) n'est créé. Lorsqu'elle ne vaut pas zéro,
+les fichiers d'image noyau plus grands sont tronqués à cette taille.
+.TP 
+\fBRLIMIT_CPU\fP
+Limite de temps CPU en secondes. Si un processus atteint cette limite
+souple, il reçoit le signal \fBSIGXCPU\fP. L'action par défaut pour ce signal
+est la terminaison du processus. Mais le signal peut être capturé et le
+gestionnaire peut rendre le contrôle au programme principal. Si le processus
+continue à consommer du temps CPU, il recevra \fBSIGXCPU\fP toutes les secondes
+jusqu'à atteindre la limite stricte, où il recevra \fBSIGKILL\fP. (Ce dernier
+point décrit le comportement de Linux. Les implémentations varient sur la
+façon de traiter le processus qui continue à consommer du temps CPU après
+dépassement de sa limite souple. Les applications portables qui doivent
+capturer ce signal devraient prévoir une terminaison propre dès la première
+réception de \fBSIGXCPU\fP.)
+.TP 
+\fBRLIMIT_DATA\fP
+Taille maximale du segment de données d'un processus (données initialisées,
+non initialisées, et tas). Cette limite affecte les appels \fBbrk\fP(2) et
+\fBsbrk\fP(2), qui échouent avec l'erreur \fBENOMEM\fP si la limite souple est
+dépassée.
+.TP 
+\fBRLIMIT_FSIZE\fP
+Taille maximale d'un fichier que le processus peut créer. Les tentatives
+d'extension d'un fichier au\(hydelà de cette limite résultent en un signal
+\fBSIGXFSZ\fP. Par défaut ce signal termine le processus, mais il peut être
+capturé, et dans ce cas l'appel système concerné (par exemple \fBwrite\fP(2),
+\fBtruncate\fP(2)) échoue avec l'erreur \fBEFBIG\fP.
+.TP 
+\fBRLIMIT_LOCKS\fP (Premiers Linux 2.4 seulement)
+.\" to be precise: Linux 2.4.0-test9; no longer in 2.4.25 / 2.5.65
+Une limite sur le nombre combiné de verrous \fBflock\fP(2) et \fBfcntl\fP(2) que
+le processus peut établir.
+.TP 
+\fBRLIMIT_MEMLOCK\fP
+Le nombre maximal d'octets de mémoire virtuelle que le processus peut
+verrouiller en RAM. En pratique cette limite est arrondie vers le bas au
+multiple de la taille de page le plus proche. Cette limite affecte
+\fBmlock\fP(2) et \fBmlockall\fP(2) ainsi que l'opération \fBMAP_LOCKED\fP de
+\fBmmap\fP(2). Depuis Linux 2.6.9, elle affecte aussi l'opération \fBSHM_LOCK\fP
+de \fBshmctl\fP(2), où elle limite le nombre total d'octets dans des segments
+de mémoire partagée (consultez \fBshmget\fP(2)) que l'UID réel du processus
+appelant peut verrouiller. Les verrous de \fBshmctl\fP(2) \fBSHM_LOCK\fP sont
+comptés séparément des verrous de mémoire par processus établis par
+\fBmlock\fP(2), \fBmlockall\fP(2) et \fBmmap\fP(2) \fBMAP_LOCKED\fP\ ; un processus peut
+verrouiller des octets jusqu'à la limite dans chacune de ces
+catégories. Dans les noyaux antérieurs à 2.6.9, cette limite contrôlait la
+quantité de mémoire qu'un processus privilégié pouvait verrouiller. Depuis
+Linux 2.6.9, un processus privilégie peut verrouiller autant de mémoire
+qu'il le souhaite, et cette limite contrôle la quantité de mémoire pouvant
+être verrouillée par un processus non privilégié.
+.TP 
+\fBRLIMIT_MSGQUEUE\fP (depuis Linux 2.6.8)
+Indique la limite du nombre d'octets pouvant être alloués pour les files de
+messages POSIX pour l'UID réel du processus appelant. Cette limite est
+appliquée pour \fBmq_open\fP(3). Le nombre d'octets pour chaque file de
+messages créée par l'utilisateur (jusqu'à sa destruction) est déterminé par
+la formule suivante\ :
+.nf
+
+   octets = attr.mq_maxmsg * sizeof(struct msg_msg *) +
+            attr.mq_maxmsg * attr.mq_msgsize
+
+.fi
+où \fIattr\fP est la structure \fImq_attr\fP passée comme quatrième argument à
+\fBmq_open\fP(3).
+
+Le premier terme de la formule, qui inclut \fIsizeof(struct msg_msg\ *)\fP (4\ octets sur Linux/i386) garantit que l'utilisateur ne peut pas créer un
+nombre illimité de messages vides (ces messages consomment tout de même de
+la mémoire système).
+.TP 
+\fBRLIMIT_NICE\fP (depuis Linux\ 2.6.12, consultez la section BOGUES ci\(hydessous)
+Indique un plafond pour la valeur de politesse du processus pouvant être
+définie par \fBsetpriority\fP(2) ou \fBnice\fP(2). Le plafond réel pour la valeur
+de politesse est calculé par la formule \fI20\ \-\ rlim_cur\fP. (Cette
+bizarrerie apparaît car des nombres négatifs ne peuvent pas être utilisés
+comme limites de ressources, en raison de leur signification souvent
+particulière. Par exemple, \fBRLIM_INFINITY\fP est souvent la même chose que
+\-1.)
+.TP 
+\fBRLIMIT_NOFILE\fP
+Le nombre maximal de descripteurs de fichier qu'un processus peut ouvrir
+simultanément. Les tentatives d'ouverture (\fBopen\fP(2), \fBpipe\fP(2),
+\fBdup\fP(2), etc) dépassant cette limite renverront l'erreur
+\fBEMFILE\fP. Historiquement, cette limite était appelée \fBRLIMIT_OFILE\fP sur
+les BSD.
+.TP 
+\fBRLIMIT_NPROC\fP
+Le nombre maximal de processus (ou plus précisément, sous Linux, de threads)
+qui peuvent être créés pour l'UID réel du processus appelant. Une fois cette
+limite atteinte, \fBfork\fP(2) échoue avec l'erreur \fBEAGAIN\fP.
+.TP 
+\fBRLIMIT_RSS\fP
+.\" As at kernel 2.6.12, this limit still does nothing in 2.6 though
+.\" talk of making it do something has surfaced from time to time in LKML
+.\"       -- MTK, Jul 05
+Indique la limite (en pages) pour la taille de l'ensemble résident du
+processus (le nombre de pages de mémoire virtuelle en RAM). Cette limite n'a
+d'effet que sous Linux 2.4.x où x\ <\ 30, et n'affecte que les appels
+\fBmadvise\fP(2) indiquant \fBMADV_WILLNEED\fP.
+.TP 
+\fBRLIMIT_RTPRIO\fP (Depuis Linux 2.6.12, mais consultez BOGUES)
+Indique un plafond pour la priorité temps\(hyréel pouvant être appliquée au
+processus par \fBsched_setscheduler\fP(2) et \fBsched_setparam\fP(2).
+.TP 
+\fBRLIMIT_RTTIME\fP (depuis Linux 2.6.25)
+Indique une limite de la quantité de temps (en microsecondes) CPU qu'un
+processus ordonnancé par une politique d'ordonnancement temps réel peut
+consommer sans bloquer lors de l'exécution d'un appel système. À cause de
+cette limite le décompte du temps CPU qu'il a consommé est remis à zéro à
+chaque fois qu'un processus exécute un appel système bloquant. Le décompte
+du temps CPU n'est pas remis à zéro si le processus continue d'essayer
+d'utiliser le CPU mais est préempté, ou si sa tranche de temps expire, ou
+s'il appelle \fBsched_yield\fP(2).
+
+Quand la limite douce est atteinte, un signal \fBSIGXCPU\fP est envoyé au
+processus. Si le processus attrape ou ignore ce signal et continue à
+consommer du temps CPU, alors un signal \fBSIGXCPU\fP sera généré une fois par
+seconde jusqu'à ce que la limite dure soit atteinte, ce qui provoque
+l'envoie d'un signal \fBSIGKILL\fP au processus.
+
+L'objectif de cette limite est d'empêcher un processus temps réel fou de
+bloquer le système.
+.TP 
+\fBRLIMIT_SIGPENDING\fP (Depuis Linux 2.6.8)
+.\" This replaces the /proc/sys/kernel/rtsig-max system-wide limit
+.\" that was present in kernels <= 2.6.7.  MTK Dec 04
+Spécifie la limite du nombre de signaux pouvant être mis en attente pour
+l'identifiant utilisateur réel du processus appelant. La vérification de
+cette limite prend en compte à la fois les signaux classiques et les signaux
+temps\(hyréel. Cependant, cette limite n'est appliquée que pour
+\fBsigqueue\fP(3)\ ; il est toujours possible d'utiliser \fBkill\fP(2) pour mettre
+en attente une instance de tout signal qui n'est pas déjà en attente pour le
+processus.
+.TP 
+\fBRLIMIT_STACK\fP
+La taille maximale de la pile du processus, en octets. Une fois cette limite
+atteinte, un signal \fBSIGSEGV\fP est déclenché. Pour gérer ce signal, le
+processus doit utiliser une pile spécifique pour signaux
+(\fBsigaltstack\fP(2)).
+
+Depuis Linux 2.6.23, cette limite détermine également la quantité d'espace
+utilisé pour les paramètres et les variables d'environnement du processus\ ;
+consultez \fBexecve\fP(2) pour plus de détails.
+.SS prlimit()
+.\" commit c022a0acad534fd5f5d5f17280f6d4d135e74e81
+.\" Author: Jiri Slaby <jslaby@suse.cz>
+.\" Date:   Tue May 4 18:03:50 2010 +0200
+L'appel système \fBprlimit\fP()  spécifique à Linux combine et étend les
+fonctionnalités de \fBsetrlimit\fP()  et \fBgetrlimit\fP(). Il peut être utilisé
+pour affecter ou récupérer les limites de ressources de tout processus.
+
+Le paramètre \fIresource\fP a le même sens que dans \fBsetrlimit\fP()  et
+\fBgetrlimit\fP().
+
+Si le paramètre \fInew_limit\fP ne vaut pas NULL, alors la structure \fIrlimit\fP
+vers laquelle il pointe est utilisée pour affecter de nouvelles valeurs aux
+limites souples et strictes pour \fIresource\fP. Si le paramètres \fIold_limit\fP
+ne vaut pas NULL, alors un appel à \fBprlimit\fP()  qui réussit place les
+limites antérieures souples et strictes pour \fIresource\fP dans la structure
+\fIrlimit\fP pointée par \fIold_limit\fP.
+
+.\" FIXME this permission check is strange
+.\" Asked about this on LKML, 7 Nov 2010
+.\"     "Inconsistent credential checking in prlimit() syscall"
+L'argument \fIpid\fP spécifie l'identifiant du processus sur lequel l'appel
+agit. Si \fIpid\fP vaut 0, alors l'appel s'applique au processus appelant. Pour
+positionner ou interroger les ressources d'un processus autre que lui\-même,
+soit l'appelant a la capacité \fBCAP_SYS_RESOURCE\fP, soit les identifiants
+d'utilisateur réel et effectif et le set\-UID sauvé du processus cible
+correspond à l'identifiant d'utilisateur réel de l'appelant \fIet\fP les
+identifiants de groupe réel et effectif et le set\-GID sauvé du processus
+cible correspond à l'identifiant de groupe réel du processus.
+.SH "VALEUR RENVOYÉE"
+Ces appels système renvoient 0 en cas de succès, ou \-1 en cas d'échec,
+auquel cas \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+L'un des arguments pointe en\(hydehors de l'espace d'adressage accessible.
+.TP 
+\fBEINVAL\fP
+La valeur spécifiée dans \fIresource\fP n'est pas valide\ ; ou, pour
+\fBsetrlimit\fP()  ou \fBprlimit\fP(), \fIrlim\->rlim_cur\fP est plus grand que
+\fIrlim\->rlim_max\fP.
+.TP 
+\fBEPERM\fP
+Un processus non privilégié a essayé d'augmenter la limite stricte\ ; la
+capacité \fBCAP_SYS_RESOURCE\fP est nécessaire pour pouvoir faire cela. Ou le
+processus a essayé d'augmenter la limite stricte \fBRLIMIT_NOFILE\fP
+au\(hydessus du maximum (\fBNR_OPEN\fP) du noyau actuel. Ou alors le processus
+appelant n'avait pas la permission de changer les limites du processus
+spécifié par \fIpid\fP.
+.TP 
+\fBESRCH\fP
+Impossible de trouver un processus dont l'identifiant est indiqué par
+\fIpid\fP.
+.SH VERSIONS
+L'appel système \fBprlimit\fP() est disponible depuis Linux\ 2.6.36\ ; la prise
+en charge dans la glibc est disponible depuis la version\ 2.13.
+.SH CONFORMITÉ
+\fBgetrlimit\fP(), \fBsetrlimit\fP()\ : SVr4, BSD\ 4.3, POSIX.1\-2001.
+.br
+\fBprlimit\fP()\ : spécifique à Linux.
+
+\fBRLIMIT_MEMLOCK\fP et \fBRLIMIT_NPROC\fP proviennent de BSD et ne sont pas
+définis dans POSIX.1\-2001\ ; ils sont présents dans les BSD et Linux, mais
+dans peu d'autres implémentations. \fBRLIMIT_RSS\fP vient de BSD et n'est pas
+défini dans POSIX.1\-2001\ ; cependant, il est présent sur la plupart des
+implémentations. \fBRLIMIT_MSGQUEUE\fP, \fBRLIMIT_NICE\fP, \fBRLIMIT_RTPRIO\fP,
+\fBRLIMIT_RTTIME\fP et \fBRLIMIT_SIGPENDING\fP sont spécifiques à Linux.
+.SH NOTES
+Un processus fils créé avec \fBfork\fP(2) hérite des limites de ressource de
+son père. Les limites de ressource sont préservées à travers un
+\fBexecve\fP(2).
+
+On peut définir les limites de ressources de l'interpréteur de commandes en
+utilisant la commande interne \fIulimit\fP (\fIlimit\fP dans \fBcsh\fP(1)). Les
+limites de ressources de l'interpréteur de commandes sont héritées par les
+processus qu'il crée pour exécuter les commandes.
+
+À partir de Linux 2.6.24, les limites de ressource de n'importe quel
+processus peuvent être examinées en consultant \fI/proc/[pid]/limits\fP\ ;
+consultez \fBproc\fP(5).
+
+Des systèmes anciens fournissent une fonction \fBvlimit\fP() qui remplit le
+même rôle que \fBsetrlimit\fP(). Pour des raisons de compatibilité ascendante,
+la glibc fournit aussi une fonction \fBvlimit\fP(), mais toutes les nouvelles
+applications devraient utiliser \fBsetrlimit\fP().
+.SH BOGUES
+.\" FIXME prlimit() does not suffer
+.\" https://bugzilla.kernel.org/show_bug.cgi?id=5042
+.\" http://sources.redhat.com/bugzilla/show_bug.cgi?id=12201
+.\" Since versions 2.13, glibc has library implementations of
+.\" getrlimit() and setrlimit() that use prlimit() to work around
+.\" this bug.
+Dans les noyaux Linux plus anciens, les signaux \fBSIGXCPU\fP et \fBSIGKILL\fP
+envoyés lorsqu'un processus dépassait les limites souple et stricte pour
+\fBRLIMIT_CPU\fP étaient envoyés une seconde (CPU) plus tard qu'ils n'auraient
+dû l'être. Cela a été corrigé dans le noyau 2.6.8.
+
+.\" see http://marc.theaimsgroup.com/?l=linux-kernel&m=114008066530167&w=2
+Dans les noyaux de la série 2.6 antérieurs à 2.6.17, une limite
+\fBRLIMIT_CPU\fP à 0 est interprétée par erreur comme «\ pas de limite\ »
+(comme \fBRLIM_INFINITY\fP). Depuis Linux\ 2.6.17, définir la limite à 0 a un
+effet, mais la limite est en fait d'une seconde.
+
+.\" See https://lwn.net/Articles/145008/
+En raison d'un bogue du noyau, \fBRLIMIT_RTPRIO\fP ne marche pas dans le noyau
+2.6.12\ ; le problème a été corrigé dans le noyau 2.6.13.
+
+.\" see http://marc.theaimsgroup.com/?l=linux-kernel&m=112256338703880&w=2
+Dans le noyau 2.6.12, il y avait une différence de 1 entre les valeurs de
+priorité renvoyées par \fBgetpriority\fP(2) et \fBRLIMIT_NICE\fP. Du coup, la
+limite réelle pour la valeur de politesse était calculée comme \fI19\ \-\ rlim_cur\fP. Ceci est corrigé depuis le noyau 2.6.13.
+
+.\" The relevant patch, sent to LKML, seems to be
+.\" http://thread.gmane.org/gmane.linux.kernel/273462
+.\" From: Roland McGrath <roland <at> redhat.com>
+.\" Subject: [PATCH 7/7] make RLIMIT_CPU/SIGXCPU per-process
+.\" Date: 2005-01-23 23:27:46 GMT
+.\" Tested Solaris 10, FreeBSD 9, OpenBSD 5.0
+.\" FIXME https://bugzilla.kernel.org/show_bug.cgi?id=50951
+A partir de Linux 2.6.12, si un processus atteint sa limite souple
+\fBRLIMIT_CPU\fP et qu'il dispose d'un gestionnaire pour \fBSIGXCPU\fP, alors en
+plus d'invoquer le gestionnaire de signal, le noyau augmente la limite
+souple d'une seconde. Ce comportement se répète si le processus continue de
+consommer du temps processeur, jusqu'à ce que la limite stricte soit
+atteinte, auquel cas le processus est tué. D'autres implémentations ne
+modifient pas la limite souple \fBRLIMIT_CPU\fP de cette façon, et le
+comportement de Linux n'est alors probablement pas conforme aux standards\ ;
+pour cette raison, les applications portables doivent éviter de tabler sur
+ce comportement. La limite propre à Linux \fBRLIMIT_RTTIME\fP se comporte de
+façon analogue lorsque la limite souple est atteinte.
+
+Les noyaux antérieurs à 2.4.22 ne détectaient pas l'erreur \fBEINVAL\fP pour
+\fBsetrlimit\fP() quand \fIrlim\->rlim_cur\fP était plus grand que
+\fIrlim\->rlim_max\fP.
+.SH EXEMPLE
+Le programme ci\-dessous démontre l'utilisation de \fBprlimit\fP().
+.PP
+.nf
+#define _GNU_SOURCE
+#define _FILE_OFFSET_BITS 64
+#include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/resource.h>
+
+#define errExit(msg) 	do { perror(msg); exit(EXIT_FAILURE); \e
+                        } while (0)
+
+int
+main(int argc, char *argv[])
+{
+    struct rlimit old, new;
+    struct rlimit *newp;
+    pid_t pid;
+
+    if (!(argc == 2 || argc == 4)) {
+        fprintf(stderr, "Usage: %s <pid> [<nouvelle\-limite\-souple> "
+                "<nouvelle\-limite\-stricte>]\en", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    pid = atoi(argv[1]);        /* PID du processus cible */
+
+    newp = NULL;
+    if (argc == 4) {
+        new.rlim_cur = atoi(argv[2]);
+        new.rlim_max = atoi(argv[3]);
+        newp = &new;
+    }
+
+    /* Définir la limite de temps CPU du processus cible\ ;
+       récupérer et afficher la limite de temps CPU antérieure */
+
+    if (prlimit(pid, RLIMIT_CPU, newp, &old) == \-1)
+        errExit("prlimit\-1");
+    printf("Limites précédentes\ : souple=%lld; stricte=%lld\en",
+            (long long) old.rlim_cur, (long long) old.rlim_max);
+
+    /* Récupérer et afficher la nouvelle limite de temps CPU */
+
+    if (prlimit(pid, RLIMIT_CPU, NULL, &old) == \-1)
+        errExit("prlimit\-2");
+    printf("Nouvelles limites: souple=%lld; stricte=%lld\en",
+            (long long) old.rlim_cur, (long long) old.rlim_max);
+
+    exit(EXIT_FAILURE);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBprlimit\fP(1), \fBdup\fP(2), \fBfcntl\fP(2), \fBfork\fP(2), \fBgetrusage\fP(2),
+\fBmlock\fP(2), \fBmmap\fP(2), \fBopen\fP(2), \fBquotactl\fP(2), \fBsbrk\fP(2),
+\fBshmctl\fP(2), \fBmalloc\fP(3), \fBsigqueue\fP(3), \fBulimit\fP(3), \fBcore\fP(5),
+\fBcapabilities\fP(7), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

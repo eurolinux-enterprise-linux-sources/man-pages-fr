@@ -1,0 +1,374 @@
+.\" Copyright (C) 1993 Rickard E. Faith <faith@cs.unc.edu>
+.\" and Copyright (C) 1994 Andries E. Brouwer <aeb@cwi.nl>
+.\" and Copyright (C) 2002, 2005 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified 1996-11-04 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 2001-10-13 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Added note on historical behavior of MS_NOSUID
+.\" Modified 2002-05-16 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Extensive changes and additions
+.\" Modified 2002-05-27 by aeb
+.\" Modified 2002-06-11 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Enhanced descriptions of MS_MOVE, MS_BIND, and MS_REMOUNT
+.\" Modified 2004-06-17 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" 2005-05-18, mtk, Added MNT_EXPIRE, plus a few other tidy-ups.
+.\" 2008-10-06, mtk: move umount*() material into separate umount.2 page.
+.\" 2008-10-06, mtk: Add discussion of namespaces.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MOUNT 2 "5 juillet 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+mount \- Monter un système de fichiers
+.SH SYNOPSIS
+.nf
+\fB#include <sys/mount.h>\fP
+.sp
+\fBint mount(const char *\fP\fIsource\fP\fB, const char *\fP\fItarget\fP\fB,\fP
+\fB          const char *\fP\fIfilesystemtype\fP\fB, unsigned long \fP\fImountflags\fP\fB,\fP
+\fB          const void *\fP\fIdata\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+\fBmount\fP() attache le système de fichiers spécifié par \fIsource\fP (qui est
+généralement un nom de périphérique, mais peut aussi être un répertoire ou
+un objet fictif) au répertoire indiqué par \fItarget\fP.
+
+Des privilèges appropriés (sous Linux\ : la capacité \fBCAP_SYS_ADMIN\fP) sont
+nécessaires pour monter des systèmes de fichiers.
+
+.\" Multiple mounts on same mount point: since 2.3.99pre7.
+Depuis Linux 2.4 un même système de fichiers peut être visible en différents
+points, et plusieurs montages peuvent être empilés au même point.
+
+L'argument \fIfilesystemtype\fP prend une des valeurs listées dans
+\fI/proc/filesystems\fP (par exemple «\ ext2\ », «\ minix\ », «\ ext3\ », «\ jfs\ », «\ xfs\ », «\ reiserfs\ », «\ msdos\ », «\ proc\ », «\ nfs\ », «\ iso9660\ »). Des types supplémentaires peuvent être disponibles lorsque les
+modules appropriés sont chargés.
+
+.\" (as defined in \fI<linux/fs.h>\fP for libc4 and libc5
+.\" and in \fI<sys/mount.h>\fP for glibc2)
+.\" FIXME 2.6.15 added flags for "shared subtree" functionality:
+.\" MS_UNBINDABLE, MS_PRIVATE, MS_SHARED, MS_SLAVE
+.\"
+.\"	MS_PRIVATE.
+.\"		All mounts are private by default. Previously shared mouns
+.\"		can be remarked PRIVATE.
+.\"	MS_SHARED
+.\"		Mount points that are marked SHARED propagate mount events
+.\"		to one another after bing cloned.
+.\"	MS_SLAVE
+.\"		A previously shared mount point can be marked SALVE, meaning
+.\"		it receives propagated events, but does not propagate events.
+.\"	MS_UNBINDABLE
+.\"		mounts cannot be bound into other places, and will not be
+.\"		propagated into new subtrees	
+.\"	mount --make-rshared ==> MS_SHARED | MS_REC
+.\"
+.\" These settings are visible in proc/mountinfo
+.\"
+.\"
+.\" These need to be documented on this page.
+.\" See:
+.\" Documentation/filesystems/sharedsubtree.txt
+.\"
+.\" http://lwn.net/Articles/159077/
+.\"
+.\" http://myweb.sudhaa.com:2022/~ram/sharedsubtree/paper/sharedsubtree.1.pdf
+.\" Shared-Subtree Concept, Implementation, and Applications in Linux
+.\" Al Viro viro@ftp.linux.org.uk
+.\" Ram Pai linuxram@us.ibm.com
+.\"
+.\" http://foss.in/2005/slides/sharedsubtree1.pdf
+.\" Shared Subtree Concept and Implementation in the Linux Kernel
+.\" Ram Pai
+.\"
+.\" http://www.ibm.com/developerworks/linux/library/l-mount-namespaces/index.html
+.\"     Applying mount namespaces
+.\"
+.\"     Uncover practical applications for advanced Linux mounts features
+.\"     Serge E. Hallyn (sergeh@us.ibm.com), Software Engineer, IBM　
+.\"     Ram Pai (linuxram@us.ibm.com), Software Engineer, IBM
+.\"     Date:  17 Sep 2007
+.\"
+.\" 2.6.25 Added MS_I_VERSION, which needs to be documented.
+.\"
+L'argument \fImountflags\fP peut avoir le nombre magique 0xC0ED (\fBMS_MGC_VAL\fP)
+dans ses 16\ bits de poids fort (c'était obligatoire dans les noyaux de
+version antérieure à 2.4, mais ne l'est plus), et certains attributs de
+montage dans ses 16\ bits de poids faible\ :
+.TP 
+\fBMS_BIND\fP (depuis Linux 2.4)
+.\" since 2.4.0-test9
+.\" with the exception of the "hidden" MS_REC mountflags bit
+Effectuer un montage lié, rendant un fichier ou une arborescence visibles en
+un autre point du système de fichiers. Les montages liés peuvent traverser
+les frontières entre systèmes de fichiers et ouvrir une porte dans une
+prison \fBchroot\fP(2). Les paramètres \fIfilesystemtype\fP et \fIdata\fP sont
+ignorés. Jusqu'à Linux\ 2.6.26, \fImountflags\fP était également ignoré (le
+montage lié a les même options de montage que le point de montage
+sous\-jacent).
+.TP 
+\fBMS_DIRSYNC\fP (depuis Linux 2.5.19)
+Rendre synchrones les modifications sur les répertoires du système de
+fichiers. (Cette propriété peut être obtenue pour les répertoires
+individuels ou les sous\(hyarborescences en utilisant \fBchattr\fP(1).)
+.TP 
+\fBMS_MANDLOCK\fP
+.\" FIXME Say more about MS_MOVE
+Autoriser les verrouillages impératifs sur le système de fichiers. (Le
+verrouillage impératif devra toutefois être validé fichier par fichier,
+comme décrit dans \fBfcntl\fP(2).)
+.TP 
+\fBMS_MOVE\fP
+Déplacer une sous\(hyarborescence. \fIsource\fP indique un point de montage
+existant et \fItarget\fP indique son nouvel emplacement. Le déplacement est
+atomique, à aucun moment la sous\(hyarborescence n'est démontée. Les
+arguments \fIfilesystemtype\fP, \fImountflags\fP, et \fIdata\fP sont ignorés.
+.TP 
+\fBMS_NOATIME\fP
+Ne pas mettre à jour les dates d'accès pour (tous) les fichiers du système
+de fichiers.
+.TP 
+\fBMS_NODEV\fP
+Ne pas autoriser la présence de fichiers spéciaux de périphérique sur le
+système de fichiers.
+.TP 
+\fBMS_NODIRATIME\fP
+Ne pas mettre à jour les dates d'accès pour les répertoires du système de
+fichiers. Cet attribut fournit un sous\-ensemble de la fonctionnalité fournie
+par \fBMS_NOATIME\fP\ ; c'est\-à\-dire, \fBMS_NOATIME\fP implique \fBMS_NODIRATIME\fP.
+.TP 
+\fBMS_NOEXEC\fP
+.\" (Possibly useful for a file system that contains non-Linux executables.
+.\" Often used as a security feature, e.g., to make sure that restricted
+.\" users cannot execute files uploaded using ftp or so.)
+Ne pas permettre l'exécution de programme depuis le système de fichiers.
+.TP 
+\fBMS_NOSUID\fP
+.\" (This is a security feature to prevent users executing set-user-ID and
+.\" set-group-ID programs from removable disk devices.)
+Ne pas tenir compte des bits Set\-UID et Set\-GID lors de l'exécution de
+programmes sur le système de fichiers.
+.TP 
+\fBMS_RDONLY\fP
+.\"
+.\" FIXME Document MS_REC, available since 2.4.11.
+.\" This flag has meaning in conjunction with MS_BIND and
+.\" also with the shared subtree flags.
+Monter le système de fichiers en lecture seule.
+.TP 
+\fBMS_RELATIME\fP (depuis Linux 2.6.20)
+.\" Matthew Garrett notes in the patch that added this behavior
+.\" that this lets utilities such as tmpreaper (which deletes
+.\" files based on last acces time) work correctly.
+Lorsqu'un fichier sur ce système de fichiers est utilisé, ne mettre à jour
+sa date d'accès (atime) que si la valeur actuelle de atime est inférieure ou
+égale à sa date de dernière modification (mtime) ou de changement d'état
+(ctime). Cette option est utile pour les programmes tels que \fBmutt\fP(1) qui
+veulent savoir si un fichier a été lu depuis sa dernière
+modification. Depuis Linux\ 2.6.30, les noyaux suivent le comportement
+fourni par ce drapeau (à moins que \fBMS_NOATIME\fP soit spécifié), et le
+drapeau \fBMS_STRICTATIME\fP est nécessaire pour avoir la sémantique
+originale. De plus, depuis Linux\ 2.6.30, le temps du dernier accès à un
+fichier est toujours mis à jour s'il est plus ancien qu'un jour.
+.TP 
+\fBMS_REMOUNT\fP
+Réinitialiser un montage existant. Cela permet de modifier les attributs
+\fImountflags\fP et \fIdata\fP d'un montage existant sans avoir besoin de démonter
+et remonter le système de fichiers. \fItarget\fP doit avoir la même valeur que
+lors de l'appel \fBmount\fP() initial\ ; \fIsource\fP et \fIfilesystemtype\fP sont
+ignorés.
+
+Les attributs \fImountflags\fP suivants peuvent être modifiés\ : \fBMS_RDONLY\fP,
+\fBMS_SYNCHRONOUS\fP, \fBMS_MANDLOCK\fP\ ; avant le noyau 2.6.16, \fBMS_NOATIME\fP et
+\fBMS_NODIRATIME\fP pouvaient également être modifiés. Enfin, avant le noyau
+2.4.10, les attributs \fBMS_NOSUID\fP, \fBMS_NODEV\fP et \fBMS_NOEXEC\fP pouvaient
+être modifiés.
+.TP 
+\fBMS_SILENT\fP (depuis Linux 2.6.17)
+Supprime l'affichage de certain messages d'avertissement (\fIprintk\fP()) dans
+le journal noyau. Cet attribut remplace l'attribut \fBMS_VERBOSE\fP qui avait
+un mauvais nom et est obsolète (il était disponible depuis Linux 2.4.12), et
+qui a la même signification.
+.TP 
+\fBMS_STRICTATIME\fP (depuis Linux 2.6.30)
+Toujours mettre à jour le temps du dernier d'accès (atime) lorsque des
+fichiers sur le système de fichiers sont lus (c'était le comportement par
+défaut avant Linux\ 2.6.30). Spécifier ce drapeau annule l'effet des
+drapeaux \fBMS_NOATIME\fP et \fBMS_RELATIME\fP.
+.TP 
+\fBMS_SYNCHRONOUS\fP
+Rendre synchrones les écritures sur le système de fichiers (comme si
+l'option \fBO_SYNC\fP de \fBopen\fP(2) était indiquée à chaque appel sur ce
+système de fichiers).
+.PP
+Depuis Linux 2.4, les attributs \fBMS_NODEV\fP, \fBMS_NOEXEC\fP, et \fBMS_NOSUID\fP
+sont configurables de manière variable sur chaque point de montage. À partir
+du noyau 2.6.16, \fBMS_NOATIME\fP et \fBMS_NODIRATIME\fP peuvent aussi être
+configurés pour chaque point de montage. L'attribut \fBMS_RELATIME\fP peut
+aussi être configuré pour chaque point de montage.
+.PP
+L'argument \fIdata\fP est interprété différemment suivant le type de système de
+fichiers. Typiquement, c'est une chaîne d'options comprises par le système
+de fichiers, séparées par des virgules. Consultez \fBmount\fP(8) pour des
+détails sur les options disponibles pour chaque type de système.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+Les erreurs détaillées ici sont indépendantes du type de système de
+fichiers. Chaque type de système peut avoir des codes d'erreurs spécifiques,
+et un comportement particulier. Consultez les sources du noyau Linux pour
+plus de détails.
+.TP 
+\fBEACCES\fP
+.\" mtk: Probably: write permission is required for MS_BIND, with
+.\" the error EPERM if not present; CAP_DAC_OVERRIDE is required.
+Un élément du chemin d'accès n'est pas consultable (voir aussi
+\fBpath_resolution\fP(7)), ou on tente de monter un système de fichiers en
+lecture seule sans préciser l'attribut \fBMS_RDONLY\fP, ou bien le périphérique
+bloc \fIsource\fP est situé sur un système de fichiers monté avec l'attribut
+\fBMS_NODEV\fP.
+.TP 
+\fBEBUSY\fP
+\fIsource\fP est déjà monté, ou ne peut pas être remonté en lecture seule car
+il y a des fichiers ouverts en écriture, ou ne peut pas être monté sur
+\fItarget\fP car \fItarget\fP est occupé (c'est le répertoire de travail d'un
+processus, le point de montage d'un autre périphérique, des fichiers y sont
+ouverts, etc.).
+.TP 
+\fBEFAULT\fP
+L'un des arguments pointe en\(hydehors de l'espace d'adressage accessible.
+.TP 
+\fBEINVAL\fP
+\fIsource\fP a un superbloc invalide, ou on tente un remontage (\fBMS_REMOUNT\fP)
+alors que \fIsource\fP n'était pas encore monté sur \fItarget\fP. Ou un
+déplacement (\fBMS_MOVE\fP) est demandé alors que \fIsource\fP n'est pas un point
+de montage ou est «\ /\ ».
+.TP 
+\fBELOOP\fP
+Trop de liens symboliques rencontrés dans un chemin, ou un déplacement a été
+tenté dans lequel \fItarget\fP est un descendant de \fIsource\fP.
+.TP 
+\fBEMFILE\fP
+(Dans le cas où un périphérique bloc n'est pas nécessaire\ :) Table de
+montage factice pleine.
+.TP 
+\fBENAMETOOLONG\fP
+Un des arguments est plus long que \fBMAXPATHLEN\fP.
+.TP 
+\fBENODEV\fP
+\fIfilesystemtype\fP n'est pas configuré dans le noyau.
+.TP 
+\fBENOENT\fP
+Un des chemins est vide ou a un composant inexistant.
+.TP 
+\fBENOMEM\fP
+Le noyau n'a pas pu allouer suffisamment de mémoire.
+.TP 
+\fBENOTBLK\fP
+\fISource\fP n'est pas un périphérique bloc (et un périphérique était
+nécessaire).
+.TP 
+\fBENOTDIR\fP
+\fItarget\fP ou un préfixe de \fIsource\fP n'est pas un répertoire.
+.TP 
+\fBENXIO\fP
+Le nombre majeur du périphérique bloc \fIsource\fP est invalide.
+.TP 
+\fBEPERM\fP
+L'appelant n'a pas les privilèges appropriés.
+.SH VERSIONS
+.\" FIXME: Definitions of the so-far-undocumented MS_UNBINDABLE, MS_PRIVATE,
+.\"  MS_SHARED, and MS_SLAVE were (also) only added to glibc headers in 2.12.
+Les définitions de \fBMS_DIRSYNC\fP, \fBMS_MOVE\fP, \fBMS_REC\fP, \fBMS_RELATIME\fP et
+\fBMS_STRICTATIME\fP ont été ajoutées aux en\(hytêtes de la glibc depuis la
+version 2.12.
+.SH CONFORMITÉ
+Cette fonction est spécifique à Linux et ne doit pas être employée dans des
+programmes destinés à être portables.
+.SH NOTES
+L'attribut original \fBMS_SYNC\fP a été renommé \fBMS_SYNCHRONOUS\fP dans Linux
+1.1.69 car un \fBMS_SYNC\fP différent a été ajouté dans \fI<mman.h>\fP.
+.LP
+.\" The change is in patch-2.4.0-prerelease.
+Avant Linux 2.4, une tentative d'exécution d'un programme Set\-UID ou Set\-GID
+sur un système de fichiers monté avec l'attribut \fBMS_NOSUID\fP échouait avec
+l'erreur \fBEPERM\fP. Depuis Linux 2.4 les bits Set\-UID et Set\-GID sont
+simplement ignorés silencieusement dans ce cas.
+.SS "Espaces de noms par processus"
+À partir du noyau 2.4.19, Linux fournit des espaces de noms de montage par
+processus. Un espace de noms de montage est un ensemble de montage de
+systèmes de fichiers qui sont visibles d'un processus. Les espaces de noms
+de montage peuvent être (ils le sont généralement) partagés entre différents
+processus et les modifications à l'espace de noms (c'est\-à\-dire les montages
+et démontages) par un processus sont visibles pour tous les autres processus
+qui partagent le même espace de noms (la situation des versions antérieures
+à pre\-2.4.19 de Linux peut être considérée comme l'utilisation d'un unique
+espace de noms partagé par tous les processus du système).
+
+Un processus fils créé avec \fBfork\fP(2) partage l'espace de noms de montage
+de son père\ ; l'espace de noms de montage est préservée au travers d'un
+\fBexecve\fP(2).
+
+Un processus peut obtenir un espace de noms de montage privé si\ : il a été
+créé en utilisant l'attribut \fBCLONE_NEWNS\fP de \fBclone\fP(2), dans ce cas son
+nouvel espace de noms est initialisé comme une \fIcopie\fP de l'espace de noms
+du processus qui a appelé \fBclone\fP(2)\ ; ou il appelle \fBunshare\fP(2) avec
+l'attribut \fBCLONE_NEWNS\fP, ce qui provoque l'obtention d'une copie privée de
+l'environnement de l'appelant, qui était auparavant partagé avec d'autres
+processus, de telle sorte que les montages ou démontages futurs de
+l'appelant ne seront pas visibles des autres processus (à l'exception des
+processus fils que le processus pourrait créer), et vice\-versa.
+
+Le fichier \fI/proc/PID/mounts\fP, spécifique à Linux, expose une liste de
+points de montage de l'espace de noms de montage du processus avec
+l'identifiant indiqué\ ; consultez \fBproc\fP(5) pour des détails.
+.SH "VOIR AUSSI"
+\fBumount\fP(2), \fBnamespaces\fP(7), \fBpath_resolution\fP(7), \fBmount\fP(8),
+\fBumount\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

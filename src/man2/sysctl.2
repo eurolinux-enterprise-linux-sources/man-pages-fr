@@ -1,0 +1,182 @@
+.\" Copyright (C) 1996 Andries Brouwer (aeb@cwi.nl)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Written 11 April 1996 by Andries Brouwer <aeb@cwi.nl>
+.\" 960412: Added comments from Stephen Tweedie
+.\" Modified Tue Oct 22 22:28:41 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified Mon Jan  5 20:31:04 1998 by aeb.
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYSCTL 2 "22 décembre 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+sysctl \- Lire/écrire les paramètres système
+.SH SYNOPSIS
+.nf
+\fB#include <unistd.h>\fP
+.br
+\fB#include <linux/sysctl.h>\fP
+.sp
+\fBint _sysctl(struct __sysctl_args *\fP\fIargs\fP\fB);\fP
+.fi
+
+\fIRemarque\fP\ : il n'existe pas de fonction glibc autour de cet appel
+système\ ; consultez \fBNOTES\fP.
+.SH DESCRIPTION
+\fBN'utilisez pas cet appel système\ !\fP Consultez la section NOTES.
+
+L'appel système \fB_sysctl\fP() lit et/ou écrit les paramètres du noyau. Par
+exemple, le nom d'hôte ou le nombre maximal de fichiers ouverts. L'argument
+a la forme
+.PP
+.in +4n
+.nf
+struct __sysctl_args {
+    int    *name;    /* tableau d'entiers décrivant la variable */
+    int     nlen;    /* longueur de ce tableau */
+    void   *oldval;  /* 0 ou adresse où stocker l'ancienne valeur */
+    size_t *oldlenp; /* espace disponible pour l'ancienne valeur,
+                        remplacé par la taille réelle de cette valeur */
+    void   *newval;  /* 0 ou adresse de la nouvelle valeur */
+    size_t  newlen;  /* taille de la nouvelle valeur */
+};
+.fi
+.in
+.PP
+Cet appel effectue une recherche dans la structure arborescente regroupée
+sous le répertoire \fI/proc/sys\fP, puis, si les valeurs réclamées y sont
+trouvées, appelle les routines appropriées pour lire ou modifier les
+valeurs.
+.SH "VALEUR RENVOYÉE"
+\fB_sysctl\fP() renvoie 0 s'il réussit, et \-1 s'il échoue auquel cas \fIerrno\fP
+contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+Demande de lecture de la valeur précédente en fournissant \fIoldval\fP non
+NULL, mais pas de place disponible dans \fIoldlenp\fP.
+.TP 
+\fBENOTDIR\fP
+\fIname\fP non trouvé.
+.TP 
+\fBEACCES\fP, \fBEPERM\fP
+Pas de droits de parcours sur l'un des «\ répertoires\ » rencontrés, ou pas
+de permission de lecture avec \fIoldval\fP non nul, ou encore pas de permission
+d'écriture avec \fInewval\fP non nul.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux et ne devrait pas être employé dans
+les programmes destinés à être portables. Un appel \fBsysctl\fP() est présent
+dans Linux depuis la version 1.3.57. Il existait dans BSD\ 4.4. Seul Linux
+dispose du miroir \fI/proc/sys\fP et les conventions de noms d'objets diffèrent
+entre Linux et BSD\ 4.4, mais les déclarations de la fonction \fBsysctl\fP()
+sont identiques sur les deux systèmes.
+.SH NOTES
+.\" See http://lwn.net/Articles/247243/
+.\" Though comments in suggest that it is needed by old glibc binaries,
+.\" so maybe it's not going away.
+La glibc ne fournit pas de fonction autour de cet appel système\ ; appelez\-le
+"avec \fBsyscall\fP(2). Ou plutôt… ne l'appelez \fIpas\fP\ : l'utilisation de cet
+appel système est déconseillée depuis bien longtemps, et il est tellement
+indésirable qu'\fIil disparaitra bientôt dans une prochaine version du
+noyau\fP. Depuis Linux\ 2.6.24, les utilisations de cet appel système
+provoquent des avertissements dans le journal du noyau. Supprimez\-le dès à
+présent de vos programmes\ ; utilisez l'interface \fI/proc/sys\fP à la place.
+
+Cet appel système n'est disponible que si le noyau a été configuré avec
+l'option \fBCONFIG_SYSCTL_SYSCALL\fP.
+.SH BOGUES
+Les noms des objets peuvent varier d'une version à l'autre du noyau, ce qui
+rend cet appel système sans intérêt pour les applications.
+.PP
+Tous les objets disponibles ne sont pas correctement documentés.
+.PP
+Il n'est pas possible de changer de système d'exploitation en écrivant dans
+\fI/proc/sys/kernel/ostype\fP.
+.SH EXEMPLE
+.nf
+#define _GNU_SOURCE
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <linux/sysctl.h>
+
+int _sysctl(struct __sysctl_args *args );
+
+#define OSNAMESZ 100
+
+int
+main(void)
+{
+    struct __sysctl_args args;
+    char osname[OSNAMESZ];
+    size_t osnamelth;
+    int name[] = { CTL_KERN, KERN_OSTYPE };
+
+    memset(&args, 0, sizeof(struct __sysctl_args));
+    args.name = name;
+    args.nlen = sizeof(name)/sizeof(name[0]);
+    args.oldval = osname;
+    args.oldlenp = &osnamelth;
+
+    osnamelth = sizeof(osname);
+
+int
+main(void)
+{
+    if (syscall(SYS__sysctl, &args) == \-1) {
+        perror("sysctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("Cette machine fonctionne avec %*s\en", osnamelth, osname);
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBproc\fP(5)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

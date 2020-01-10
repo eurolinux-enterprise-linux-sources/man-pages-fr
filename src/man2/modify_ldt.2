@@ -1,0 +1,131 @@
+.\" Copyright (c) 1995 Michael Chastain (mec@duracef.shout.net), 22 July 1995.
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MODIFY_LDT 2 "13 juillet 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+modify_ldt \- Lire/écrire la LDT
+.SH SYNOPSIS
+.nf
+\fB#include <sys/types.h>\fP
+.sp
+\fBint modify_ldt(int \fP\fIfunc\fP\fB, void *\fP\fIptr\fP\fB, unsigned long \fP\fIbytecount\fP\fB);\fP
+.fi
+
+\fIRemarque\fP\ : il n'existe pas de fonction glibc autour de cet appel
+système\ ; consultez \fBNOTES\fP.
+.SH DESCRIPTION
+\fBmodify_ldt\fP() lit ou écrit la table des descripteurs locaux (Local
+Descriptor Table) du processus. La LDT est une table de gestion mémoire par
+processus utilisée par les processeurs i386. Pour plus d'informations sur
+cette table, se reporter au manuel Intel 386.
+.PP
+Quand \fIfunc\fP vaut 0, \fBmodify_ldt\fP() lit la LDT et la place dans la mémoire
+pointée par \fIptr\fP. Le nombre d'octets lus est le minimum entre \fIbytecount\fP
+et la vraie taille de la LDT.
+.PP
+.\"
+.\" FIXME ? say something about func == 2 and func == 0x11?
+.\" In Linux 2.4, func == 2 returned "the default ldt"
+.\" In Linux 2.6, func == 2 is a nop, returning a zeroed out structure.
+.\" Linux 2.4 and 2.6 implement an operation for func == 0x11
+Quand \fIfunc\fP vaut 1, \fBmodify_ldt\fP() modifie une entrée de la LDT. \fIptr\fP
+pointe sur une structure \fIuser_desc\fP et \fIbytecount\fP doit être égal à la
+taille de cette structure.
+
+La structure \fIuser_desc\fP est déclarée dans \fI<asm/ldt.h>\fP comme
+suit\ :
+.in +4n
+.nf
+
+struct user_desc {
+    unsigned int  entry_number;
+    unsigned long base_addr;
+    unsigned int  limit;
+    unsigned int  seg_32bit:1;
+    unsigned int  contents:2;
+    unsigned int  read_exec_only:1;
+    unsigned int  limit_in_pages:1;
+    unsigned int  seg_not_present:1;
+    unsigned int  useable:1;
+};
+.fi
+.in
+.PP
+.\" .PP
+.\" The ldt is specific for the calling process. Any attempts to change
+.\" the ldt to include the address space of another process or the kernel
+.\" will result in a segmentation violation when trying to access the memory
+.\" outside of the process address space. The memory protection is enforced
+.\" at the paging layer.
+Sous Linux 2.4 et les versions précédentes, cette structure s'appelait
+\fImodify_ldt_ldt_s\fP.
+.SH "VALEUR RENVOYÉE"
+S'il réussit \fBmodify_ldt\fP() renvoie soit le nombre d'octets lus soit 0
+(écriture). En cas d'échec \-1 est renvoyé et \fIerrno\fP contient le code
+d'erreur.
+.SH ERREURS
+.TP 
+\fBEFAULT\fP
+\fIptr\fP pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEINVAL\fP
+\fIptr\fP est nul, ou \fIfunc\fP vaut 1 et \fIbytecount\fP n'est pas égal à la taille
+de la structure \fImodify_ldt_ldt_s\fP, ou \fIfunc\fP vaut 1 et la nouvelle entrée
+de LDT a des valeurs illégales.
+.TP 
+\fBENOSYS\fP
+\fIfunc\fP n'est ni 0 ni 1.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux et ne doit pas être employé dans
+des programmes destinés à être portables.
+.SH NOTES
+La glibc ne fournit pas de fonction autour de cet appel système\ ; utilisez
+\fBsyscall\fP(2) pour l'appeler.
+.SH "VOIR AUSSI"
+\fBvm86\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

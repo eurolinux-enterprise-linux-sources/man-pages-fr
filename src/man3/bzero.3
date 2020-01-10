@@ -1,0 +1,76 @@
+.\" Copyright 1993 David Metcalfe (david@prism.demon.co.uk)
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"     Linux libc source code
+.\"     Lewine's _POSIX Programmer's Guide_ (O'Reilly & Associates, 1991)
+.\"     386BSD man pages
+.\" Modified Sat Jul 24 21:28:17 1993 by Rik Faith <faith@cs.unc.edu>
+.\" Modified Tue Oct 22 23:49:37 1996 by Eric S. Raymond <esr@thyrsus.com>
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH BZERO 3 "6 août 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+bzero \- Écrire des zéros dans un bloc d'octets
+.SH SYNOPSIS
+.nf
+\fB#include <strings.h>\fP
+.sp
+\fBvoid bzero(void *\fP\fIs\fP\fB, size_t \fP\fIn\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBbzero\fP() met à 0 les \fIn\fP premiers octets du bloc pointé par
+\fIs\fP (octets contenant «\ \e0\ »).
+.SH "VALEUR RENVOYÉE"
+Aucune.
+.SH CONFORMITÉ
+BSD\ 4.3. Cette fonction est déconseillée (marquée «\ LEGACY\ » dans
+POSIX.1\-2001), utilisez \fBmemset\fP(3) dans les nouveaux
+programmes. POSIX.1\-2008 supprime la spécification de \fBbzero\fP().
+.SH "VOIR AUSSI"
+\fBmemset\fP(3), \fBswab\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,529 @@
+.\" Copyright (c) 1992 Drew Eckhardt (drew@cs.colorado.edu), March 28, 1992
+.\" and Copyright (c) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Modified by Michael Haardt <michael@moria.de>
+.\" Modified 1993-07-21 by Rik Faith <faith@cs.unc.edu>
+.\" Modified 1994-08-21 by Michael Chastain <mec@shell.portal.com>:
+.\" Modified 1997-01-31 by Eric S. Raymond <esr@thyrsus.com>
+.\" Modified 1999-11-12 by Urs Thuermann <urs@isnogud.escape.de>
+.\" Modified 2004-06-23 by Michael Kerrisk <mtk.manpages@gmail.com>
+.\" 2006-09-04 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added list of process attributes that are not preserved on exec().
+.\" 2007-09-14 Ollie Wild <aaw@google.com>, mtk
+.\"     Add text describing limits on command-line arguments + environment
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH EXECVE 2 "4 juillet 2013" Linux "Manuel du programmeur Linux"
+.SH NOM
+execve \- Exécuter un programme
+.SH SYNOPSIS
+\fB#include <unistd.h>\fP
+.sp
+\fBint execve(const char *\fP\fIfilename\fP\fB, char *const \fP\fIargv\fP\fB[], \fP
+.br
+\fB char *const \fP\fIenvp\fP\fB[]);\fP
+.SH DESCRIPTION
+\fBexecve\fP() exécute le programme correspondant au fichier
+\fIfilename\fP. Celui\(hyci doit être un exécutable binaire ou bien un script
+commençant par une ligne du type\ :
+
+.in +4n
+.nf
+\fB#!\fP \fIinterpréteur \fP[argument\-optionnel]
+.fi
+.in
+
+Pour des détails sur ce dernier cas, consultez «\ Scripts\ » ci\(hydessous.
+
+\fIargv\fP est un tableau de chaînes d'arguments passées au nouveau
+programme. Par convention, la première de ces chaînes devrait contenir le
+nom de fichier associé au fichier étant exécuté. \fIenvp\fP est un tableau de
+chaînes, ayant par convention la forme \fBclé=valeur\fP, qui sont passées au
+nouveau programme comme environnement. \fIargv\fP ainsi que \fIenvp\fP doivent se
+terminer par un pointeur NULL. Les arguments et l'environnement sont
+accessibles par le nouveau programme dans sa fonction principale,
+lorsqu'elle est définie comme\ :
+
+.in +4n
+.nf
+int main(int argc, char *argv[], char *envp[])
+.fi
+.in
+
+En cas de réussite, \fBexecve\fP() ne revient pas à l'appelant, et les segments
+de texte, de données («\ data\ » et «\ bss\ »), ainsi que la pile du
+processus appelant sont remplacés par ceux du programme chargé.
+
+Si l'on effectuait un \fIptrace\fP(2) sur le programme appelant, un signal
+\fBSIGTRAP\fP est envoyé après la réussite de \fBexecve\fP().
+
+Si le bit Set\-UID est positionné sur le fichier \fIfilename\fP, si le système
+de fichiers sous\(hyjacent n'est pas monté \fInosuid\fP (l'attribut
+\fBMS_NOSUID\fP de \fBmount\fP(2)), et si le programme n'est pas tracé, l'UID
+effectif du processus appelant est modifié pour prendre celui du
+propriétaire du fichier. De même, lorsque le bit Set\(hyGID est positionné,
+le GID effectif est modifié pour correspondre à celui du groupe du fichier.
+
+L'UID effectif du processus est copié dans le Set\-UID sauvé\ ; de la même
+manière, le GID effectif est copié dans le Set\-GID sauvé. Ces copies ont
+lieu après toute modification d'ID effectif à cause des bits de permission
+Set\-UID et Set\-GID.
+
+Si l'exécutable est un fichier binaire a.out lié dynamiquement, et contenant
+des appels aux bibliothèques partagées, le linker dynamique de Linux
+\fBld.so\fP(8) est appelé avant l'exécution, afin de charger les bibliothèques
+partagées nécessaires en mémoire et d'effectuer l'édition des liens de
+l'exécutable.
+
+Si l'exécutable est au format ELF lié dynamiquement, l'interpréteur indiqué
+dans le segment PT_INTERP sera invoqué pour charger les bibliothèques
+partagées. Cet interpréteur est généralement \fI/lib/ld\-linux.so.2\fP pour les
+fichiers binaires liés avec la glibc 2 (pour les fichiers binaires liés avec
+l'ancienne libc Linux 5, l'interpréteur était typiquement
+\fI/lib/ld\-linux.so.1\fP).
+
+Tous les attributs du processus sont préservés lors d'un \fBexecve\fP(), à
+l'exception des suivants\ :
+.IP * 3
+Les signaux pour lesquels le processus avait placé un gestionnaire sont
+réinitialisés à leur valeur par défaut (consultez \fBsignal\fP(7)).
+.IP *
+L'éventuelle pile spécifique pour les gestionnaires de signaux n'est pas
+conservée (\fBsigaltstack\fP(2)).
+.IP *
+Les projections en mémoire ne sont pas conservées (\fBmmap\fP(2)).
+.IP *
+Les segments de mémoire partagée System V sont détachés (\fBshmat\fP(2)).
+.IP *
+Les objets de mémoire partagée POSIX sont supprimés (\fBshm_open\fP(3)).
+.IP *
+Les descripteurs de files de messages POSIX ouverts sont fermés
+(\fBmq_overview\fP(7)).
+.IP *
+Les sémaphores nommés POSIX ouverts sont fermés (\fBsem_overview\fP(7)).
+.IP *
+Les temporisations POSIX ne sont pas conservées (\fBtimer_create\fP(2)).
+.IP *
+Les flux de répertoires ouverts sont fermés (\fBopendir\fP(3)).
+.IP *
+Les verrouillages de mémoire ne sont pas préservés (\fBmlock\fP(2),
+\fBmlockall\fP(2)).
+.IP *
+Les gestionnaires de terminaison ne sont pas préservés (\fBatexit\fP(3),
+\fBon_exit\fP(3)).
+.IP *
+L'environnement de travail en virgule flottante est remis à zéro (consultez
+\fBfenv\fP(3)).
+.PP
+Les attributs de processus listés ci\(hydessus sont spécifiés dans
+POSIX.1\-2001. Les attributs de processus spécifiques à Linux suivants sont
+également réinitialisés lors d'un \fBexecve\fP()\ :
+.IP * 3
+L'attribut \fBPR_SET_DUMPABLE\fP de \fBprctl\fP(2) est activé, sauf si un
+programme setuid ou setgid est exécuté, auquel cas il est désactivé.
+.IP *
+L'attribut \fBPR_SET_KEEPCAPS\fP de \fBprctl\fP(2) est effacé.
+.IP *
+(Depuis Linux 2.4.36\ ou 2.6.23) Si un programme setuid ou setgid est
+exécuté, alors le signal de mort de son père défini par l'attribut
+\fBPR_SET_PDEATHSIG\fP de \fBprctl\fP(2) est effacé.
+.IP *
+Le nom du processus, positionné par \fBprctl\fP(2) \fBPR_SET_NAME\fP (et affiché
+avec \fIps\ \-o comm\fP), est réinitialisé avec le nom du nouvel exécutable.
+.IP *
+L'attribut \fIsecurebits\fP \fBSECBIT_KEEP_CAPS\fP de \fBprctl\fP() est
+effacé. Consultez \fBcapabilities\fP(7).
+.IP *
+Le signal de terminaison est réinitialisé à \fBSIGCHLD\fP (consultez
+\fBclone\fP(2)).
+.PP
+Notez également les points suivants\ :
+.IP * 3
+Tous les threads autre que l'appelant sont détruits lors d'un
+\fBexecve\fP(). Les mutex, les variables de condition, et les autres objets de
+pthreads sont détruits.
+.IP *
+L'équivalent de \fIsetlocale(LC_ALL, "C")\fP est exécuté au démarrage du
+programme.
+.IP *
+POSIX.1\-2001 indique que les actions pour les signaux ignorés ou placés à la
+valeur par défaut ne sont pas modifiées. Une exception est néanmoins
+spécifiée dans POSIX.1\-2001\ : si \fBSIGCHLD\fP est ignoré, l'implémentation
+peut laisser l'action inchangée ou la replacer à la valeur par défaut\ ;
+Linux ne modifie pas l'action.
+.IP *
+Toutes les opérations d'E/S asynchrones en cours sont annulées
+(\fBaio_read\fP(3), \fBaio_write\fP(3)).
+.IP *
+Pour le traitement des capacités lors d'un \fBexecve\fP(), consultez
+\fBcapabilities\fP(7).
+.IP *
+.\" On Linux it appears that these file descriptors are
+.\" always open after an execve(), and it looks like
+.\" Solaris 8 and FreeBSD 6.1 are the same. -- mtk, 30 Apr 2007
+Par défaut, les descripteurs de fichier restent ouverts au travers d'un
+\fBexecve\fP(). Les descripteurs marqués close\(hyon\(hyexec sont fermés\ ;
+consultez la description de \fBFD_CLOEXEC\fP dans \fBfcntl\fP(2). (Si un
+descripteur de fichier est fermé, cela cause la libération de tous les
+verrous d'enregistrement obtenus sur le fichier correspondant par ce
+processus. Consultez \fBfcntl\fP(2) pour les détails.) POSIX.1\-2001 indique que
+si les descripteurs de fichiers 0, 1 et 2 devaient être fermés après un
+\fBexecve\fP() réussi, et le processus devient privilégié en raison d'un bit
+set\-user\-ID ou set\-group\-ID sur le fichier exécuté, le système peut ouvrir
+un fichier non spécifié pour chacun de ces descripteurs. En général, un
+programme portable, privilégié ou pas, peut considérer que ces trois
+descripteurs resteront fermés après un \fBexecve\fP().
+.SS Scripts
+Un script est un fichier dont le bit d'exécution est activé et dont la
+première ligne est de la forme\ :
+
+.in +4n
+.nf
+\fB#!\fP \fIinterpréteur \fP[argument\-optionnel]
+.fi
+.in
+
+L'\fIinterpréteur\fP doit être un nom de fichier valide pour un exécutable qui
+n'est pas un script lui\(hymême. Si l'argument \fIfilename\fP de \fBexecve\fP()
+indique un script, l'\fIinterpréteur\fP sera appelé avec les arguments
+suivants\ :
+
+.in +4n
+.nf
+\fIinterpréteur\fP [argument\-optionnel] \fIfilename\fP arg...
+.fi
+.in
+
+où \fIarg...\fP est la liste de mots pointée par l'argument \fIargv\fP de
+\fBexecve\fP().
+
+Pour être portable, \fIargument\-optionnel\fP doit soit être absent, soit être
+un seul mot (c'est\(hyà\(hydire ne pas contenir d'espace)\ ; consultez les
+NOTES ci\(hydessous.
+.SS "Limites sur la taille des paramètres et environnement"
+La plupart des implémentations UNIX imposent des limites sur la taille
+totale des chaînes des paramètres des lignes de commande (\fIargv\fP) et de
+l'environnement (\fIenvp\fP) qui peuvent être passées à un nouveau
+programme. POSIX.1 permet à une implémentation d'annoncer cette limite en
+utilisant la constante \fBARG_MAX\fP (soit définie dans \fI<limits.h>\fP,
+soit disponible à l'exécution en utilisant l'appel \fIsysconf(_SC_ARG_MAX)\fP).
+
+Sur les noyaux Linux antérieurs à 2.6.23, la mémoire utilisée pour stocker
+les chaînes d'environnement et d'arguments était limitée à 32 pages (défini
+par la constante noyau \fBMAX_ARG_PAGES\fP). Sur les architectures dont la
+taille de page est 4\ Ko, cela donne un maximum de 128\ Ko.
+
+.\" For some background on the changes to ARG_MAX in kernels 2.6.23 and
+.\" 2.6.25, see:
+.\"     http://sourceware.org/bugzilla/show_bug.cgi?id=5786
+.\"     http://bugzilla.kernel.org/show_bug.cgi?id=10095
+.\"     http://thread.gmane.org/gmane.linux.kernel/646709/focus=648101,
+.\"     checked into 2.6.25 as commit a64e715fc74b1a7dcc5944f848acc38b2c4d4ee2.
+.\" Ollie: That doesn't include the lists of pointers, though,
+.\" so the actual usage is a bit higher (1 pointer per argument).
+Sur les noyaux 2.6.23 et ultérieurs, la plupart des architectures ont une
+limite de taille dérivée de la limite de ressources souple \fBRLIMIT_STACK\fP
+(consultez \fBgetrlimit\fP(2)) qui est en vigueur au moment de l'appel à
+\fBexecve\fP() (ce n'est pas le cas pour les architectures sans unité de
+gestion mémoire\ : elles conservent la limite des noyaux antérieurs à
+2.6.23). Ce changement permet aux programmes d'avoir une liste de paramètre
+ou un environnement beaucoup plus grand. Pour ces architectures, la taille
+totale est limitées à 1/4 de la taille de pile permise (imposer une limite
+de 1/4 permet d'assurer que le nouveau programme garde de l'espace pour la
+pile). Depuis Linux 2.6.25, le noyau place une limite inférieure de 32 pages
+à cette limite de taille, de telle sorte que même si \fBRLIMIT_STACK\fP est
+très faible, il est garantit aux applications qu'elles auront au moins
+autant de place pour les paramètres et leur environnement que ce qui était
+fournit par Linux 2.6.23 et les précédents (cette garantie n'était pas
+présente dans les noyaux 2.6.23 et 2.6.24). De plus, la limite par chaîne
+est de 32 pages (la constante noyau \fBMAX_ARG_STRLEN\fP), et le nombre maximal
+de chaînes est de 0x7FFFFFFF.
+.SH "VALEUR RENVOYÉE"
+En cas de réussite, \fBexecve\fP() ne revient pas, en cas d'échec il renvoie \-1
+et \fIerrno\fP contient le code d'erreur.
+.SH ERREURS
+.TP 
+\fBE2BIG\fP
+Le nombre total d'octets dans l'environnement (\fIenvp\fP) et la liste
+d'arguments (\fIargv\fP) est trop grand.
+.TP 
+\fBEACCES\fP
+La permission de parcours est refusée pour un des composants du chemin
+\fIfilename\fP ou du nom d'un interpréteur de script. (Consultez aussi
+\fBpath_resolution\fP(7).)
+.TP 
+\fBEACCES\fP
+Le fichier ou l'interpréteur de script n'est pas un fichier régulier.
+.TP 
+\fBEACCES\fP
+L'autorisation d'exécution est refusée pour le fichier, ou un interpréteur
+de script, ou un interpréteur ELF.
+.TP 
+\fBEACCES\fP
+Le système de fichiers est monté avec l'option \fInoexec\fP.
+.TP 
+\fBEFAULT\fP
+L'argument \fIfilename\fP pointe en dehors de l'espace d'adressage accessible.
+.TP 
+\fBEINVAL\fP
+Un exécutable ELF a plusieurs segments PT_INTERP (indique plusieurs
+interpréteurs).
+.TP 
+\fBEIO\fP
+Une erreur d'entrée\-sortie s'est produite.
+.TP 
+\fBEISDIR\fP
+L'interpréteur ELF cité est un répertoire.
+.TP 
+\fBELIBBAD\fP
+L'interpréteur ELF mentionné n'est pas dans un format connu.
+.TP 
+\fBELOOP\fP
+Le chemin d'accès au fichier \fIfilename\fP, ou à un interpréteur de script, ou
+à un interpréteur ELF, contient une référence circulaire (à travers un lien
+symbolique)
+.TP 
+\fBEMFILE\fP
+Le nombre maximal de fichiers ouverts par processus est atteint.
+.TP 
+\fBENAMETOOLONG\fP
+La chaîne de caractères \fIfilename\fP est trop longue.
+.TP 
+\fBENFILE\fP
+La limite du nombre total de fichiers ouverts sur le système a été atteinte.
+.TP 
+\fBENOENT\fP
+Le fichier \fIfilename\fP ou un script ou un interpréteur ELF n'existe pas, ou
+une bibliothèque partagée nécessaire pour le fichier ou l'interpréteur n'est
+pas disponible.
+.TP 
+\fBENOEXEC\fP
+Le fichier exécutable n'est pas dans le bon format, ou est destiné à une
+autre architecture.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.TP 
+\fBENOTDIR\fP
+Un élément du chemin d'accès au fichier \fIfilename\fP, à un script ou à un
+interpréteur ELF, n'est pas un répertoire.
+.TP 
+\fBEPERM\fP
+Le système de fichiers est monté avec l'attribut \fInosuid\fP et le fichier a
+un bit Set\-UID ou Set\-GID positionné.
+.TP 
+\fBEPERM\fP
+Le processus est suivi avec \fBptrace\fP(2), l'utilisateur n'est pas le
+superutilisateur, et le fichier a un bit Set\-UID ou Set\-GID positionné.
+.TP 
+\fBETXTBSY\fP
+Un exécutable a été ouvert en écriture par un ou plusieurs processus.
+.SH CONFORMITÉ
+.\" SVr4 documents additional error
+.\" conditions EAGAIN, EINTR, ELIBACC, ENOLINK, EMULTIHOP; POSIX does not
+.\" document ETXTBSY, EPERM, EFAULT, ELOOP, EIO, ENFILE, EMFILE, EINVAL,
+.\" EISDIR or ELIBBAD error conditions.
+SVr4, BSD\ 4.3, POSIX.1\-2001. POSIX.1\-2001 ne documente pas le comportement
+avec «\ #!\ » mais est néanmoins compatible.
+.SH NOTES
+Les processus Set\-UID et Set\-GID ne peuvent pas être suivis par
+\fBptrace\fP(2).
+
+Linux ignore les bits Set\-UID et Set\-GID sur les scripts.
+
+Le résultat d'un montage de système de fichiers avec l'attribut \fInosuid\fP
+peut varier suivant les versions du noyau Linux\ : certaines refuseront
+l'exécution des fichiers Set\-UID et Set\-GID lorsque cela donnerait à
+l'appelant des privilèges qu'il n'a pas (et renverront l'erreur \fBEPERM\fP),
+d'autres ignoreront simplement les bits Set\-UID et Set\-GID mais accepteront
+d'effectuer l'appel \fBexec\fP().
+
+La première ligne d'un shell script exécutable (#!) a une longueur maximale
+de 127 caractères.
+
+.\" e.g., Solaris 8
+.\" e.g., FreeBSD before 6.0, but not FreeBSD 6.0 onward
+La sémantique de l'\fIargument\-optionnel\fP d'un script diffère selon les
+implémentations. Sous Linux, la chaîne qui suit le nom de l'\fIinterpréteur\fP
+est passée à l'interpréteur comme un seul mot, et cette chaîne peut contenir
+des espaces. Cependant, le comportement est différent sur d'autres
+systèmes. Certains utilisent la première espace comme fin de
+l'\fIargument\-optionnel\fP. Sur certains systèmes, un script peut avoir
+plusieurs arguments, délimités par des espaces dans \fIargument\-optionnel\fP.
+
+.\" e.g., EFAULT on Solaris 8 and FreeBSD 6.1; but
+.\" HP-UX 11 is like Linux -- mtk, Apr 2007
+.\" Bug filed 30 Apr 2007: http://bugzilla.kernel.org/show_bug.cgi?id=8408
+.\" Bug rejected (because fix would constitute an ABI change).
+.\"
+Sous Linux, \fIargv\fP et \fIenvp\fP peuvent être NULL, ce qui a le même effet que
+de spécifier ces paramètres comme un pointeur vers une liste contenant un
+pointeur NULL unique. \fBNe vous servez pas de cette caractéristique\ !\fP Elle
+n'est ni standard ni portable\ : sur la plupart des systèmes UNIX, faire
+cela causera une erreur.
+
+.\"
+.\" .SH BUGS
+.\" Some Linux versions have failed to check permissions on ELF
+.\" interpreters.  This is a security hole, because it allows users to
+.\" open any file, such as a rewinding tape device, for reading.  Some
+.\" Linux versions have also had other security holes in
+.\" .BR execve ()
+.\" that could be exploited for denial of service by a suitably crafted
+.\" ELF binary. There are no known problems with 2.0.34 or 2.2.15.
+POSIX.1\-2001 indique que les valeurs renvoyées par \fBsysconf\fP(3) ne doivent
+pas changer pendant la vie d'un processus. Cependant, depuis Linux 2.6.23,
+si la limite de ressources \fBRLIMIT_STACK\fP change, alors la valeur renvoyée
+par \fB_SC_ARG_MAX\fP changera également, pour refléter le fait que la limite
+de l'espace qui reçoit les paramètres de la ligne de commande et les
+variables d'environnement a changé.
+.SS Historique
+Avec UNIX V6, la liste des arguments d'un appel \fBexec\fP() se terminait par
+0, alors que la liste des arguments de \fImain\fP se terminait par \-1. Aussi,
+cette liste d'arguments n'était pas utilisable directement dans un appel
+\fBexec\fP() supplémentaire. Depuis UNIX V7, les deux terminateurs sont NULL.
+.SH EXEMPLE
+Le programme suivant est conçu pour être exécuté par le second programme
+ci\(hydessous. Il se contente d'afficher sa ligne de commande, un argument
+par ligne.
+
+.in +4n
+.nf
+/* myecho.c */
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main(int argc, char *argv[])
+{
+    int j;
+
+    for (j = 0; j < argc; j++)
+        printf("argv[%d]: %s\en", j, argv[j]);
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.in
+
+Ce programme peut être utilisé pour exécuter le programme donné comme
+argument de ligne de commande\ :
+.in +4n
+.nf
+
+/* execve.c */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int
+main(int argc, char *argv[])
+{
+    char *newargv[] = { NULL, "hello", "world", NULL };
+    char *newenviron[] = { NULL };
+
+    if (argc != 2) {
+	fprintf(stderr, "Usage: %s <file\-to\-exec>\en", argv[0]);
+	exit(EXIT_FAILURE);
+    }
+
+    newargv[0] = argv[1];
+
+    execve(argv[1], newargv, newenviron);
+    perror("execve");   /* execve() ne retourne qu'en cas d'erreur */
+    exit(EXIT_FAILURE);
+}
+.fi
+.in
+
+On peut utiliser le second programme pour exécuter le premier de la façon
+suivante\ :
+
+.in +4n
+.nf
+$\fB cc myecho.c \-o myecho\fP
+$\fB cc execve.c \-o execve\fP
+$\fB ./execve ./myecho\fP
+argv[0]: ./myecho
+argv[1]: hello
+argv[2]: world
+.fi
+.in
+
+On peut aussi utiliser ces programmes pour montrer l'utilisation d'un
+interpréteur de scripts. Pour ce faire, on crée un script dont l'«\ interpréteur\ » est notre programme \fImyecho\fP\ :
+
+.in +4n
+.nf
+$\fB cat > script.sh\fP
+\fB#! ./myecho script\-arg\fP
+\fB^D\fP
+$\fB chmod +x script.sh\fP
+.fi
+.in
+
+On peut alors utiliser notre programme pour exécuter le script\ :
+
+.in +4n
+.nf
+$\fB ./execve ./script.sh\fP
+argv[0]: ./myecho
+argv[1]: script\-arg
+argv[2]: ./script.sh
+argv[3]: hello
+argv[4]: world
+.fi
+.in
+.SH "VOIR AUSSI"
+\fBchmod\fP(2), \fBfork\fP(2), \fBptrace\fP(2), \fBexecl\fP(3), \fBfexecve\fP(3),
+\fBgetopt\fP(3), \fBcredentials\fP(7), \fBenviron\fP(7), \fBpath_resolution\fP(7),
+\fBld.so\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

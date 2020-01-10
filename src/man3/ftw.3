@@ -1,0 +1,317 @@
+.\" Copyright (c) 1993 Michael Haardt (michael@moria.de)
+.\" and copyright (c) 1999 Andries Brouwer (aeb@cwi.nl)
+.\" and copyright (c) 2006 Justin Pryzby <justinpryzby@users.sf.net>
+.\" and copyright (c) 2006 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" Modified Sun Jul 25 11:02:22 1993 by Rik Faith (faith@cs.unc.edu)
+.\" 2006-05-24, Justin Pryzby <justinpryzby@users.sf.net>
+.\"  	document FTW_ACTIONRETVAL; include .SH "RETURN VALUE";
+.\" 2006-05-24, Justin Pryzby <justinpryzby@users.sf.net> and
+.\"	Michael Kerrisk <mtk.manpages@gmail.com>
+.\" 	reorganized and rewrote much of the page
+.\" 2006-05-24, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"	Added an example program.
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FTW 3 "20 septembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+ftw, nftw \- Parcourir des arborescences de fichiers
+.SH SYNOPSIS
+.nf
+\fB#include <ftw.h>\fP
+.sp
+\fBint ftw(const char *\fP\fIdirpath\fP\fB,\fP
+\fB        int (*\fP\fIfn\fP\fB) (const char *\fP\fIfpath\fP\fB, const struct stat *\fP\fIsb\fP\fB,\fP
+\fB                   int \fP\fItypeflag\fP\fB),\fP
+\fB        int \fP\fInopenfd\fP\fB);\fP
+.sp
+\fB#define _XOPEN_SOURCE 500\fP   /* Consultez feature_test_macros(7) */
+\fB#include <ftw.h>\fP
+.sp
+\fBint nftw(const char *\fP\fIdirpath\fP\fB,\fP
+\fB        int (*\fP\fIfn\fP\fB) (const char *\fP\fIfpath\fP\fB, const struct stat *\fP\fIsb\fP\fB,\fP
+\fB                   int \fP\fItypeflag\fP\fB, struct FTW *\fP\fIftwbuf\fP\fB),\fP
+\fB        int \fP\fInopenfd\fP\fB, int \fP\fIflags\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La fonction \fBftw\fP() parcourt une arborescence de fichiers située dans le
+répertoire \fIdirpath\fP et appelle \fIfn\fP() pour chaque entrée de
+l'arborescence. Par défaut, les répertoires sont traités avant les fichiers
+et sous\-répertoires qu'ils contiennent.
+
+Afin d'éviter d'utiliser tous les descripteurs de fichier disponibles pour
+le programme, \fInopenfd\fP spécifie le nombre maximal de répertoires que
+\fBftw\fP() peut ouvrir de manière simultanée. Lorsque la profondeur de
+recherche est supérieure à cette valeur, \fBftw\fP() ralentit car les
+répertoires doivent être fermés puis réouverts. \fBftw\fP() utilise au plus un
+descripteur de fichier pour chaque niveau dans l'arborescence des fichiers.
+
+Pour chaque entrée trouvée dans l'arbre, \fBftw\fP() appelle \fIfn\fP() avec trois
+arguments\ : \fIfpath\fP, \fIsb\fP et \fItypeflag\fP. \fIfpath\fP est le chemin de
+l'entrée\ , il est soit défini comme un chemin relatif au répertoire actuel
+de travail du processus appelant à l'instant de l'appel à \fBftw\fP() si
+\fIdirpath\fP est un chemin relatif, ou soit comme un chemin absolu si
+\fIdirpath\fP est un chemin absolu. \fIsb\fP est un pointeur vers la structure
+\fIstat\fP renvoyée par un appel à \fBstat\fP(2) pour \fIfpath\fP. \fItypeflag\fP est un
+entier qui a une des valeurs suivantes\ :
+.TP 
+\fBFTW_F\fP
+\fIfpath\fP est un fichier régulier.
+.TP 
+\fBFTW_D\fP
+\fIfpath\fP est un répertoire.
+.TP 
+\fBFTW_DNR\fP
+\fIfpath\fP est un répertoire non lisible.
+.TP 
+\fBFTW_NS\fP
+L'appel \fBstat\fP(2) a échoué sur \fIfpath\fP, qui n'est pas un lien symbolique.
+.sp
+Si \fIfpath\fP est un lien symbolique et que \fBstat\fP(2) échoue, POSIX.1\-2001
+précise que c'est indéfini si \fBFTW_NS\fP ou \fBFTW_SL\fP sont passés à
+\fItypeflag\fP (consultez ci\-dessous).
+.PP
+Pour arrêter le parcours des arborescences de fichiers, la fonction \fIfn\fP()
+renvoie une valeur non nulle, qui deviendra la valeur de retour de
+\fBftw\fP(). Tant que \fIfn\fP() renvoie 0, \fBftw\fP() continuera jusqu'à la fin du
+parcours de l'arborescence, et dans ce cas renverra zéro, ou jusqu'à ce que
+une erreur se produise (comme pour \fBmalloc\fP(3)) et renverra \-1.
+.PP
+Comme \fBftw\fP() utilise des structures de données allouées dynamiquement, la
+seule manière propre de sortir d'un parcours d'arborescence est de renvoyer
+une valeur non nulle depuis \fIfn\fP(). Pour permettre à un signal de terminer
+le parcours sans causer de fuite de mémoire, utilisez un «\ handler\ » qui
+définit un drapeau vérifié par \fIfn\fP(). \fIN'utilisez pas\fP \fBlongjmp\fP(3) à
+moins que le programme ne soit prêt à se terminer.
+.SS nftw()
+La fonction \fBnftw\fP() fait exactement la même chose que \fBftw\fP(), sauf
+qu'elle utilise un argument \fIflags\fP et appelle \fIfn\fP() avec un argument
+supplémentaire \fIftwbuf\fP.
+
+L'argument \fIflags\fP est un OU regroupant zéro ou certains des drapeaux
+suivants\ :
+.TP 
+\fBFTW_ACTIONRETVAL\fP (depuis la glibc\ 2.3.3)
+Si ce drapeau, spécifique à la glibc, est positionné, alors \fBnftw\fP() gère
+la valeur de retour de \fIfn\fP() différemment. \fIfn\fP() devrait renvoyer l'une
+des valeurs suivantes\ :
+.RS
+.TP 
+\fBFTW_CONTINUE\fP
+\fBnftw\fP() va continuer normalement.
+.TP 
+\fBFTW_SKIP_SIBLINGS\fP
+.\" If \fBFTW_DEPTH\fP
+.\" is set, the entry's parent directory is processed next (with
+.\" \fIflag\fP set to \fBFTW_DP\fP).
+Si \fIfn\fP() renvoie cette valeur, alors les «\ siblings\ » des entrées
+courantes seront passées, et la procédure continuera avec le parent.
+.TP 
+\fBFTW_SKIP_SUBTREE\fP
+Si \fIfn\fP() est appelée avec une entrée qui est un répertoire (\fItypeflag\fP
+vaut \fBFTW_D\fP), cette valeur de retour prévient les objets dans ce
+répertoire d'être passés comme argument à \fIfn\fP(). \fBnftw\fP() continue avec
+le «\ sibling\ » suivant du répertoire.
+.TP 
+\fBFTW_STOP\fP
+\fBnftw\fP() retourne immédiatement avec la valeur de retour \fBFTW_STOP\fP.
+.PP
+Les autres valeurs de retour pourront être associées avec une nouvelle
+action dans le futur\ ; \fIfn\fP ne devrait retourner que les valeurs citées
+ci\-dessus.
+
+La macro de test \fB_GNU_SOURCE\fP doit être définie (avant \fItoute\fP inclusion
+de fichiers d'en\-tête) afin d'obtenir la définition de \fBFTW_ACTIONRETVAL\fP
+depuis \fI<ftw.h>\fP.
+.RE
+.TP 
+\fBFTW_CHDIR\fP
+Si défini, faire un \fBchdir\fP(2) avec chaque répertoire avant de traiter son
+contenu. C'est utile si le programme doit exécuter des actions dans le
+répertoire où \fIfpath\fP réside.
+.TP 
+\fBFTW_DEPTH\fP
+Si défini, faire une recherche «\ postorder\ »\ ; c'est\-à\-dire, appeler
+\fIfn\fP() pour le répertoire lui\-même \fIaprès\fP avoir traité son contenu et
+celui de ses sous\-répertoires (par défaut chaque répertoire est traité
+\fIavant\fP son contenu).
+.TP 
+\fBFTW_MOUNT\fP
+Si défini, rester uniquement dans le même système de fichiers (p.\ ex.\ : ne
+pas parcourir un point de montage).
+.TP 
+\fBFTW_PHYS\fP
+Si défini, ne pas suivre les liens symboliques (c'est ce que l'on veut). Si
+non défini, les liens symboliques sont suivis, mais aucun fichier n'est
+traité plus d'une fois.
+.sp
+Si \fBFTW_PHYS\fP n'est pas défini, mais si \fBFTW_DEPTH\fP l'est, alors la
+fonction \fIfn\fP() n'est jamais appelée pour un répertoire que l'on retrouve
+dans ses propres descendants.
+.LP
+Pour chaque entrée de l'arbre du répertoire, \fBnftw\fP() appelle \fIfn\fP() avec
+quatre arguments\ : \fIfpath\fP et \fIsb\fP sont les mêmes que pour
+\fBftw\fP(). \fItypeflag\fP peut prendre l'une des valeurs définies par \fBftw\fP()
+ou l'une des valeurs suivantes\ :
+.TP 
+\fBFTW_DP\fP
+\fIfpath\fP est un répertoire, et \fBFTW_DEPTH\fP a été défini dans \fIflags\fP. Tous
+les fichiers et les sous\-répertoires dans \fIfpath\fP ont été traités.
+.TP 
+\fBFTW_SL\fP
+.\" To obtain the definition of this constant from
+.\" .IR <ftw.h> ,
+.\" either
+.\" .B _BSD_SOURCE
+.\" must be defined, or
+.\" .BR _XOPEN_SOURCE
+.\" must be defined with a value of 500 or more.
+\fIfpath\fP est un lien symbolique, et \fBFTW_PHYS\fP a été défini dans \fIflags\fP.
+.TP 
+\fBFTW_SLN\fP
+\fIfpath\fP est un lien symbolique pointant nulle part. Cela ne se produit que
+si \fBFTW_PHYS\fP n'est pas défini.
+.LP
+Le quatrième argument qu'utilise \fBnftw\fP() lorsqu'elle appelle \fIfn\fP est une
+structure du type \fIFTW\fP\ :
+.in +4n
+.nf
+
+struct FTW {
+    int base;
+    int level;
+};
+
+.fi
+.in
+\fIbase\fP est le décalage du nom de fichier («\ basename\ ») du chemin donné
+par \fIfpath\fP. \fIlevel\fP est la profondeur de \fIfpath\fP dans l'arbre des
+répertoires, relative à la racine de l'arbre (\fIdirpath\fP qui a une
+profondeur nulle).
+.SH "VALEUR RENVOYÉE"
+Ces fonctions renvoie 0 en cas de succès et \-1 en cas d'erreur.
+
+Si \fIfn\fP() renvoie une valeur non nulle, alors le parcours de l'arbre se
+termine et la valeur renvoyée par \fIfn\fP() est renvoyée comme résultat de
+\fBftw\fP() ou \fBnftw\fP().
+
+Si \fBnftw\fP() est appelé avec le drapeau \fBFTW_ACTIONRETVAL\fP, alors la seule
+valeur non nulle qui pourra être utilisée par \fIfn\fP() pour terminer le
+parcours de l'arbre est \fBFTW_STOP\fP, et cette valeur est renvoyée comme le
+résultat de \fBnftw\fP().
+.SH CONFORMITÉ
+POSIX.1\-2001, SVr4, SUSv1. POSIX.1\-2008 marque \fBftw\fP() comme étant
+obsolète.
+.SH NOTES
+POSIX.1\-2001 indique que les résultats sont imprévisibles si \fIfn\fP ne
+préserve pas le répertoire de travail actuel.
+.PP
+La fonction \fBnftw\fP() et l'utilisation de \fBFTW_SL\fP() avec \fBftw\fP() ont été
+introduites dans SUSv1.
+.LP
+Sur certains systèmes, \fBftw\fP() n'utilise jamais \fBFTW_SL\fP, sur d'autres,
+\fBFTW_SL\fP ne survient que pour les liens symboliques pointant nulle part,
+sur d'autres encore, \fBftw\fP() utilise \fBFTW_SL\fP pour chaque lien
+symbolique. Pour un fonctionnement prévisible, employez \fBnftw\fP().
+.LP
+Sous Linux, les libc4, libc5 et glibc\ 2.0.6 utilisent \fBFTW_F\fP pour tous
+les objets (fichier, lien symbolique, fifo, etc.), sauf pour les
+répertoires, qui peuvent être utilisés par stat.
+
+La fonction \fBnftw\fP() est disponible depuis la glibc\ 2.1.
+
+\fBFTW_ACTIONRETVAL\fP est spécifique à la glibc.
+.SH EXEMPLE
+Le programme suivant parcours l'arbre des répertoires du chemin donné en
+premier argument de la ligne de commande ou du répertoire courant s'il n'est
+pas spécifié. Il affiche divers informations à propos de chaque fichier. Le
+second argument de la ligne de commande peut être utilisé pour spécifier les
+caractères assignés à l'argument \fIflags\fP lors des appels de \fBnftw\fP().
+.nf
+
+#define _XOPEN_SOURCE 500
+#include <ftw.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+
+static int
+display_info(const char *fpath, const struct stat *sb,
+             int tflag, struct FTW *ftwbuf)
+{
+    printf("%\-3s %2d %7jd   %\-40s %d %s\en",
+        (tflag == FTW_D) ?   "d"   : (tflag == FTW_DNR) ? "dnr" :
+        (tflag == FTW_DP) ?  "dp"  : (tflag == FTW_F) ?   "f" :
+        (tflag == FTW_NS) ?  "ns"  : (tflag == FTW_SL) ?  "sl" :
+        (tflag == FTW_SLN) ? "sln" : "???",
+        ftwbuf\->level, (intmax_t) sb\->st_size,
+        fpath, ftwbuf\->base, fpath + ftwbuf\->base);
+    return 0;           /* To tell nftw() to continue */
+}
+
+int
+main(int argc, char *argv[])
+{
+    int flags = 0;
+
+    if (argc > 2 && strchr(argv[2], \(aqd\(aq) != NULL)
+        flags |= FTW_DEPTH;
+    if (argc > 2 && strchr(argv[2], \(aqp\(aq) != NULL)
+        flags |= FTW_PHYS;
+
+    if (nftw((argc < 2) ? "." : argv[1], display_info, 20, flags)
+            == \-1) {
+        perror("nftw");
+        exit(EXIT_FAILURE);
+    }
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBstat\fP(2), \fBfts\fP(3), \fBreaddir\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

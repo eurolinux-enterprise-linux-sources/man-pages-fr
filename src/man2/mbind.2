@@ -1,0 +1,291 @@
+.\" Copyright 2003,2004 Andi Kleen, SuSE Labs.
+.\" and Copyright 2007 Lee Schermerhorn, Hewlett Packard
+.\"
+.\" %%%LICENSE_START(VERBATIM_PROF)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" 2006-02-03, mtk, substantial wording changes and other improvements
+.\" 2007-08-27, Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+.\"	more precise specification of behavior.
+.\"
+.\" FIXME
+.\" Linux 3.8 added the following, which need to be documented.
+.\" And do they also apply for move_pages()?
+.\"
+.\"       MPOL_LOCAL
+.\"                commit 479e2802d09f1e18a97262c4c6f8f17ae5884bd8
+.\"                Author: Peter Zijlstra <a.p.zijlstra@chello.nl>
+.\"                Date:   Thu Oct 25 14:16:28 2012 +0200
+.\"
+.\"                commit f2a07f40dbc603c15f8b06e6ec7f768af67b424f
+.\"                Author: Hugh Dickins <hughd@google.com>
+.\"                Date:   Wed Jan 2 02:01:33 2013 -0800
+.\"
+.\"        MPOL_MF_LAZY
+.\"                commit b24f53a0bea38b266d219ee651b22dba727c44ae
+.\"                Author: Lee Schermerhorn <lee.schermerhorn@hp.com>
+.\"                Date:   Thu Oct 25 14:16:32 2012 +0200
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MBIND 2 "15 août 2008" Linux "Manuel du programmeur Linux"
+.SH NOM
+mbind \- Définir la politique mémoire pour une zone de mémoire
+.SH SYNOPSIS
+.nf
+\fB#include <numaif.h>\fP
+.sp
+\fBint mbind(void *\fP\fIaddr\fP\fB, unsigned long \fP\fIlen\fP\fB, int \fP\fImode\fP\fB,\fP
+\fB          unsigned long *\fP\fInodemask\fP\fB, unsigned long \fP\fImaxnode\fP\fB,\fP
+\fB          unsigned \fP\fIflags\fP\fB);\fP
+.sp
+Effectuez l'édition des liens avec l'option \fI\-lnuma\fP.
+.fi
+.SH DESCRIPTION
+\fBmbind\fP() configure la politique mémoire NUMA, qui consiste en un mode de
+politique et zéro ou plusieurs nœuds, pour l'intervalle mémoire démarrant à
+\fIaddr\fP et s'étalant sur \fIlen\fP octets. La politique mémoire définit à
+partir de quel nœud la mémoire sera allouée.
+
+Si la plage mémoire spécifiée par les paramètres \fIaddr\fP et \fIlen\fP inclut
+une région «\ anonyme\ » de mémoire (c'est\-à\-dire une région de mémoire créée
+avec l'appel système \fBmmap\fP(2) et l'attribut \fBMAP_ANONYMOUS\fP) ou un
+fichier de mémoire projetée, projection créée en utilisant l'appel système
+\fBmmap\fP(2) et l'attribut \fBMAP_PRIVATE\fP, les pages seront seulement allouées
+conformément à la politique spécifiée lorsque l'application écrit [stocke]
+dans la page. Pour les régions anonymes, un accès initial en lecture
+utilisera une page partagée du noyau contenant des zéros. Pour un fichier
+projeté avec \fBMAP_PRIVATE\fP, un accès initial en lecture allouera des pages
+conformément à la politique de processus du processus qui a fait que cette
+page ait été allouée. Cela peut ne pas être le processus qui a appelé
+\fBmbind\fP().
+
+La politique spécifiée sera ignorée pour toute projection \fBMAP_SHARED\fP dans
+la plage mémoire spécifiée. Plutôt, les pages seront allouées conformément à
+la politique de processus du processus qui a fait que la page ait été
+allouée. Cela peut ne pas être le processus qui a appelé \fBmbind\fP().
+
+Si la plage de mémoire spécifiée inclut une région de mémoire partagée créée
+avec l'appel système \fBshmget\fP(2) et attachée avec l'appel système
+\fBshmat\fP(2), les pages allouées pour la région de mémoire anonyme ou
+partagée seront allouées conformément à la politique spécifiée, sans se
+soucier de quel processus attaché au segment de mémoire partagé a provoqué
+l'allocation. Si toutefois la région de mémoire partagée a été créée avec
+l'attribut \fBSHM_HUGETLB\fP, les grosses pages seront allouées conformément à
+la politique spécifiée seulement si l'allocation de pages est provoquée par
+le processus qui a appelé \fBmbind\fP() pour cette région.
+
+Par défaut, \fBmbind\fP() n'a d'effet que sur les nouvelles allocations\ ; si
+des pages dans l'intervalle ont déjà été accédées avant de configurer la
+politique, alors la politique n'a pas d'effet. Ce comportement par défaut
+peut être écrasé par les attributs \fBMPOL_MF_MOVE\fP et \fBMPOL_MF_MOVE_ALL\fP
+décrits plus loin.
+
+Le paramètre \fImode\fP doit spécifier l'un des attributs parmi
+\fBMPOL_DEFAULT\fP, \fBMPOL_BIND\fP, \fBMPOL_INTERLEAVE\fP et
+\fBMPOL_PREFERRED\fP. Toutes les modes de politique excepté \fBMPOL_DEFAULT\fP
+nécessitent que l'appelant spécifie, dans le paramètre \fInodemask\fP, les
+nœuds auxquels s'appliquent le mode.
+
+Le paramètre \fImode\fP peut aussi inclure un \fIdrapeau de mode\fP optionnel. Les
+\fIdrapeaux de mode\fP pris en charges sont\ :
+.TP 
+\fBMPOL_F_STATIC_NODES\fP (depuis Linux 2.6.26)
+Un paramètre \fInodemask\fP non vide indique des identifiants des nœuds
+physiques. Linux ne réassocie pas \fInodemask\fP quand le processus change de
+contexte d'ensemble de processeurs ou après une modifications de l'ensemble
+de nœuds autorisés pour le contexte de l'ensemble de processeurs en cours
+pour le processus.
+.TP 
+\fBMPOL_F_RELATIVE_NODES\fP (depuis Linux 2.6.26)
+Un paramètre \fInodemask\fP non vide indique des identifiants des nœuds
+relatifs à l'ensemble des identifiants de nœuds autorisés pour le contexte
+de l'ensemble de processeurs en cours pour le processus.
+.PP
+\fInodemask\fP pointe sur un masque de bits qui contient jusqu'à \fImaxnode\fP
+bits. La taille du masque de bits est arrondi au multiple supérieur de
+\fIsizeof(unsigned long)\fP, mais le noyau n'utilisera que jusqu'à \fImaxnode\fP
+bits. Une valeur NULL pour \fInodemask\fP ou une valeur \fImaxnode\fP de zéro
+indique un ensemble vide de nœuds. Si la valeur de \fImaxnode\fP est zéro,
+l'argument \fInodemask\fP est ignoré. Quand un \fInodemask\fP est exigé, il doit
+contenir au moins un nœud de connecté, autorisés dans le contexte de
+l'ensemble de processeurs du processus appelant (à moins que le drapeau
+\fBMPOL_F_STATIC_NODES\fP ne soit fourni) et doit contenir de la mémoire.
+
+Le mode \fBMPOL_DEFAULT\fP demande à ce que toute politique n'étant pas une
+politique par défaut soit retirée, ce qui restaure le comportement par
+défaut. Lorsqu'il est appliqué à une plage mémoire via \fBmbind\fP(), cela
+signifie d'utiliser la politique du processus qui peut être modifiée avec
+\fBset_mempolicy\fP(2). Si le mode de la politique de processus est également
+\fBMPOL_DEFAULT\fP, la politique par défaut du système sera utilisée. La
+politique par défaut du système alloue des pages sur le nœud de la CPU qui a
+déclenché l'allocation. Pour \fBMPOL_DEFAULT\fP, les paramètres \fInodemask\fP et
+\fImaxnode\fP doivent spécifier l'ensemble vide de nœuds.
+
+Le mode \fBMPOL_BIND\fP spécifie une politique stricte qui restreint
+l'allocation mémoire aux nœuds indiqués dans \fInodemask\fP. Si \fInodemask\fP
+indique plus d'un nœud, les allocations de pages se feront d'abord à partir
+du nœud dont l'identifiant numérique est le plus petit jusqu'à ce que ce
+nœud ne contienne plus de mémoire libre. Les allocations se feront ensuite à
+partir du node dont l'identifiant est le prochain plus grand spécifié dans
+\fInodemask\fP et ainsi de suite jusqu'à ce que plus un seul nœud indiqué ne
+contienne de mémoire libre. Il n'y aura pas d'allocation de pages à partir
+de nœuds non indiqués dans \fInodemask\fP.
+
+Le mode \fBMPOL_INTERLEAVE\fP spécifie que les allocations de pages sont
+entrelacées à travers l'ensemble de nœuds spécifiés dans \fInodemask\fP. Cela
+optimise la bande passante au lieu de la latence en étalant les pages et
+l'accès mémoires à ces pages à travers plusieurs nœuds. Pour être efficace,
+la zone mémoire doit être relativement grande, au moins 1\ Mo ou plus avec un
+modèle d'accès assez uniforme. Les accès à une unique page de la zone seront
+toujours limités à la bande passante d'un seul nœud.
+
+\fBMPOL_PREFERRED\fP définit le nœud préféré pour les allocations. Le noyau
+essaiera d'abord d'allouer sur ce nœud, avant de ce rabattre sur d'autres
+nœuds si celui\(hyci n'a plus assez de mémoire libre. Si \fInodemask\fP précise
+plus d'un identifiant de nœud, le premier nœud du masque sera choisi comme
+le nœud préféré. Si les paramètres \fInodemask\fP et \fImaxnode\fP indique un
+ensemble vide, la mémoire est allouée sur le nœud du CPU qui a déclenché
+l'allocation. C'est la seule façon d'indiquer une «\ allocation locale\ » pour
+une plage mémoire avec \fBmbind\fP().
+
+.\" According to the kernel code, the following is not true
+.\" --Lee Schermerhorn
+.\" In 2.6.16 or later the kernel will also try to move pages
+.\" to the requested node with this flag.
+Si l'option \fBMPOL_MF_STRICT\fP est passée dans \fIflags\fP et si \fImode\fP n'est
+pas \fBMPOL_DEFAULT\fP, l'appel échoue avec l'erreur \fBEIO\fP si les pages
+existantes dans la projection ne suivent pas la politique.
+
+Si \fBMPOL_MF_MOVE\fP est passé dans \fIflags\fP, le noyau essaiera de déplacer
+toutes les pages de la projection pour qu'elles suivent la politique. Les
+pages partagées avec d'autres processus ne sont pas déplacées. Si
+\fBMPOL_MF_STRICT\fP est également indiqué, l'appel échouera avec l'erreur
+\fBEIO\fP si certaines pages ne peuvent pas être déplacées.
+
+.\" ---------------------------------------------------------------
+Si \fBMPOL_MF_MOVE_ALL\fP est indiqué dans \fIflags\fP, alors le noyau essaiera de
+déplacer toutes les pages de la projection, même si d'autres processus les
+utilisent. Le processus appelant doit être privilégié (avoir la capacité
+\fBCAP_SYS_NICE\fP) pour utiliser cette option. Si \fBMPOL_MF_STRICT\fP est
+également utilisé, l'appel renverra l'erreur \fBEIO\fP si certaines pages ne
+peuvent pas être déplacées.
+.SH "VALEUR RENVOYÉE"
+.\" ---------------------------------------------------------------
+S'il réussit, \fBmbind\fP() renvoie zéro. En cas d'erreur, il renvoie \-1 et
+remplit \fIerrno\fP avec la valeur d'erreur.
+.SH ERREURS
+.\"  I think I got all of the error returns.  --Lee Schermerhorn
+.TP 
+\fBEFAULT\fP
+Une partie ou toute la plage mémoire spécifiée par \fInodemask\fP et \fImaxnode\fP
+pointe en dehors de votre espace d'adressage accessible. Ou il y a un trou
+non projeté dans l'intervalle mémoire spécifié.
+.TP 
+\fBEINVAL\fP
+.\" As at 2.6.23, this limit is "a page worth of bits", e.g.,
+.\" 8 * 4096 bits, assuming a 4kB page size.
+Une valeur non valable a été spécifiée pour \fIflags\fP ou \fImode\fP\ ; ou \fIaddr
++ len\fP est plus petite que \fIaddr\fP\ ; ou \fIaddr\fP n'est pas un multiple de la
+taille de page système. Ou, \fImode\fP est \fBMPOL_DEFAULT\fP et \fInodemask\fP
+spécifiait un ensemble non vide\ ; ou \fImode\fP était \fBMPOL_BIND\fP ou
+\fBMPOL_INTERLEAVE\fP et le masque de nœuds \fInodemask\fP est vide. Ou,
+\fImaxnode\fP dépasse une limite imposée par le noyau. Ou, \fInodemask\fP spécifie
+un ou plusieurs identifiants de nœud qui sont plus grands que l'identifiant
+maximum de nœud pris en charge. Ou aucun des identifiants de nœuds spécifiés
+par \fInodemask\fP ne sont connectés et autorisés dans le contexte de
+l'ensemble de processeurs du processus appelant, ou aucun des nœuds
+spécifiés ne contient de mémoire. Ou le paramètre \fImode\fP indiquait à la
+fois \fBMPOL_F_STATIC_NODES\fP et \fBMPOL_F_RELATIVE_NODES\fP.
+.TP 
+\fBEIO\fP
+\fBMPOL_MF_STRICT\fP a été utilisé et une page existante était déjà sur un nœud
+ne suivant pas la politique\ ; ou soit \fBMPOL_MF_MOVE\fP soit
+\fBMPOL_MF_MOVE_ALL\fP a été spécifié et le noyau n'a pas été capable de
+déplacer toutes les pages existantes dans la plage.
+.TP 
+\fBENOMEM\fP
+Pas assez de mémoire pour le noyau.
+.TP 
+\fBEPERM\fP
+.\" ---------------------------------------------------------------
+Le paramètre \fIflags\fP inclus l'attribut \fBMPOL_MF_MOVE_ALL\fP et l'appelant
+n'a pas le privilège \fBCAP_SYS_NICE\fP.
+.SH VERSIONS
+L'appel système \fBmbind\fP() a été ajouté au noyau Linux dans la version
+2.6.7.
+.SH CONFORMITÉ
+Cet appel système est spécifique à Linux.
+.SH NOTES
+Pour des informations sur la prise en charge par des bibliothèques,
+consultez \fBnuma\fP(7).
+
+La politique NUMA n'est pas supportée sur les plages de fichiers de mémoire
+projetée qui ont été projetées avec l'attribut \fBMAP_SHARED\fP.
+
+Le mode \fBMPOL_DEFAULT\fP peut avoir des effets différents sur \fBmbind\fP() et
+sur \fBset_mempolicy\fP(2). Lorsque \fBMPOL_DEFAULT\fP est spécifié pour
+\fBset_mempolicy\fP(2), la politique du processus est remise à la politique par
+défaut du système ou l'allocation locale. Lorsque \fBMPOL_DEFAULT\fP est
+spécifié pour une plage de mémoire utilisant \fBmbind\fP(), toutes les pages
+allouées par la suite pour cette plage utiliseront la politique du processus
+telle qu'elle a été définie par \fBset_mempolicy\fP(2). Cela supprime de
+manière effective la politique explicite de la plage spécifiée, ce qui peut
+éventuellement remettre une politique autre que celle par défaut. Pour
+choisir explicitement une «\ allocation locale\ » pour une plage mémoire,
+spécifiez \fImode\fP avec \fBMPOL_PREFERRED\fP avec un ensemble vide de
+nœuds. Cette méthode fonctionnera aussi avec \fBset_mempolicy\fP(2).
+
+La gestion de politique pour les pages immenses a été ajoutée dans le noyau
+2.6.16. Pour que la politique d'entrelacement soit efficace sur les
+projections de pages immenses, la taille de la zone mémoire doit être au
+moins de dizaines de mégaoctets.
+
+\fBMPOL_MF_STRICT\fP est ignoré sur les projections de pages immenses.
+
+\fBMPOL_MF_MOVE\fP et \fBMPOL_MF_MOVE_ALL\fP ne sont disponibles qu'à partir de
+Linux 2.6.16.
+.SH "VOIR AUSSI"
+\fBget_mempolicy\fP(2), \fBgetcpu\fP(2), \fBmmap\fP(2), \fBset_mempolicy\fP(2),
+\fBshmat\fP(2), \fBshmget\fP(2), \fBnuma\fP(3), \fBcpuset\fP(7), \fBnuma\fP(7),
+\fBnumactl\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

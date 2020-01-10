@@ -1,0 +1,100 @@
+.\" Copyright (c) IBM Corp. 2012
+.\" Author: Jan Glauber <jang@linux.vnet.ibm.com>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH S390_RUNTIME_INSTR 2 "17 décembre 2012" "Manuel du programmeur Linux" 
+.SH NOM
+s390_runtime_instr \- Activer ou désactiver la collecte des traces de
+l'activité du processeur s390
+.SH SYNOPSIS
+.nf
+\fB#include <asm/runtime_instr.h>\fP
+
+\fBint s390_runtime_instr(int \fP\fIcommand\fP\fB, int \fP\fIsignum\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+L'appel système \fBs390_runtime_instr\fP() démarre ou arrête la collecte des
+traces de l'activité du processeur pour le thread appelant.
+
+L'argument \fIcommand\fP décide du démarrage (\fBS390_RUNTIME_INSTR_START\fP, 1)
+ou de l'arrêt  (\fBS390_RUNTIME_INSTR_STOP\fP, 2) de la collecte des traces
+lors de l'exécution du thread appelant.
+
+L'argument  \fIsignum\fP précise le nombre de signaux temps\-réel. Le signal
+temps\-réel est envoyé au thread si le tampon de collecte des traces est
+plein, ou si l'interruption «\ run\-time\-instrumentation\-halted\ » est
+survenue.
+.SH "VALEUR RENVOYÉE"
+S'il réussit, l'appel \fBs390_runtime_instr\fP() renvoie la valeur 0 et active
+le thread pour la collecte des traces d'exécution en lui assignant un bloc
+de contrôle de collecte des traces par défaut. Le composant appelant peut
+alors accéder en lecture ou modifier le bloc de contrôle et démarrer la
+collecte des traces. S'il échoue, l'appel retourne \-1 et \fIerrno\fP prend pour
+valeur l'un des codes erreur décrits plus bas.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+La valeur spécifiée dans  \fIcommand\fP n'est pas une commande valide ou la
+valeur spécifiée dans  \fIsignum\fP n'est pas une valeur numérique admise pour
+le signal temps\-réel.
+.TP 
+\fBENOMEM\fP
+L'allocation de la mémoire pour le bloc de contrôle de collecte des traces a
+échoué.
+.TP 
+\fBEOPNOTSUPP\fP
+Le mécanisme des collecte des traces d'exécution n'est pas disponible.
+.SH VERSIONS
+Cet appel système est disponible depuis Linux 3.7.
+.SH CONFORMITÉ
+L'appel système spécifique à Linux n'est disponible que pour l'architecture
+s390. Le mécanisme de collecte des traces d'exécution est disponible à
+partir du System z EC12.
+.SH NOTES
+La glibc ne fournit pas de fonction autour de cet appel système\ ; utilisez
+\fBsyscall\fP(2) pour l'appeler.
+.SH "VOIR AUSSI"
+\fBsyscall\fP(2), \fBsignal\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

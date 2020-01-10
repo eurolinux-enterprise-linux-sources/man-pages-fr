@@ -1,0 +1,99 @@
+.\" Copyright (c) Bruno Haible <haible@clisp.cons.org>
+.\"
+.\" %%%LICENSE_START(GPLv2+_DOC_ONEPARA)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\" %%%LICENSE_END
+.\"
+.\" References consulted:
+.\"   GNU glibc-2 source code and manual
+.\"   Dinkumware C library reference http://www.dinkumware.com/
+.\"   OpenGroup's Single UNIX specification http://www.UNIX-systems.org/online.html
+.\"   ISO/IEC 9899:1999
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH MBSINIT 3 "20 novembre 2000" GNU "Manuel du programmeur Linux"
+.SH NOM
+mbsinit \- Vérifier si la conversion est dans l'état initial
+.SH SYNOPSIS
+.nf
+\fB#include <wchar.h>\fP
+.sp
+\fBint mbsinit(const mbstate_t *\fP\fIps\fP\fB);\fP
+.fi
+.SH DESCRIPTION
+La conversion de caractères entre la représentation multi\-octets et les
+caractères larges emploie un état de type \fImbstate_t\fP. La conversion d'une
+chaîne utilise un automate à états finis. Lorsqu'elle est interrompue après
+la conversion d'un nombre entier de caractères, il peut être nécessaire de
+mémoriser son état pour pouvoir traiter ultérieurement le reste de la
+chaîne. Un tel état de conversion est indispensable pour certains encodages
+tels que ISO\-2022 et UTF\-7.
+.PP
+L'état initial est celui du début de la conversion d'une chaîne. Il y a deux
+types d'états, celui utilisé par les conversions multi\-octets en caractères
+larges, comme pour \fBmbsrtowcs\fP(3), et celui employé par les conversions
+inverses, comme pour \fBwcsrtombs\fP(3). Toutefois, les deux types peuvent être
+stockés dans une variable \fImbstate_t\fP, et ils se présentent tous deux
+l'état initial sous la même forme.
+.PP
+Pour les codages 8\ bits, tous les états sont équivalents à l'état
+initial. Pour les encodages multi\-octets comme UTF\-8, EUC\-* BIG5 ou SJIS,
+les fonctions de conversion de caractères larges en multi\-octets ne
+produisent jamais d'état non initial, mais les fonctions de conversion
+multi\-octets en caractères larges comme \fBmbrtowc\fP(3) produisent un état non
+initial si elles sont interrompues au milieu d'un caractère.
+.PP
+Une possibilité pour créer un état \fImbstate_t\fP initial est de le définir à
+zéro\ :
+.nf
+
+    mbstate_t state;
+    memset(&state,0,sizeof(mbstate_t));
+.fi
+.PP
+Sous Linux, on peut aussi utiliser la ligne suivante, même si elle déclenche
+des avertissements du compilateur\ :
+.nf
+
+    mbstate_t state = { 0 };
+.fi
+.PP
+La fonction \fBmbsinit\fP() vérifie si \fI*ps\fP correspond à un état initial.
+.SH "VALEUR RENVOYÉE"
+La fonction \fBmbsinit\fP() renvoie une valeur non nulle si \fI*ps\fP est dans
+l'état initial, ou si \fIps\fP est un pointeur NULL. Sinon, elle renvoie zéro.
+.SH CONFORMITÉ
+C99.
+.SH NOTES
+Le comportement de \fBmbsinit\fP() dépend de la catégorie \fBLC_CTYPE\fP de la
+localisation en cours.
+.SH "VOIR AUSSI"
+\fBmbsrtowcs\fP(3), \fBwcsrtombs\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

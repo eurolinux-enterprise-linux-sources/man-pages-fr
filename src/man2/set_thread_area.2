@@ -1,0 +1,81 @@
+.\" Copyright (C) 2003 Free Software Foundation, Inc.
+.\" Author: Kent Yoder
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" This file is distributed according to the GNU General Public License.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SET_THREAD_AREA 2 "13 juillet 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+set_thread_area \- Définir la zone de stockage local (TLS) du thread
+.SH SYNOPSIS
+\fB#include <linux/unistd.h>\fP
+.br
+\fB#include <asm/ldt.h>\fP
+.sp
+\fBint set_thread_area(struct user_desc *\fP\fIu_info\fP\fB);\fP
+
+\fIRemarque\fP\ : il n'existe pas de fonction glibc autour de cet appel
+système\ ; consultez \fBNOTES\fP.
+.SH DESCRIPTION
+\fBset_thread_area\fP() remplit une entrée de la table TLS de stockage du
+thread en cours. Le numéro de l'entrée remplie par \fBset_thread_area\fP()
+correspond à la valeur \fIu_info\->entry_number\fP fournie par
+l'utilisateur. Si la valeur est dans les limites, \fBset_thread_area\fP() copie
+le descripteur pointé par \fIu_info\fP dans la table TLS du thread.
+.PP
+Quand \fBset_thread_area\fP() reçoit un numéro \fIentry_number\fP valant \-1, il
+utilise une entrée libre dans la table TLS. Si \fBset_thread_area\fP() trouve
+une entrée TLS libre, la valeur de \fIu_info\->entry_number\fP est remplie
+au retour pour montrer quelle entrée a été modifiée.
+.SH "VALEUR RENVOYÉE"
+\fBset_thread_area\fP() renvoie 0 s'il réussit et \-1 s'il échoue et écrit
+\fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEINVAL\fP
+\fIu_info\->entry_number\fP est hors des limites.
+.TP 
+\fBEFAULT\fP
+\fIu_info\fP est un pointeur invalide.
+.TP 
+\fBESRCH\fP
+Impossible de trouver une entrée TLS libre.
+.SH VERSIONS
+Une version de \fBset_thread_area\fP() est apparue dans Linux 2.5.29.
+.SH CONFORMITÉ
+\fBset_thread_area\fP() est spécifique à Linux et ne devrait pas être employé
+dans un programme conçu pour être portable.
+.SH NOTES
+La glibc ne fournit pas de fonction autour de cet appel système, puisqu'il a
+normalement pour seul but d'être utilisé dans les bibliothèques de
+threads. Au cas improbable où vous voudriez l'appeler directement, utilisez
+\fBsyscall\fP(2).
+.SH "VOIR AUSSI"
+\fBget_thread_area\fP(2)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

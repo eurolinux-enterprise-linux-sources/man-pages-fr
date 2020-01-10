@@ -1,0 +1,166 @@
+.\" Copyright (C) 2012 Michael Kerrisk <mtk.manpages@gmail.com>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH DELETE_MODULE 2 "8 novembre 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+delete_module \- Décharger un module de noyau
+.SH SYNOPSIS
+.nf
+\fBint delete_module(const char *\fP\fIname\fP\fB, int \fP\fIflags\fP\fB);\fP
+.fi
+
+\fIRemarque\fP\ : il n'existe pas de fonction glibc autour de cet appel
+système\ ; consultez \fBNOTES\fP.
+.SH DESCRIPTION
+L'appel système \fBdelete_module\fP() essaye de supprimer une entrée de module
+chargeable inutilisée identifiée par \fIname\fP. Si le module à une fonction
+\fIexit\fP, alors cette fonction est exécutée avant de décharger le
+module. L'argument \fIflags\fP est utilisé pour modifier le comportement de
+l'appel système, conformément à la description ci\-dessous. Cet appel système
+nécessite des droits.
+
+La suppression de module est essayée d'après les règles suivantes.
+.IP 1. 4
+Si d'autres modules chargés dépendent de (c'est\-à\-dire font référence aux
+symboles définis dans) ce module, alors l'appel échoue.
+.IP 2.
+Sinon, si le nombre de références pour ce module (c'est\-à\-dire le nombre de
+processus utilisant actuellement ce module) est nul, alors le module est
+immédiatement déchargé.
+.IP 3.
+.\"  	O_TRUNC == KMOD_REMOVE_FORCE in kmod library
+.\"  	O_NONBLOCK == KMOD_REMOVE_NOWAIT in kmod library
+Si un module a un nombre de références non nul, alors le comportement dépend
+des bits définis dans \fIflags\fP. En utilisation normale (consultez \fBNOTES\fP),
+l'attribut \fBO_NONBLOCK\fP est toujours indiqué, et l'attribut \fBO_TRUNC\fP
+pourrait être aussi indiqué.
+
+Les diverses combinaisons de \fIflags\fP ont les effets suivants.
+.RS 4
+.TP 
+\fBflags == O_NONBLOCK\fP
+L'appel se termine immédiatement, avec une erreur.
+.TP 
+\fBflags == (O_NONBLOCK | O_TRUNC)\fP
+Le module est déchargé immédiatement, quelque soit le nombre de références.
+.TP 
+\fB(flags & O_NONBLOCK) == 0\fP
+Si \fIflags\fP n'indique pas \fBO_NONBLOCK\fP, les étapes suivantes se succèdent\ :
+.RS
+.IP * 3
+le module est marqué de telle sorte qu'aucune nouvelle référence est
+permise\ ;
+.IP *
+si le nombre de références du module est non nul, l'appelant est placé en
+état de sommeil non interruptible (\fBTASK_UNINTERRUPTIBLE\fP) jusqu'à ce que
+le nombre de références soit nul, à ce moment l'appel est débloqué\ ;
+.IP *
+le module est déchargé normalement
+.RE
+.RE
+.PP
+L'attribut \fBO_TRUNC\fP a un effet supplémentaire sur les réglés décrites
+précédemment. Par défaut, si un module a une fonction \fIinit\fP mais pas de
+fonction \fIexit\fP, essayer de supprimer ce module échouera. Cependant, si
+\fBO_TRUNC\fP a été indiqué, cette condition est contournée.
+.PP
+Utiliser l'attribut \fBO_TRUNC\fP est dangereux. Si le noyau n'a pas été
+construit avec \fBCONFIG_MODULE_FORCE_UNLOAD\fP, cet attribut est ignoré
+silencieusement (normalement, \fBCONFIG_MODULE_FORCE_UNLOAD\fP est
+activé). Utiliser cet attribut corrompt le noyau (TAINT_FORCED_RMMOD).
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+définit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEBUSY\fP
+Le module n'est pas «\ actif\ » (c'est\-à\-dire qu'il est encore en cours
+d'initialisation ou déjà marqué pour la suppression), ou le module a une
+fonction \fIinit\fP mais pas de fonction \fIexit\fP, et \fBO_TRUNC\fP n'a pas été
+indiqué dans \fIflags\fP.
+.TP 
+\fBEFAULT\fP
+\fIname\fP fait référence à un emplacement en dehors de l'espace d'adressage
+accessible du processus.
+.TP 
+\fBENOENT\fP
+Il n'existe aucun module de ce nom.
+.TP 
+\fBEPERM\fP
+L'appelant n'avait pas les droits (n'avait pas la capacité
+\fBCAP_SYS_MODULE\fP), ou le déchargement de module est désactivé (consultez
+\fI/proc/sys/kernel/modules_disabled\fP dans \fBproc\fP(5)).
+.TP 
+\fBEWOULDBLOCK\fP
+D'autres modules dépendent de ce module, ou \fBO_NONBLOCK\fP a été indiqué dans
+\fIflags\fP, mais le nombre de références est non nul et \fBO_TRUNC\fP n'a pas été
+indiqué dans \fIflags\fP.
+.SH CONFORMITÉ
+\fBdelete_module\fP()  est spécifique à Linux.
+.SH NOTES
+La glibc ne fournit pas de fonction autour de cet appel système\ ; utilisez
+\fBsyscall\fP(2) pour l'appeler.
+
+Le sommeil non interruptible qui peut arriver si \fBO_NONBLOCK\fP est omis de
+\fIflags\fP est considéré indésirable, parce que le processus dormant est
+laissé dans un état non tuable. Avec Linux\ 3.7, indiquer \fBO_NONBLOCK\fP est
+facultatif, mais à l'avenir, ce sera probablement obligatoire.
+.SS "Linux\ 2.4 et antérieurs"
+Dans Linux\ 2.4 et antérieurs, l'appel système ne prend qu'un argument\ :
+
+\fB int delete_module(const char *\fP\fIname\fP\fB);\fP
+
+Si \fIname\fP est NULL, tous les modules non utilisés marqués à nettoyer
+automatiquement sont supprimés.
+
+De plus amples précisions sur les différences de comportement de
+\fBdelete_module\fP() dans Linux\ 2.4 et antérieurs ne sont actuellement \fIpas\fP
+expliquées dans cette page de manuel.
+.SH "VOIR AUSSI"
+\fBcreate_module\fP(2), \fBinit_module\fP(2), \fBquery_module\fP(2), \fBlsmod\fP(8),
+\fBmodprobe\fP(8), \fBrmmod\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Alain Portal <http://manpagesfr.free.fr/>\ (2006-2007).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

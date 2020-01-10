@@ -1,0 +1,88 @@
+.\" Reboot/halt and Linux information extracted from Rick Faith's original
+.\" sync(8) manpage, dating back to the Linux 0.99 days.  The Linux-specific
+.\" information is attributed to Linus Torvalds
+.\" Copyright 1992, 1993 Rickard E. Faith (faith@cs.unc.edu)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\" May be distributed under the GNU General Public License
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SYNC 8 "1er novembre 1998" GNU "Manuel du programmeur Linux"
+.SH NOM
+sync \- Synchroniser les données sur le disque avec celles en mémoire
+.SH SYNOPSIS
+\fBsync [\-\-help] [\-\-version]\fP
+.SH DESCRIPTION
+La commande \fBsync\fP écrit sur le disque toutes les données dans les tampons
+en mémoire. Cela inclut entre autres les superblocs modifiés, les inœuds
+modifiées et les lectures et écritures différées. Cela doit être implémenté
+dans le noyau, le programme \fBsync\fP ne fait rien d'autre que d'invoquer
+l'appel système \fBsync\fP(2).
+.PP
+Le noyau garde des données en mémoire pour éviter d'avoir à faire trop de
+lectures et écritures (relativement lentes) sur le disque. Cela améliore
+sensiblement les performances, mais si l'ordinateur se plante, des données
+peuvent être perdues, ou le système de fichiers peut être endommagé. \fBsync\fP
+garantit que tout ce qui se trouve en mémoire est écrit sur le disque.
+.PP
+Normalement, \fBsync\fP devrait être appelé avant que le processeur ne soit
+arrêté de manière anormale (par exemple avant de déclencher une panique du
+noyau lors du débogage d'un nouveau code du noyau). En général, le
+processeur doit être arrêté avec les commandes \fBshutdown\fP(8), \fBreboot\fP(8)
+ou \fBhalt\fP(8), qui tentent de mettre le système dans un état calme, avant
+d'appeler \fBsync\fP(2). (Il existe plusieurs implémentations de ces commandes,
+consultez la documentation de votre distribution, car sur certains systèmes,
+il ne faut pas appeler \fBreboot\fP(8) ou \fBhalt\fP(8) directement.)
+.SH OPTIONS
+.TP 
+\fB\-\-help\fP
+Afficher un message d'aide sur la sortie standard et terminer normalement.
+.TP 
+\fB\-\-version\fP
+Afficher le numéro de version sur la sortie standard et terminer
+normalement.
+.TP 
+\fB\-\-\fP
+Terminer la liste des options.
+.SH ENVIRONNEMENT
+Les variables d'environnement \fBLANG\fP, \fBLC_ALL\fP, \fBLC_CTYPE\fP et
+\fBLC_MESSAGES\fP ont leur signification habituelle.
+.SH CONFORMITÉ
+POSIX.2.
+.SH NOTES
+Sous Linux, \fBsync\fP garantit seulement que l'écriture des blocs modifiés est
+programmée. Il peut y avoir un petit retard entre le retour de l'appel
+système et l'écriture effective. Les commandes \fBreboot\fP(8) et \fBhalt\fP(8)
+gèrent cela en se mettant en pause quelques secondes après l'invocation de
+\fBsync\fP(2).
+.PP
+Cette page décrit la commande \fBsync\fP telle qu'elle est fournie dans le
+paquet fileutils\-4.0. D'autres versions peuvent être légèrement différentes.
+.SH "VOIR AUSSI"
+\fBsync\fP(2), \fBhalt\fP(8), \fBreboot\fP(8), \fBupdate\fP(8)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Thomas Huriaux et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

@@ -1,0 +1,551 @@
+.\" Copyright (c) International Business Machines Corp., 2006
+.\"
+.\" %%%LICENSE_START(GPLv2+_SW_3_PARA)
+.\" This program is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+.\" the GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+.\"
+.\" HISTORY:
+.\" 2005-09-28, created by Arnd Bergmann <arndb@de.ibm.com>,
+.\"   Mark Nutter <mnutter@us.ibm.com> and
+.\"   Ulrich Weigand <Ulrich.Weigand@de.ibm.com>
+.\" 2006-06-16, revised by Eduardo M. Fleury <efleury@br.ibm.com>
+.\" 2007-07-10, quite a lot of polishing by mtk
+.\" 2007-09-28, updates for newer kernels by Jeremy Kerr <jk@ozlabs.org>
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SPUFS 7 "20 décembre 2007" Linux "Manuel du programmeur Linux"
+.SH NOM
+spufs \- Système de fichiers SPU
+.SH DESCRIPTION
+Le système de fichiers SPU est utilisé sur les machines PowerPC qui
+utilisent l'architecture Cell Broadband Engine Architecture pour accéder aux
+SPU («\ Synergistic Processor Units\ »).
+
+Le système de fichiers fournit un espace de noms similaire à la mémoire
+partagée ou aux queues de messages POSIX. Les utilisateurs qui ont la
+permission d'écrire sur le système de fichiers peuvent utiliser
+\fBspu_create\fP(2) pour établir des contextes SPU dans le répertoire racine du
+\fBspufs\fP.
+
+Chaque contexte SPU est représenté par un répertoire contenant un jeu de
+fichiers prédéfinis. Ces fichiers peuvent être utilisés pour manipuler
+l'état du SPU logique. Les utilisateurs peuvent changer les permissions des
+fichiers, mais ne peuvent ni en ajouter ni en supprimer.
+.SS "Options de montage"
+.TP 
+\fBuid=<uid>\fP
+Définit l'utilisateur propriétaire du point de montage\ ; 0 par défaut
+(root).
+.TP 
+\fBgid=<gid>\fP
+Définit le groupe propriétaire du point de montage\ ; 0 par défaut (root).
+.TP 
+\fBmode=<mode>\fP
+Définir le mode du répertoire de plus haut niveau du \fBspufs\fP sous la forme
+d'une chaîne de valeur octale. La valeur par défaut est 0775.
+.SS Fichiers
+Les fichiers du \fBspufs\fP se comportent majoritairement de façon standard
+pour les appels système comme \fBread\fP(2) ou \fBwrite\fP(2), mais ne gèrent
+souvent qu'une fraction des opérations permises par les systèmes de fichiers
+normaux. Cette liste détaille les opérations gérées et les dérogations par
+rapport aux comportements standards qui sont décrits dans les différentes
+pages de manuel.
+
+Tous les fichiers qui gèrent l'opération \fBread\fP(2) gèrent également
+\fBreadv\fP(2) et tous les fichiers qui gèrent l'opération \fBwrite\fP(2) gèrent
+aussi \fBwritev\fP(2). Tous les fichiers gèrent les familles d'opérations
+\fBaccess\fP(2) \fBstat\fP(2), mais pour cette dernière famille, les seuls champs
+de la structure \fIstat\fP renvoyée qui contiennent des informations fiables
+sont \fIst_mode\fP, \fIst_nlink\fP, \fIst_uid\fP et \fIst_gid\fP.
+
+Tous les fichiers gèrent les opérations \fBchmod\fP(2)/\fBfchmod\fP(2) et
+\fBchown\fP(2)/\fBfchown\fP(2), mais ne permettront pas des autorisations d'accès
+qui contredisent les opérations possibles pour un fichier (par exemple,
+l'accès en lecture pour un fichier \fIwbox\fP).
+
+Le jeux actuel de fichiers est\ :
+.TP 
+\fI/capabilities\fP
+Contient une chaîne représentant les capacités, séparées par des virgules,
+de ce contexte SPU. Les capacités possibles sont\ :
+.RS
+.TP 
+\fBsched\fP
+Ce contexte peut être ordonnancé.
+.TP 
+\fBstep\fP
+Ce contexte peut être exécuté en mode pas\-à\-pas, pour débogage.
+.PP
+De nouveaux attributs de capacités pourront être ajoutés dans le futur.
+.RE
+.TP 
+\fI/mem\fP
+Le contenu de la mémoire de stockage locale du SPU. On peut y accéder comme
+à un fichier de mémoire partagé standard et il contient à la fois le code et
+les données de l'espace d'adressage du SPU. Les opérations possibles sur un
+fichier \fImem\fP ouvert sont\ :
+.RS
+.TP 
+\fBread\fP(2), \fBpread\fP(2), \fBwrite\fP(2), \fBpwrite\fP(2), \fBlseek\fP(2)
+Elles opèrent normalement, à l'exception de \fBlseek\fP(2), \fBwrite\fP(2) et
+\fBpwrite\fP(2) qui ne sont pas gérées en dehors des limites du fichier. La
+taille du fichier est la taille de l'espace de stockage local du SPU, qui
+est normalement de 256\ kilooctets.
+.TP 
+\fBmmap\fP(2)
+La projection de \fImem\fP dans l'espace d'adressage du processus donne accès à
+l'espace de stockage local du SPU depuis l'espace d'adressage du
+processus. Seules les projections \fBMAP_SHARED\fP sont autorisées.
+.RE
+.TP 
+\fI/regs\fP
+Contient la sauvegarde des registres à vocation générale du contexte SPU. Ce
+fichier contient les valeurs 128\ bits de chaque registre, du registre 0 au
+registre 127, dans l'ordre. Cela permet de consulter le contenu de ces
+registres à vocation générale à des fins de débogage.
+
+La lecture ou l'écriture dans ce fichier nécessite que le contexte ne soit
+pas ordonnancé, aussi, l'utilisation de ce fichier n'est pas recommandé lors
+de l'exécution normale d'un programme.
+
+Le fichier \fIregs\fP n'existe pas pour les contextes créés avec l'attribut
+\fBSPU_CREATE_NOSCHED\fP.
+.TP 
+\fI/mbox\fP
+La première boîte aux lettres pour la communication entre SPU et CPU. Ce
+fichier est en lecture seule et peut être lu par unités de 4\ octets. Le
+fichier peut uniquement être utilisé en mode non bloquant \- même \fBpoll\fP(2)
+ne peut pas être utuilisé pour se bloquer sur ce fichier. La seule opération
+possible sur un fichier \fImbox\fP ouvert est\ :
+.RS
+.TP 
+\fBread\fP(2)
+Si \fIcount\fP est plus petit que quatre, \fBread\fP(2) renvoie \-1 et positionne
+\fIerrno\fP à \fBEINVAL\fP. S'il n'y a pas de donnée disponible dans la boîte aux
+lettres (c'est\-à\-dire si le SPU n'a pas envoyé de message dans la boîte aux
+lettres), la valeur de retour est \-1 et \fIerrno\fP est positionnée à
+\fBEAGAIN\fP. Quand des données ont été lues avec succès, quatre octets sont
+placés dans le tampon de données et la valeur renvoyée est quatre.
+.RE
+.TP 
+\fI/ibox\fP
+La deuxième boîte aux lettres pour la communication entre SPU et CPU. Ce
+fichier est similaire au premier fichier de boîte aux lettres, mais peut
+être lu en mode bloquant, ainsi appeler \fBread\fP(2) sur un fichier \fIibox\fP
+ouvert bloquera tant que le SPU n'a pas écrit dans son canal boîte à lettres
+(à moins que le fichier n'ait été ouvert avec \fBO_NONBLOCK\fP, voir
+ci\-dessous). Également, \fBpoll\fP(2) et des appels système similaires peuvent
+être utilisés pour surveiller la présence de données dans la boîte à
+lettres.
+
+Les opérations possibles sur un fichier \fIibox\fP ouvert sont\ :
+.RS
+.TP 
+\fBread\fP(2)
+Si \fIcount\fP est plus petit que quatre, \fBread\fP(2) renvoie \-1 et positionne
+\fIerrno\fP à \fBEINVAL\fP. S'il n'y a pas de donnée disponible dans la boîte aux
+lettres et que le fichier a été ouvert avec \fBO_NONBLOCK\fP, la valeur
+renvoyée est \-1 et \fIerrno\fP est positionnée à \fBEAGAIN\fP.
+
+S'il n'y a pas de donnée disponible dans la boîte aux lettres et que le
+fichier a été ouvert sans l'attribut \fBO_NONBLOCK\fP, l'appel bloquera jusqu'à
+ce que le SPU écrive dans son canal d'interruption de la boîte aux
+lettres. Quand des données ont été lues avec succès, quatre octets sont
+placés dans le tampon de données et la valeur quatre est renvoyée.
+.TP 
+\fBpoll\fP(2)
+L'appel de \fBpoll\fP(2) sur le fichier \fIibox\fP renvoie \fI(POLLIN |
+POLLRDNORM)\fP quand des données sont disponibles en lecture.
+.RE
+.TP 
+\fI/wbox\fP
+La boîte aux lettres pour la communication entre CPU et SPU. Elle est en
+écriture seulement et on peut y écrire des données de 32\ bits. Si la boîte
+aux lettres est pleine, \fBwrite\fP(2) bloque et \fBpoll\fP(2) peut être utilisé
+pour bloquer jusqu'à ce qu'il soit possible d'écrire dans la boîte aux
+lettres. Les opérations possibles sur un fichier \fIwbox\fP ouvert sont\ :
+.RS
+.TP 
+\fBwrite\fP(2)
+Si \fIcount\fP est plus petit que quatre, \fBwrite\fP(2) renvoie \-1 et positionne
+\fIerrno\fP à \fBEINVAL\fP. S'il n'y a pas d'espace disponible dans la boîte aux
+lettres et que le fichier a été ouvert avec \fBO_NONBLOCK\fP, la valeur
+renvoyée est \-1 et \fIerrno\fP est positionnée à \fBEAGAIN\fP.
+
+S'il n'y a pas d'espace disponible dans la boîte aux lettres et que le
+fichier a été ouvert sans l'attribut \fBO_NONBLOCK\fP, l'appel bloque jusqu'à
+ce que le SPU lise dans le canal de sa boîte aux lettres PPE (PowerPC
+Processing Element). Quand des données ont été écrites avec succès, l'appel
+système renvoie 4 comme résultat de la fonction.
+.TP 
+\fBpoll\fP(2)
+Un appel à \fBpoll\fP(2) sur le fichier \fIwbox\fP renvoie \fI(POLLOUT |
+POLLWRNORM)\fP quand de l'espace est disponible en écriture.
+.RE
+.TP 
+\fI/mbox_stat\fP, \fI/ibox_stat\fP, \fI/wbox_stat\fP
+Ce sont des fichiers en lecture seule qui contiennent la taille des
+différentes queues des boîtes aux lettres, c'est\-à\-dire le nombre de mots
+qui peuvent être lus dans \fImbox\fP ou \fIibox\fP ou peuvent être écrits dans
+\fIwbox\fP sans bloquer. Ces fichiers ne peuvent être lus que par blocs de
+quatre octets et renvoient un nombre entier avec un codage grand boutiste
+(«\ big endian\ ». La seule opération possible sur un fichier \fI*box_stat\fP
+ouvert est\ :
+.RS
+.TP 
+\fBread\fP(2)
+Si \fIcount\fP est plus petit que quatre, \fBread\fP(2) renvoie \-1 et positionne
+\fIerrno\fP à \fBEINVAL\fP. Sinon, une valeur de quatre octets est placée dans le
+tampon de données. Cette valeur est le nombre d'éléments qui peuvent être
+lus (pour \fImbox_stat\fP et \fIibox_stat\fP) ou écrits (pour \fIwbox_stat\fP) dans
+les boîtes aux lettres respectives sans bloquer ou renvoyer une erreur
+\fBEAGAIN\fP.
+.RE
+.TP 
+\fI/npc\fP, \fI/decr\fP, \fI/decr_status\fP, \fI/spu_tag_mask\fP, \fI/event_mask\fP, \fI/event_status\fP, \fI/srr0\fP, \fI/lslr\fP
+Les registres internes du SPU. Ces fichiers contiennent une chaîne de
+caractère ASCII représentant la valeur hexadécimale du registre
+spécifié. Lire et écrire dans ces fichiers (hormis \fInpc\fP, voir ci\-dessous)
+nécessite que le contexte du SPU ne soit pas ordonnancé, aussi, les accès
+fréquents à ces fichiers ne sont pas recommandés lors de l'exécution normale
+d'un programme.
+.IP
+Le contenu des fichiers est\ :
+.RS
+.TP  16
+\fInpc\fP
+Compteur programme suivant \- Valide uniquement lorsque le SPU est dans un
+état arrêté.
+.TP 
+\fIdecr\fP
+Décrémenteur SPU
+.TP 
+\fIdecr_status\fP
+État du décrémenteur
+.TP 
+\fIspu_tag_mask\fP
+Masque de drapeaux MFC pour le DMA SPU
+.TP 
+\fIevent_mask\fP
+Masque d'événements pour les interruptions SPU
+.TP 
+\fIevent_status\fP
+Nombre d'événements SPU en attente (lecture seule)
+.TP 
+\fIsrr0\fP
+Registre contenant l'adresse de retour d'interruption
+.TP 
+\fIlslr\fP
+Registre de limite de stokage local
+.RE
+.IP
+Les opérations possibles sur ces fichiers sont\ :
+.RS
+.TP 
+\fBread\fP(2)
+Lit la valeur actuelle du registre. Si la valeur du registre est plus grande
+que le tampon passé à \fBread\fP(2), les lectures suivantes continueront à lire
+à partir du même tampon jusqu'à ce que la fin du tampon soit atteinte.
+
+Lorsqu'une chaîne complète a été lue, toutes les opérations de lecture
+suivantes renverront zéro octet et il faudra ouvrir un nouveau descripteur
+de fichier pour lire une nouvelle valeur.
+.TP 
+\fBwrite\fP(2)
+Un appel à \fBwrite\fP(2) sur le fichier définit le registre à la valeur
+fournie dans la chaîne. La chaîne est analysée du début jusqu'au premier
+caractère non numérique ou jusqu'à la fin du tampon. Les écritures suivantes
+sur le même descripteur de fichier remplaceront les précédentes écritures.
+
+Excepté pour le fichier \fInpc\fP, ces fichiers n'existent pas dans les
+contextes créés avec l'attribut \fBSPU_CREATE_NOSCHED\fP.
+.RE
+.TP 
+\fI/fpcr\fP
+Ce fichier donne accès au registre d'état et de contrôle pour la virgule
+flottante (Floating Point Status and Control Register, fcpr) comme un
+fichier binaire de quatre octets. Les opérations pour le fichier \fIfpcr\fP
+sont\ :
+.RS
+.TP 
+\fBread\fP(2)
+Si \fIcount\fP est plus petit que quatre, \fBread\fP(2) renvoie \-1 et positionne
+\fIerrno\fP à \fBEINVAL\fP. Sinon, une valeur de quatre octets est placée dans le
+tampon de données\ ; c'est la valeur actuelle du registre \fIfpcr\fP.
+.TP 
+\fBwrite\fP(2)
+Si \fIcount\fP est plus petit que quatre, \fBwrite\fP(2) renvoie \-1 et positionne
+\fIerrno\fP à \fBEINVAL\fP. Sinon, une valeur de quatre octets est copiée depuis
+le tampon de données, mettant à jour la valeur du registre \fIfpcr\fP.
+.RE
+.TP 
+\fI/signal1\fP, \fI/signal2\fP
+Le fichier donne accès aux deux canaux de notification de signal d'un
+SPU. Ce sont des fichiers en lecture et écriture qui utilisent des mots de
+quatre octets. Écrire dans un de ces fichiers déclenche une interruption sur
+le SPU. La valeur écrite dans le fichier de signalisation peut être lue
+depuis le SPU au travers d'un canal de lecture ou par l'espace utilisateur
+sur l'hôte grâce au fichier. Les opérations possibles sur un fichier
+\fIsignal1\fP ou \fIsignal2\fP ouvert sont\ :
+.RS
+.TP 
+\fBread\fP(2)
+Si \fIcount\fP est plus petit que quatre, \fBread\fP(2) renvoie \-1 et positionne
+\fIerrno\fP à \fBEINVAL\fP. Sinon, une valeur de quatre octets est placée dans le
+tampon de données\ ; c'est la valeur actuelle du registre de notification du
+signal spécifié.
+.TP 
+\fBwrite\fP(2)
+Si \fIcount\fP est plus petit que quatre, \fBwrite\fP(2) renvoie \-1 et positionne
+\fIerrno\fP à \fBEINVAL\fP. Sinon, une valeur de quatre octets est copiée depuis
+le tampon de données et met à jour la valeur du registre de notification du
+signal spécifié. Le registre de notification du signal sera soit remplacé
+par les données fournies en entrée ou sera mis à jour par un OU bit à bit de
+l'ancienne valeur et des données fournies en entrée, en fonction du contenu
+des fichiers \fIsignal1_type\fP ou \fIsignal2_type\fP respectivement.
+.RE
+.TP 
+\fI/signal1_type\fP, \fI/signal2_type\fP
+Ces deux fichiers changent le comportement des fichiers de notification
+\fIsignal1\fP et \fIsignal2\fP. Ils contiennent une chaîne ASCII numérique qui est
+lue comme "1" ou "0". Dans le mode 0 (remplacement), le matériel remplace le
+contenu du canal du signal avec la donnée qu'on y écrit. Dans le mode 1 (OU
+logique), le matériel accumule les bits qui y sont écrits au fur et à
+mesure. Les opérations possibles sur un fichier \fIsignal1_type\fP ou
+\fIsignal2_type\fP sont\ :
+.RS
+.TP 
+\fBread\fP(2)
+Quand le paramètre \fIcount\fP fourni à l'appel \fBread\fP(2) est plus petit que
+la longueur nécessaire pour la valeur du chiffre (plus un caractère de fin
+de ligne), les lectures suivantes sur le même descripteur de fichier
+compléteront la chaîne. Quand une chaîne complète a été lue, les lectures
+qui suivent ne renvoient aucun octet et un nouveau descripteur de fichier
+doit être ouvert pour lire une nouvelle valeur.
+.TP 
+\fBwrite\fP(2)
+Un appel à \fBwrite\fP(2) sur le fichier définit le registre à la valeur
+fournie dans la chaîne. La chaîne est analysée du début jusqu'au premier
+caractère non numérique ou jusqu'à la fin du tampon. Les écritures suivantes
+sur le même descripteur de fichier remplaceront les précédentes écritures.
+.RE
+.TP 
+\fI/mbox_info\fP, \fI/ibox_info\fP, \fI/wbox_info\fP, \fI/dma_into\fP, \fI/proxydma_info\fP
+Fichiers en lecture seule qui contiennent l'état sauvegardé des boîtes à
+lettres SPU et des files DMA. Cela permet de pouvoir consulter l'état du
+SPU, principalement à des fins de débogage. Les fichiers \fImbox_info\fP et
+\fIibox_info\fP contiennent chacun un message de 4\ octets qui a été écrit par
+le SPU. Si aucun message n'a été écrit dans ces boîtes à lettres, le contenu
+de ces fichiers est indéterminé. Les fichiers \fImbox_stat\fP, \fIibox_stat\fP et
+\fIwbox_stat\fP contient le nombre de messages disponibles.
+
+Le fichier \fIwbox_info\fP contient un tableau de messages de 4\ octets qui ont
+été envoyés à le SPU. Sur les machines CBEA actuelles, le tableau a une
+longueur de 4 éléments, ainsi, on peut lire jusqu'à 4\ *\ 4\ =\ 16\ octets. Si
+une entrée de file de boîte à lettres est vide, les octets lus dans
+l'emplacement correspondant sont indéterminés.
+
+Le fichier \fIdma_info\fP contient le contenu de la file DMA du MFC du SPU,
+représenté par la structure suivante\ :
+
+.in +4n
+.nf
+struct spu_dma_info {
+    uint64_t         dma_info_type;
+    uint64_t         dma_info_mask;
+    uint64_t         dma_info_status;
+    uint64_t         dma_info_stall_and_notify;
+    uint64_t         dma_info_atomic_command_status;
+    struct mfc_cq_sr dma_info_command_data[16];
+};
+.fi
+.in
+
+Le dernier membre de cette structure de données est la file DMA réelle
+contenant 16 entrées. La structure \fImfc_cq_sr\fP est définie ainsi\ :
+
+.in +4n
+.nf
+struct mfc_cq_sr {
+    uint64_t mfc_cq_data0_RW;
+    uint64_t mfc_cq_data1_RW;
+    uint64_t mfc_cq_data2_RW;
+    uint64_t mfc_cq_data3_RW;
+};
+.fi
+.in
+
+Le fichier \fIproxydma_info\fP contient des informations similaires mais décrit
+la file DMA proxy (c'est\-à\-dire, les DMA initiés par des entités extérieures
+au SPU). Le fichier a le format suivant\ :
+
+.in +4n
+.nf
+struct spu_proxydma_info {
+    uint64_t         proxydma_info_type;
+    uint64_t         proxydma_info_mask;
+    uint64_t         proxydma_info_status;
+    struct mfc_cq_sr proxydma_info_command_data[8];
+};
+.fi
+.in
+
+L'accès à ces fichiers nécessite que le contexte SPU ne soit pas
+ordonnancé\ ; une utilisation fréquente serait inefficace. Ces fichiers ne
+doivent pas être utilisés dans l'exécution normale d'un programme.
+
+Ces fichiers n'existent pas dans les contextes créés avec l'attribut
+\fBSPU_CREATE_NOSCHED\fP.
+.TP 
+\fI/cntl\fP
+Ce fichier fournit un accès aux registres de contrôle d'exécution et d'état
+du SPU sous forme d'une chaîne ASCII. Les opérations suivantes sont prises
+en charge\ :
+.RS
+.TP 
+\fBread\fP(2)
+La lecture du fichier \fIcntl\fP renverra une chaîne ASCCI contenant la valeur
+hexadécimale du registre d'état du SPU.
+.TP 
+\fBwrite\fP(2)
+L'écriture dans le fichier \fIcntl\fP définira le registre de contrôle
+d'exécution du contexte du SPU.
+.RE
+.TP 
+\fI/mfc\fP
+Fournit un accès au contrôleur de flux mémoire (MFC) du SPU. Une lecture de
+ce fichier renvoie le contenu du registre d'état de balise MFC du SPU et une
+écriture dans le fichier initie un DMA du MFC. Les opérations suivantes sont
+prises en charge\ :
+.RS
+.TP 
+\fBwrite\fP(2)
+L'écriture dans ce fichier nécessite d'être dans le format d'une commande
+DMA du MFC défini ainsi\ :
+
+.in +4n
+.nf
+struct mfc_dma_command {
+    int32_t  pad;    /* réservé */
+    uint32_t lsa;    /* adresse de stockage local */
+    uint64_t ea;     /* adresse effective */
+    uint16_t size;   /* taille de transfert */
+    uint16_t tag;    /* drapeau de commande */
+    uint16_t class;  /* identifiant de la classe */
+    uint16_t cmd;    /* opcode de la commande */
+};
+.fi
+.in
+
+Les écritures doivent avoir une taille d'exactement \fIsizeof(struct
+mfc_dma_command)\fP\ octets. La commande sera envoyée à la file proxy MFC du
+SPU et le drapeau enregistré dans le noyau (voir ci\-dessous).
+.TP 
+\fBread\fP(2)
+Lire le contenu du registre d'état du drapeau. Si le fichier est ouvert en
+mode bloquant (c'est\-à\-dire, sans \fBO_NONBLOCK\fP), la lecture bloquera
+jusqu'à ce qu'une balise DMA (comme effectué par une écriture précédente)
+soit achevée. En mode non bloquant, le registre d'état du drapeau MFC sera
+renvoyé sans attente.
+.TP 
+\fBpoll\fP(2)
+Appeler \fBpoll\fP(2) sur le fichier \fImfc\fP bloquera jusqu'à ce qu'un nouveau
+DMA puisse être démarré (en vérifiant \fBPOLLOUT\fP) ou jusqu'à ce qu'un DMA
+démarré précédemment (en vérifiant \fBPOLLIN\fP) se soit achevé.
+
+\fI/mss\fP Fournit un accès à la fonctionnalité de synchronisation multisource
+(MSS) MFC. En effectuant un \fBmmap\fP(2) sur ce fichier, les processus peuvent
+accéder à la zone MSS du SPU.
+
+Les opérations suivantes sont gérées\ :
+.TP 
+\fBmmap\fP(2)
+La projection de \fBmss\fP dans l'espace d'adressage du processus donne accès à
+la zone MSS du SPU depuis l'espace d'adressage du processus. Seules les
+projections \fBMAP_SHARED\fP sont autorisées.
+.RE
+.TP 
+\fI/psmap\fP
+Fournit un accès à l'ensemble de la projection d'état de problèmes du
+SPU. Les applications peuvent utiliser cette zone pour interfacer le SPU
+plutôt que d'écrire dans les fichiers individuels des registres sur le
+système de fichiers \fBspufs\fP.
+
+Les opérations suivantes sont gérées\ :
+.RS
+.TP 
+\fBmmap\fP(2)
+La projection de \fBpsmap\fP donne un accès direct à un processus vers la zone
+d'état des problèmes du SPU. Seules les projections \fBMAP_SHARED\fP sont
+autorisées.
+.RE
+.TP 
+\fI/phys\-id\fP
+Fichier en lecture seule contenant le nombre de SPU physiques sur lesquelles
+s'exécutent le contexte SPU. Lorsque le contexte n'est pas en cours
+d'exécution, ce fichier contient la chaîne «\ \-1\ ».
+
+Le nombre de SPU physiques est fourni sous forme d'une chaîne ASCII
+hexadécimale.
+.TP 
+\fI/object\-id\fP
+Permet aux applications de stocker (ou récupérer) un idendifiant 64\ bits
+dans le contexte. Cet identifiant est utilisé plus tard par les outils de
+profilage pour identifier de manière unique le contexte.
+.RS
+.TP 
+\fBwrite\fP(2)
+En écrivant une valeur hexadécimale ASCII dans ce fichier, les applications
+peuvent définir l'identifiant d'objet du contexte SPU. Toute valeur
+précédente de l'identifiant d'objet est écrasée.
+.TP 
+\fBread\fP(2)
+La lecture de ce fichier fournit une chaîne hexadécimale ASCII représentant
+l'identifiant d'objet de ce contexte SPU.
+.RE
+.SH EXEMPLE
+.TP 
+Entrée \fI/etc/fstab\fP
+.\" .SH AUTHORS
+.\" Arnd Bergmann <arndb@de.ibm.com>, Mark Nutter <mnutter@us.ibm.com>,
+.\" Ulrich Weigand <Ulrich.Weigand@de.ibm.com>, Jeremy Kerr <jk@ozlabs.org>
+none 	/spu 	spufs 	gid=spu 	0	0
+.SH "VOIR AUSSI"
+\fBclose\fP(2), \fBspu_create\fP(2), \fBspu_run\fP(2), \fBcapabilities\fP(7)
+
+\fIThe Cell Broadband Engine Architecture (CBEA) specification\fP
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

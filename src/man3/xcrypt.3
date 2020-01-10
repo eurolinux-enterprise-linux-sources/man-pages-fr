@@ -1,0 +1,76 @@
+.\"  Copyright 2003 walter harms (walter.harms@informatik.uni-oldenburg.de)
+.\"
+.\" %%%LICENSE_START(GPL_NOVERSION_ONELINE)
+.\"  Distributed under GPL
+.\" %%%LICENSE_END
+.\"
+.\"  this is the 3rd type of interface for cryptographic routines
+.\"  1. encrypt() expects a bit field
+.\"  2. cbc_crypt() byte values
+.\"  3. xencrypt() a hexstring
+.\"  to bad to be true :(
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH XCRYPT 3 "4 avril 2003" "" "Manuel du programmeur Linux"
+.SH NOM
+xencrypt, xdecrypt, passwd2des \- Chiffrement des mots de passe RFS
+.SH SYNOPSIS
+\fB#include <rpc/des_crypt.h>\fP
+.sp
+\fBvoid passwd2des(char \fP\fI*motdepasse\fP\fB, char *\fP\fIkey\fP\fB);\fP
+.sp
+\fBint xencrypt(char *\fP\fIsecret\fP\fB, char *\fP\fImotdepasse\fP\fB);\fP
+.sp
+\fBint xdecrypt(char *\fP\fIsecret\fP\fB, char *\fP\fImotdepasse\fP\fB);\fP
+.SH DESCRIPTION
+La fonction \fBpasswd2des\fP() prend une chaîne de caractère \fImotdepasse\fP
+d'une longueur quelconque et remplit un tableau de caractères \fIkey\fP de
+taille 8 octets. Le tableau \fIkey\fP est utilisable comme clé DES. Elle a le
+bit de parité mis à zéro dans chaque octet. Les deux autres fonctions
+utilisent cette fonction pour transformer leur argument \fImotdepasse\fP en clé
+DES.
+.LP
+.\" (over the alphabet 0123456789abcdefABCDEF),
+.\" (over the alphabet 0123456789abcdef)
+La fonction \fBxencrypt\fP() prend une chaîne de caractères ASCII \fIsecret\fP en
+hexadécimal, qui doit avoir une longueur multiple de 16, la chiffre en
+utilisant la clé DES dérivée de \fImotdepasse\fP par \fBpasswd2des\fP(), et
+renvoie le résultat dans \fIsecret\fP comme une chaîne hexadécimale de même
+longueur.
+.LP
+La fonction \fBxdecrypt\fP() effectue la conversion inverse.
+.SH "VALEUR RENVOYÉE"
+Les fonctions \fBxencrypt\fP() et \fBxdecrypt\fP() renvoient 1 si elles
+réussissent et 0 en cas d'erreur.
+.SH VERSIONS
+Ces routines sont présentes dans la libc\ 4.6.27 et ultérieures, et dans la
+glibc\ 2.1 et ultérieures.
+.SH BOGUES
+Les prototypes sont absents des fichiers d'en\-tête indiqués plus haut.
+.SH "VOIR AUSSI"
+\fBcbc_crypt\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Nicolas François et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

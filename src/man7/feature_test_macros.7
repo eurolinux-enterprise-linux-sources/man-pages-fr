@@ -1,0 +1,495 @@
+.\" This manpage is Copyright (C) 2006, Michael Kerrisk
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH FEATURE_TEST_MACROS 7 "5 août 2012" Linux "Manuel du programmeur Linux"
+.SH NOM
+feature_test_macros \- Macros de test de fonctionnalités
+.SH SYNOPSIS
+.nf
+\fB#include <features.h>\fP
+.fi
+.SH DESCRIPTION
+Les macros de test de fonctionnalités permettent au programmeur de contrôler
+quelles définitions sont exposées par les fichiers d'en\(hytêtes système
+lorsqu'un programme est compilé.
+
+\fBNOTE\ :\fP pour avoir un effet, une macro de test de fonctionnalité \fIdoit
+être définie avant d'inclure tout fichier d'en\(hytête\fP. Cela peut être
+accompli soit dans la ligne de commande de compilation (\fIcc
+\-DMACRO=valeur\fP), soit en définissant la macro dans le code source avant
+d'inclure tout en\(hytête.
+
+Certaines macros de test de fonctionnalités sont utiles pour créer des
+applications portables, en empêchant des définitions non normalisées d'être
+exposées. D'autres macros peuvent être utilisées pour exposer des
+définitions non normalisées qui ne sont pas exposées par défaut. Les effets
+précis de chacune des macros décrites ci\(hydessous peuvent être vérifiés en
+inspectant le fichier d'en\(hytête \fI<features.h>\fP
+.SS "Spécification des exigences de macro de test de fonctionnalité dans les pages de manuel"
+Quand une fonction nécessite qu'une macro de test de fonctionnalité soit
+définie, la section SYNOPSIS de la page de manuel comprend généralement une
+note de la forme suivante (exemple pris dans la page de manuel \fBacct\fP(2))\ :
+.RS 8
+.sp
+\fB#include <unistd.h>\fP
+.sp
+\fBint acct(const char *\fP\fIfilename\fP\fB);\fP
+.sp
+.nf
+.in -4n
+Exigences de macros de test de fonctionnalités pour
+la glibc (consultez \fBfeature_test_macros\fP(7))\ :
+.fi
+.in
+.sp
+\fBacct\fP()\ : _BSD_SOURCE || (_XOPEN_SOURCE && _XOPEN_SOURCE\ <\ 500)
+.RE
+.PP
+Les doubles barres \fB||\fP signifient que pour obtenir la déclaration de
+\fBacct\fP(2) depuis \fI<unistd.h>\fP, \fIune\fP des définitions de macros
+doit être utilisée avant d'inclure les fichiers d'en\-tête\ :
+.RS
+.nf
+
+#define _BSD_SOURCE
+#define _XOPEN_SOURCE        /* ou toute valeur < 500 */
+.fi
+.RE
+.PP
+Autrement, les définitions équivalentes peuvent être faites lors de l'appel
+au compilateur\ :
+.RS
+.nf
+
+cc \-D_BSD_SOURCE
+cc \-D_XOPEN_SOURCE           # Ou toute valeur < 500
+.fi
+.RE
+.PP
+Veuillez noter que, comme décrit ci\-dessous, \fBcertaines macros de test de
+fonctionnalité sont définies par défaut\fP, et il n'est donc pas toujours
+nécessaire de spécifier explicitement les macros indiquées dans le SYNOPSIS.
+
+Dans certains cas, les pages de manuel utilisent des raccourcis pour
+exprimer la nécessité de certaines macros de test (exemple tiré de
+\fBreadahead\fP(2))\ :
+.RS
+.nf
+
+\fB#define _GNU_SOURCE\fP
+\fB#include <fcntl.h>\fP
+.sp
+\fBssize_t readahead(int \fP\fIfd\fP\fB, off64_t *\fP\fIoffset\fP\fB, size_t \fP\fIcount\fP\fB);\fP
+.fi
+.RE
+.PP
+Ce format est utilisé dans les cas où seule une macro de test de
+fonctionnalité peut être utilisée pour exposer la déclaration de la fonction
+et quand cette macro n'est pas définie par défaut.
+.SS "Macros de test de fonctionnalités comprises par la glibc"
+.\" The details in glibc 2.0 are simpler, but combining a
+.\" a description of them with the details in later glibc versions
+.\" would make for a complicated description.
+Les paragraphes suivants expliquent comment les macros de test de
+fonctionnalité sont gérées les glibc Linux\ 2.\fIx\fP, \fIx\fP > 0.
+
+La glibc de Linux comprend les macros de test de fonctionnalité suivantes\ :
+.TP 
+\fB__STRICT_ANSI__\fP
+La norme C ISO. Cette macro est définie implicitement par \fBgcc\fP(1) lors des
+appels avec, par exemple, l'option \fI\-std=c99\fP ou \fI\-ansi\fP.
+.TP 
+\fB_POSIX_C_SOURCE\fP
+Si cette macro est définie, les en\-têtes exposent les définitions
+suivantes\ :
+.RS
+.IP \(bu 3
+La valeur\ 1 expose les définitions conformes avec POSIX.1\-1990 et le C ISO
+(1990).
+.IP \(bu
+Les valeurs supérieures ou égales à 2 exposent en plus les définitions de
+POSIX.2\-1992.
+.IP \(bu
+.\" 199506L functionality is available only since glibc 2.1
+Les valeurs supérieures ou égales à 199309L exposent en plus les définitions
+de POSIX.1b (extensions temps\-réel).
+.IP \(bu
+Les valeurs supérieures ou égales à 199506L exposent en plus les définitions
+de POSIX.1c (threads).
+.IP \(bu
+(Depuis la glibc\ 2.3.3) Les valeurs supérieures ou égales à 200112L exposent
+les définitions correspondantes à la spécification de base POSIX.1\-2001
+(sans l'extension XSI).
+.IP \(bu
+(Depuis la glibc\ 2.10) Les valeurs supérieures ou égales à 200809L exposent
+les définitions correspondantes à la spécification de base POSIX.1\-2008
+(sans l'extension XSI).
+.RE
+.TP 
+\fB_POSIX_SOURCE\fP
+Définir cette macro obsolète (quelle que soit sa valeur) est équivalent à
+définir \fB_POSIX_C_SOURCE\fP à la valeur\ 1.
+.TP 
+\fB_XOPEN_SOURCE\fP
+Si cette macro est définie, les en\-têtes exposent les définitions
+suivantes\ :
+.RS
+.IP \(bu 3
+Si elle est définie, quelle que soit sa valeur, les définitions de POSIX.1,
+POSIX.2 et XPG4 sont fournies.
+.IP \(bu
+Les valeurs supérieures ou égales à 500 fournissent les définitions de SUSv2
+(UNIX\ 98).
+.IP \(bu
+(Depuis la glibc\ 2.2) Les valeurs supérieures ou égales à 600 les
+définitions de SUSv3 (UNIX\ 03, c'est\-à\-dire la spécification de base
+POSIX.1\-2001 plus l'extension XSI) et de C99 sont exposées en plus des
+précédentes.
+.IP \(bu
+(Depuis la glibc\ 2.10) Les valeurs supérieures ou égales à 700 exposents les
+définitions de SUSv4 (c'est\-à\-dire la spécification de base POSIX.1\-2008
+plus l'extension XSI).
+.RE
+.TP 
+\fB_XOPEN_SOURCE_EXTENDED\fP
+Si cette macro et \fB_XOPEN_SOURCE\fP sont définies, exposer les définitions
+correspondant aux extensions XPG4v2 (SUSv1) d'UNIX (UNIX\ 95) Cette macro est
+également définie implicitement si \fB_XOPEN_SOURCE\fP est définie avec une
+valeur supérieure ou égale à 500.
+.TP 
+\fB_ISOC95_SOURCE\fP
+Exposer les définitions du premier amendement au C ISO (1990) (aussi appelé
+C95). Cette macro est reconnue depuis la glibc\ 2.12.\ La première
+modification de C95 était la prise en charge des jeux de caractères
+internationaux. Les modifications de C95 ont été intégrées à la norme C99
+qui a suivi (autrement dit, \fB_ISOC99_SOURCE\fP implique \fB_ISOC95_SOURCE\fP).
+.TP 
+\fB_ISOC99_SOURCE\fP
+Exposer les extensions C99 du C ISO (1990). Cette macro est reconnue depuis
+la glibc\ 2.1.3\ ; les versions antérieures de la glibc\ 2.1.x reconnaissaient
+une macro équivalent appelée \fB_ISOC9X_SOURCE\fP (parce que la norme C99
+n'était pas finalisée). Même si l'utilisation de cette dernière macro est à
+proscrire, la glibc continue à la reconnaître pour des raisons de
+compatibilité ascendante.
+.TP 
+\fB_ISOC11_SOURCE\fP
+Exposer des déclarations cohérentes avec la norme ISO C11. Cette macro est
+reconnue depuis glibc\ 2.16.
+.TP 
+\fB_LARGEFILE64_SOURCE\fP
+Exposer les définitions pour l'API alternative définie par le LFS («\ Large
+File Summit\ ») comme une extension de transition pour la «\ Single UNIX
+Specification\ ». Veuillez vous référer à
+.UR http:\:/\:/opengroup.org\:/platform\:/lfs.html
+.UE .
+L'API alternative
+consiste en un jeu de nouveaux objets (c'est\-à\-dire des fonctions et types)
+dont le nom en suffixé de «\ 64\ » (par exemple \fIoff64_t\fP pour \fIoff_t\fP,
+\fBlseek64\fP() pour \fBlseek\fP(), etc.). Les nouveaux programmes ne devraient
+pas utiliser ces interfaces\ ; à la place, \fI_FILE_OFFSET_BITS=64\fP devrait
+être utilisée.
+.TP 
+\fB_FILE_OFFSET_BITS\fP
+Définir cette macro à la valeur\ 64 convertit automatiquement les références
+aux fonctions et types de données 32\ bits liés aux E/S sur les fichiers et
+aux opérations sur le système de fichiers en références à leurs équivalents
+64\ bits. C'est utile pour les E/S sur des gros fichiers (> 2\ gigaoctets)
+sur les systèmes 32\ bits. Cette macro permet aux programmes correctement
+écrits d'utiliser de gros fichiers avec seulement une recompilation. Les
+systèmes 64\ bits permettent d'office d'utiliser des fichiers de taille
+supérieure à 2\ gigaoctets, et sur ces système cette macro n'a aucun effet.
+.TP 
+\fB_BSD_SOURCE\fP
+Si cette macro est définie, les définitions héritées de BSD sont exposées
+par les en\(hytêtes. De plus, les définitions BSD sont préférées dans les
+situations où les normes sont en conflit, à moins qu'une (ou plus) des
+macros \fB_SVID_SOURCE\fP, \fB_POSIX_SOURCE\fP, \fB_POSIX_C_SOURCE\fP,
+\fB_XOPEN_SOURCE\fP, \fB_XOPEN_SOURCE_EXTENDED\fP ou \fB_GNU_SOURCE\fP soit définie,
+auquel cas les définitions BSD sont défavorisées.
+.TP 
+\fB_SVID_SOURCE\fP
+Si cette macro est définie (quelle que soit sa valeur), les en\(hytêtes
+exposent les définitions héritées de System\ V. (SVID == System\ V Interface
+Definition\ ; consultez \fBstandards\fP(7).)
+.TP 
+\fB_ATFILE_SOURCE\fP (depuis la glibc\ 2.4)
+Si cette macro est définie (quelle que soit sa valeur), les en\-têtes
+exposent les définitions d'une série de fonction avec le suffixe «\ at\ »\ ;
+consultez \fBopenat\fP(2). Depuis glibc\ 2.10, cette macro est aussi définie de
+manière implicite si \fB_POSIX_C_SOURCE\fP est définie avec une valeur
+supérieure ou égale à 200809L.
+.TP 
+\fB_GNU_SOURCE\fP
+Définir cette macro (avec n'importe quelle valeur) est équivalent à définir
+\fB_BSD_SOURCE\fP, \fB_SVID_SOURCE\fP, \fB_ATFILE_SOURCE\fP, \fB_LARGEFILE64_SOURCE\fP,
+\fB_ISOC99_SOURCE\fP, \fB_XOPEN_SOURCE_EXTENDED\fP, \fB_POSIX_SOURCE\fP,
+\fB_POSIX_C_SOURCE\fP avec la valeur\ 200809L (200112L dans les versions de la
+glibc antérieures à 2.10\ ; 199506L dans les versions de la glibc antérieures
+à 2.5\ ; 199309L dans les versions de la glibc antérieures à 2.1), et
+\fB_XOPEN_SOURCE\fP avec la valeur\ 700 (600 dans les versions de la glibc
+antérieures à 2.10\ ; 500 dans les versions de la glibc antérieures à
+2.2). De plus, de nombreuses extensions spécifiques GNU sont exposées. Quand
+les normes se contredisent, les définitions BSD sont les moins prioritaires.
+.TP 
+\fB_REENTRANT\fP
+Définir cette macro rend accessibles les définitions de certaines fonctions
+réentrantes. Pour les programmes multithreadés, utilisez \fIcc\ \-pthread\fP à
+la place.
+.TP 
+\fB_THREAD_SAFE\fP
+Synonyme de \fB_REENTRANT\fP, fourni pour la compatibilité avec d'autres
+implémentations.
+.TP 
+\fB_FORTIFY_SOURCE\fP (depuis la glibc\ 2.3.4)
+.\" For more detail, see:
+.\" http://gcc.gnu.org/ml/gcc-patches/2004-09/msg02055.html
+.\" [PATCH] Object size checking to prevent (some) buffer overflows
+.\" * From: Jakub Jelinek <jakub at redhat dot com>
+.\" * To: gcc-patches at gcc dot gnu dot org
+.\" * Date: Tue, 21 Sep 2004 04:16:40 -0400
+Définir cette macro active certains tests peu coûteux pour détecter certains
+dépassements de tampons dans diverses fonctions de manipulation de chaînes
+ou de mémoire. Tous les dépassements de tampons ne sont pas détectés, mais
+uniquement certains cas fréquents. Actuellement, des vérifications sont
+ajoutées pour les appels à \fBmemcpy\fP(3), \fBmempcpy\fP(3), \fBmemmove\fP(3),
+\fBmemset\fP(3), \fBstpcpy\fP(3), \fBstrcpy\fP(3), \fBstrncpy\fP(3), \fBstrcat\fP(3),
+\fBstrncat\fP(3), \fBsprintf\fP(3), \fBsnprintf\fP(3), \fBvsprintf\fP(3),
+\fBvsnprintf\fP(3), et \fBgets\fP(3). Si \fB_FORTIFY_SOURCE\fP est défini à 1, avec
+un niveau d'optimisation de 1 ou plus (\fIgcc\ \-O1\fP), des vérifications sans
+influence sur le comportement des programmes corrects sont faites. Avec
+\fB_FORTIFY_SOURCE\fP défini à 2, des vérifications supplémentaires sont
+ajoutées, mais certains programmes conformes peuvent échouer. Certaines
+vérifications peuvent être effectuées à la compilation et génèrent des
+avertissements du compilateur\ ; d'autres ont lieu à l'exécution et causent
+une erreur si le test échoue. L'utilisation de cette macro nécessite une
+gestion par le compilateur, qui est disponible dans \fBgcc\fP(1) depuis la
+version\ 4.0.
+.SS "Définitions par défaut, définitions implicites et combinaison de définitions"
+.PP
+Si aucune macro de test de fonctionnalité n'est définie explicitement, alors
+les macros de test suivantes sont définies par défaut\ : \fB_BSD_SOURCE\fP,
+\fB_SVID_SOURCE\fP, \fB_POSIX_SOURCE\fP et \fB_POSIX_C_SOURCE\fP=200809L (200112L
+dans les versions de la glibc antérieures à 2.10\ ; 199506L dans les versions
+de la glibc antérieures à 2.4\ ; 199309L dans les versions de la glibc
+antérieures à ).
+.PP
+Si une des macros \fB__STRICT_ANSI__\fP, \fB_ISOC99_SOURCE\fP, \fB_POSIX_SOURCE\fP,
+\fB_POSIX_C_SOURCE\fP, \fB_XOPEN_SOURCE\fP, \fB_XOPEN_SOURCE_EXTENDED\fP,
+\fB_BSD_SOURCE\fP ou \fB_SVID_SOURCE\fP est définie explicitement, alors
+\fB_BSD_SOURCE\fP et \fB_SVID_SOURCE\fP ne sont pas définies par défaut.
+
+Si ni \fB_POSIX_SOURCE\fP ni \fB_POSIX_C_SOURCE\fP ne sont définies explicitement
+et que soit \fB__STRICT_ANSI__\fP n'est pas définie soit \fB_XOPEN_SOURCE\fP est
+définie à une valeur supérieure ou égale à 500, alors
+.RS 3
+.IP * 3
+\fB_POSIX_SOURCE\fP est définie à la valeur\ 1\ ; et
+.IP *
+\fB_POSIX_C_SOURCE\fP est définie avec une des valeurs suivantes\ :
+.RS 6
+.IP \(bu 3
+2, si \fBXOPEN_SOURCE\fP est définie avec une valeur inférieure à 500\ ;
+.IP \(bu
+199506L, si \fBXOPEN_SOURCE\fP est définie à une valeur supérieure ou égale à
+500 et inférieure à 600\ ; ou
+.IP \(bu
+(Depuis la glibc\ 2.4) 200112L, si \fBXOPEN_SOURCE\fP est définie à une valeur
+supérieure ou égale à 600 et inférieure à 700.
+.IP \(bu
+(Depuis la glibc\ 2.10) 200809L, si \fBXOPEN_SOURCE\fP est définie à une valeur
+supérieure ou égale à 700.
+.IP \(bu
+Les versions plus anciennes de la glibc ne connaissent pas les valeurs
+200112L et 200809L pour \fB_POSIX_C_SOURCE\fP, et la configuration de cette
+macro dépendra de la version de la glibc.
+.IP \(bu
+Si \fB_XOPEN_SOURCE\fP n'est pas défini, alors la configuration de
+\fB_POSIX_C_SOURCE\fP dépend de la version de la glibc\ : 199506L pour les
+version de la glibc antérieures à 2.4\ ; 200112L pour les glibc\ 2.4 à 2.9\ ;
+et 200809L depuis la glibc\ 2.10.
+.RE
+.RE
+.PP
+Plusieurs macros peuvent être définies\ ; les résultats sont additifs.
+.SH CONFORMITÉ
+POSIX.1 spécifie \fB_POSIX_C_SOURCE\fP, \fB_POSIX_SOURCE\fP et
+\fB_XOPEN_SOURCE\fP. \fB_XOPEN_SOURCE_EXTENDED\fP est spécifiée par XPG4v2 (alias
+SUSv1).
+
+\fB_FILE_OFFSET_BITS\fP n'est spécifiée par aucune norme, mais est utilisée par
+d'autres implémentations.
+
+\fB_BSD_SOURCE\fP, \fB_SVID_SOURCE\fP, \fB_ATFILE_SOURCE\fP, \fB_GNU_SOURCE\fP,
+\fB_FORTIFY_SOURCE\fP, \fB_REENTRANT\fP et \fB_THREAD_SAFE\fP sont spécifiques à
+Linux (glibc).
+.SH NOTES
+\fI<features.h>\fP est un fichier d'en\(hytête spécifique à
+Linux/glibc. D'autres systèmes ont un fichier similaire, mais typiquement
+sous un nom différent. Ce fichier est inclus automatiquement par les autres
+en\(hytêtes si nécessaire\ : il n'est pas nécessaire de l'inclure
+explicitement pour utiliser les macros de test de fonctionnalité.
+
+Selon quelles macros de test de fonctionnalité ci\(hydessus sont définies,
+\fI<features.h>\fP définit diverses autres macros qui sont testées par
+les en\(hytêtes de la glibc. Ces macros ont des noms préfixés par deux
+caractères underscore (par exemple \fB__USE_MISC\fP). Les programmes ne doivent
+\fIjamais\fP définir ces macros directement\ ; ils doivent utiliser les macros
+de test de fonctionnalité de la liste précédente.
+.SH EXEMPLE
+Le programme ci\-dessous peut être utilisé pour explorer comment les
+différentes macros de test de fonctionnalités sont configurées en fonction
+de la version de la glibc et quelle macros sont explicitement
+définies. L'exécution qui suit dans un interpréteur de commandes, sur un
+système avec la glibc\ 2.10, montre quelques exemples de ce qu'on peut voir\ :
+.in +4n
+.nf
+
+$ \fBcc ftm.c\fP
+$ \fB./a.out\fP
+_POSIX_SOURCE définie
+_POSIX_C_SOURCE définie\ : 200809L
+_BSD_SOURCE définie
+_SVID_SOURCE définie
+_ATFILE_SOURCE définie
+$ \fBcc \-D_XOPEN_SOURCE=500 ftm.c\fP
+$ \fB./a.out\fP
+_POSIX_SOURCE définie
+_POSIX_C_SOURCE définie\ : 199506L
+_XOPEN_SOURCE définie\ : 500
+$ \fBcc \-D_GNU_SOURCE ftm.c\fP
+$ \fB./a.out\fP
+_POSIX_SOURCE définie
+_POSIX_C_SOURCE définie\ : 200809L
+_ISOC99_SOURCE définie
+_XOPEN_SOURCE définie\ : 700
+_XOPEN_SOURCE_EXTENDED définie
+_LARGEFILE64_SOURCE définie
+_BSD_SOURCE définie
+_SVID_SOURCE définie
+_ATFILE_SOURCE définie
+_GNU_SOURCE définie
+.fi
+.in
+.SS "Source du programme"
+\&
+.nf
+/* ftm.c */
+
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+int
+main(int argc, char *argv[])
+{
+#ifdef _POSIX_SOURCE
+    printf("_POSIX_SOURCE définie\en");
+#endif
+
+#ifdef _POSIX_C_SOURCE
+    printf("_POSIX_C_SOURCE définie\ : %ldL\en", (long) _POSIX_C_SOURCE);
+#endif
+
+#ifdef _ISOC99_SOURCE
+    printf("_ISOC99_SOURCE définie\en");
+#endif
+
+#ifdef _XOPEN_SOURCE
+    printf("_XOPEN_SOURCE définie\ : %d\en", _XOPEN_SOURCE);
+#endif
+
+#ifdef _XOPEN_SOURCE_EXTENDED
+    printf("_XOPEN_SOURCE_EXTENDED définie\en");
+#endif
+
+#ifdef _LARGEFILE64_SOURCE
+    printf("_LARGEFILE64_SOURCE définie\en");
+#endif
+
+#ifdef _FILE_OFFSET_BITS
+    printf("_FILE_OFFSET_BITS définie\ : %d\en", _FILE_OFFSET_BITS);
+#endif
+
+#ifdef _BSD_SOURCE
+    printf("_BSD_SOURCE définie\en");
+#endif
+
+#ifdef _SVID_SOURCE
+    printf("_SVID_SOURCE définie\en");
+#endif
+
+#ifdef _ATFILE_SOURCE
+    printf("_ATFILE_SOURCE définie\en");
+#endif
+
+#ifdef _GNU_SOURCE
+    printf("_GNU_SOURCE définie\en");
+#endif
+
+#ifdef _REENTRANT
+    printf("_REENTRANT définie\en");
+#endif
+
+#ifdef _THREAD_SAFE
+    printf("_THREAD_SAFE définie\en");
+#endif
+
+#ifdef _FORTIFY_SOURCE
+    printf("_FORTIFY_SOURCE définie\en");
+#endif
+
+    exit(EXIT_SUCCESS);
+}
+.fi
+.SH "VOIR AUSSI"
+\fBlibc\fP(7), \fBstandards\fP(7)
+
+.\" But beware: the info libc document is out of date (Jul 07, mtk)
+La section «\ Feature Test Macros\ » de \fIinfo libc\fP.
+
+\fI/usr/include/features.h\fP
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

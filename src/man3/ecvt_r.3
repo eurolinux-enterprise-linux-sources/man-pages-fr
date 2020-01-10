@@ -1,0 +1,102 @@
+.\" Copyright (C) 2002 Andries Brouwer <aeb@cwi.nl>
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" This replaces an earlier man page written by Walter Harms
+.\" <walter.harms@informatik.uni-oldenburg.de>.
+.\"
+.\" Corrected return types; from Fabian; 2004-10-05
+.\"
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH ECVT_R 3 "26 juillet 2007" GNU "Manuel du programmeur Linux"
+.SH NOM
+ecvt_r, fcvt_r, qecvt_r, qfcvt_r \- Convertir un nombre flottant en chaîne de
+caractères
+.SH SYNOPSIS
+.nf
+\fB#include <stdlib.h>\fP
+.sp
+\fBint ecvt_r(double \fP\fInumber\fP\fB, int \fP\fIndigits\fP\fB, int *\fP\fIdecpt\fP\fB,\fP
+\fB           int *\fP\fIsign\fP\fB, char *\fP\fIbuf\fP\fB, size_t \fP\fIlen\fP\fB);\fP
+.sp
+\fBint fcvt_r(double \fP\fInumber\fP\fB, int \fP\fIndigits\fP\fB, int *\fP\fIdecpt\fP\fB,\fP
+\fB           int *\fP\fIsign\fP\fB, char *\fP\fIbuf\fP\fB, size_t \fP\fIlen\fP\fB);\fP
+.sp
+\fBint qecvt_r(long double \fP\fInumber\fP\fB, int \fP\fIndigits\fP\fB, int *\fP\fIdecpt\fP\fB,\fP
+\fB           int *\fP\fIsign\fP\fB, char *\fP\fIbuf\fP\fB, size_t \fP\fIlen\fP\fB);\fP
+.sp
+\fBint qfcvt_r(long double \fP\fInumber\fP\fB, int \fP\fIndigits\fP\fB, int *\fP\fIdecpt\fP\fB,\fP
+\fB           int *\fP\fIsign\fP\fB, char *\fP\fIbuf\fP\fB, size_t \fP\fIlen\fP\fB);\fP
+.fi
+.sp
+.in -4n
+Exigences de macros de test de fonctionnalités pour la glibc (consultez
+\fBfeature_test_macros\fP(7))\ :
+.in
+.sp
+.ad l
+\fBecvt_r\fP(), \fBfcvt_r\fP(), \fBqecvt_r\fP(), \fBqfcvt_r\fP()\ :
+.RS 4
+_SVID_SOURCE || _BSD_SOURCE || _XOPEN_SOURCE\ >=\ 500
+.RE
+.ad b
+.SH DESCRIPTION
+Les fonctions \fBecvt_r\fP(), \fBfcvt_r\fP(), \fBqecvt_r\fP() et \fBqfcvt_r\fP() sont
+respectivement identiques à \fBecvt\fP(3), \fBfcvt\fP(3), \fBqecvt\fP(3) et
+\fBqfcvt\fP(3), sauf qu'elles ne renvoient pas leurs résultats dans un tampon
+statique, mais utilisent à la place le tampon spécifié, \fIbuf\fP de longueur
+\fIlen\fP. Consultez \fBecvt\fP(3) et \fBqecvt\fP(3).
+.SH "VALEUR RENVOYÉE"
+Ces fonctions renvoient 0 si elles réussissent, \-1 sinon.
+.SH CONFORMITÉ
+Ces fonctions sont des extensions GNU.
+.SH NOTES
+Ces fonctions sont obsolètes. L'utilisation de \fBsprintf\fP(3) est recommandée
+à la place de ces fonctions.
+.SH "VOIR AUSSI"
+\fBecvt\fP(3), \fBqecvt\fP(3), \fBsprintf\fP(3)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Thierry Vignaud (2002),
+Alain Portal <http://manpagesfr.free.fr/>\ (2006).
+Florentin Duneau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».

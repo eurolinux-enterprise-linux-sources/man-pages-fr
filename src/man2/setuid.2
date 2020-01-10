@@ -1,0 +1,117 @@
+.\" Copyright (C), 1994, Graeme W. Wilford (Wilf).
+.\"
+.\" %%%LICENSE_START(VERBATIM)
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Since the Linux kernel and libraries are constantly changing, this
+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
+.\" responsibility for errors or omissions, or for damages resulting from
+.\" the use of the information contained herein.  The author(s) may not
+.\" have taken the same level of care in the production of this manual,
+.\" which is licensed free of charge, as they might when working
+.\" professionally.
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" %%%LICENSE_END
+.\"
+.\" Fri Jul 29th 12:56:44 BST 1994  Wilf. <G.Wilford@ee.surrey.ac.uk>
+.\" Changes inspired by patch from Richard Kettlewell
+.\"   <richard@greenend.org.uk>, aeb 970616.
+.\" Modified, 27 May 2004, Michael Kerrisk <mtk.manpages@gmail.com>
+.\"     Added notes on capability requirements
+.\"*******************************************************************
+.\"
+.\" This file was generated with po4a. Translate the source file.
+.\"
+.\"*******************************************************************
+.TH SETUID 2 "22 novembre 2010" Linux "Manuel du programmeur Linux"
+.SH NOM
+setuid \- Définir l'identifiant de l'utilisateur
+.SH SYNOPSIS
+\fB#include <sys/types.h>\fP
+.br
+\fB#include <unistd.h>\fP
+.sp
+\fBint setuid(uid_t \fP\fIuid\fP\fB);\fP
+.SH DESCRIPTION
+\fBsetuid\fP() définit l'UID effectif du processus appelant. Si cet UID
+effectif est celui du superutilisateur, les UID réels et sauvés sont
+également définis.
+.PP
+Sous Linux \fBsetuid\fP() est implémenté comme le spécifie POSIX, avec l'option
+\fB_POSIX_SAVED_IDS\fP. Ceci permet à un programme Set\-UID (autre que root)
+d'abandonner tous ses privilèges, d'effectuer des tâches non privilégiées,
+et de retrouver son UID effectif de manière sécurisée.
+.PP
+Si l'utilisateur est le superutilisateur, ou si le programme est Set\-UID
+root, des précautions particulières doivent être prises. La fonction
+\fBsetuid\fP() vérifie l'UID effectif de l'appelant et si c'est le
+superutilisateur, tous les UID du processus sont mis à \fIuid\fP. Une fois ceci
+effectué, il est impossible au programme de retrouver ses privilèges de
+superutilisateur.
+.PP
+Ainsi un programme Set\-UID root désireux d'abandonner temporairement ses
+privilèges, en prenant l'identité d'un utilisateur ordinaire, puis de
+récupérer ses privilèges par la suite ne doit pas utiliser \fBsetuid\fP(). On
+peut accomplir ceci en utilisant l'appel \fBseteuid\fP(2).
+.SH "VALEUR RENVOYÉE"
+S'il réussit, cet appel système renvoie 0. S'il échoue, il renvoie \-1 et
+remplit \fIerrno\fP en conséquence.
+.SH ERREURS
+.TP 
+\fBEAGAIN\fP
+\fIuid\fP ne correspond pas à l'UID courant et \fIuid\fP porterait le processus
+au\-delà de sa limite \fBRLIMIT_NPROC\fP.
+.TP 
+\fBEPERM\fP
+L'utilisateur n'est pas privilégié (sous Linux\ : n'a pas la capacité
+\fBCAP_SETUID\fP) et \fIuid\fP ne correspond ni à l'UID réel, ni au set\-uid sauvé
+du processus.
+.SH CONFORMITÉ
+.\" SVr4 documents an additional EINVAL error condition.
+SVr4, POSIX.1\-2001. Pas tout à fait compatible avec l'appel système BSD\ 4.4, qui positionne l'ensemble des ID réel, sauvé et effectif.
+.SH NOTES
+Linux dispose d'un concept d'UID de système de fichiers, qui est normalement
+égal à l'UID effectif. L'appel \fBsetuid\fP() définit également l'UID de
+système de fichiers du processus appelant. Consultez \fBsetfsuid\fP(2).
+.PP
+Si l'\fIuid\fP est différent de l'ancien UID effectif, le processus ne pourra
+pas laisser d'image mémoire (core dump) sur le disque.
+
+L'appel système \fBsetuid\fP() original de Linux ne gérait que des identifiants
+d'utilisateur sur 16\ bits. En conséquence, Linux\ 2.4 a ajouté \fBsetuid32\fP()
+qui prend en charge des identifiants 32\ bits. La fonction \fBsetuid\fP() de la
+glibc qui l'encapsule gère de manière transparente ces différences entre
+noyaux.
+.SH "VOIR AUSSI"
+\fBgetuid\fP(2), \fBseteuid\fP(2), \fBsetfsuid\fP(2), \fBsetreuid\fP(2),
+\fBcapabilities\fP(7), \fBcredentials\fP(7)
+.SH COLOPHON
+Cette page fait partie de la publication 3.52 du projet \fIman\-pages\fP
+Linux. Une description du projet et des instructions pour signaler des
+anomalies peuvent être trouvées à l'adresse
+\%http://www.kernel.org/doc/man\-pages/.
+.SH TRADUCTION
+Depuis 2010, cette traduction est maintenue à l'aide de l'outil
+po4a <http://po4a.alioth.debian.org/> par l'équipe de
+traduction francophone au sein du projet perkamon
+<http://perkamon.alioth.debian.org/>.
+.PP
+Christophe Blaess <http://www.blaess.fr/christophe/> (1996-2003),
+Alain Portal <http://manpagesfr.free.fr/> (2003-2006).
+Julien Cristau et l'équipe francophone de traduction de Debian\ (2006-2009).
+.PP
+Veuillez signaler toute erreur de traduction en écrivant à
+<perkamon\-fr@traduc.org>.
+.PP
+Vous pouvez toujours avoir accès à la version anglaise de ce document en
+utilisant la commande
+«\ \fBLC_ALL=C\ man\fR \fI<section>\fR\ \fI<page_de_man>\fR\ ».
